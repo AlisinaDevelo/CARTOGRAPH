@@ -15,7 +15,7 @@ node scripts/github-roadmap.mjs plan --repo OWNER/REPO
 node scripts/github-roadmap.mjs apply --repo OWNER/REPO --confirm
 ```
 
-`validate` is fully offline. `plan` reads the repository's current labels, milestones, and issues through the GitHub CLI (`gh`) and emits create/update/noop operations without writing. `apply` is the only mutating command and requires the explicit `--confirm` flag; it uses rate-spaced `gh api` calls with argument arrays, stable HTML markers, and a second pass to replace dependency IDs with issue links.
+`validate` is fully offline. `plan` reads the repository's current labels, milestones, and issues through the GitHub CLI (`gh`) and emits create/update/noop operations without writing. `apply` is the only mutating command and requires the explicit `--confirm` flag; it uses rate-spaced `gh api` calls with argument arrays, stable HTML markers, a bounded post-write verification retry for eventual visibility, and a second pass to replace dependency IDs with issue links. Marker, duplicate, and ownership collisions remain fail-closed.
 
 The CLI manages only configured label names, marked milestones, and marked issues already bound to one of those managed milestones. That milestone binding prevents a public issue author from claiming ownership with copied marker text alone. Other issues and milestones are left alone. It never deletes unrelated resources, resets a worktree, invokes a shell, or accepts a token/secret as a command-line argument.
 

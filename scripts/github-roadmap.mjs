@@ -16,6 +16,8 @@ const EXPECTED_ISSUES = 48;
 const MAX_GH_OUTPUT_BYTES = 4 * 1024 * 1024;
 const GH_TIMEOUT_MS = 30_000;
 const GH_MUTATION_INTERVAL_MS = 1_050;
+const POST_APPLY_VERIFY_MAX_ATTEMPTS = 5;
+const POST_APPLY_VERIFY_RETRY_DELAY_MS = 500;
 const ALLOWED_LABEL_CATEGORIES = new Set(["area", "type", "priority"]);
 const ALLOWED_PRIORITIES = new Set(["P0", "P1", "P2"]);
 const ALLOWED_STATES = new Set(["open"]);
@@ -973,9 +975,62 @@ async function ghMutation(method, endpoint, payload, context) {
   );
 }
 
+function isRetryablePostApplyVerificationError(error) {
+  if (!(error instanceof Error)) return false;
+  return (
+    /^managed (?:milestone|issue) .+ was not found after first pass$/u.test(
+      error.message,
+    ) ||
+    /^remote issue is not bound to a managed milestone for .+$/u.test(
+      error.message,
+    )
+  );
+}
+
+function verifyPostApplyState(manifest, refreshed) {
+  const refreshedMilestones = managedMilestones(manifest, refreshed.milestones);
+  for (const milestone of manifest.milestones) {
+    if (!refreshedMilestones.get(milestone.id)) {
+      throw new Error(
+        `managed milestone ${milestone.id} was not found after first pass`,
+      );
+    }
+  }
+
+  const refreshedIssues = managedIssues(
+    manifest,
+    refreshed.issues,
+    managedMilestoneNumbers(refreshedMilestones),
+  );
+  const refreshedNumbers = issueNumberMap(manifest, refreshedIssues);
+  for (const issue of manifest.issues) {
+    const remote = refreshedIssues.get(issue.id);
+    if (!remote)
+      throw new Error(
+        `managed issue ${issue.id} was not found after first pass`,
+      );
+    const milestone = manifest.milestones.find(
+      (candidate) => candidate.id === issue.milestone,
+    );
+    if (!milestone) {
+      throw new Error(
+        `managed milestone ${issue.milestone} is not in manifest`,
+      );
+    }
+  }
+
+  return { refreshedIssues, refreshedMilestones, refreshedNumbers };
+}
+
 async function applyPlan(manifest, repo, initialState, runtime = {}) {
   const mutate = runtime.mutate ?? ghMutation;
   const discover = runtime.fetchState ?? fetchGithubState;
+  const pause =
+    runtime.pause ??
+    ((milliseconds) =>
+      new Promise((resolvePromise) =>
+        setTimeout(resolvePromise, milliseconds),
+      ));
   const applied = [];
   const labelByName = labelMap(initialState.labels);
   const milestoneById = managedMilestones(manifest, initialState.milestones);
@@ -1163,28 +1218,33 @@ async function applyPlan(manifest, repo, initialState, runtime = {}) {
     }
   }
 
-  const refreshed = await discover(repo);
-  const refreshedMilestones = managedMilestones(manifest, refreshed.milestones);
-  const refreshedIssues = managedIssues(
-    manifest,
-    refreshed.issues,
-    managedMilestoneNumbers(refreshedMilestones),
-  );
-  const refreshedNumbers = issueNumberMap(manifest, refreshedIssues);
+  let verified;
+  for (
+    let attempt = 0;
+    attempt < POST_APPLY_VERIFY_MAX_ATTEMPTS;
+    attempt += 1
+  ) {
+    try {
+      verified = verifyPostApplyState(manifest, await discover(repo));
+      break;
+    } catch (error) {
+      if (
+        !isRetryablePostApplyVerificationError(error) ||
+        attempt === POST_APPLY_VERIFY_MAX_ATTEMPTS - 1
+      ) {
+        throw error;
+      }
+      await pause(POST_APPLY_VERIFY_RETRY_DELAY_MS);
+    }
+  }
+
+  if (!verified) throw new Error("post-apply verification did not complete");
+  const { refreshedIssues, refreshedNumbers } = verified;
   for (const issue of manifest.issues) {
     const remote = refreshedIssues.get(issue.id);
     const milestone = manifest.milestones.find(
       (candidate) => candidate.id === issue.milestone,
     );
-    if (!remote)
-      throw new Error(
-        `managed issue ${issue.id} was not found after first pass`,
-      );
-    if (!milestone || !refreshedMilestones.get(milestone.id)) {
-      throw new Error(
-        `managed milestone ${issue.milestone} was not found after first pass`,
-      );
-    }
     const desiredBody = bodyForIssue(
       issue,
       milestone,

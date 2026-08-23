@@ -408,6 +408,69 @@ test("apply creates dependency IDs first, links them in a second pass, and rerun
   assert.ok(second.every((operation) => operation.action === "noop"));
 });
 
+test("apply retries post-write discovery for an eventually visible issue", async () => {
+  const fake = createFakeGithub();
+  const pauses = [];
+  let discoveries = 0;
+  const firstIssueTitle = issueTitle(testManifest.issues[0]);
+  const fetchState = async () => {
+    discoveries += 1;
+    const state = clone(fake.state);
+    if (discoveries === 1) {
+      state.issues = state.issues.filter(
+        (issue) => issue.title !== firstIssueTitle,
+      );
+    }
+    return state;
+  };
+
+  const first = await applyPlan(testManifest, "OWNER/REPO", emptyState(), {
+    mutate: fake.mutate,
+    fetchState,
+    pause: async (milliseconds) => pauses.push(milliseconds),
+  });
+
+  assert.equal(discoveries, 2);
+  assert.deepEqual(pauses, [500]);
+  assert.ok(first.some((operation) => operation.action === "update"));
+
+  const callCountAfterFirst = fake.calls.length;
+  const second = await applyPlan(
+    testManifest,
+    "OWNER/REPO",
+    clone(fake.state),
+    fake,
+  );
+  assert.equal(fake.calls.length, callCountAfterFirst);
+  assert.ok(second.every((operation) => operation.action === "noop"));
+});
+
+test("apply fails closed after bounded retries when a managed issue stays missing", async () => {
+  const fake = createFakeGithub();
+  const pauses = [];
+  let discoveries = 0;
+  const firstIssueTitle = issueTitle(testManifest.issues[0]);
+
+  await assert.rejects(
+    applyPlan(testManifest, "OWNER/REPO", emptyState(), {
+      mutate: fake.mutate,
+      fetchState: async () => {
+        discoveries += 1;
+        const state = clone(fake.state);
+        state.issues = state.issues.filter(
+          (issue) => issue.title !== firstIssueTitle,
+        );
+        return state;
+      },
+      pause: async (milliseconds) => pauses.push(milliseconds),
+    }),
+    /managed issue T-001 was not found after first pass/,
+  );
+
+  assert.equal(discoveries, 5);
+  assert.deepEqual(pauses, [500, 500, 500, 500]);
+});
+
 test("the production issue order makes fresh dependency-body pass a noop", async () => {
   const freshPlan = buildPlan(manifest, emptyState(), "OWNER/REPO");
   assert.equal(
