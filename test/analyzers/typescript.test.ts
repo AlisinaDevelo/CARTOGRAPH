@@ -1,0 +1,251 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { describe, expect, it } from "vitest";
+
+import { parseGraphSnapshot } from "../../src/core/index.js";
+import { analyzeTypeScriptRepository } from "../../src/analyzers/typescript.js";
+
+const fixtureRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../fixtures/typescript-express",
+);
+const exclusionsRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../fixtures/exclusions",
+);
+const regressionsRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../fixtures/review-regressions",
+);
+const outsideImportRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../fixtures/outside-import/project",
+);
+
+describe("TypeScript analyzer", () => {
+  it("matches the manually asserted fixture relationships", () => {
+    const expected = JSON.parse(
+      readFileSync(resolve(fixtureRoot, "expected.json"), "utf8"),
+    ) as {
+      diagnostics: string[];
+      edges: [string, string, string][];
+    };
+    const snapshot = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: fixtureRoot }),
+    );
+    const edges = snapshot.edges.map(
+      (edge) => [edge.kind, edge.from, edge.to] as [string, string, string],
+    );
+
+    expect(
+      [...edges].sort((left, right) =>
+        JSON.stringify(left).localeCompare(JSON.stringify(right)),
+      ),
+    ).toEqual(
+      [...expected.edges].sort((left, right) =>
+        JSON.stringify(left).localeCompare(JSON.stringify(right)),
+      ),
+    );
+    expect(
+      [
+        ...new Set(snapshot.diagnostics.map((diagnostic) => diagnostic.code)),
+      ].sort(),
+    ).toEqual(expected.diagnostics);
+    expect(snapshot.diagnostics).toHaveLength(5);
+  });
+
+  it("extracts a local import and a semantically resolved call", () => {
+    const snapshot = analyzeTypeScriptRepository({ rootDir: fixtureRoot });
+    const edgeKeys = snapshot.edges.map(
+      (edge) => `${edge.kind}:${edge.from}->${edge.to}`,
+    );
+
+    expect(edgeKeys).toContain(
+      "imports:module:src/entry.ts->module:src/modules.ts",
+    );
+    expect(edgeKeys).toContain(
+      "calls:function:src/modules.ts:loadUsers->function:src/modules.ts:makeUsers",
+    );
+  });
+
+  it("keeps output deterministic", () => {
+    const first = analyzeTypeScriptRepository({ rootDir: fixtureRoot });
+    const second = analyzeTypeScriptRepository({ rootDir: fixtureRoot });
+
+    expect(JSON.stringify(first)).toBe(JSON.stringify(second));
+  });
+
+  it("attaches portable, hashed evidence to every edge and diagnostic", () => {
+    const snapshot = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: fixtureRoot }),
+    );
+
+    for (const edge of snapshot.edges) {
+      expect(edge.evidence.length).toBeGreaterThan(0);
+      for (const evidence of edge.evidence) {
+        expect(evidence.kind).toBe("source");
+        expect(evidence.path).not.toMatch(/^\//u);
+        expect(evidence.detector).toMatch(
+          /^cartograph\.typescript-express@1\/(?:call|diagnostic|express-route|http|import|prisma)$/u,
+        );
+        expect(evidence.contentHash).toMatch(/^[0-9a-f]{64}$/u);
+      }
+    }
+
+    for (const diagnostic of snapshot.diagnostics) {
+      expect(diagnostic.location?.path).not.toMatch(/^\//u);
+      expect(diagnostic.evidence[0]?.contentHash).toMatch(/^[0-9a-f]{64}$/u);
+    }
+  });
+
+  it("marks convention-based framework bindings as inferred", () => {
+    const snapshot = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: fixtureRoot }),
+    );
+    const routeEdge = snapshot.edges.find(
+      (edge) =>
+        edge.from === "endpoint:GET:/users" &&
+        edge.to === "function:src/modules.ts:loadUsers",
+    );
+    const prismaEdge = snapshot.edges.find(
+      (edge) =>
+        edge.from === "function:src/services.ts:listOne" &&
+        edge.kind === "reads",
+    );
+    const axiosEdge = snapshot.edges.find(
+      (edge) =>
+        edge.from === "function:src/services.ts:remoteUser" &&
+        edge.kind === "requests",
+    );
+
+    expect(routeEdge?.confidence).toBe("inferred");
+    expect(prismaEdge?.confidence).toBe("inferred");
+    expect(axiosEdge?.confidence).toBe("inferred");
+  });
+
+  it("does not discover generated or dependency directories", () => {
+    const snapshot = analyzeTypeScriptRepository({ rootDir: exclusionsRoot });
+    const keys = snapshot.nodes.map((node) => node.stableKey);
+
+    expect(keys).toContain("module:src/real.ts");
+    expect(
+      keys.some((key) => /(?:dist|build|coverage|node_modules)/u.test(key)),
+    ).toBe(false);
+  });
+
+  it("preserves ordinary local calls despite framework-like method names", () => {
+    const snapshot = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: regressionsRoot }),
+    );
+    const keys = snapshot.edges.map(
+      (edge) => `${edge.kind}:${edge.from}->${edge.to}`,
+    );
+
+    expect(keys).toContain(
+      "calls:function:src/shadowed.ts:ordinaryCalls->function:src/shadowed.ts:localFetch",
+    );
+    expect(keys).toContain(
+      "calls:function:src/shadowed.ts:ordinaryCalls->function:src/shadowed.ts:findMany",
+    );
+    expect(snapshot.edges.some((edge) => edge.kind === "requests")).toBe(false);
+    expect(
+      snapshot.diagnostics.some(
+        (diagnostic) =>
+          diagnostic.code === "UNSUPPORTED_DYNAMIC_HTTP_DESTINATION",
+      ),
+    ).toBe(false);
+  });
+
+  it("keeps same-name nested callables distinct by lexical scope", () => {
+    const snapshot = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: regressionsRoot }),
+    );
+    const keys = snapshot.nodes.map((node) => node.stableKey);
+
+    expect(keys).toContain("function:src/shadowed.ts:outerA.duplicate");
+    expect(keys).toContain("function:src/shadowed.ts:outerB.duplicate");
+    expect(snapshot.edges).toContainEqual(
+      expect.objectContaining({
+        from: "function:src/shadowed.ts:outerA",
+        to: "function:src/shadowed.ts:outerA.duplicate",
+      }),
+    );
+    expect(snapshot.edges).toContainEqual(
+      expect.objectContaining({
+        from: "function:src/shadowed.ts:outerB",
+        to: "function:src/shadowed.ts:outerB.duplicate",
+      }),
+    );
+  });
+
+  it("supports literal bracket Prisma operations and diagnoses dynamic ones", () => {
+    const snapshot = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: regressionsRoot }),
+    );
+
+    expect(snapshot.edges).toContainEqual(
+      expect.objectContaining({
+        from: "function:src/shadowed.ts:bracketRead",
+        kind: "reads",
+        to: "database_table:prisma:User",
+      }),
+    );
+    expect(
+      snapshot.diagnostics.some(
+        (diagnostic) => diagnostic.code === "UNSUPPORTED_DYNAMIC_PRISMA_MODEL",
+      ),
+    ).toBe(true);
+  });
+
+  it("recognizes constructed Prisma clients but rejects ordinary lookalikes", () => {
+    const snapshot = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: regressionsRoot }),
+    );
+
+    for (const caller of [
+      "constructedPrismaRead",
+      "qualifiedConstructedPrismaRead",
+    ]) {
+      expect(snapshot.edges).toContainEqual(
+        expect.objectContaining({
+          from: `function:src/shadowed.ts:${caller}`,
+          kind: "reads",
+          to: "database_table:prisma:User",
+          confidence: "inferred",
+        }),
+      );
+    }
+    expect(
+      snapshot.edges.some(
+        (edge) =>
+          edge.from === "function:src/shadowed.ts:ordinaryCalls" &&
+          edge.kind === "reads",
+      ),
+    ).toBe(false);
+    expect(
+      snapshot.edges.some(
+        (edge) =>
+          edge.from === "function:src/shadowed.ts:localPrismaLookalikeRead" &&
+          edge.kind === "reads",
+      ),
+    ).toBe(false);
+  });
+
+  it("does not resolve or serialize a relative import outside the root", () => {
+    const snapshot = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: outsideImportRoot }),
+    );
+    const serialized = JSON.stringify(snapshot);
+
+    expect(serialized).not.toContain("outside-sentinel");
+    expect(serialized).not.toContain("outside-source-secret");
+    expect(snapshot.nodes.map((node) => node.stableKey)).not.toContain(
+      "module:../outside-sentinel.ts",
+    );
+    expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+      "UNRESOLVED_IMPORT",
+    );
+  });
+});

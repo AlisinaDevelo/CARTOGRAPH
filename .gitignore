@@ -1,0 +1,21 @@
+node_modules/
+dist/
+coverage/
+.cartograph/
+.forge/
+*.tsbuildinfo
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# Keep generated-directory lookalikes used by exclusion regression fixtures.
+!test/fixtures/exclusions/build/
+!test/fixtures/exclusions/build/**
+!test/fixtures/exclusions/coverage/
+!test/fixtures/exclusions/coverage/**
+!test/fixtures/exclusions/dist/
+!test/fixtures/exclusions/dist/**
+!test/fixtures/exclusions/node_modules/
+!test/fixtures/exclusions/node_modules/**

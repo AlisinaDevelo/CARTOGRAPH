@@ -1,0 +1,15 @@
+# Release process
+
+CARTOGRAPH has not published an npm or GitHub release. This document is the proposed release gate; it is not evidence that a release pipeline exists.
+
+Before the first tagged release:
+
+1. Confirm package ownership and final package/brand naming.
+2. Run format, lint, typecheck, unit/integration tests, coverage, build, and a package dry-run from a clean checkout.
+3. Install the packed tarball in a temporary fixture and run `cartograph --version`, `cartograph --help`, a scan, and a diff.
+4. Validate schema compatibility, deterministic fixtures, and the declared support matrix.
+5. Review dependencies, pinned workflows, threat-model gates, and open security findings.
+6. Update `CHANGELOG.md`, version, migration notes, and checksums or provenance metadata.
+7. Create a signed or otherwise provenance-backed release only after publishing credentials use trusted publishing or an equally scoped mechanism.
+
+Generated `dist`, coverage, temporary repositories, reports, and package tarballs stay out of source commits.

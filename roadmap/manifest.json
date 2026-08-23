@@ -1,0 +1,1085 @@
+{
+  "schemaVersion": 1,
+  "project": "CARTOGRAPH",
+  "managedMarker": "cartograph",
+  "defaultIssueState": "open",
+  "milestones": [
+    {
+      "id": "Y1-Q1",
+      "title": "Year 1 Q1 — Contracts and safe foundation",
+      "description": "A contributor can install CARTOGRAPH, inspect the graph and evidence contract, and run a deterministic fixture scan. Exit gate: schema and evidence invariants are tested; the threat model is public; offline behavior is verified; clean-install CI passes.",
+      "state": "open"
+    },
+    {
+      "id": "Y1-Q2",
+      "title": "Year 1 Q2 — TypeScript/Express extraction",
+      "description": "Bounded TypeScript and Express repositories produce useful graphs with honest unsupported diagnostics. Exit gate: at least five curated fixtures; complete evidence on emitted edges; precision and recall reported by construct family; no silent dynamic edges.",
+      "state": "open"
+    },
+    {
+      "id": "Y1-Q3",
+      "title": "Year 1 Q3 — Reviewable revisions",
+      "description": "A maintainer can compare two revisions and inspect a self-contained static report. Exit gate: versioned JSON diff; golden tests; offline HTML report; documented CLI and exit behavior; initial performance baseline.",
+      "state": "open"
+    },
+    {
+      "id": "Y1-Q4",
+      "title": "Year 1 Q4 — CI and v0.1 adoption",
+      "description": "A repository can run CARTOGRAPH in a read-only GitHub Action and install a reproducible OSS release. Exit gate: fork-safe Action smoke test; three representative repository reports; package-install smoke test; quickstart and compatibility report; security review.",
+      "state": "open"
+    },
+    {
+      "id": "Y2-Q1",
+      "title": "Year 2 Q1 — Refactor-stable identity",
+      "description": "Ordinary line moves, file moves, and supported renames no longer appear as unrelated architecture objects. Exit gate: identity rules and ambiguity behavior documented; rename and move fixtures pass; snapshot migration path exists.",
+      "state": "open"
+    },
+    {
+      "id": "Y2-Q2",
+      "title": "Year 2 Q2 — Change-control policies",
+      "description": "Teams can express bounded graph constraints and choose informational or enforcing CI behavior. Exit gate: versioned local policy schema; deterministic evidence-linked violations; stable exit modes; measured false-positive fixtures; no remote policy dependency.",
+      "state": "open"
+    },
+    {
+      "id": "Y2-Q3",
+      "title": "Year 2 Q3 — ADR traceability",
+      "description": "Local architecture decisions can be linked to graph objects and reviewed beside changed evidence. Exit gate: stale and missing references detected; reports show decision status and evidence; workflow remains usable without a service.",
+      "state": "open"
+    },
+    {
+      "id": "Y2-Q4",
+      "title": "Year 2 Q4 — Extension contract",
+      "description": "External contributors can implement an adapter without changing the core. A second TypeScript framework proceeds only after a public selection RFC. Exit gate: adapter API, capability manifest, conformance kit, and support matrix are public; any new adapter meets the same quality gates.",
+      "state": "open"
+    },
+    {
+      "id": "Y3-Q1",
+      "title": "Year 3 Q1 — Language expansion gate",
+      "description": "CARTOGRAPH validates one bounded non-TypeScript adapter or records why language expansion should be deferred. Exit gate: language-neutral mapping contract tested; any pilot publishes conformance and unsupported coverage; no broad language claim.",
+      "state": "open"
+    },
+    {
+      "id": "Y3-Q2",
+      "title": "Year 3 Q2 — Runtime reconciliation experiment",
+      "description": "Users can optionally reconcile local OpenTelemetry observations with static edges without a hosted collector. Exit gate: local versioned input; deterministic classifications; synthetic-trace evaluation; secret and payload redaction tests; explicit opt-in.",
+      "state": "open"
+    },
+    {
+      "id": "Y3-Q3",
+      "title": "Year 3 Q3 — OSS hardening and community scale",
+      "description": "Larger repositories and new contributors receive predictable performance, security, upgrade, and support behavior. Exit gate: performance budgets; bounded fuzz/property suite; compatibility and deprecation policy; public adopter-feedback summary.",
+      "state": "open"
+    },
+    {
+      "id": "Y3-Q4",
+      "title": "Year 3 Q4 — Traction-based strategy gate",
+      "description": "The project chooses its next investment from evidence instead of assuming a hosted product is warranted. Exit gate: public OSS health scorecard and decision ADR. Hosted discovery requires explicit adoption, retention, privacy, and security gates; otherwise the roadmap remains OSS-focused.",
+      "state": "open"
+    }
+  ],
+  "labels": [
+    {
+      "name": "area:foundations",
+      "category": "area",
+      "description": "Project contracts, governance, and repository foundation",
+      "color": "1D4ED8"
+    },
+    {
+      "name": "area:core",
+      "category": "area",
+      "description": "Graph, evidence, identity, and shared contracts",
+      "color": "2563EB"
+    },
+    {
+      "name": "area:extractor",
+      "category": "area",
+      "description": "Source analysis and framework extraction",
+      "color": "0891B2"
+    },
+    {
+      "name": "area:diff",
+      "category": "area",
+      "description": "Revision orchestration and graph diffs",
+      "color": "0F766E"
+    },
+    {
+      "name": "area:report",
+      "category": "area",
+      "description": "Human and machine-readable reports",
+      "color": "15803D"
+    },
+    {
+      "name": "area:github",
+      "category": "area",
+      "description": "GitHub Action and repository integration",
+      "color": "4F46E5"
+    },
+    {
+      "name": "area:policy",
+      "category": "area",
+      "description": "Graph policy configuration and enforcement",
+      "color": "7C3AED"
+    },
+    {
+      "name": "area:adr",
+      "category": "area",
+      "description": "Architecture decision references and traceability",
+      "color": "9333EA"
+    },
+    {
+      "name": "area:ecosystem",
+      "category": "area",
+      "description": "Adapter API and language/framework ecosystem",
+      "color": "C026D3"
+    },
+    {
+      "name": "area:runtime",
+      "category": "area",
+      "description": "Runtime evidence and OpenTelemetry reconciliation",
+      "color": "BE123C"
+    },
+    {
+      "name": "area:quality",
+      "category": "area",
+      "description": "Evaluation, performance, and regression quality",
+      "color": "B45309"
+    },
+    {
+      "name": "type:feature",
+      "category": "type",
+      "description": "Product or implementation change",
+      "color": "0369A1"
+    },
+    {
+      "name": "type:test",
+      "category": "type",
+      "description": "Tests, fixtures, and evaluation",
+      "color": "166534"
+    },
+    {
+      "name": "type:docs",
+      "category": "type",
+      "description": "Documentation or public explanation",
+      "color": "475569"
+    },
+    {
+      "name": "type:security",
+      "category": "type",
+      "description": "Security or privacy work",
+      "color": "B91C1C"
+    },
+    {
+      "name": "type:release",
+      "category": "type",
+      "description": "Packaging, versioning, or release engineering",
+      "color": "92400E"
+    },
+    {
+      "name": "type:community",
+      "category": "type",
+      "description": "Community, adopter, or contributor work",
+      "color": "7E22CE"
+    },
+    {
+      "name": "type:governance",
+      "category": "type",
+      "description": "Decision records and project governance",
+      "color": "334155"
+    },
+    {
+      "name": "priority:P0",
+      "category": "priority",
+      "description": "Required for the target milestone",
+      "color": "DC2626"
+    },
+    {
+      "name": "priority:P1",
+      "category": "priority",
+      "description": "Planned after milestone-critical work",
+      "color": "EA580C"
+    },
+    {
+      "name": "priority:P2",
+      "category": "priority",
+      "description": "Stretch or deferred work",
+      "color": "64748B"
+    }
+  ],
+  "issues": [
+    {
+      "id": "F-001",
+      "title": "Publish product charter, support matrix, and non-goals",
+      "problemOutcome": "Scope ambiguity would cause premature framework expansion and misleading claims.",
+      "acceptanceCriteria": [
+        "Public charter identifies users, supported constructs, unknown semantics, versioning, success metrics, and explicit non-goals.",
+        "Support matrix has an owner and a documented review process."
+      ],
+      "dependencies": [],
+      "labels": [
+        "area:foundations",
+        "type:docs",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q1",
+      "state": "open"
+    },
+    {
+      "id": "F-002",
+      "title": "Complete threat model and privacy data-flow review",
+      "problemOutcome": "Source parsing, static reports, and fork pull requests create avoidable data and execution risk.",
+      "acceptanceCriteria": [
+        "Threat model covers CLI, parser inputs, report generation, GitHub tokens, fork pull requests, dependencies, path leakage, and optional traces.",
+        "Mitigations and security tests are mapped, and default network-offline behavior is verified."
+      ],
+      "dependencies": ["F-001"],
+      "labels": [
+        "area:foundations",
+        "type:security",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q1",
+      "state": "open"
+    },
+    {
+      "id": "F-003",
+      "title": "Establish installable TypeScript CLI/package skeleton",
+      "problemOutcome": "Contributors need a reproducible executable baseline.",
+      "acceptanceCriteria": [
+        "A clean checkout supports npm ci, tests, package creation, cartograph --help, and cartograph --version.",
+        "Supported LTS policy and stable top-level exit behavior are documented, and a no-op scan does not execute repository code."
+      ],
+      "dependencies": ["F-001"],
+      "labels": [
+        "area:foundations",
+        "type:feature",
+        "type:release",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q1",
+      "state": "open"
+    },
+    {
+      "id": "F-004",
+      "title": "Define and validate GraphSnapshot schema v0.1",
+      "problemOutcome": "Extractors and downstream tools need a shared, versioned contract.",
+      "acceptanceCriteria": [
+        "JSON Schema defines revision metadata, nodes, edges, evidence references, diagnostics, and schema version.",
+        "A validator rejects malformed snapshots, and representative fixtures are checked in."
+      ],
+      "dependencies": ["F-001"],
+      "labels": ["area:core", "type:feature", "type:docs", "priority:P0"],
+      "priority": "P0",
+      "milestone": "Y1-Q1",
+      "state": "open"
+    },
+    {
+      "id": "F-005",
+      "title": "Enforce evidence and provenance invariants",
+      "problemOutcome": "Architecture output is not trustworthy when edges cannot be traced to source evidence.",
+      "acceptanceCriteria": [
+        "Every emitted edge has evidence references or an explicit unresolved reason.",
+        "Evidence includes normalized path, span, extractor/version, confidence, and content hash; raw snippets are absent by default; invariant and redaction tests pass."
+      ],
+      "dependencies": ["F-002", "F-004"],
+      "labels": [
+        "area:core",
+        "type:feature",
+        "type:test",
+        "type:security",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q1",
+      "state": "open"
+    },
+    {
+      "id": "F-006",
+      "title": "Add public OSS contribution and security baseline",
+      "problemOutcome": "Contributors and reporters need predictable project norms.",
+      "acceptanceCriteria": [
+        "README, CONTRIBUTING, Code of Conduct, SECURITY policy, issue templates, support policy, and required CI checks are present.",
+        "Disclosure and dependency-update ownership are documented."
+      ],
+      "dependencies": ["F-001", "F-003"],
+      "labels": [
+        "area:foundations",
+        "type:docs",
+        "type:community",
+        "type:security",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y1-Q1",
+      "state": "open"
+    },
+    {
+      "id": "X-001",
+      "title": "Build safe TypeScript program loader",
+      "problemOutcome": "Scans need deterministic project discovery without executing project code.",
+      "acceptanceCriteria": [
+        "Loader handles documented tsconfig variants, project references, path aliases, and exclusions.",
+        "Dependency/build directories are excluded; tests prove no build scripts or arbitrary modules execute; file order is deterministic.",
+        "Default pre-v0.1 ceilings are 20,000 selected source files, 2 MiB per file, 64 MiB total selected source bytes, and 30 seconds wall-clock analysis; exceeding a ceiling fails closed with a diagnostic."
+      ],
+      "dependencies": ["F-002", "F-003", "F-004"],
+      "labels": [
+        "area:extractor",
+        "type:feature",
+        "type:test",
+        "type:security",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q2",
+      "state": "open"
+    },
+    {
+      "id": "X-002",
+      "title": "Extract TypeScript module/import/export edges",
+      "problemOutcome": "Module structure is the first useful architecture signal for TypeScript repositories.",
+      "acceptanceCriteria": [
+        "Supported import, export, re-export, and documented dynamic-import cases produce typed edges with source evidence.",
+        "Unsupported cases produce diagnostics, and golden snapshots are deterministic."
+      ],
+      "dependencies": ["F-005", "X-001"],
+      "labels": [
+        "area:extractor",
+        "area:core",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q2",
+      "state": "open"
+    },
+    {
+      "id": "X-003",
+      "title": "Extract bounded Express route, router, and middleware edges",
+      "problemOutcome": "Express architecture is often implicit in route registration and middleware chains.",
+      "acceptanceCriteria": [
+        "A documented subset of direct route, router, and middleware declarations is extracted.",
+        "Route and middleware evidence points to source spans; dynamic registration is reported as unknown; fixture outputs match expected edge sets."
+      ],
+      "dependencies": ["F-005", "X-001"],
+      "labels": ["area:extractor", "type:feature", "type:test", "priority:P0"],
+      "priority": "P0",
+      "milestone": "Y1-Q2",
+      "state": "open"
+    },
+    {
+      "id": "X-004",
+      "title": "Add explicit unsupported-construct diagnostics",
+      "problemOutcome": "Dynamic JavaScript patterns can produce false confidence if silently ignored or guessed.",
+      "acceptanceCriteria": [
+        "Stable diagnostic codes and severities exist.",
+        "Unsupported or dynamic constructs never silently emit confident edges; diagnostics appear in snapshots and later reports with actionable guidance."
+      ],
+      "dependencies": ["X-002", "X-003"],
+      "labels": [
+        "area:extractor",
+        "area:quality",
+        "type:feature",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q2",
+      "state": "open"
+    },
+    {
+      "id": "X-005",
+      "title": "Build extractor fixture corpus and evaluator",
+      "problemOutcome": "Architecture extraction needs measurable regression evidence rather than subjective screenshots.",
+      "acceptanceCriteria": [
+        "At least five curated fixtures cover simple modules, project references, routers, middleware, and dynamic or unsupported cases.",
+        "Expected edge sets are versioned; evaluator reports precision and recall by construct family; CI catches unexpected changes."
+      ],
+      "dependencies": ["F-005", "X-002", "X-003", "X-004"],
+      "labels": ["area:quality", "type:test", "type:feature", "priority:P0"],
+      "priority": "P0",
+      "milestone": "Y1-Q2",
+      "state": "open"
+    },
+    {
+      "id": "X-006",
+      "title": "Implement canonical snapshot validation and serialization",
+      "problemOutcome": "Non-deterministic ordering makes diffs noisy and undermines trust.",
+      "acceptanceCriteria": [
+        "Nodes, edges, diagnostics, paths, and metadata use canonical ordering and normalization.",
+        "Repeated runs produce byte-identical snapshots; invalid snapshots fail with actionable errors; normalized cross-platform fixtures agree."
+      ],
+      "dependencies": ["F-004", "F-005"],
+      "labels": [
+        "area:core",
+        "area:quality",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q2",
+      "state": "open"
+    },
+    {
+      "id": "D-001",
+      "title": "Add revision and base/head orchestration",
+      "problemOutcome": "Users need to compare commits without requiring a service.",
+      "acceptanceCriteria": [
+        "CLI accepts a working tree, two local Git refs, or two snapshot paths.",
+        "Implicit remote access is absent; dirty-tree behavior is documented; fixture tests cover base/head resolution failures.",
+        "Archive and materialization are bounded to 128 MiB archive output, 64 MiB extracted source, and a 30 second subprocess deadline; partial trees are cleaned up on every failure path."
+      ],
+      "dependencies": ["X-005", "X-006"],
+      "labels": ["area:diff", "area:core", "type:feature", "priority:P0"],
+      "priority": "P0",
+      "milestone": "Y1-Q3",
+      "state": "open"
+    },
+    {
+      "id": "D-002",
+      "title": "Define graph diff semantics",
+      "problemOutcome": "Reviewers need meaningful architectural changes rather than raw JSON differences.",
+      "acceptanceCriteria": [
+        "Diff classifies added and removed nodes and edges, changed nodes and edges, evidence changes, and unresolved diagnostics.",
+        "Results are deterministic, and golden fixtures cover each classification."
+      ],
+      "dependencies": ["D-001", "X-006"],
+      "labels": [
+        "area:diff",
+        "area:core",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q3",
+      "state": "open"
+    },
+    {
+      "id": "D-003",
+      "title": "Publish versioned machine-readable diff output",
+      "problemOutcome": "CI and future integrations need a stable API.",
+      "acceptanceCriteria": [
+        "JSON diff schema contains summary, revision metadata, changes, evidence references, and diagnostics.",
+        "Validator and compatibility fixtures exist, and output is stable across repeated runs."
+      ],
+      "dependencies": ["D-002"],
+      "labels": [
+        "area:diff",
+        "area:core",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q3",
+      "state": "open"
+    },
+    {
+      "id": "D-004",
+      "title": "Generate a self-contained static HTML report",
+      "problemOutcome": "Reviewers need a human-readable artifact without running a server.",
+      "acceptanceCriteria": [
+        "Report contains revision summary, changed edges, per-edge evidence, unsupported diagnostics, and tool/schema versions.",
+        "It makes no external requests; basic keyboard navigation and semantic headings are tested.",
+        "Report generation enforces ceilings of 10,000 nodes, 20,000 edges, 5,000 diagnostics, and 16 MiB output; over-limit reports fail with an actionable diagnostic rather than silently truncating."
+      ],
+      "dependencies": ["D-003"],
+      "labels": [
+        "area:report",
+        "type:feature",
+        "type:test",
+        "type:security",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q3",
+      "state": "open"
+    },
+    {
+      "id": "D-005",
+      "title": "Stabilize CLI commands, errors, and exit behavior",
+      "problemOutcome": "Scripts and developers need predictable invocation and failure semantics.",
+      "acceptanceCriteria": [
+        "Supported commands, stdout and stderr rules, JSON mode, configuration errors, analysis errors, and exit codes are documented and tested.",
+        "Logs do not include secret values by default."
+      ],
+      "dependencies": ["D-001", "D-003", "F-003"],
+      "labels": [
+        "area:core",
+        "area:diff",
+        "type:feature",
+        "type:docs",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y1-Q3",
+      "state": "open"
+    },
+    {
+      "id": "D-006",
+      "title": "Add correctness, determinism, and benchmark regression CI",
+      "problemOutcome": "New extractors and reports can silently reduce quality or performance.",
+      "acceptanceCriteria": [
+        "CI runs fixture correctness, determinism, schema, and performance checks; a baseline is recorded.",
+        "Releases are blocked for evidence or schema regressions or unexplained performance regressions above 20%."
+      ],
+      "dependencies": ["X-005", "D-002", "D-004"],
+      "labels": ["area:quality", "type:test", "type:release", "priority:P1"],
+      "priority": "P1",
+      "milestone": "Y1-Q3",
+      "state": "open"
+    },
+    {
+      "id": "R-001",
+      "title": "Ship a read-only GitHub Action with report artifact",
+      "problemOutcome": "Maintainers need pull-request-level architecture visibility.",
+      "acceptanceCriteria": [
+        "Action analyzes base and head on a pull request, emits a concise summary, and uploads the static report artifact.",
+        "An example workflow works on a fixture repository, and initial mode is informational."
+      ],
+      "dependencies": ["D-004", "D-005"],
+      "labels": ["area:github", "area:report", "type:feature", "priority:P0"],
+      "priority": "P0",
+      "milestone": "Y1-Q4",
+      "state": "open"
+    },
+    {
+      "id": "R-002",
+      "title": "Harden Action permissions and fork-PR behavior",
+      "problemOutcome": "CI analysis must not expose secrets or grant write access to untrusted changes.",
+      "acceptanceCriteria": [
+        "Workflow uses least-privilege permissions; fork pull request behavior is documented and tested.",
+        "Dependency or action pinning and update policy are documented; no secrets are passed to analyzer processes; actionlint or equivalent checks pass."
+      ],
+      "dependencies": ["F-002", "R-001"],
+      "labels": ["area:github", "type:security", "type:test", "priority:P0"],
+      "priority": "P0",
+      "milestone": "Y1-Q4",
+      "state": "open"
+    },
+    {
+      "id": "R-003",
+      "title": "Establish reproducible package and release pipeline",
+      "problemOutcome": "Users need trustworthy, repeatable releases.",
+      "acceptanceCriteria": [
+        "Tagging produces an installable package, changelog, checksums or equivalent artifact metadata, and package-install smoke test.",
+        "Versioning and rollback guidance are documented, and generated build output is excluded from source commits."
+      ],
+      "dependencies": ["D-006", "F-003"],
+      "labels": [
+        "area:foundations",
+        "type:release",
+        "type:security",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q4",
+      "state": "open"
+    },
+    {
+      "id": "R-004",
+      "title": "Publish quickstart, sample repository, and limitations guide",
+      "problemOutcome": "A technically correct tool can still fail adoption if its supported boundary is unclear.",
+      "acceptanceCriteria": [
+        "A clean checkout can reach its first report using the quickstart; sample repository demonstrates scan and diff.",
+        "Documentation covers privacy, unsupported constructs, configuration, troubleshooting, and Action use; links are checked in CI."
+      ],
+      "dependencies": ["D-004", "D-005", "F-006", "R-003"],
+      "labels": ["area:report", "type:docs", "type:community", "priority:P0"],
+      "priority": "P0",
+      "milestone": "Y1-Q4",
+      "state": "open"
+    },
+    {
+      "id": "R-005",
+      "title": "Run v0.1 compatibility review with representative repositories",
+      "problemOutcome": "Fixture success alone does not establish practical usefulness.",
+      "acceptanceCriteria": [
+        "At least three representative public repositories or recorded repository snapshots are analyzed.",
+        "A compatibility matrix records supported, unknown, and failed constructs; feedback and follow-up issues are published without exposing source."
+      ],
+      "dependencies": ["D-006", "R-001", "R-004"],
+      "labels": ["area:quality", "type:community", "type:test", "priority:P1"],
+      "priority": "P1",
+      "milestone": "Y1-Q4",
+      "state": "open"
+    },
+    {
+      "id": "P-001",
+      "title": "Implement stable graph identity across refactors",
+      "problemOutcome": "Path- or line-based identity creates noisy diffs during ordinary refactors.",
+      "acceptanceCriteria": [
+        "Identity rules are deterministic and documented; line moves preserve identity; supported rename and move cases preserve identity.",
+        "Ambiguous matches are reported rather than guessed, and identity fixtures pass."
+      ],
+      "dependencies": ["D-002", "X-006"],
+      "labels": [
+        "area:core",
+        "area:diff",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y2-Q1",
+      "state": "open"
+    },
+    {
+      "id": "P-002",
+      "title": "Add snapshot and identity migration tooling",
+      "problemOutcome": "Schema and identity evolution otherwise breaks stored artifacts.",
+      "acceptanceCriteria": [
+        "Older supported snapshots are either migrated or rejected with actionable instructions; migration fixtures cover every supported version.",
+        "Default behavior does not destructively overwrite the source artifact, and upgrade documentation exists."
+      ],
+      "dependencies": ["F-004", "P-001", "R-003"],
+      "labels": [
+        "area:core",
+        "type:feature",
+        "type:release",
+        "type:docs",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y2-Q1",
+      "state": "open"
+    },
+    {
+      "id": "P-003",
+      "title": "Define a versioned local policy configuration",
+      "problemOutcome": "Teams need graph constraints without a hosted policy service.",
+      "acceptanceCriteria": [
+        "Local policy schema can express bounded node, edge, and diff constraints; configuration is versioned and validated.",
+        "Default behavior is informational; examples cover supported graph types; no remote policy fetching occurs."
+      ],
+      "dependencies": ["D-003", "P-001"],
+      "labels": [
+        "area:policy",
+        "area:core",
+        "type:feature",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y2-Q2",
+      "state": "open"
+    },
+    {
+      "id": "P-004",
+      "title": "Implement evidence-linked policy evaluation",
+      "problemOutcome": "A policy failure is only useful if reviewers can understand and verify it.",
+      "acceptanceCriteria": [
+        "Evaluator handles snapshots and diffs; every violation includes stable IDs, evidence references, reason, and policy rule.",
+        "Unsupported inputs follow explicit documented behavior, and results are deterministic."
+      ],
+      "dependencies": ["D-002", "D-003", "P-003"],
+      "labels": [
+        "area:policy",
+        "area:diff",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y2-Q2",
+      "state": "open"
+    },
+    {
+      "id": "P-005",
+      "title": "Add informational and enforcing CI modes",
+      "problemOutcome": "Teams need to adopt policies without being forced into immediate blocking checks.",
+      "acceptanceCriteria": [
+        "Informational mode reports violations and exits successfully; enforce mode returns documented nonzero statuses for violations and tool errors.",
+        "Action opt-in behavior is tested, and defaults are explicit."
+      ],
+      "dependencies": ["P-004", "R-001"],
+      "labels": [
+        "area:policy",
+        "area:github",
+        "area:core",
+        "type:feature",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y2-Q2",
+      "state": "open"
+    },
+    {
+      "id": "P-006",
+      "title": "Build policy regression and false-positive evaluation suite",
+      "problemOutcome": "Policy changes can create noisy or contradictory enforcement.",
+      "acceptanceCriteria": [
+        "Positive and negative fixtures cover each policy rule type; expected outcomes pass 100%.",
+        "Explanation and evidence regressions are detected, and baseline false-positive and false-negative counts are published for the suite."
+      ],
+      "dependencies": ["D-006", "P-004", "P-005"],
+      "labels": ["area:policy", "area:quality", "type:test", "priority:P1"],
+      "priority": "P1",
+      "milestone": "Y2-Q2",
+      "state": "open"
+    },
+    {
+      "id": "P-007",
+      "title": "Define and validate local ADR references",
+      "problemOutcome": "Architecture decisions drift away from the objects they govern.",
+      "acceptanceCriteria": [
+        "A versioned local ADR reference contract identifies file, title/status, and graph IDs.",
+        "Missing, stale, and malformed references are detected, and no ADR hosting service is required."
+      ],
+      "dependencies": ["F-006", "P-001"],
+      "labels": [
+        "area:adr",
+        "area:core",
+        "type:feature",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y2-Q3",
+      "state": "open"
+    },
+    {
+      "id": "P-008",
+      "title": "Render ADR links and evidence in reports",
+      "problemOutcome": "Reviewers need decisions and structural changes in the same artifact.",
+      "acceptanceCriteria": [
+        "Static reports show linked ADR title/status and evidence; diffs identify added, removed, and stale references.",
+        "The report remains self-contained and deterministic."
+      ],
+      "dependencies": ["D-004", "P-007"],
+      "labels": [
+        "area:adr",
+        "area:report",
+        "type:feature",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y2-Q3",
+      "state": "open"
+    },
+    {
+      "id": "P-009",
+      "title": "Document policy and ADR workflows",
+      "problemOutcome": "Users need a safe adoption path from observation to enforcement.",
+      "acceptanceCriteria": [
+        "Tutorial covers scan, diff, policy, ADR linking, review, migration, and limitations; examples run in CI.",
+        "Documentation links are checked, and no claim is made that ADR links prove architectural intent."
+      ],
+      "dependencies": ["P-003", "P-007", "P-008"],
+      "labels": [
+        "area:policy",
+        "area:adr",
+        "type:docs",
+        "type:community",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y2-Q3",
+      "state": "open"
+    },
+    {
+      "id": "E-001",
+      "title": "Publish adapter API and capability manifest",
+      "problemOutcome": "New frameworks should not require core changes or undocumented assumptions.",
+      "acceptanceCriteria": [
+        "Adapter interface covers source/config input, graph output, evidence, diagnostics, capability declaration, and compatibility version.",
+        "A sample adapter is documented, and adapter execution rules do not permit arbitrary repository code execution."
+      ],
+      "dependencies": ["F-004", "F-005", "P-001"],
+      "labels": [
+        "area:ecosystem",
+        "area:core",
+        "type:feature",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y2-Q4",
+      "state": "open"
+    },
+    {
+      "id": "E-002",
+      "title": "Build adapter conformance kit and documentation",
+      "problemOutcome": "An adapter ecosystem without shared quality gates would weaken trust.",
+      "acceptanceCriteria": [
+        "Test kit checks schema validity, determinism, evidence completeness, unsupported diagnostics, identity behavior, and performance.",
+        "Sample adapter passes, and versioning and failure semantics are documented."
+      ],
+      "dependencies": ["E-001", "P-002", "X-005"],
+      "labels": [
+        "area:ecosystem",
+        "area:quality",
+        "type:test",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y2-Q4",
+      "state": "open"
+    },
+    {
+      "id": "E-003",
+      "title": "Add one additional TypeScript framework adapter",
+      "problemOutcome": "Express-only support limits usefulness, but arbitrary framework expansion creates maintenance debt.",
+      "acceptanceCriteria": [
+        "Framework is selected through a public RFC based on demand, semantic fit, testability, and maintainer capacity.",
+        "Bounded support is documented; adapter passes conformance and publishes coverage and unknown metrics; core remains unchanged."
+      ],
+      "dependencies": ["E-001", "E-002", "R-005"],
+      "labels": [
+        "area:ecosystem",
+        "area:extractor",
+        "type:feature",
+        "type:community",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y2-Q4",
+      "state": "open"
+    },
+    {
+      "id": "E-004",
+      "title": "Separate language-neutral graph semantics from adapters",
+      "problemOutcome": "Language-specific assumptions would make later language support brittle.",
+      "acceptanceCriteria": [
+        "IR, identity, source mapping, evidence, and unknown semantics are documented independently of TypeScript.",
+        "Compatibility fixtures cover language metadata and source coordinates, and existing adapters remain valid."
+      ],
+      "dependencies": ["E-001", "E-002", "P-001"],
+      "labels": [
+        "area:ecosystem",
+        "area:core",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y3-Q1",
+      "state": "open"
+    },
+    {
+      "id": "E-006",
+      "title": "Publish adapter selection criteria and support matrix",
+      "problemOutcome": "Community demand must determine expansion rather than maintainers guessing at the next framework or language.",
+      "acceptanceCriteria": [
+        "Public RFC defines selection criteria, support expectations, ownership, and retirement rules.",
+        "Support matrix identifies implemented, experimental, deferred, and unsupported adapters; an explicit defer decision is acceptable."
+      ],
+      "dependencies": ["E-003", "E-004", "R-005"],
+      "labels": [
+        "area:ecosystem",
+        "type:docs",
+        "type:community",
+        "type:governance",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y3-Q1",
+      "state": "open"
+    },
+    {
+      "id": "E-005",
+      "title": "Pilot one bounded non-TypeScript adapter",
+      "problemOutcome": "Language expansion should be evidence-based and limited to constructs the project can evaluate.",
+      "acceptanceCriteria": [
+        "One language is selected through the published criteria; only a bounded high-value construct set is supported.",
+        "Adapter passes conformance, unsupported categories and precision/recall are reported, and no broad language-support claim is made."
+      ],
+      "dependencies": ["E-002", "E-004", "E-006"],
+      "labels": [
+        "area:ecosystem",
+        "area:quality",
+        "type:feature",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y3-Q1",
+      "state": "open"
+    },
+    {
+      "id": "O-001",
+      "title": "Add local OpenTelemetry import contract",
+      "problemOutcome": "Static graphs cannot explain which declared paths are actually observed at runtime.",
+      "acceptanceCriteria": [
+        "At least one documented local OpenTelemetry export format is accepted; spans are normalized into a versioned input contract.",
+        "No collector, upload, or network access is required, and invalid input fails safely."
+      ],
+      "dependencies": ["D-003", "E-001", "P-001"],
+      "labels": [
+        "area:runtime",
+        "type:feature",
+        "type:security",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y3-Q2",
+      "state": "open"
+    },
+    {
+      "id": "O-002",
+      "title": "Implement static/runtime edge reconciliation",
+      "problemOutcome": "Users need a cautious distinction between modeled, observed, unobserved, and ambiguous behavior.",
+      "acceptanceCriteria": [
+        "Reconciliation classifies observed-and-modeled, modeled-not-observed, observed-but-unmodeled, and ambiguous edges.",
+        "Results are deterministic; each classification points to static evidence and trace provenance; uncertainty is explicit."
+      ],
+      "dependencies": ["D-002", "O-001", "P-001"],
+      "labels": [
+        "area:runtime",
+        "area:core",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y3-Q2",
+      "state": "open"
+    },
+    {
+      "id": "O-003",
+      "title": "Add runtime data redaction and retention controls",
+      "problemOutcome": "Trace data may contain secrets, identifiers, headers, or request bodies.",
+      "acceptanceCriteria": [
+        "Runtime reconciliation is opt-in; default processing excludes payloads, headers, and arbitrary attributes.",
+        "Configurable redaction and retention behavior is documented; negative tests verify no sensitive values enter snapshots or reports; threat model is updated."
+      ],
+      "dependencies": ["F-002", "O-001"],
+      "labels": ["area:runtime", "type:security", "type:test", "priority:P0"],
+      "priority": "P0",
+      "milestone": "Y3-Q2",
+      "state": "open"
+    },
+    {
+      "id": "O-004",
+      "title": "Evaluate runtime reconciliation on synthetic traces",
+      "problemOutcome": "Runtime matching can appear useful while producing misleading classifications.",
+      "acceptanceCriteria": [
+        "Synthetic traces have known expected classifications; precision, recall, coverage, and ambiguity are reported.",
+        "Limitations and sampling caveats are documented; release gating is not enabled until the baseline is reviewed."
+      ],
+      "dependencies": ["O-002", "O-003", "X-005"],
+      "labels": [
+        "area:runtime",
+        "area:quality",
+        "type:test",
+        "type:docs",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y3-Q2",
+      "state": "open"
+    },
+    {
+      "id": "M-001",
+      "title": "Establish large-repository performance budgets",
+      "problemOutcome": "A useful analyzer becomes unusable if scan time or memory grows unpredictably.",
+      "acceptanceCriteria": [
+        "Small, medium, and large benchmark tiers are defined; p95 runtime, peak memory, report size, and fixture results are recorded.",
+        "No unexplained regression above 20% is accepted between releases."
+      ],
+      "dependencies": ["D-006", "R-005"],
+      "labels": ["area:quality", "type:test", "type:release", "priority:P0"],
+      "priority": "P0",
+      "milestone": "Y3-Q3",
+      "state": "open"
+    },
+    {
+      "id": "M-002",
+      "title": "Add bounded fuzz/property and security regression testing",
+      "problemOutcome": "Parsers, JSON snapshots, policy files, and adapters process untrusted input.",
+      "acceptanceCriteria": [
+        "Bounded fuzz or property suites cover TypeScript input, snapshot JSON, policy configuration, and adapter output.",
+        "Every discovered crash or security defect becomes a regression fixture, and CI has an explicit runtime budget."
+      ],
+      "dependencies": ["F-002", "X-001", "E-002", "O-001"],
+      "labels": ["area:quality", "type:test", "type:security", "priority:P0"],
+      "priority": "P0",
+      "milestone": "Y3-Q3",
+      "state": "open"
+    },
+    {
+      "id": "M-003",
+      "title": "Publish compatibility, upgrade, and maintenance policy",
+      "problemOutcome": "Users need to know what is supported and how schema or adapter changes are handled.",
+      "acceptanceCriteria": [
+        "Supported runtime and OS policy, semantic-versioning rules, deprecation policy, snapshot/policy/adapter compatibility, upgrade guidance, and maintenance ownership are documented.",
+        "CI checks version declarations."
+      ],
+      "dependencies": ["P-002", "R-003", "R-004"],
+      "labels": [
+        "area:foundations",
+        "type:docs",
+        "type:release",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y3-Q3",
+      "state": "open"
+    },
+    {
+      "id": "M-004",
+      "title": "Create a public adopter and contributor feedback loop",
+      "problemOutcome": "The roadmap should reflect observed user value and community capacity.",
+      "acceptanceCriteria": [
+        "Public RFC process, issue triage taxonomy, adopter feedback template, and anonymized feedback summary exist.",
+        "Feedback produces explicit backlog decisions, and no source or private telemetry is required."
+      ],
+      "dependencies": ["E-006", "F-006", "R-005"],
+      "labels": [
+        "type:community",
+        "type:docs",
+        "type:governance",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y3-Q3",
+      "state": "open"
+    },
+    {
+      "id": "M-005",
+      "title": "Publish an OSS health and traction scorecard",
+      "problemOutcome": "Hosted or team investment must not be justified by vanity metrics or assumptions.",
+      "acceptanceCriteria": [
+        "Scorecard defines external repositories with successful runs, repeat non-maintainer contributors, release stability, issue quality, maintainer load, security history, and retention or feedback measures.",
+        "Collection is transparent and does not add hidden telemetry."
+      ],
+      "dependencies": ["M-001", "M-004", "R-005"],
+      "labels": [
+        "type:community",
+        "type:test",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y3-Q4",
+      "state": "open"
+    },
+    {
+      "id": "M-006",
+      "title": "Record the hosted/team investment decision",
+      "problemOutcome": "The project needs an explicit boundary between OSS stewardship and a possible hosted product.",
+      "acceptanceCriteria": [
+        "Public ADR chooses OSS-only continuation or authorizes a separate hosted discovery phase.",
+        "Approval requires explicit traction and privacy/security gates; otherwise no hosted code, account system, or required telemetry is added; follow-up issues are created only if approved."
+      ],
+      "dependencies": ["F-002", "M-005", "P-009"],
+      "labels": [
+        "type:governance",
+        "type:security",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y3-Q4",
+      "state": "open"
+    }
+  ]
+}

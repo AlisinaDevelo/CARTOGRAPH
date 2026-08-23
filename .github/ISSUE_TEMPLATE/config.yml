@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/AlisinaDevelo/CARTOGRAPH/security/advisories/new
+    about: Use GitHub private vulnerability reporting when it is enabled; see SECURITY.md for the fallback.

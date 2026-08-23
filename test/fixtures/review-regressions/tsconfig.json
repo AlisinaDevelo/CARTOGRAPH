@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "paths": {
+      "@prisma/client": ["src/prisma-client.d.ts"]
+    },
+    "strict": true,
+    "target": "ES2023"
+  },
+  "include": ["src/**/*.ts"]
+}

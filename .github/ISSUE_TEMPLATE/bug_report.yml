@@ -1,0 +1,66 @@
+name: Bug report
+description: Report a reproducible problem in CARTOGRAPH.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include secrets, proprietary source code, private repository URLs, or personal data. For a security vulnerability, use the private reporting route in `SECURITY.md` instead.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and the result you expected.
+      placeholder: Tell us what went wrong and what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Provide the smallest public fixture, command, or steps that reproduce the problem.
+      placeholder: |
+        1. Run ...
+        2. Analyze ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: CARTOGRAPH version or commit
+      description: Provide the version or commit SHA you used.
+      placeholder: Unreleased main at ...
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Include the operating system, Node.js version, and package manager version.
+      placeholder: macOS 15, Node.js 24.x, npm 11.x
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: Paste relevant, redacted command output or diagnostics.
+      render: text
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I have searched existing issues.
+          required: true
+        - label: I have removed secrets and private information from this report.
+          required: true

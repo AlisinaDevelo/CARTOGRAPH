@@ -1,0 +1,45 @@
+export {
+  canonicalizeGraphSnapshot,
+  canonicalizeDiagnostic,
+  canonicalizeEvidence,
+  canonicalizeGraphEdge,
+  canonicalizeGraphNode,
+  createGraphSnapshot,
+  GraphContractError,
+  parseGraphSnapshot,
+  serializeGraphSnapshot,
+  stableStringify,
+} from "./canonical.js";
+export {
+  canonicalizeGraphDiff,
+  diffGraphSnapshots,
+  diffSnapshots,
+  parseGraphDiff,
+  serializeGraphDiff,
+} from "./diff.js";
+export {
+  DiagnosticSchema,
+  EvidenceSchema,
+  GraphDiffSchema,
+  GraphEdgeSchema,
+  GraphNodeSchema,
+  GraphSnapshotSchema,
+  RevisionSchema,
+  SourceLocationSchema,
+  GRAPH_DIFF_SCHEMA_VERSION,
+  GRAPH_SNAPSHOT_SCHEMA_VERSION,
+} from "./schemas.js";
+export type {
+  ChangedDiagnostic,
+  ChangedEdge,
+  ChangedNode,
+  Diagnostic,
+  Evidence,
+  FieldChange,
+  GraphDiff,
+  GraphEdge,
+  GraphNode,
+  GraphSnapshot,
+  Revision,
+  SourceLocation,
+} from "./schemas.js";

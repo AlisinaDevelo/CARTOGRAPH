@@ -1,0 +1,42 @@
+name: Feature request
+description: Propose a focused improvement to CARTOGRAPH.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The project prioritizes evidence-backed architecture analysis, deterministic output, and a useful local workflow. Requests should explain the problem and the measurable outcome.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem would this solve, and who experiences it?
+      placeholder: Describe the user, workflow, and current limitation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed outcome
+      description: Describe the smallest useful result, without prescribing an implementation unless it matters.
+      placeholder: A successful implementation would allow users to ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What workarounds or other approaches have you tried?
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I have searched existing issues and discussions.
+          required: true

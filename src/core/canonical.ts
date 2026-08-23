@@ -1,0 +1,184 @@
+import {
+  DiagnosticSchema,
+  GraphEdgeSchema,
+  GraphNodeSchema,
+  GraphSnapshotSchema,
+  type Diagnostic,
+  type Evidence,
+  type GraphEdge,
+  type GraphNode,
+  type GraphSnapshot,
+} from "./schemas.js";
+
+export type ContractErrorCode = "duplicate" | "conflict";
+
+export class GraphContractError extends Error {
+  readonly code: ContractErrorCode;
+
+  constructor(code: ContractErrorCode, message: string) {
+    super(message);
+    this.name = "GraphContractError";
+    this.code = code;
+  }
+}
+
+const compareStrings = (left: string, right: string): number => {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+};
+
+const canonicalValue = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(canonicalValue);
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const result: Record<string, unknown> = {};
+    for (const key of Object.keys(record).sort(compareStrings)) {
+      if (record[key] !== undefined) result[key] = canonicalValue(record[key]);
+    }
+    return result;
+  }
+  return value;
+};
+
+export const stableStringify = (value: unknown): string =>
+  JSON.stringify(canonicalValue(value)) ?? "null";
+
+export const canonicalizeEvidence = (
+  evidence: readonly Evidence[],
+): Evidence[] =>
+  deduplicateRecords(evidence, (record) => record.id, "evidence").sort(
+    (left, right) => compareStrings(left.id, right.id),
+  );
+
+export const canonicalizeGraphNode = (node: GraphNode): GraphNode =>
+  GraphNodeSchema.parse(node);
+
+export const canonicalizeGraphEdge = (edge: GraphEdge): GraphEdge =>
+  GraphEdgeSchema.parse({
+    ...edge,
+    evidence: canonicalizeEvidence(edge.evidence),
+  });
+
+export const canonicalizeDiagnostic = (diagnostic: Diagnostic): Diagnostic =>
+  DiagnosticSchema.parse({
+    ...diagnostic,
+    evidence: canonicalizeEvidence(diagnostic.evidence),
+  });
+
+const deduplicateRecords = <T>(
+  records: readonly T[],
+  identity: (record: T) => string,
+  label: string,
+): T[] => {
+  const seen = new Map<string, T>();
+  for (const record of records) {
+    const key = identity(record);
+    const existing = seen.get(key);
+    if (!existing) {
+      seen.set(key, record);
+      continue;
+    }
+
+    if (stableStringify(existing) !== stableStringify(record)) {
+      throw new GraphContractError(
+        "conflict",
+        `conflicting duplicate ${label} for identity ${key}`,
+      );
+    }
+  }
+  return [...seen.values()];
+};
+
+const canonicalNodes = (nodes: readonly GraphNode[]): GraphNode[] => {
+  const parsed = nodes.map(canonicalizeGraphNode);
+  const byStableKey = deduplicateRecords(
+    parsed,
+    (node) => node.stableKey,
+    "node",
+  );
+  const byId = new Map<string, GraphNode>();
+
+  for (const node of byStableKey) {
+    const existing = byId.get(node.id);
+    if (existing && existing.stableKey !== node.stableKey) {
+      throw new GraphContractError(
+        "conflict",
+        `conflicting duplicate node for identity ${node.id}`,
+      );
+    }
+    byId.set(node.id, node);
+  }
+
+  return byStableKey.sort((left, right) => {
+    const stableKeyOrder = compareStrings(left.stableKey, right.stableKey);
+    return stableKeyOrder === 0
+      ? compareStrings(left.id, right.id)
+      : stableKeyOrder;
+  });
+};
+
+const edgeIdentity = (edge: Pick<GraphEdge, "from" | "to" | "kind">): string =>
+  stableStringify([edge.from, edge.to, edge.kind]);
+
+const canonicalEdges = (edges: readonly GraphEdge[]): GraphEdge[] => {
+  const parsed = edges.map(canonicalizeGraphEdge);
+  return deduplicateRecords(parsed, edgeIdentity, "edge").sort((left, right) =>
+    compareStrings(edgeIdentity(left), edgeIdentity(right)),
+  );
+};
+
+const canonicalDiagnostics = (
+  diagnostics: readonly Diagnostic[],
+): Diagnostic[] =>
+  deduplicateRecords(
+    diagnostics.map(canonicalizeDiagnostic),
+    (diagnostic) => diagnostic.id,
+    "diagnostic",
+  ).sort((left, right) => compareStrings(left.id, right.id));
+
+const validateGlobalEvidenceIdentity = (
+  edges: readonly GraphEdge[],
+  diagnostics: readonly Diagnostic[],
+): void => {
+  const evidenceById = new Map<string, Evidence>();
+  const allEvidence = [
+    ...edges.flatMap((edge) => edge.evidence),
+    ...diagnostics.flatMap((diagnostic) => diagnostic.evidence),
+  ];
+
+  for (const evidence of allEvidence) {
+    const existing = evidenceById.get(evidence.id);
+    if (existing && stableStringify(existing) !== stableStringify(evidence)) {
+      throw new GraphContractError(
+        "conflict",
+        `conflicting duplicate evidence for identity ${evidence.id}`,
+      );
+    }
+    evidenceById.set(evidence.id, evidence);
+  }
+};
+
+export const canonicalizeGraphSnapshot = (input: unknown): GraphSnapshot => {
+  const parsed = GraphSnapshotSchema.parse(input);
+  const nodes = canonicalNodes(parsed.nodes);
+  const edges = canonicalEdges(parsed.edges);
+  const diagnostics = canonicalDiagnostics(parsed.diagnostics);
+  validateGlobalEvidenceIdentity(edges, diagnostics);
+
+  return {
+    ...parsed,
+    nodes,
+    edges,
+    diagnostics,
+  };
+};
+
+export const parseGraphSnapshot = (input: unknown): GraphSnapshot =>
+  canonicalizeGraphSnapshot(input);
+
+export const createGraphSnapshot = (input: unknown): GraphSnapshot =>
+  canonicalizeGraphSnapshot(input);
+
+export const serializeGraphSnapshot = (snapshot: unknown): string =>
+  stableStringify(canonicalizeGraphSnapshot(snapshot));
