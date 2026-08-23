@@ -6,74 +6,142 @@
   "milestones": [
     {
       "id": "Y1-Q1",
-      "title": "Year 1 Q1 — Contracts and safe foundation",
-      "description": "A contributor can install CARTOGRAPH, inspect the graph and evidence contract, and run a deterministic fixture scan. Exit gate: schema and evidence invariants are tested; the threat model is public; offline behavior is verified; clean-install CI passes.",
+      "title": "Year 1 Q1 — Contracts and safe foundation (Aug–Oct 2026)",
+      "dueOn": "2026-10-31",
+      "description": "A contributor can install CARTOGRAPH, inspect the graph/evidence contract, and run a deterministic fixture scan. Exit gate: schema, provenance, privacy, and resource ceilings are tested; clean-install CI passes.",
       "state": "open"
     },
     {
       "id": "Y1-Q2",
-      "title": "Year 1 Q2 — TypeScript/Express extraction",
-      "description": "Bounded TypeScript and Express repositories produce useful graphs with honest unsupported diagnostics. Exit gate: at least five curated fixtures; complete evidence on emitted edges; precision and recall reported by construct family; no silent dynamic edges.",
+      "title": "Year 1 Q2 — TypeScript/Express extraction (Nov 2026–Jan 2027)",
+      "dueOn": "2027-01-31",
+      "description": "Bounded TypeScript and Express repositories produce useful graphs with honest unsupported diagnostics. Exit gate: at least five curated fixtures, construct-family precision/recall, and no silent dynamic edges.",
       "state": "open"
     },
     {
       "id": "Y1-Q3",
-      "title": "Year 1 Q3 — Reviewable revisions",
-      "description": "A maintainer can compare two revisions and inspect a self-contained static report. Exit gate: versioned JSON diff; golden tests; offline HTML report; documented CLI and exit behavior; initial performance baseline.",
+      "title": "Year 1 Q3 — Reviewable revisions (Feb–Apr 2027)",
+      "dueOn": "2027-04-30",
+      "description": "A maintainer can compare two revisions and inspect a self-contained report. Exit gate: versioned JSON diff, golden mutation tests, offline HTML, stable CLI behavior, and a baseline benchmark.",
       "state": "open"
     },
     {
       "id": "Y1-Q4",
-      "title": "Year 1 Q4 — CI and v0.1 adoption",
-      "description": "A repository can run CARTOGRAPH in a read-only GitHub Action and install a reproducible OSS release. Exit gate: fork-safe Action smoke test; three representative repository reports; package-install smoke test; quickstart and compatibility report; security review.",
+      "title": "Year 1 Q4 — CI and v0.1 adoption (May–Jul 2027)",
+      "dueOn": "2027-07-31",
+      "description": "A repository can run CARTOGRAPH in a read-only GitHub Action and install a reproducible OSS release. Exit gate: fork-safe Action, three representative reports, package smoke test, and security review.",
       "state": "open"
     },
     {
       "id": "Y2-Q1",
-      "title": "Year 2 Q1 — Refactor-stable identity",
-      "description": "Ordinary line moves, file moves, and supported renames no longer appear as unrelated architecture objects. Exit gate: identity rules and ambiguity behavior documented; rename and move fixtures pass; snapshot migration path exists.",
+      "title": "Year 2 Q1 — Refactor-stable identity (Aug–Oct 2027)",
+      "dueOn": "2027-10-31",
+      "description": "Ordinary moves, renames, and supported refactors do not appear as unrelated architecture objects. Exit gate: identity rules, ambiguity behavior, migration tooling, and rename/move fixtures are public.",
       "state": "open"
     },
     {
       "id": "Y2-Q2",
-      "title": "Year 2 Q2 — Change-control policies",
-      "description": "Teams can express bounded graph constraints and choose informational or enforcing CI behavior. Exit gate: versioned local policy schema; deterministic evidence-linked violations; stable exit modes; measured false-positive fixtures; no remote policy dependency.",
+      "title": "Year 2 Q2 — Change-control policies (Nov 2027–Jan 2028)",
+      "dueOn": "2028-01-31",
+      "description": "Teams can express bounded graph constraints with informational or enforcing CI behavior. Exit gate: versioned local policy schema, evidence-linked violations, stable exit modes, and measured false-positive fixtures.",
       "state": "open"
     },
     {
       "id": "Y2-Q3",
-      "title": "Year 2 Q3 — ADR traceability",
-      "description": "Local architecture decisions can be linked to graph objects and reviewed beside changed evidence. Exit gate: stale and missing references detected; reports show decision status and evidence; workflow remains usable without a service.",
+      "title": "Year 2 Q3 — ADR traceability (Feb–Apr 2028)",
+      "dueOn": "2028-04-30",
+      "description": "Local architecture decisions can be linked to graph objects and reviewed beside changed evidence. Exit gate: stale/missing references are detected and reports remain useful offline.",
       "state": "open"
     },
     {
       "id": "Y2-Q4",
-      "title": "Year 2 Q4 — Extension contract",
-      "description": "External contributors can implement an adapter without changing the core. A second TypeScript framework proceeds only after a public selection RFC. Exit gate: adapter API, capability manifest, conformance kit, and support matrix are public; any new adapter meets the same quality gates.",
+      "title": "Year 2 Q4 — Extension contract (May–Jul 2028)",
+      "dueOn": "2028-07-31",
+      "description": "External contributors can implement an adapter without changing the core. Exit gate: adapter API, capability manifest, conformance kit, and support matrix are public.",
       "state": "open"
     },
     {
       "id": "Y3-Q1",
-      "title": "Year 3 Q1 — Language expansion gate",
-      "description": "CARTOGRAPH validates one bounded non-TypeScript adapter or records why language expansion should be deferred. Exit gate: language-neutral mapping contract tested; any pilot publishes conformance and unsupported coverage; no broad language claim.",
+      "title": "Year 3 Q1 — Language expansion gate (Aug–Oct 2028)",
+      "dueOn": "2028-10-31",
+      "description": "CARTOGRAPH validates one bounded non-TypeScript adapter or records why expansion should be deferred. Exit gate: language-neutral mapping, conformance evidence, and unsupported coverage are published.",
       "state": "open"
     },
     {
       "id": "Y3-Q2",
-      "title": "Year 3 Q2 — Runtime reconciliation experiment",
-      "description": "Users can optionally reconcile local OpenTelemetry observations with static edges without a hosted collector. Exit gate: local versioned input; deterministic classifications; synthetic-trace evaluation; secret and payload redaction tests; explicit opt-in.",
+      "title": "Year 3 Q2 — Runtime reconciliation experiment (Nov 2028–Jan 2029)",
+      "dueOn": "2029-01-31",
+      "description": "Users can optionally reconcile local OpenTelemetry observations with static edges without a hosted collector. Exit gate: versioned local input, deterministic classifications, synthetic evaluation, redaction, and explicit opt-in.",
       "state": "open"
     },
     {
       "id": "Y3-Q3",
-      "title": "Year 3 Q3 — OSS hardening and community scale",
-      "description": "Larger repositories and new contributors receive predictable performance, security, upgrade, and support behavior. Exit gate: performance budgets; bounded fuzz/property suite; compatibility and deprecation policy; public adopter-feedback summary.",
+      "title": "Year 3 Q3 — OSS hardening and community scale (Feb–Apr 2029)",
+      "dueOn": "2029-04-30",
+      "description": "Larger repositories and new contributors receive predictable performance, security, upgrade, and support behavior. Exit gate: budgets, bounded fuzz/property tests, compatibility policy, and adopter feedback.",
       "state": "open"
     },
     {
       "id": "Y3-Q4",
-      "title": "Year 3 Q4 — Traction-based strategy gate",
-      "description": "The project chooses its next investment from evidence instead of assuming a hosted product is warranted. Exit gate: public OSS health scorecard and decision ADR. Hosted discovery requires explicit adoption, retention, privacy, and security gates; otherwise the roadmap remains OSS-focused.",
+      "title": "Year 3 Q4 — Traction-based strategy gate (May–Jul 2029)",
+      "dueOn": "2029-07-31",
+      "description": "The project chooses its next investment from evidence instead of assuming a hosted product is warranted. Exit gate: public OSS scorecard and a privacy/security-gated strategy ADR.",
+      "state": "open"
+    },
+    {
+      "id": "Y4-Q1",
+      "title": "Year 4 Q1 — Bounded queries and workspace scale (Aug–Oct 2029)",
+      "dueOn": "2029-10-31",
+      "description": "Reviewers can run evidence-backed impact queries on bounded large graphs and package workspaces. Exit gate: deterministic query semantics, resource ceilings, large-graph benchmarks, workspace coverage, and reviewer-utility evidence pass.",
+      "state": "open"
+    },
+    {
+      "id": "Y4-Q2",
+      "title": "Year 4 Q2 — Offline multi-repository composition (Nov 2029–Jan 2030)",
+      "dueOn": "2030-01-31",
+      "description": "Teams can compose independently produced snapshots and bounded external indexes without uploading source. Exit gate: namespace, boundary, provenance, privacy, resource, and representative portfolio evaluations pass.",
+      "state": "open"
+    },
+    {
+      "id": "Y4-Q3",
+      "title": "Year 4 Q3 — Governed review and interoperability (Feb–Apr 2030)",
+      "dueOn": "2030-04-30",
+      "description": "Reviewers can resolve owners, inspect findings, verify scoped waivers, and use accessible portable review surfaces. Exit gate: lifecycle integrity, fork safety, accessibility, interoperability, authorization-boundary fixtures, and maintainer-load evaluation pass.",
+      "state": "open"
+    },
+    {
+      "id": "Y4-Q4",
+      "title": "Year 4 Q4 — Reproducible assurance bundles (May–Jul 2030)",
+      "dueOn": "2030-07-31",
+      "description": "Maintainers can export bounded architecture evidence without making compliance claims. Exit gate: canonical bundles, provenance, signing, SBOM linkage, local redaction, cache correctness, and independent offline replay pass.",
+      "state": "open"
+    },
+    {
+      "id": "Y5-Q1",
+      "title": "Year 5 Q1 — Longitudinal architecture intelligence (Aug–Oct 2030)",
+      "dueOn": "2030-10-31",
+      "description": "Maintainers can study architecture evolution locally without hidden telemetry or predictive claims. Exit gate: versioned history, provenance, gaps, retention, debt indicators, scale, validity, and safe local export boundaries pass.",
+      "state": "open"
+    },
+    {
+      "id": "Y5-Q2",
+      "title": "Year 5 Q2 — Governed remediation and policy portability (Nov 2030–Jan 2031)",
+      "dueOn": "2031-01-31",
+      "description": "CARTOGRAPH can propose bounded remediation while policies remain portable and humans retain control. Exit gate: suggestion separation, isolated preview, allowlisted validation, approval, privacy, policy compatibility, revocation, and red-team gates pass.",
+      "state": "open"
+    },
+    {
+      "id": "Y5-Q3",
+      "title": "Year 5 Q3 — Ecosystem and research validation (Feb–Apr 2031)",
+      "dueOn": "2031-04-30",
+      "description": "Core claims are tested against portable formats, public corpora, representative repositories, and independent reviewers. Exit gate: reproducible methods, comparative evidence, negative results, limitations, and explicit expansion decisions are published.",
+      "state": "open"
+    },
+    {
+      "id": "Y5-Q4",
+      "title": "Year 5 Q4 — LTS sustainability and strategy renewal (May–Jul 2031)",
+      "dueOn": "2031-07-31",
+      "description": "The project enters its next cycle with a support model, succession plan, and terminal investment decision. Exit gate: reproducible LTS release, migration and recovery rehearsal, security audit, retrospective, and continue, scale, transfer, maintain, or sunset ADR pass.",
       "state": "open"
     }
   ],
@@ -145,6 +213,36 @@
       "color": "B45309"
     },
     {
+      "name": "area:query",
+      "category": "area",
+      "description": "Architecture queries, impact analysis, and explanations",
+      "color": "0E7490"
+    },
+    {
+      "name": "area:workspace",
+      "category": "area",
+      "description": "Multi-repository composition and portfolio analysis",
+      "color": "4338CA"
+    },
+    {
+      "name": "area:workflow",
+      "category": "area",
+      "description": "Ownership, review, exception, and team workflows",
+      "color": "6D28D9"
+    },
+    {
+      "name": "area:assurance",
+      "category": "area",
+      "description": "Provenance, evidence packs, and control mappings",
+      "color": "9F1239"
+    },
+    {
+      "name": "area:automation",
+      "category": "area",
+      "description": "Governed remediation and bounded assistance",
+      "color": "A21CAF"
+    },
+    {
       "name": "type:feature",
       "category": "type",
       "description": "Product or implementation change",
@@ -187,6 +285,12 @@
       "color": "334155"
     },
     {
+      "name": "type:research",
+      "category": "type",
+      "description": "Research design, replication, or external validation",
+      "color": "0F766E"
+    },
+    {
       "name": "priority:P0",
       "category": "priority",
       "description": "Required for the target milestone",
@@ -199,10 +303,64 @@
       "color": "EA580C"
     },
     {
-      "name": "priority:P2",
-      "category": "priority",
-      "description": "Stretch or deferred work",
-      "color": "64748B"
+      "name": "area:interop",
+      "category": "area",
+      "description": "Portable graph interchange and external index formats",
+      "color": "0F766E"
+    },
+    {
+      "name": "area:visualization",
+      "category": "area",
+      "description": "Accessible graph views, reports, and review surfaces",
+      "color": "047857"
+    },
+    {
+      "name": "area:performance",
+      "category": "area",
+      "description": "Scale, budgets, caching, and benchmark quality",
+      "color": "A16207"
+    },
+    {
+      "name": "area:research",
+      "category": "area",
+      "description": "Independent evaluation, methods, and evidence quality",
+      "color": "9D174D"
+    },
+    {
+      "name": "area:operations",
+      "category": "area",
+      "description": "Release operations, support, and maintainer sustainability",
+      "color": "475569"
+    },
+    {
+      "name": "type:interop",
+      "category": "type",
+      "description": "Interchange, import, export, and compatibility contracts",
+      "color": "0F766E"
+    },
+    {
+      "name": "type:performance",
+      "category": "type",
+      "description": "Benchmarks, budgets, and scaling work",
+      "color": "A16207"
+    },
+    {
+      "name": "area:security",
+      "category": "area",
+      "description": "Security, privacy, trust boundaries, and negative evidence",
+      "color": "991B1B"
+    },
+    {
+      "name": "area:history",
+      "category": "area",
+      "description": "Historical baselines, trend analysis, and longitudinal evidence",
+      "color": "7C2D12"
+    },
+    {
+      "name": "area:community",
+      "category": "area",
+      "description": "Adoption, contributors, maintainers, and public feedback",
+      "color": "6B21A8"
     }
   ],
   "issues": [
@@ -318,6 +476,40 @@
       "state": "open"
     },
     {
+      "id": "F-007",
+      "title": "Freeze schema compatibility and versioning policy",
+      "problemOutcome": "Consumers cannot safely automate upgrades while graph, evidence, and diagnostic contracts change implicitly.",
+      "acceptanceCriteria": [
+        "A compatibility policy defines additive, breaking, deprecated, and migration-required changes for snapshots, reports, policies, and adapters.",
+        "CI rejects an unreviewed schema-version change and a fixture proves old-version read behavior or an actionable migration error."
+      ],
+      "dependencies": ["F-004", "F-005"],
+      "labels": ["area:core", "type:governance", "type:docs", "priority:P0"],
+      "priority": "P0",
+      "milestone": "Y1-Q1",
+      "state": "open"
+    },
+    {
+      "id": "F-009",
+      "title": "Add a versioned machine-readable configuration contract",
+      "problemOutcome": "Ad hoc configuration makes scans hard to reproduce and review safely in CI.",
+      "acceptanceCriteria": [
+        "A JSON Schema validates include/exclude rules, resource ceilings, extractor selection, output mode, and policy references.",
+        "Configuration defaults are deterministic, unknown fields fail or warn according to a documented mode, and path values cannot escape the repository root."
+      ],
+      "dependencies": ["F-004", "F-007"],
+      "labels": [
+        "area:foundations",
+        "area:core",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q1",
+      "state": "open"
+    },
+    {
       "id": "X-001",
       "title": "Build safe TypeScript program loader",
       "problemOutcome": "Scans need deterministic project discovery without executing project code.",
@@ -377,7 +569,7 @@
       "title": "Add explicit unsupported-construct diagnostics",
       "problemOutcome": "Dynamic JavaScript patterns can produce false confidence if silently ignored or guessed.",
       "acceptanceCriteria": [
-        "Stable diagnostic codes and severities exist.",
+        "A versioned diagnostic registry assigns every supported unknown case a unique code, severity, evidence location, and actionable remediation; golden fixtures lock the public output.",
         "Unsupported or dynamic constructs never silently emit confident edges; diagnostics appear in snapshots and later reports with actionable guidance."
       ],
       "dependencies": ["X-002", "X-003"],
@@ -417,6 +609,105 @@
       "labels": [
         "area:core",
         "area:quality",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q2",
+      "state": "open"
+    },
+    {
+      "id": "F-008",
+      "title": "Define the capability and unknown-semantics registry",
+      "problemOutcome": "Users need to distinguish unsupported constructs from confidently empty architecture results.",
+      "acceptanceCriteria": [
+        "A versioned registry maps extractor capabilities to diagnostic codes, confidence levels, and documented examples.",
+        "Snapshots and reports expose the registry version and never upgrade an unknown construct to a confident edge without evidence."
+      ],
+      "dependencies": ["F-005", "X-004"],
+      "labels": [
+        "area:core",
+        "area:extractor",
+        "type:feature",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q2",
+      "state": "open"
+    },
+    {
+      "id": "F-010",
+      "title": "Establish fixture licensing and provenance manifests",
+      "problemOutcome": "A growing corpus can become legally ambiguous or impossible to reproduce.",
+      "acceptanceCriteria": [
+        "Every checked-in repository fixture has a source, license, commit/reference, transformation note, and local redistribution decision.",
+        "A validator fails when a fixture is missing provenance or includes generated output without a declared reason."
+      ],
+      "dependencies": ["F-006", "X-005"],
+      "labels": [
+        "area:quality",
+        "type:governance",
+        "type:security",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y1-Q2",
+      "state": "open"
+    },
+    {
+      "id": "F-011",
+      "title": "Enforce deterministic resource and cancellation policy",
+      "problemOutcome": "Unbounded repositories can exhaust developer or CI resources before producing useful evidence.",
+      "acceptanceCriteria": [
+        "File-count, byte, archive, memory, wall-clock, and report-cardinality ceilings are configurable and fail closed with stable diagnostics.",
+        "Cancellation cleans temporary materialization and never emits a partial snapshot as a successful result."
+      ],
+      "dependencies": ["F-002", "X-001"],
+      "labels": [
+        "area:foundations",
+        "area:performance",
+        "type:security",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q2",
+      "state": "open"
+    },
+    {
+      "id": "X-007",
+      "title": "Resolve inherited tsconfig and solution-reference graphs",
+      "problemOutcome": "Multi-package TypeScript repositories produce incomplete graphs when compiler configuration is inherited or layered.",
+      "acceptanceCriteria": [
+        "The loader resolves extends chains, solution references, per-project roots, and inherited path/exclusion settings without executing config code.",
+        "Fixtures cover cycles, missing bases, mixed composite projects, and deterministic diagnostics for unsupported configuration."
+      ],
+      "dependencies": ["X-001", "F-009"],
+      "labels": [
+        "area:extractor",
+        "area:workspace",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q2",
+      "state": "open"
+    },
+    {
+      "id": "X-008",
+      "title": "Model package exports, import maps, and NodeNext resolution",
+      "problemOutcome": "Modern package boundaries are misrepresented when exports/imports maps and module modes are ignored.",
+      "acceptanceCriteria": [
+        "Supported package.json exports/imports conditions and NodeNext/Node16 resolution outcomes become evidence-backed module edges.",
+        "Ambiguous or environment-dependent condition branches emit explicit diagnostics with the selected condition set."
+      ],
+      "dependencies": ["X-001", "X-002", "X-007"],
+      "labels": [
+        "area:extractor",
+        "area:workspace",
         "type:feature",
         "type:test",
         "priority:P0"
@@ -507,7 +798,7 @@
       "problemOutcome": "Scripts and developers need predictable invocation and failure semantics.",
       "acceptanceCriteria": [
         "Supported commands, stdout and stderr rules, JSON mode, configuration errors, analysis errors, and exit codes are documented and tested.",
-        "Logs do not include secret values by default."
+        "Redaction tests seed tokens, credentials, absolute paths, and source snippets across every error class and prove default logs omit the values while retaining actionable stable diagnostics."
       ],
       "dependencies": ["D-001", "D-003", "F-003"],
       "labels": [
@@ -532,6 +823,66 @@
       "dependencies": ["X-005", "D-002", "D-004"],
       "labels": ["area:quality", "type:test", "type:release", "priority:P1"],
       "priority": "P1",
+      "milestone": "Y1-Q3",
+      "state": "open"
+    },
+    {
+      "id": "D-007",
+      "title": "Classify edge additions, removals, rewires, and evidence changes",
+      "problemOutcome": "A raw set difference does not tell reviewers whether an architecture relationship was added, removed, or merely re-evidenced.",
+      "acceptanceCriteria": [
+        "The diff model distinguishes node changes, edge changes, endpoint rewires, evidence-only changes, and confidence changes.",
+        "Golden fixtures cover each classification and output remains stable when unrelated graph ordering changes."
+      ],
+      "dependencies": ["D-002", "D-003"],
+      "labels": [
+        "area:diff",
+        "area:core",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q3",
+      "state": "open"
+    },
+    {
+      "id": "D-008",
+      "title": "Compute evidence-backed change impact subgraphs",
+      "problemOutcome": "Reviewers need a bounded view of what a changed node can reach instead of scanning the entire graph.",
+      "acceptanceCriteria": [
+        "A deterministic traversal computes configurable forward/reverse impact sets while preserving edge confidence and evidence references.",
+        "Cycles, depth limits, and unresolved edges are represented explicitly and benchmarked on a fixture with known reachability."
+      ],
+      "dependencies": ["D-007", "X-002"],
+      "labels": [
+        "area:diff",
+        "area:report",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q3",
+      "state": "open"
+    },
+    {
+      "id": "D-013",
+      "title": "Define merge-base, rebase, and pull-request diff semantics",
+      "problemOutcome": "Different revision contexts can produce materially different architecture changes if comparison bases are implicit.",
+      "acceptanceCriteria": [
+        "CLI and Action contracts define merge-base selection, shallow-clone failures, rebases, and unrelated histories.",
+        "Fixtures cover each mode and record exact Git revisions in diff metadata without fetching implicitly."
+      ],
+      "dependencies": ["D-001", "D-005"],
+      "labels": [
+        "area:diff",
+        "area:github",
+        "type:feature",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
       "milestone": "Y1-Q3",
       "state": "open"
     },
@@ -611,6 +962,99 @@
       "state": "open"
     },
     {
+      "id": "R-006",
+      "title": "Rehearse release acceptance and rollback",
+      "problemOutcome": "A release pipeline is incomplete until maintainers can prove the candidate, detect a bad publication, and recover without improvisation.",
+      "acceptanceCriteria": [
+        "A versioned acceptance checklist covers clean installation, representative scans, Action behavior, package contents, signatures or provenance, documentation, and known limitations.",
+        "A dry-run rollback or deprecation rehearsal records owners, commands, communication steps, recovery time, and follow-up actions without altering an active release."
+      ],
+      "dependencies": ["R-002", "R-003", "R-005"],
+      "labels": [
+        "area:foundations",
+        "area:quality",
+        "type:release",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y1-Q4",
+      "state": "open"
+    },
+    {
+      "id": "R-010",
+      "title": "Enforce report artifact retention and redaction policy",
+      "problemOutcome": "CI artifacts can outlive the source review context or expose repository paths and metadata.",
+      "acceptanceCriteria": [
+        "The Action documents retention defaults, artifact scope, redaction rules, and an opt-out for sensitive repositories.",
+        "A workflow test verifies reports contain no absolute paths, source snippets, tokens, or unbounded payloads."
+      ],
+      "dependencies": ["R-001", "F-002", "D-004"],
+      "labels": [
+        "area:github",
+        "area:security",
+        "type:security",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q4",
+      "state": "open"
+    },
+    {
+      "id": "R-011",
+      "title": "Add package provenance, SBOM, and signing evidence",
+      "problemOutcome": "A useful OSS analyzer is still unsafe to install if release provenance is opaque.",
+      "acceptanceCriteria": [
+        "Release artifacts include reproducible build metadata, dependency inventory, checksum, and a verifiable provenance statement.",
+        "The release workflow fails closed on unsigned or mismatched artifacts and never publishes credentials or source fixtures."
+      ],
+      "dependencies": ["R-003", "F-007"],
+      "labels": [
+        "area:operations",
+        "type:release",
+        "type:security",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y1-Q4",
+      "state": "open"
+    },
+    {
+      "id": "R-012",
+      "title": "Maintain a Node.js and operating-system support matrix",
+      "problemOutcome": "Compiler and filesystem differences can invalidate architecture evidence across supported environments.",
+      "acceptanceCriteria": [
+        "CI tests the declared Node.js LTS window and macOS/Linux support surface with explicit TypeScript/compiler versions.",
+        "Unsupported environments fail with a diagnostic and the matrix is checked against package and Action metadata."
+      ],
+      "dependencies": ["R-003", "F-003", "F-007"],
+      "labels": [
+        "area:operations",
+        "area:quality",
+        "type:test",
+        "type:release",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y1-Q4",
+      "state": "open"
+    },
+    {
+      "id": "R-013",
+      "title": "Publish npm and standalone CLI distribution contracts",
+      "problemOutcome": "Adopters need a stable install path that does not depend on a source checkout.",
+      "acceptanceCriteria": [
+        "Package exports, bin entrypoints, Node engine requirements, and offline installation behavior are tested from a packed artifact.",
+        "A standalone distribution is either reproducibly produced or explicitly deferred with a decision record; no install path executes target repository code."
+      ],
+      "dependencies": ["R-003", "R-011", "R-012"],
+      "labels": ["area:operations", "type:release", "type:test", "priority:P1"],
+      "priority": "P1",
+      "milestone": "Y1-Q4",
+      "state": "open"
+    },
+    {
       "id": "P-001",
       "title": "Implement stable graph identity across refactors",
       "problemOutcome": "Path- or line-based identity creates noisy diffs during ordinary refactors.",
@@ -643,6 +1087,128 @@
         "area:core",
         "type:feature",
         "type:release",
+        "type:docs",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y2-Q1",
+      "state": "open"
+    },
+    {
+      "id": "P-010",
+      "title": "Expose identity ambiguity and collision diagnostics",
+      "problemOutcome": "Stable identity can conceal incorrect matches unless ambiguity, collisions, and fallback behavior are visible to reviewers.",
+      "acceptanceCriteria": [
+        "Stable diagnostic codes distinguish collisions, ambiguous candidates, unsupported renames, and fallback identity paths, with evidence for every candidate considered.",
+        "No ambiguous match is silently accepted; fixtures verify deterministic diagnostics and documented reviewer actions."
+      ],
+      "dependencies": ["P-001"],
+      "labels": [
+        "area:core",
+        "area:diff",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y2-Q1",
+      "state": "open"
+    },
+    {
+      "id": "P-011",
+      "title": "Build property-based identity regression corpus",
+      "problemOutcome": "A small rename fixture set will miss combinations of moves, aliases, overloads, and duplicate symbols that destabilize identity.",
+      "acceptanceCriteria": [
+        "A bounded generator covers line moves, file moves, supported renames, duplicate names, overloads, path aliases, and ambiguous transformations with declared invariants.",
+        "Every minimized failure becomes a deterministic regression fixture, and CI publishes the seed and identity-quality result."
+      ],
+      "dependencies": ["D-006", "P-001", "P-010"],
+      "labels": ["area:core", "area:quality", "type:test", "priority:P1"],
+      "priority": "P1",
+      "milestone": "Y2-Q1",
+      "state": "open"
+    },
+    {
+      "id": "P-012",
+      "title": "Verify identity portability across paths and platforms",
+      "problemOutcome": "Machine-specific paths, case rules, and separators can make equivalent snapshots appear structurally different.",
+      "acceptanceCriteria": [
+        "Fixtures cover Windows and POSIX separators, case-sensitive and case-insensitive collisions, symlink policy, repository relocation, and Unicode normalization.",
+        "Equivalent supported projects produce the same logical identities across the CI platform matrix, while unsafe collisions fail with diagnostics."
+      ],
+      "dependencies": ["P-001", "X-006"],
+      "labels": ["area:core", "area:quality", "type:test", "priority:P1"],
+      "priority": "P1",
+      "milestone": "Y2-Q1",
+      "state": "open"
+    },
+    {
+      "id": "P-013",
+      "title": "Publish identity quality benchmark and release gate",
+      "problemOutcome": "Identity stability needs a measurable quality bar before it can underpin policy and historical analysis.",
+      "acceptanceCriteria": [
+        "Benchmark reports preservation, false-match, ambiguity, and unmatched rates by refactor family on curated and generated cases.",
+        "Release thresholds and an exception process are documented; the baseline is reproducible and regressions beyond the threshold block release."
+      ],
+      "dependencies": ["P-011", "P-012", "R-005"],
+      "labels": [
+        "area:core",
+        "area:quality",
+        "type:test",
+        "type:release",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y2-Q1",
+      "state": "open"
+    },
+    {
+      "id": "F-012",
+      "title": "Publish snapshot and identity migration matrix",
+      "problemOutcome": "Long-lived repositories need a controlled path through schema and identity changes.",
+      "acceptanceCriteria": [
+        "A matrix lists supported source/target versions, automatic migrations, manual review gates, and expected evidence loss for each transition.",
+        "At least one historical snapshot migrates deterministically and the migration report identifies every changed node or edge identity."
+      ],
+      "dependencies": ["F-007", "X-006", "D-003"],
+      "labels": ["area:core", "type:release", "type:docs", "priority:P1"],
+      "priority": "P1",
+      "milestone": "Y2-Q1",
+      "state": "open"
+    },
+    {
+      "id": "D-010",
+      "title": "Integrate refactor-aware matching into graph diffs",
+      "problemOutcome": "Stable identity primitives do not help reviewers unless the diff pipeline applies them consistently and explains every refactor match.",
+      "acceptanceCriteria": [
+        "The diff pipeline consumes the P-001 identity contract, path history, and bounded similarity candidates, recording the selected match method and evidence without redefining canonical identity.",
+        "Golden rename and move diffs suppress false delete/add pairs, preserve genuinely distinct nodes, and expose ambiguous candidates with stable diagnostic codes."
+      ],
+      "dependencies": ["P-001", "D-002"],
+      "labels": [
+        "area:core",
+        "area:diff",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y2-Q1",
+      "state": "open"
+    },
+    {
+      "id": "D-011",
+      "title": "Expose identity confidence and ambiguity explanations",
+      "problemOutcome": "Users need to know when refactor matching is evidence-backed versus heuristic.",
+      "acceptanceCriteria": [
+        "Each matched identity carries a confidence class, contributing signals, and a stable explanation code.",
+        "Reports and machine-readable diffs expose low-confidence matches and never collapse ambiguity into a single silent result."
+      ],
+      "dependencies": ["D-010"],
+      "labels": [
+        "area:diff",
+        "area:report",
+        "type:feature",
         "type:docs",
         "priority:P1"
       ],
@@ -725,6 +1291,66 @@
       "state": "open"
     },
     {
+      "id": "P-014",
+      "title": "Define policy composition, precedence, and conflict semantics",
+      "problemOutcome": "Multiple policy files become unsafe when inheritance, overrides, and contradictory rules have implicit behavior.",
+      "acceptanceCriteria": [
+        "The versioned contract defines includes, scope, precedence, duplicate rule IDs, override limits, cycles, and contradictory outcomes without remote resolution.",
+        "Positive and negative fixtures prove deterministic composition, and every conflict produces an evidence-linked configuration error."
+      ],
+      "dependencies": ["P-003", "P-004", "P-006"],
+      "labels": [
+        "area:policy",
+        "area:core",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y2-Q2",
+      "state": "open"
+    },
+    {
+      "id": "P-015",
+      "title": "Add local expiry-bound policy exceptions",
+      "problemOutcome": "Teams need a controlled migration path, but permanent or unaudited waivers turn enforcement into theater.",
+      "acceptanceCriteria": [
+        "A versioned local exception names the rule, bounded graph scope, rationale, owner, creation date, and mandatory expiry; invalid or expired exceptions never silently suppress findings.",
+        "Reports distinguish active, expiring, expired, and malformed exceptions, and fixtures cover precedence with informational and enforcing modes."
+      ],
+      "dependencies": ["P-004", "P-005", "P-006", "P-014"],
+      "labels": [
+        "area:policy",
+        "area:workflow",
+        "type:feature",
+        "type:governance",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y2-Q2",
+      "state": "open"
+    },
+    {
+      "id": "D-009",
+      "title": "Summarize cycles and layering violations in diffs",
+      "problemOutcome": "Reviewers cannot prioritize graph changes when cycles and boundary crossings are buried in individual edges.",
+      "acceptanceCriteria": [
+        "Diff output includes deterministic cycle and configured-layer summaries with links back to contributing edge evidence.",
+        "The summarizer never invents a layer assignment and emits an unresolved diagnostic when policy metadata is absent."
+      ],
+      "dependencies": ["D-007", "P-004"],
+      "labels": [
+        "area:diff",
+        "area:policy",
+        "type:feature",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y2-Q2",
+      "state": "open"
+    },
+    {
       "id": "P-007",
       "title": "Define and validate local ADR references",
       "problemOutcome": "Architecture decisions drift away from the objects they govern.",
@@ -778,6 +1404,87 @@
         "area:adr",
         "type:docs",
         "type:community",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y2-Q3",
+      "state": "open"
+    },
+    {
+      "id": "P-016",
+      "title": "Model ADR lifecycle and supersession semantics",
+      "problemOutcome": "A link to an accepted, superseded, rejected, or draft decision should not carry the same architectural meaning.",
+      "acceptanceCriteria": [
+        "The ADR contract defines recognized lifecycle states, supersession links, effective dates, invalid transitions, and behavior for unknown conventions.",
+        "Fixtures cover chained supersession, cycles, missing targets, and status changes with deterministic diagnostics."
+      ],
+      "dependencies": ["P-007"],
+      "labels": [
+        "area:adr",
+        "area:core",
+        "type:feature",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y2-Q3",
+      "state": "open"
+    },
+    {
+      "id": "P-017",
+      "title": "Report decision coverage and reverse references",
+      "problemOutcome": "Maintainers cannot find ungoverned architecture or assess decision drift from one-way ADR links alone.",
+      "acceptanceCriteria": [
+        "Snapshots and reports provide deterministic ADR-to-graph and graph-to-ADR indexes with coverage counts by supported node and edge kind.",
+        "Coverage is explicitly descriptive rather than a compliance score, and tests cover deleted, ambiguous, and many-to-many references."
+      ],
+      "dependencies": ["P-007", "P-008", "P-016"],
+      "labels": [
+        "area:adr",
+        "area:report",
+        "type:feature",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y2-Q3",
+      "state": "open"
+    },
+    {
+      "id": "P-018",
+      "title": "Evaluate policy and decision drift on change scenarios",
+      "problemOutcome": "Traceability is not proven until real change scenarios reveal stale decisions and policy gaps with tolerable noise.",
+      "acceptanceCriteria": [
+        "A curated scenario suite covers decision supersession, removed architecture, policy changes, unreferenced additions, exceptions, and mixed schema versions.",
+        "The evaluation publishes expected and observed drift findings, false-positive categories, reviewer effort, and a documented milestone exit decision."
+      ],
+      "dependencies": ["P-009", "P-015", "P-016", "P-017"],
+      "labels": [
+        "area:adr",
+        "area:policy",
+        "area:quality",
+        "type:research",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y2-Q3",
+      "state": "open"
+    },
+    {
+      "id": "P-019",
+      "title": "Bind ADR references to policy evaluation",
+      "problemOutcome": "A policy exception should point to the architectural decision that justifies it, not a free-form comment.",
+      "acceptanceCriteria": [
+        "Policies can require an ADR reference for selected boundaries, exemptions, and planned violations.",
+        "Missing, stale, or mismatched ADR references are reported with the graph evidence and never silently accepted."
+      ],
+      "dependencies": ["P-007", "P-015"],
+      "labels": [
+        "area:policy",
+        "area:adr",
+        "type:feature",
+        "type:test",
         "priority:P1"
       ],
       "priority": "P1",
@@ -845,6 +1552,80 @@
       "state": "open"
     },
     {
+      "id": "E-007",
+      "title": "Enforce adapter isolation and resource budgets",
+      "problemOutcome": "Third-party adapters expand the untrusted-input and denial-of-service surface of every scan.",
+      "acceptanceCriteria": [
+        "The adapter contract defines filesystem, network, subprocess, time, memory, input-size, and output-size boundaries with fail-closed defaults.",
+        "Conformance tests exercise hangs, oversized output, malformed evidence, path escapes, attempted network access, and cleanup after termination."
+      ],
+      "dependencies": ["F-002", "E-001", "E-002"],
+      "labels": [
+        "area:ecosystem",
+        "area:quality",
+        "type:security",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y2-Q4",
+      "state": "open"
+    },
+    {
+      "id": "E-008",
+      "title": "Add adapter compatibility negotiation and migrations",
+      "problemOutcome": "Core, schema, and adapter version drift otherwise produces opaque failures or silently invalid graphs.",
+      "acceptanceCriteria": [
+        "Capability negotiation reports compatible, migratable, experimental, and rejected combinations before analysis begins.",
+        "Compatibility fixtures span every supported core and adapter contract; failure guidance and retirement windows are documented."
+      ],
+      "dependencies": ["P-002", "E-001", "E-002", "E-007"],
+      "labels": [
+        "area:ecosystem",
+        "area:core",
+        "type:feature",
+        "type:release",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y2-Q4",
+      "state": "open"
+    },
+    {
+      "id": "E-009",
+      "title": "Ship an adapter starter and maintainer review playbook",
+      "problemOutcome": "An interface alone does not make safe external adapter contributions repeatable or reviewable.",
+      "acceptanceCriteria": [
+        "A minimal starter includes capability declaration, fixtures, conformance, packaging, diagnostics, security boundaries, and compatibility tests that run in CI.",
+        "The review playbook defines evidence, quality, ownership, maintenance, security response, and graduation requirements; one independent dry run is recorded."
+      ],
+      "dependencies": ["E-002", "E-003", "E-007", "E-008"],
+      "labels": [
+        "area:ecosystem",
+        "type:docs",
+        "type:community",
+        "type:governance",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y2-Q4",
+      "state": "open"
+    },
+    {
+      "id": "X-011",
+      "title": "Represent async jobs, event emitters, and callback edges",
+      "problemOutcome": "Important architecture boundaries are missed when work is scheduled through events or callbacks.",
+      "acceptanceCriteria": [
+        "Documented EventEmitter, queue registration, and callback-passing patterns emit edge kinds that preserve registration and handler evidence.",
+        "Dynamic event names, string-only reflection, and unsupported queue clients produce stable unknown diagnostics rather than guessed edges."
+      ],
+      "dependencies": ["X-002", "X-004"],
+      "labels": ["area:extractor", "type:feature", "type:test", "priority:P1"],
+      "priority": "P1",
+      "milestone": "Y2-Q4",
+      "state": "open"
+    },
+    {
       "id": "E-004",
       "title": "Separate language-neutral graph semantics from adapters",
       "problemOutcome": "Language-specific assumptions would make later language support brittle.",
@@ -901,6 +1682,86 @@
         "priority:P1"
       ],
       "priority": "P1",
+      "milestone": "Y3-Q1",
+      "state": "open"
+    },
+    {
+      "id": "E-010",
+      "title": "Build a cross-language semantic equivalence corpus",
+      "problemOutcome": "A shared graph vocabulary can hide language-specific differences unless equivalent and non-equivalent constructs are evaluated explicitly.",
+      "acceptanceCriteria": [
+        "The corpus pairs supported TypeScript and pilot-language constructs for modules, calls, routes or boundaries, identity, evidence, and unknown behavior.",
+        "Expected equivalences and intentional differences are versioned; conformance reports disagreements by semantic category."
+      ],
+      "dependencies": ["E-004", "E-005", "E-008"],
+      "labels": [
+        "area:ecosystem",
+        "area:quality",
+        "type:research",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y3-Q1",
+      "state": "open"
+    },
+    {
+      "id": "E-011",
+      "title": "Define adapter retirement and security-response policy",
+      "problemOutcome": "Experimental and community adapters need an honest path to deprecation when quality, ownership, or security support disappears.",
+      "acceptanceCriteria": [
+        "Policy defines ownership, vulnerability intake, supported-version windows, quality regression triggers, deprecation notice, archive behavior, and replacement guidance.",
+        "A tabletop exercise covers an abandoned adapter and a security defect, producing timed actions and public communication templates."
+      ],
+      "dependencies": ["E-006", "E-007", "E-009"],
+      "labels": [
+        "area:ecosystem",
+        "type:security",
+        "type:governance",
+        "type:community",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y3-Q1",
+      "state": "open"
+    },
+    {
+      "id": "E-012",
+      "title": "Publish the language-expansion gate report",
+      "problemOutcome": "The pilot must end in a transparent continue, narrow, or defer decision rather than an indefinite experimental claim.",
+      "acceptanceCriteria": [
+        "The report compares conformance, semantic coverage, unknown rate, precision and recall, performance, maintenance cost, demand, and security ownership against predeclared thresholds.",
+        "A public ADR chooses graduate, retain as experimental, narrow, or retire; rejected expansion creates no implementation commitments."
+      ],
+      "dependencies": ["E-005", "E-010", "E-011"],
+      "labels": [
+        "area:ecosystem",
+        "area:quality",
+        "type:research",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y3-Q1",
+      "state": "open"
+    },
+    {
+      "id": "E-018",
+      "title": "Run adapter compatibility matrix in CI",
+      "problemOutcome": "Adapters drift against core schema and compiler/runtime versions without shared evidence.",
+      "acceptanceCriteria": [
+        "CI executes every declared adapter against capability fixtures, supported Node/compiler versions, and schema compatibility checks.",
+        "Failures identify adapter, capability, fixture, and compatibility dimension; unsupported combinations are declared rather than skipped silently."
+      ],
+      "dependencies": ["E-002", "E-008", "X-005", "R-012"],
+      "labels": [
+        "area:ecosystem",
+        "area:quality",
+        "type:test",
+        "type:release",
+        "priority:P0"
+      ],
+      "priority": "P0",
       "milestone": "Y3-Q1",
       "state": "open"
     },
@@ -978,6 +1839,106 @@
       "state": "open"
     },
     {
+      "id": "O-005",
+      "title": "Model sampling, clock, and service-identity uncertainty",
+      "problemOutcome": "Trace sampling, clock skew, aliases, and missing propagation can make absence or correlation look more certain than the data permits.",
+      "acceptanceCriteria": [
+        "The reconciliation contract represents sampling metadata, time uncertainty, service aliases, missing parents, and confidence without treating unobserved behavior as absent.",
+        "Synthetic fixtures vary sampling and clock conditions; reports explain which classifications changed and why."
+      ],
+      "dependencies": ["O-002", "O-004"],
+      "labels": [
+        "area:runtime",
+        "area:quality",
+        "type:feature",
+        "type:research",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y3-Q2",
+      "state": "open"
+    },
+    {
+      "id": "O-006",
+      "title": "Integrate explicit opt-in local runtime reconciliation",
+      "problemOutcome": "Runtime evidence is usable only when users opt in locally and can distinguish observations from static architecture claims.",
+      "acceptanceCriteria": [
+        "CLI and reports accept only explicit local inputs, keep static and runtime provenance separate, expose uncertainty and diagnostics, and never require a collector, upload, credential, source payload, or network path.",
+        "Input count, bytes, processing time, output cardinality, and retention are bounded; end-to-end tests prove offline execution, redaction, and fail-closed over-limit behavior."
+      ],
+      "dependencies": ["O-003", "O-004", "O-005"],
+      "labels": [
+        "area:runtime",
+        "area:report",
+        "type:feature",
+        "type:security",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y3-Q2",
+      "state": "open"
+    },
+    {
+      "id": "O-007",
+      "title": "Classify static/runtime coverage and disagreement",
+      "problemOutcome": "A runtime observation must not be mistaken for proof that an unobserved static edge does not exist.",
+      "acceptanceCriteria": [
+        "Reports distinguish statically known/runtime observed, statically known/unobserved, runtime-only, and ambiguous relationships.",
+        "Classification is deterministic for a fixed input and includes sampling, revision, and capability limitations."
+      ],
+      "dependencies": ["O-006", "O-004"],
+      "labels": [
+        "area:runtime",
+        "area:report",
+        "type:feature",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y3-Q2",
+      "state": "open"
+    },
+    {
+      "id": "O-010",
+      "title": "Build a local runtime reconciliation fixture corpus",
+      "problemOutcome": "Runtime reconciliation needs controlled examples before any external data is considered.",
+      "acceptanceCriteria": [
+        "Fixtures cover HTTP, database, messaging, errors, missing parents, sampling, redaction, and static/runtime disagreement.",
+        "Each fixture has provenance, expected classifications, and a digest-only result that runs without network or exporter access."
+      ],
+      "dependencies": ["O-004", "O-005", "F-010"],
+      "labels": [
+        "area:runtime",
+        "area:quality",
+        "type:test",
+        "type:research",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y3-Q2",
+      "state": "open"
+    },
+    {
+      "id": "O-013",
+      "title": "Enforce runtime sampling and cost budgets",
+      "problemOutcome": "Optional runtime evidence can become an unbounded storage and review burden.",
+      "acceptanceCriteria": [
+        "Import limits spans, attributes, trace count, analysis time, and report size with stable fail-closed diagnostics.",
+        "Budget fixtures prove deterministic truncation is never reported as complete coverage and redacted data is not retained in temp files."
+      ],
+      "dependencies": ["O-003", "F-011"],
+      "labels": [
+        "area:runtime",
+        "area:performance",
+        "type:performance",
+        "type:security",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y3-Q2",
+      "state": "open"
+    },
+    {
       "id": "M-001",
       "title": "Establish large-repository performance budgets",
       "problemOutcome": "A useful analyzer becomes unusable if scan time or memory grows unpredictably.",
@@ -1011,7 +1972,7 @@
       "problemOutcome": "Users need to know what is supported and how schema or adapter changes are handled.",
       "acceptanceCriteria": [
         "Supported runtime and OS policy, semantic-versioning rules, deprecation policy, snapshot/policy/adapter compatibility, upgrade guidance, and maintenance ownership are documented.",
-        "CI checks version declarations."
+        "CI cross-checks package engine declarations, the workflow runtime matrix, and schema and adapter compatibility versions against the published support and upgrade documentation, failing on drift."
       ],
       "dependencies": ["P-002", "R-003", "R-004"],
       "labels": [
@@ -1034,12 +1995,93 @@
       ],
       "dependencies": ["E-006", "F-006", "R-005"],
       "labels": [
+        "area:workflow",
         "type:community",
         "type:docs",
         "type:governance",
         "priority:P1"
       ],
       "priority": "P1",
+      "milestone": "Y3-Q3",
+      "state": "open"
+    },
+    {
+      "id": "M-007",
+      "title": "Automate the release compatibility matrix",
+      "problemOutcome": "Manual compatibility claims drift from the versions and migrations that releases actually exercise.",
+      "acceptanceCriteria": [
+        "CI tests supported Node, operating-system, snapshot, policy, adapter, and Action-version combinations from a machine-readable matrix.",
+        "Documentation is generated or checked against the matrix, unsupported combinations fail clearly, and every release records the tested set."
+      ],
+      "dependencies": ["R-003", "P-002", "M-003"],
+      "labels": [
+        "area:foundations",
+        "area:quality",
+        "type:release",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y3-Q3",
+      "state": "open"
+    },
+    {
+      "id": "M-008",
+      "title": "Reduce contributor and maintainer single points of failure",
+      "problemOutcome": "A technically mature project remains fragile when triage, releases, adapters, and security response depend on one maintainer.",
+      "acceptanceCriteria": [
+        "Ownership and onboarding maps cover triage, release, security, core contracts, adapters, and roadmap operations with documented backup paths.",
+        "At least two non-author dry runs complete a representative contribution and release-or-triage task; friction and unresolved bus-factor risks are published."
+      ],
+      "dependencies": ["F-006", "E-009", "M-004"],
+      "labels": [
+        "area:foundations",
+        "area:workflow",
+        "type:community",
+        "type:governance",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y3-Q3",
+      "state": "open"
+    },
+    {
+      "id": "F-013",
+      "title": "Govern the benchmark corpus and measurement protocol",
+      "problemOutcome": "Performance and accuracy claims drift when inputs and measurement methods change silently.",
+      "acceptanceCriteria": [
+        "A versioned protocol defines fixture selection, warm/cold runs, hardware/runtime disclosure, accuracy denominators, and acceptable variance.",
+        "Benchmark artifacts record corpus digests and tool versions without including source bodies or hidden telemetry."
+      ],
+      "dependencies": ["X-005", "D-006"],
+      "labels": [
+        "area:quality",
+        "area:research",
+        "type:research",
+        "type:docs",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y3-Q3",
+      "state": "open"
+    },
+    {
+      "id": "R-016",
+      "title": "Expand offline Action fixtures and fork-security regression tests",
+      "problemOutcome": "Workflow changes can accidentally introduce token exposure or execute repository-controlled code.",
+      "acceptanceCriteria": [
+        "Fixtures cover fork pull requests, malicious package scripts, symlinked outputs, oversized inputs, cancellation, and missing refs.",
+        "The workflow policy test rejects write permissions, pull_request_target, unpinned actions, and secret-dependent analysis paths."
+      ],
+      "dependencies": ["R-002", "F-011"],
+      "labels": [
+        "area:github",
+        "area:security",
+        "type:test",
+        "type:security",
+        "priority:P0"
+      ],
+      "priority": "P0",
       "milestone": "Y3-Q3",
       "state": "open"
     },
@@ -1053,6 +2095,7 @@
       ],
       "dependencies": ["M-001", "M-004", "R-005"],
       "labels": [
+        "area:quality",
         "type:community",
         "type:test",
         "type:governance",
@@ -1064,14 +2107,15 @@
     },
     {
       "id": "M-006",
-      "title": "Record the hosted/team investment decision",
-      "problemOutcome": "The project needs an explicit boundary between OSS stewardship and a possible hosted product.",
+      "title": "Record the local-first investment boundary",
+      "problemOutcome": "The project needs an explicit boundary that protects a complete local-first OSS product from speculative hosted or team scope.",
       "acceptanceCriteria": [
-        "Public ADR chooses OSS-only continuation or authorizes a separate hosted discovery phase.",
-        "Approval requires explicit traction and privacy/security gates; otherwise no hosted code, account system, or required telemetry is added; follow-up issues are created only if approved."
+        "A public ADR chooses local-first OSS stewardship or authorizes only a separate discovery phase backed by explicit traction, privacy, security, capacity, and funding evidence.",
+        "No account, source upload, hidden telemetry, hosted implementation, or required network path is added unless a later reviewed gate and separate ADR authorize it."
       ],
       "dependencies": ["F-002", "M-005", "P-009"],
       "labels": [
+        "area:foundations",
         "type:governance",
         "type:security",
         "type:docs",
@@ -1080,6 +2124,1704 @@
       "priority": "P0",
       "milestone": "Y3-Q4",
       "state": "open"
+    },
+    {
+      "id": "M-009",
+      "title": "Run the strategy-branch privacy and security review",
+      "problemOutcome": "Any team or hosted direction changes trust boundaries and cannot inherit the local-only threat model by assumption.",
+      "acceptanceCriteria": [
+        "The selected branch has updated assets, actors, data flows, tenancy and authorization assumptions, retention, incident response, supply-chain risks, and abuse cases.",
+        "A public summary names blocking mitigations and rejected data collection; an OSS-only decision records why no new boundary is needed."
+      ],
+      "dependencies": ["F-002", "M-005", "M-006"],
+      "labels": [
+        "area:foundations",
+        "type:security",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y3-Q4",
+      "state": "open"
+    },
+    {
+      "id": "M-010",
+      "title": "Publish a sustainability and cost model",
+      "problemOutcome": "Roadmap scope must reflect the real maintenance, support, CI, release, security, and infrastructure cost of each strategy branch.",
+      "acceptanceCriteria": [
+        "The model estimates maintainer hours, CI and artifact cost, dependency upkeep, support burden, security response, adapter ownership, and any approved service operations with ranges and assumptions.",
+        "Funding and scope options identify break-even or stop conditions without treating volunteer labor as free."
+      ],
+      "dependencies": ["M-005", "M-008"],
+      "labels": [
+        "area:foundations",
+        "type:research",
+        "type:governance",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y3-Q4",
+      "state": "open"
+    },
+    {
+      "id": "M-011",
+      "title": "Audit Year 1–3 claims against shipped evidence",
+      "problemOutcome": "The first strategy gate needs an evidence-based audit of claims made during the first three program years before later investment is authorized.",
+      "acceptanceCriteria": [
+        "A public audit maps every material Year 1–3 capability, quality, privacy, adoption, and maintenance claim to reproducible repository or release evidence.",
+        "Unsupported, partial, or negative results are labeled plainly and feed the Year 4 charter instead of being converted into roadmap-completion claims."
+      ],
+      "dependencies": ["M-005", "M-006", "M-009"],
+      "labels": [
+        "area:quality",
+        "area:foundations",
+        "type:research",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y3-Q4",
+      "state": "open"
+    },
+    {
+      "id": "M-012",
+      "title": "Charter the conditional Year 4 investment",
+      "problemOutcome": "Later roadmap items should begin only with explicit capacity, evidence, and branch-specific boundaries.",
+      "acceptanceCriteria": [
+        "A public charter selects funded team-scale work, OSS-only hardening, or a maintenance track; it names outcomes, owners, capacity, non-goals, risks, and quarter-level stop conditions.",
+        "Year 4 expansion remains deferred unless the strategy, security, sustainability, and claims-audit gates are accepted."
+      ],
+      "dependencies": ["M-006", "M-009", "M-010", "M-011"],
+      "labels": [
+        "area:foundations",
+        "type:governance",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y3-Q4",
+      "state": "open"
+    },
+    {
+      "id": "R-017",
+      "title": "Publish repository adoption evaluation reports",
+      "problemOutcome": "Adoption claims need reproducible evaluation evidence about supported repositories, not screenshots, vanity counts, certifications, or support guarantees.",
+      "acceptanceCriteria": [
+        "An evaluation template records repository size, languages and frameworks, scan revision, coverage and unknowns, timing, reviewer usefulness, and explicit limitations without implying certification or a support guarantee.",
+        "At least three external or public fixtures are rerunnable from pinned revisions without collecting source, credentials, hidden telemetry, or user data."
+      ],
+      "dependencies": ["R-004", "R-005", "M-004"],
+      "labels": [
+        "area:research",
+        "area:community",
+        "type:research",
+        "type:docs",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y3-Q4",
+      "state": "open"
+    },
+    {
+      "id": "M-014",
+      "title": "Define telemetry-free adoption measurement",
+      "problemOutcome": "The project needs adoption evidence without introducing undisclosed collection or weakening local-first guarantees.",
+      "acceptanceCriteria": [
+        "Metrics rely on opt-in public reports, issue templates, release metadata, and manually reproducible repository runs; hidden telemetry is prohibited.",
+        "The protocol documents sampling bias, retention, anonymization, and deletion responsibilities."
+      ],
+      "dependencies": ["M-005", "F-002", "R-017"],
+      "labels": [
+        "area:research",
+        "area:community",
+        "type:governance",
+        "type:security",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y3-Q4",
+      "state": "open"
+    },
+    {
+      "id": "Q-001",
+      "title": "Define a versioned architecture query contract",
+      "problemOutcome": "Impact and architecture questions need a stable contract before adding a query interface or claiming useful answers.",
+      "acceptanceCriteria": [
+        "The contract defines bounded selectors, node and edge predicates, traversal limits, result ordering, evidence projection, diagnostics, schema version, and unsupported operations.",
+        "Queries are local, read-only, deterministic, resource-bounded, and validated against positive, negative, malformed, and over-limit fixtures."
+      ],
+      "dependencies": ["D-003", "P-001", "P-004", "M-012"],
+      "labels": [
+        "area:query",
+        "area:core",
+        "type:feature",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q1",
+      "state": "open"
+    },
+    {
+      "id": "Q-002",
+      "title": "Implement bounded reachability and dependency-path queries",
+      "problemOutcome": "Reviewers need to trace how architecture objects connect without exporting the graph into ad hoc scripts.",
+      "acceptanceCriteria": [
+        "Queries support direct neighbors, bounded upstream and downstream reachability, shortest dependency paths, boundary crossing, and cycle reporting over declared edge kinds.",
+        "Results have canonical ordering, complete evidence links, explicit truncation diagnostics, and benchmarked node, edge, depth, time, and output ceilings."
+      ],
+      "dependencies": ["Q-001"],
+      "labels": [
+        "area:query",
+        "area:core",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q1",
+      "state": "open"
+    },
+    {
+      "id": "Q-003",
+      "title": "Add policy, decision, and ownership query projections",
+      "problemOutcome": "Structural paths alone do not tell reviewers which controls, decisions, or maintainers govern the affected architecture.",
+      "acceptanceCriteria": [
+        "Query results can project applicable policy rules and findings, ADR references and status, declared ownership hints, exceptions, and unsupported metadata without changing evaluation semantics.",
+        "Missing, conflicting, and stale metadata remains visible; fixtures verify that projections preserve source provenance and do not infer absent ownership."
+      ],
+      "dependencies": ["P-017", "P-018", "Q-001"],
+      "labels": [
+        "area:query",
+        "area:policy",
+        "area:adr",
+        "type:feature",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q1",
+      "state": "open"
+    },
+    {
+      "id": "Q-004",
+      "title": "Model evidence-backed change-impact scenarios",
+      "problemOutcome": "A changed node may affect callers, policies, routes, decisions, and runtime observations, but unrestricted transitive reachability overstates risk.",
+      "acceptanceCriteria": [
+        "A versioned impact model defines supported change kinds, traversal rules, boundary stops, confidence, unknowns, and reasons for inclusion across curated scenarios.",
+        "Golden evaluations report expected affected sets, precision, recall, overreach categories, and reviewer-visible uncertainty rather than a single opaque risk score."
+      ],
+      "dependencies": ["D-002", "P-013", "Q-002", "Q-003"],
+      "labels": [
+        "area:query",
+        "area:diff",
+        "area:quality",
+        "type:research",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q1",
+      "state": "open"
+    },
+    {
+      "id": "Q-005",
+      "title": "Render inspectable query and impact explanations",
+      "problemOutcome": "Query output is not decision-grade when reviewers cannot inspect the path, evidence, rule, or uncertainty behind each result.",
+      "acceptanceCriteria": [
+        "JSON and static reports show query text or normalized plan, result path, edge kinds, evidence, applicable policy and ADR context, uncertainty, limits, and tool versions.",
+        "Explanations are self-contained, keyboard accessible, stable across repeated runs, and tested against cycles, truncation, missing evidence, and empty results."
+      ],
+      "dependencies": ["D-004", "Q-002", "Q-003", "Q-004"],
+      "labels": [
+        "area:query",
+        "area:report",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q1",
+      "state": "open"
+    },
+    {
+      "id": "Q-006",
+      "title": "Publish the architecture-query quality and safety gate",
+      "problemOutcome": "New query features should not proceed to team-scale composition until correctness, performance, and reviewer utility are measured.",
+      "acceptanceCriteria": [
+        "Evaluation covers deterministic correctness, impact precision and recall, explanation completeness, worst-case resource behavior, malformed inputs, path leakage, and reviewer task completion on representative scenarios.",
+        "A public gate report compares predeclared thresholds, lists failures and limitations, and records continue, narrow, or defer decisions for multi-repository work."
+      ],
+      "dependencies": ["M-001", "M-002", "Q-004", "Q-005"],
+      "labels": [
+        "area:query",
+        "area:quality",
+        "type:research",
+        "type:security",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q1",
+      "state": "open"
+    },
+    {
+      "id": "X-009",
+      "title": "Detect workspace package boundaries and ownership",
+      "problemOutcome": "Monorepo architecture reviews need package-level ownership without guessing from directory names.",
+      "acceptanceCriteria": [
+        "npm, pnpm, Yarn, and documented workspace manifests produce package nodes with stable root evidence and dependency edges.",
+        "Overlapping or malformed workspace declarations fail with actionable diagnostics and never merge unrelated package roots."
+      ],
+      "dependencies": ["X-007", "X-002", "M-012"],
+      "labels": [
+        "area:workspace",
+        "area:extractor",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q1",
+      "state": "open"
+    },
+    {
+      "id": "X-012",
+      "title": "Extract bounded GraphQL and REST schema boundaries",
+      "problemOutcome": "API contracts can drift from implementation while module-only graphs look unchanged.",
+      "acceptanceCriteria": [
+        "Supported GraphQL schema/resolver and OpenAPI-to-handler references produce evidence-linked boundary nodes.",
+        "Schema generation, aliases, and runtime-composed routes are reported as partial coverage with stable diagnostic codes."
+      ],
+      "dependencies": ["X-003", "X-004", "M-012"],
+      "labels": [
+        "area:extractor",
+        "area:core",
+        "type:feature",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q1",
+      "state": "open"
+    },
+    {
+      "id": "X-013",
+      "title": "Extract Prisma schema and generated-client relationships",
+      "problemOutcome": "Database models and service boundaries remain invisible when generated clients are excluded without provenance.",
+      "acceptanceCriteria": [
+        "Prisma datasource, model, relation, and generated-client references map to typed graph nodes with schema-file evidence.",
+        "Multiple schema files, unsupported providers, and generated output paths are classified explicitly; no database connection or generation command runs."
+      ],
+      "dependencies": ["X-009", "F-005"],
+      "labels": [
+        "area:extractor",
+        "area:workspace",
+        "type:feature",
+        "type:security",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q1",
+      "state": "open"
+    },
+    {
+      "id": "X-016",
+      "title": "Model lockfiles and package-manager dependency edges",
+      "problemOutcome": "Architecture review lacks reproducible package provenance when it reads only source imports.",
+      "acceptanceCriteria": [
+        "Supported npm, pnpm, Yarn, and Bun lockfile records are normalized into optional dependency evidence without resolving the network.",
+        "Lockfile version mismatches and integrity omissions produce diagnostics; source graph output remains deterministic offline."
+      ],
+      "dependencies": ["X-009", "R-004"],
+      "labels": [
+        "area:workspace",
+        "area:extractor",
+        "type:feature",
+        "type:security",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q1",
+      "state": "open"
+    },
+    {
+      "id": "X-017",
+      "title": "Track generated-code provenance and exclusion diagnostics",
+      "problemOutcome": "Ignoring generated code can hide important boundaries or mislead users about what was analyzed.",
+      "acceptanceCriteria": [
+        "Generated files are classified by configured and detected provenance, with source-to-generated relationships where evidence is available.",
+        "Reports state exactly which generated paths were excluded and why; generated fixtures prove no silent omission."
+      ],
+      "dependencies": ["X-006", "F-010", "M-012"],
+      "labels": [
+        "area:extractor",
+        "area:quality",
+        "type:feature",
+        "type:docs",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q1",
+      "state": "open"
+    },
+    {
+      "id": "D-016",
+      "title": "Benchmark diffs on bounded large-graph workloads",
+      "problemOutcome": "Scale claims are credible only when they are tied to reproducible declared workload tiers and explicit resource ceilings.",
+      "acceptanceCriteria": [
+        "Generated benchmarks declare graph cardinality, edge density, identity ambiguity, wall time, peak memory, report size, and hardware context for each supported workload tier.",
+        "CI enforces documented budgets with an allowed variance band, retains digest-only evidence, and fails closed when an input exceeds a declared supported tier."
+      ],
+      "dependencies": ["D-006", "D-008", "D-010", "F-013", "M-012"],
+      "labels": [
+        "area:performance",
+        "area:diff",
+        "type:performance",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q1",
+      "state": "open"
+    },
+    {
+      "id": "Q-007",
+      "title": "Add deterministic query pagination and result budgets",
+      "problemOutcome": "Architecture queries become unusable when a broad selector returns an unbounded result set.",
+      "acceptanceCriteria": [
+        "Query results support stable cursors, explicit cardinality limits, and a machine-readable truncated state.",
+        "Repeated queries over the same canonical graph return byte-identical pages and never silently discard matches."
+      ],
+      "dependencies": ["Q-005", "Q-006"],
+      "labels": [
+        "area:core",
+        "area:performance",
+        "type:feature",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q1",
+      "state": "open"
+    },
+    {
+      "id": "W-001",
+      "title": "Define the offline workspace composition contract",
+      "problemOutcome": "Multi-repository analysis needs an explicit local boundary for inputs, versions, trust, and missing repositories before graphs can be combined.",
+      "acceptanceCriteria": [
+        "A versioned workspace manifest identifies repository snapshots, logical names, revisions, schema and adapter versions, optional boundaries, local paths, and declared omissions without embedding source.",
+        "Validation rejects duplicate identities, incompatible versions, path escapes, unbounded inputs, and implicit network fetches; minimal and mixed-version fixtures pass."
+      ],
+      "dependencies": ["E-004", "M-003", "M-012", "Q-006"],
+      "labels": [
+        "area:workspace",
+        "area:core",
+        "type:feature",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q2",
+      "state": "open"
+    },
+    {
+      "id": "W-002",
+      "title": "Implement cross-repository identity namespaces",
+      "problemOutcome": "Independently valid snapshots can collide or become unstable when repository names, relocations, forks, and revisions enter one workspace.",
+      "acceptanceCriteria": [
+        "Composed identities include stable repository namespace semantics with explicit behavior for relocation, forks, aliases, duplicate origins, and unavailable origin metadata.",
+        "Property and portability tests prove deterministic identity, surface ambiguity, and preserve each underlying snapshot without destructive rewriting."
+      ],
+      "dependencies": ["P-001", "P-012", "W-001"],
+      "labels": [
+        "area:workspace",
+        "area:core",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q2",
+      "state": "open"
+    },
+    {
+      "id": "W-003",
+      "title": "Resolve declared cross-repository boundaries and dependencies",
+      "problemOutcome": "Portfolio graphs are misleading if package, service, schema, or runtime relationships are guessed from names or silently left disconnected.",
+      "acceptanceCriteria": [
+        "A bounded resolver supports declared package and service references plus explicitly selected evidence sources, distinguishing resolved, ambiguous, external, unavailable, and unsupported relationships.",
+        "Every cross-repository edge includes provenance from both sides or an unresolved reason; fixtures cover version skew, aliases, monorepos, cycles, and missing repositories."
+      ],
+      "dependencies": ["W-001", "W-002"],
+      "labels": [
+        "area:workspace",
+        "area:ecosystem",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q2",
+      "state": "open"
+    },
+    {
+      "id": "W-004",
+      "title": "Add provenance-aware incremental workspace recomposition",
+      "problemOutcome": "Rebuilding an entire portfolio after one snapshot changes wastes time, while stale cache reuse can corrupt decisions.",
+      "acceptanceCriteria": [
+        "Cache keys cover content, contract, adapter, policy, workspace, and tool versions; changed inputs invalidate only proven dependents and never bypass validation.",
+        "Cold, warm, partial-change, corrupt-cache, and interrupted-run tests prove byte-identical results, atomic updates, cleanup, and measured speedup."
+      ],
+      "dependencies": ["M-001", "W-001", "W-002", "W-003"],
+      "labels": [
+        "area:workspace",
+        "area:quality",
+        "type:feature",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q2",
+      "state": "open"
+    },
+    {
+      "id": "W-005",
+      "title": "Enforce workspace privacy and resource boundaries",
+      "problemOutcome": "Composing multiple repositories multiplies source-path leakage, sensitive metadata, denial-of-service, and accidental data-sharing risk.",
+      "acceptanceCriteria": [
+        "The threat model and defaults bound repository count, aggregate nodes and edges, bytes, depth, time, memory, cache, report size, path exposure, and optional runtime metadata.",
+        "Negative tests cover malicious manifests, symlink escapes, decompression and graph bombs, secret-bearing metadata, mixed trust, partial failure, and guaranteed temporary-data cleanup."
+      ],
+      "dependencies": ["F-002", "F-011", "W-001"],
+      "labels": ["area:workspace", "type:security", "type:test", "priority:P0"],
+      "priority": "P0",
+      "milestone": "Y4-Q2",
+      "state": "open"
+    },
+    {
+      "id": "W-006",
+      "title": "Evaluate federation on representative repository portfolios",
+      "problemOutcome": "A multi-repository feature needs evidence that composition improves real review tasks without unacceptable noise or cost.",
+      "acceptanceCriteria": [
+        "At least three reproducible public or sanitized portfolios exercise package, service, schema, missing-repository, version-skew, and cross-boundary change scenarios at declared size tiers.",
+        "The report publishes resolution precision and recall, unknown coverage, identity stability, incremental performance, reviewer usefulness, privacy findings, and a graduate, narrow, or defer decision."
+      ],
+      "dependencies": ["W-002", "W-003", "W-004", "W-005"],
+      "labels": [
+        "area:workspace",
+        "area:quality",
+        "type:research",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q2",
+      "state": "open"
+    },
+    {
+      "id": "E-017",
+      "title": "Implement a SCIP import and export contract",
+      "problemOutcome": "Existing language indexers can provide useful evidence, but interchange must not erase CARTOGRAPH semantics.",
+      "acceptanceCriteria": [
+        "SCIP symbols and relationships map to canonical references with index/tool/version provenance and no raw source payload.",
+        "Round-trip fixtures preserve stable identity/evidence references and explicitly mark fields SCIP cannot represent."
+      ],
+      "dependencies": ["E-009", "D-003", "M-012"],
+      "labels": [
+        "area:interop",
+        "area:core",
+        "type:interop",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q2",
+      "state": "open"
+    },
+    {
+      "id": "G-001",
+      "title": "Resolve architecture ownership from explicit local sources",
+      "problemOutcome": "Findings cannot enter a reliable review workflow when ownership is guessed from contributor history or a single unmatched path rule.",
+      "acceptanceCriteria": [
+        "Resolution combines versioned local ownership rules and supported CODEOWNERS semantics with documented precedence, team aliases, fallback, conflicts, and unavailable owners.",
+        "Every result cites the matching rule and source; fixtures cover nested patterns, negation limits, renamed paths, cross-repository objects, ambiguity, and no-owner outcomes."
+      ],
+      "dependencies": ["P-003", "W-003", "W-006"],
+      "labels": [
+        "area:workflow",
+        "area:workspace",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q3",
+      "state": "open"
+    },
+    {
+      "id": "G-002",
+      "title": "Define an auditable finding lifecycle",
+      "problemOutcome": "Open, acknowledged, remediated, waived, regressed, and obsolete findings need stable semantics across scans and releases.",
+      "acceptanceCriteria": [
+        "A versioned local lifecycle contract defines finding identity, allowed states and transitions, actor, timestamp, rationale, evidence revision, supersession, and invalid-state behavior.",
+        "Transition replay is deterministic and append-only; fixtures cover identity migration, concurrent records, policy changes, removed architecture, regression, and tampering."
+      ],
+      "dependencies": ["P-004", "P-013", "Q-005", "G-001"],
+      "labels": [
+        "area:workflow",
+        "area:policy",
+        "type:feature",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q3",
+      "state": "open"
+    },
+    {
+      "id": "G-003",
+      "title": "Add locally verifiable, expiry-bound architecture waivers",
+      "problemOutcome": "Architecture exceptions need bounded local provenance and expiry without implying that signatures or waivers confer authority.",
+      "acceptanceCriteria": [
+        "The waiver schema binds rule and change scope, rationale, owner, approver, creation, expiry, evidence revision, optional signature metadata, and explicit local trust roots without storing private keys.",
+        "Verification is offline; unsigned, invalid, broadened, replayed, revoked, and expired waivers stay visible and cannot suppress enforcement, and a waiver never grants authority by itself."
+      ],
+      "dependencies": ["P-015", "G-002"],
+      "labels": [
+        "area:workflow",
+        "area:assurance",
+        "type:security",
+        "type:feature",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q3",
+      "state": "open"
+    },
+    {
+      "id": "G-004",
+      "title": "Detect ownership and exception drift",
+      "problemOutcome": "Renames, team changes, policy evolution, and time can leave findings assigned to nobody or hidden behind obsolete exceptions.",
+      "acceptanceCriteria": [
+        "Analysis detects owner disappearance, ambiguous reassignment, scope drift, approaching and passed expiry, invalid signatures, changed evidence, and policy-version mismatch with stable diagnostic codes.",
+        "Reports preserve the prior decision trail, never auto-extend an exception, and fixtures cover repository moves, policy migration, key rotation, and partial workspaces."
+      ],
+      "dependencies": ["G-001", "G-002", "G-003"],
+      "labels": [
+        "area:workflow",
+        "area:policy",
+        "type:feature",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q3",
+      "state": "open"
+    },
+    {
+      "id": "G-005",
+      "title": "Integrate ownership and finding state into review outputs",
+      "problemOutcome": "Reviewers need one bounded summary of new, changed, accepted, expired, and ownerless findings without exposing secrets or requiring write permissions.",
+      "acceptanceCriteria": [
+        "CLI, JSON, static report, and read-only Action show lifecycle change, owner source, waiver validity, evidence, policy and ADR context, due or expiry state, and actionable next steps.",
+        "Fork and least-privilege tests prove no untrusted code gains signing material or write access; summaries have cardinality limits and link to full local artifacts."
+      ],
+      "dependencies": ["R-001", "P-005", "G-002", "G-004"],
+      "labels": [
+        "area:workflow",
+        "area:github",
+        "area:report",
+        "type:feature",
+        "type:security",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q3",
+      "state": "open"
+    },
+    {
+      "id": "G-006",
+      "title": "Evaluate review workflow usability, integrity, and load",
+      "problemOutcome": "Workflow features can add ceremony, concentrate approval power, or create a false audit trail without improving architecture decisions.",
+      "acceptanceCriteria": [
+        "A study measures triage accuracy, time-to-owner, waiver review time, stale-finding rate, reviewer task completion, maintainer load, and failure recovery on representative scenarios.",
+        "Security review covers forgery, replay, broad waivers, owner spoofing, fork pull requests, and compromised keys; a public gate records graduate, narrow, redesign, or defer outcomes."
+      ],
+      "dependencies": ["M-002", "M-004", "M-008", "G-005"],
+      "labels": [
+        "area:workflow",
+        "area:quality",
+        "type:research",
+        "type:security",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q3",
+      "state": "open"
+    },
+    {
+      "id": "D-014",
+      "title": "Add patch-scoped graph and policy filtering",
+      "problemOutcome": "Large pull requests need a bounded review without losing the ability to inspect full evidence on demand.",
+      "acceptanceCriteria": [
+        "A patch filter selects changed-file evidence plus configurable one-hop context and reports omitted graph regions.",
+        "Filtering is deterministic, cannot turn a policy violation into a pass, and has fixtures for renames and generated files."
+      ],
+      "dependencies": ["D-008", "R-001", "M-012"],
+      "labels": [
+        "area:diff",
+        "area:report",
+        "type:feature",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q3",
+      "state": "open"
+    },
+    {
+      "id": "D-015",
+      "title": "Define a deterministic graph and diff query language",
+      "problemOutcome": "Ad hoc filters cannot be reused in reports, CI, and editor integrations.",
+      "acceptanceCriteria": [
+        "A versioned query grammar supports node/edge kinds, evidence paths, confidence, revision changes, and bounded traversal.",
+        "Parser errors are stable, query execution has resource limits, and equivalent queries produce canonical selections."
+      ],
+      "dependencies": ["D-008", "P-003", "M-012"],
+      "labels": [
+        "area:diff",
+        "area:core",
+        "type:feature",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q3",
+      "state": "open"
+    },
+    {
+      "id": "D-017",
+      "title": "Render filtered graph views without misleading layout semantics",
+      "problemOutcome": "Visual maps can imply proximity or completeness that the underlying evidence does not support.",
+      "acceptanceCriteria": [
+        "A local report renders selected nodes and typed edges with legends for confidence, unresolved edges, and omitted context.",
+        "Layout is deterministic for the same canonical input and tests verify that visual grouping never changes graph semantics."
+      ],
+      "dependencies": ["D-015", "D-004"],
+      "labels": [
+        "area:visualization",
+        "area:report",
+        "type:feature",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q3",
+      "state": "open"
+    },
+    {
+      "id": "D-018",
+      "title": "Publish portable graph interchange exports",
+      "problemOutcome": "Users need to consume canonical architecture evidence without adopting CARTOGRAPH's renderer.",
+      "acceptanceCriteria": [
+        "Versioned JSON, JSON-LD, and a documented edge-list export preserve IDs, evidence references, confidence, and unresolved reasons.",
+        "Round-trip fixtures prove exports do not invent edges or drop required provenance, and unsupported fields fail visibly."
+      ],
+      "dependencies": ["D-003", "E-009", "M-012"],
+      "labels": [
+        "area:interop",
+        "area:core",
+        "type:interop",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q3",
+      "state": "open"
+    },
+    {
+      "id": "D-020",
+      "title": "Meet accessibility and keyboard-navigation requirements for reports",
+      "problemOutcome": "A graph review surface is not useful if its evidence and changes are inaccessible to keyboard or assistive-technology users.",
+      "acceptanceCriteria": [
+        "HTML reports provide semantic tables/details alternatives, focus order, keyboard navigation, reduced-motion behavior, and visible status text.",
+        "Automated accessibility checks plus a manual fixture review cover changed nodes, diagnostics, and evidence links."
+      ],
+      "dependencies": ["D-004", "D-017", "R-004"],
+      "labels": [
+        "area:visualization",
+        "area:quality",
+        "type:test",
+        "type:docs",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q3",
+      "state": "open"
+    },
+    {
+      "id": "R-008",
+      "title": "Publish pull-request check summaries and source annotations",
+      "problemOutcome": "A report artifact alone makes architecture changes hard to triage during review.",
+      "acceptanceCriteria": [
+        "The Action emits a bounded check summary with counts, confidence, unresolved diagnostics, and links to an artifact.",
+        "Line annotations are evidence-backed, capped, and never expose source bodies or absolute paths; fork permissions are tested."
+      ],
+      "dependencies": ["R-001", "D-003", "M-012"],
+      "labels": [
+        "area:github",
+        "area:report",
+        "type:feature",
+        "type:security",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q3",
+      "state": "open"
+    },
+    {
+      "id": "R-009",
+      "title": "Define a bounded SARIF policy-result bridge",
+      "problemOutcome": "Policy findings need to interoperate with code-scanning surfaces without misrepresenting graph evidence as vulnerability analysis.",
+      "acceptanceCriteria": [
+        "A versioned export maps only line-local policy violations to SARIF and retains canonical graph/evidence IDs as references.",
+        "Import/export fixtures reject unsupported result kinds, source bodies, and missing fingerprints; documentation states the boundary clearly."
+      ],
+      "dependencies": ["D-003", "P-004", "M-012"],
+      "labels": [
+        "area:interop",
+        "area:github",
+        "type:interop",
+        "type:security",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q3",
+      "state": "open"
+    },
+    {
+      "id": "Q-008",
+      "title": "Support evidence-path and source-span query predicates",
+      "problemOutcome": "Reviewers need to query architecture changes by where evidence lives, not only by graph kind.",
+      "acceptanceCriteria": [
+        "The query contract supports normalized repository paths, spans, extractor versions, confidence, and unresolved reasons.",
+        "Fixtures prove path traversal, absolute paths, and malformed spans are rejected while valid predicates remain cross-platform deterministic."
+      ],
+      "dependencies": ["Q-007", "F-005"],
+      "labels": [
+        "area:core",
+        "area:report",
+        "type:feature",
+        "type:security",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q3",
+      "state": "open"
+    },
+    {
+      "id": "Q-011",
+      "title": "Add query regression and authorization-boundary fixtures",
+      "problemOutcome": "Reusable queries must not bypass policy or expose paths outside the selected repository.",
+      "acceptanceCriteria": [
+        "Regression fixtures cover query parser bugs, path containment, policy-filtered results, and stale snapshot references.",
+        "The evaluator proves query output cannot grant or change policy decisions and remains bounded under adversarial selectors."
+      ],
+      "dependencies": ["Q-008", "Q-005", "P-017"],
+      "labels": [
+        "area:quality",
+        "area:security",
+        "type:test",
+        "type:security",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q3",
+      "state": "open"
+    },
+    {
+      "id": "A-001",
+      "title": "Define a reproducible architecture assurance bundle",
+      "problemOutcome": "Teams need a portable explanation of what was analyzed and controlled, but a report alone does not preserve all inputs, contracts, and limits required for replay.",
+      "acceptanceCriteria": [
+        "A versioned bundle manifest references snapshots, diffs, policies, decisions, lifecycle records, waivers, query results, tool and adapter versions, configurations, limits, and generated reports without requiring source inclusion.",
+        "Canonical packaging, size ceilings, media types, missing-artifact semantics, and offline validation are specified; repeated exports from identical inputs are byte-identical."
+      ],
+      "dependencies": ["D-004", "G-005"],
+      "labels": [
+        "area:assurance",
+        "area:report",
+        "type:feature",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q4",
+      "state": "open"
+    },
+    {
+      "id": "A-002",
+      "title": "Sign assurance manifests and verify artifact provenance",
+      "problemOutcome": "Recipients cannot trust a portable evidence bundle when integrity, producer identity, and artifact relationships are unverifiable.",
+      "acceptanceCriteria": [
+        "The bundle records content digests, build and tool provenance, signing identity metadata, timestamp policy, and verification results using documented interoperable mechanisms.",
+        "Offline verification detects missing, altered, substituted, expired, revoked, and unsupported artifacts; private keys never enter CARTOGRAPH configuration or reports."
+      ],
+      "dependencies": ["R-003", "G-003", "A-001"],
+      "labels": [
+        "area:assurance",
+        "type:security",
+        "type:release",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q4",
+      "state": "open"
+    },
+    {
+      "id": "A-003",
+      "title": "Link architecture evidence to SBOM and build provenance",
+      "problemOutcome": "Source architecture findings and released software inventory remain disconnected when packages, builds, and graph identities cannot be reconciled cautiously.",
+      "acceptanceCriteria": [
+        "A versioned mapping accepts selected SPDX or CycloneDX and build-provenance inputs, relating supported components and artifacts to graph objects with evidence, confidence, and unresolved reasons.",
+        "Fixtures cover aliases, bundled outputs, generated code, missing packages, version skew, malformed input, and ambiguous mappings; no completeness claim is made beyond measured coverage."
+      ],
+      "dependencies": ["E-008", "M-007", "M-012"],
+      "labels": [
+        "area:assurance",
+        "area:ecosystem",
+        "type:feature",
+        "type:security",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q4",
+      "state": "open"
+    },
+    {
+      "id": "A-004",
+      "title": "Map architecture controls to evidence without compliance claims",
+      "problemOutcome": "Control owners need traceable evidence, while presenting architecture checks as certification would mislead users and auditors.",
+      "acceptanceCriteria": [
+        "A local mapping contract links named control objectives to policies, findings, decisions, owners, waivers, tests, and bundle artifacts with scope, period, status, and evidence gaps.",
+        "Reports separate observed evidence from owner assertions, include prominent non-certification limitations, and test stale, conflicting, missing, and partially applicable mappings."
+      ],
+      "dependencies": ["P-004", "G-002", "A-001", "A-003"],
+      "labels": [
+        "area:assurance",
+        "area:policy",
+        "type:feature",
+        "type:governance",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q4",
+      "state": "open"
+    },
+    {
+      "id": "A-005",
+      "title": "Harden local assurance redaction, retention, and safe sharing",
+      "problemOutcome": "Portable local bundles can combine sensitive repository names, paths, findings, decisions, and runtime metadata even without a hosted service.",
+      "acceptanceCriteria": [
+        "The local and offline threat model defines default exclusions, field-level redaction, pseudonymization limits, recipient profiles, retention, deletion, and safe-sharing checks without implying centralized access control or compliance certification.",
+        "Leakage tests seed secrets and identifiers across every artifact type; unsafe exports fail closed without echoing sensitive values and do not require a hosted encryption or authorization service."
+      ],
+      "dependencies": ["O-003", "W-005", "A-001"],
+      "labels": ["area:assurance", "type:security", "type:test", "priority:P0"],
+      "priority": "P0",
+      "milestone": "Y4-Q4",
+      "state": "open"
+    },
+    {
+      "id": "A-006",
+      "title": "Prove independent assurance-bundle replay",
+      "problemOutcome": "An assurance format is not credible until a separate environment can validate and reproduce its declared results within documented limits.",
+      "acceptanceCriteria": [
+        "A clean, network-disabled environment verifies signatures and digests, validates contracts, regenerates derived reports, and compares deterministic outputs using only the declared bundle and public tooling.",
+        "At least one independent reviewer follows the replay guide; discrepancies, portability failures, redaction findings, time and resource use, and the milestone gate decision are published."
+      ],
+      "dependencies": ["A-002", "A-004", "A-005"],
+      "labels": [
+        "area:assurance",
+        "area:quality",
+        "type:research",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y4-Q4",
+      "state": "open"
+    },
+    {
+      "id": "R-015",
+      "title": "Add content-addressed CI cache keys",
+      "problemOutcome": "Repeated scans are slow, but unsound cache reuse can produce stale architecture evidence.",
+      "acceptanceCriteria": [
+        "Cache keys bind tool version, config digest, revision, lockfile digest, and relevant source inputs without storing source bodies remotely.",
+        "Cache-hit and invalidation fixtures prove changed configuration or dependencies cannot reuse incompatible snapshots."
+      ],
+      "dependencies": ["R-001", "X-006", "F-009", "M-012"],
+      "labels": [
+        "area:github",
+        "area:performance",
+        "type:performance",
+        "type:security",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y4-Q4",
+      "state": "open"
+    },
+    {
+      "id": "H-001",
+      "title": "Define a versioned local architecture history store",
+      "problemOutcome": "Longitudinal analysis needs durable, migratable records rather than an unbounded directory of unrelated snapshots and reports.",
+      "acceptanceCriteria": [
+        "The local store indexes revisions, snapshots, diffs, policies, decisions, finding lifecycles, workspace composition, provenance, and schema versions using content-addressed immutable records and explicit references.",
+        "Atomic import, deduplication, validation, corruption detection, migration, export, and recovery are specified; no network service or hidden telemetry is required."
+      ],
+      "dependencies": ["D-003", "W-004", "A-002"],
+      "labels": [
+        "area:core",
+        "area:assurance",
+        "type:feature",
+        "type:release",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q1",
+      "state": "open"
+    },
+    {
+      "id": "H-002",
+      "title": "Implement reproducible architecture trend metrics",
+      "problemOutcome": "Teams need to see structural evolution, but raw graph size and finding counts can reward growth or hide quality changes.",
+      "acceptanceCriteria": [
+        "Versioned metrics cover supported boundary changes, dependency direction, cycles, policy findings, decision coverage, ownership, waivers, unknowns, runtime reconciliation, and churn with denominators and scope.",
+        "Every metric can be recomputed from stored evidence, records contract and configuration versions, and is tested against no-change, rename, missing-history, and schema-migration scenarios."
+      ],
+      "dependencies": ["P-018", "G-004", "H-001"],
+      "labels": [
+        "area:query",
+        "area:quality",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q1",
+      "state": "open"
+    },
+    {
+      "id": "H-003",
+      "title": "Represent history gaps, baseline changes, and uncertainty",
+      "problemOutcome": "Trends become misleading when missing revisions, changed extractors, altered policies, or incomplete workspaces are plotted as comparable observations.",
+      "acceptanceCriteria": [
+        "History marks missing periods, partial snapshots, contract and adapter changes, policy changes, workspace-scope changes, migrations, sampling changes, and incomparable metrics with machine-readable reasons.",
+        "Reports never interpolate or rank incomparable values by default; synthetic timelines verify uncertainty bands, breaks, restatements, and reviewer explanations."
+      ],
+      "dependencies": ["M-001", "O-005", "H-001", "H-002"],
+      "labels": [
+        "area:quality",
+        "area:report",
+        "type:research",
+        "type:feature",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y5-Q1",
+      "state": "open"
+    },
+    {
+      "id": "H-004",
+      "title": "Track evidence-backed architecture debt indicators",
+      "problemOutcome": "Transparent indicators can show aging or recurring architecture findings without inventing predictive debt scores or business outcomes.",
+      "acceptanceCriteria": [
+        "Supported indicators cover finding age, recurrence, waiver history, ownership gaps, policy severity, boundary erosion, unknown coverage, and remediation evidence without predicting debt or business outcomes.",
+        "Definitions and thresholds are configurable and versioned; counterexamples, uncertainty, sensitivity, and per-indicator evidence are published on curated timelines."
+      ],
+      "dependencies": ["P-006", "G-003", "G-004", "H-002", "H-003"],
+      "labels": [
+        "area:policy",
+        "area:query",
+        "type:research",
+        "type:feature",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y5-Q1",
+      "state": "open"
+    },
+    {
+      "id": "H-005",
+      "title": "Add history retention, compaction, and selective export",
+      "problemOutcome": "Long-lived architecture evidence can grow without bound and retain sensitive metadata beyond its useful or permitted lifetime.",
+      "acceptanceCriteria": [
+        "Policy controls retention by artifact and classification, legal or owner hold metadata, safe compaction, tombstones, garbage collection, export scope, and documented irreversibility without silently breaking referenced evidence.",
+        "Tests cover boundary dates, shared content, failed compaction, corrupt indexes, deletion verification, migrated records, redacted export, and deterministic rebuild of retained metrics."
+      ],
+      "dependencies": ["O-003", "A-005", "H-001", "H-003"],
+      "labels": [
+        "area:assurance",
+        "area:core",
+        "type:security",
+        "type:feature",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q1",
+      "state": "open"
+    },
+    {
+      "id": "H-006",
+      "title": "Evaluate longitudinal validity, performance, and usefulness",
+      "problemOutcome": "History features should not graduate unless their metrics survive migrations, gaps, scale, and real maintainer interpretation.",
+      "acceptanceCriteria": [
+        "Evaluation uses synthetic ground truth and representative multi-version repositories to measure metric reproducibility, false trend signals, migration equivalence, query latency, storage growth, compaction, and reviewer task accuracy.",
+        "A public report documents privacy and retention findings, sensitivity limits, decision usefulness, rejected metrics, and a graduate, narrow, or defer gate for remediation assistance."
+      ],
+      "dependencies": ["H-002", "H-003", "H-004", "H-005"],
+      "labels": [
+        "area:quality",
+        "area:query",
+        "type:research",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q1",
+      "state": "open"
+    },
+    {
+      "id": "M-018",
+      "title": "Review the secure boundary for optional local export/import",
+      "problemOutcome": "Optional handoff can expand identity, authorization, and retention risk even when CARTOGRAPH remains local and offline.",
+      "acceptanceCriteria": [
+        "A threat-model review defines bounded local export and import, identity, authorization, retention, conflict handling, integrity checks, and no-network defaults.",
+        "The review covers only local and offline handoff; any account, hosted service, or required network workflow needs a later independent ADR and security gate."
+      ],
+      "dependencies": ["R-011", "P-016", "O-006"],
+      "labels": [
+        "area:security",
+        "area:operations",
+        "type:governance",
+        "type:security",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q1",
+      "state": "open"
+    },
+    {
+      "id": "G-009",
+      "title": "Analyze longitudinal ownership and waiver churn",
+      "problemOutcome": "Point-in-time drift diagnostics do not show whether ownership gaps and exception reuse are recurring, improving, or artifacts of missing history.",
+      "acceptanceCriteria": [
+        "Versioned historical analysis measures owner changes, gap recurrence, waiver renewal and expiry, scope growth, and review latency without collapsing them into a single score.",
+        "Every trend links to revision evidence and distinguishes missing or migrated history from a verified negative result and from current-state drift findings."
+      ],
+      "dependencies": ["G-004", "H-003", "H-004"],
+      "labels": [
+        "area:history",
+        "area:policy",
+        "type:feature",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y5-Q1",
+      "state": "open"
+    },
+    {
+      "id": "S-001",
+      "title": "Define a governed remediation suggestion contract",
+      "problemOutcome": "Architecture findings need bounded, inspectable remediation semantics before any system proposes code, policy, decision, or workflow changes.",
+      "acceptanceCriteria": [
+        "The versioned contract distinguishes explanation, investigation step, configuration change, policy or waiver action, documentation action, and code-change suggestion with inputs, evidence, confidence, assumptions, risk, and validation plan.",
+        "Unsupported findings produce no fabricated remediation; generation is opt-in, read-only by default, resource-bounded, and tested against stale, ambiguous, ownerless, and security-sensitive cases."
+      ],
+      "dependencies": ["P-004", "Q-005", "G-002", "H-004"],
+      "labels": [
+        "area:automation",
+        "area:policy",
+        "type:feature",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q2",
+      "state": "open"
+    },
+    {
+      "id": "S-002",
+      "title": "Implement deterministic rule-based remediation suggestions",
+      "problemOutcome": "High-confidence recurring findings can receive useful guidance without introducing probabilistic providers or hidden data flows.",
+      "acceptanceCriteria": [
+        "A reviewed ruleset generates evidence-linked suggestions for a bounded set of policy, configuration, decision-reference, ownership, exception, and supported dependency findings.",
+        "Each rule declares applicability, preconditions, non-goals, risk, validation commands, and golden positive and negative fixtures; output is byte-stable and never edits files."
+      ],
+      "dependencies": ["P-006", "G-004", "S-001"],
+      "labels": [
+        "area:automation",
+        "area:policy",
+        "type:feature",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q2",
+      "state": "open"
+    },
+    {
+      "id": "S-003",
+      "title": "Add isolated patch preview, validation, and rollback",
+      "problemOutcome": "Code-oriented suggestions remain unsafe unless proposed changes can be inspected and tested without mutating the user's working tree or selecting arbitrary commands.",
+      "acceptanceCriteria": [
+        "Patch previews run in an isolated bounded worktree, preserve the original tree, show exact provenance, and require explicit user application outside CARTOGRAPH's default flow.",
+        "Validation uses only built-in or maintainer-configured allowlisted non-network commands; repository files cannot select commands or credentials, and tests cover dirty trees, conflicts, malicious inputs, cleanup, and rollback instructions."
+      ],
+      "dependencies": ["D-001", "F-002", "S-001", "S-002"],
+      "labels": [
+        "area:automation",
+        "area:diff",
+        "type:feature",
+        "type:security",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q2",
+      "state": "open"
+    },
+    {
+      "id": "S-004",
+      "title": "Specify an optional model-provider privacy boundary",
+      "problemOutcome": "Probabilistic assistance would create new disclosure, prompt-injection, provenance, reproducibility, and provider-dependence risks that must be designed before integration.",
+      "acceptanceCriteria": [
+        "A public RFC defines local-only and provider-backed options, exact fields eligible to leave the machine, redaction, consent, retention, training policy requirements, prompt and response provenance, budgets, availability, and a no-provider default.",
+        "Threat modeling and adversarial fixtures cover source and issue prompt injection, secret exfiltration, untrusted reports, malicious suggestions, provider failure, nondeterminism, and misleading confidence; deferral is an acceptable outcome."
+      ],
+      "dependencies": ["F-002", "A-005", "S-001"],
+      "labels": [
+        "area:automation",
+        "type:research",
+        "type:security",
+        "type:governance",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y5-Q2",
+      "state": "open"
+    },
+    {
+      "id": "S-005",
+      "title": "Add explicit human approval and remediation review workflow",
+      "problemOutcome": "Suggestions can bypass ownership and policy accountability if approval, validation, and rejection evidence are not first-class.",
+      "acceptanceCriteria": [
+        "The workflow records suggestion version, reviewer and owner, evidence revision, decision, rationale, validation result, expiry, and final disposition without automatically merging, applying, or weakening policy.",
+        "CLI, reports, and optional read-only CI distinguish proposed, approved, rejected, stale, failed-validation, and applied-externally states; least-privilege and fork tests pass."
+      ],
+      "dependencies": ["G-005", "S-003", "S-004"],
+      "labels": [
+        "area:automation",
+        "area:workflow",
+        "area:github",
+        "type:feature",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q2",
+      "state": "open"
+    },
+    {
+      "id": "S-006",
+      "title": "Red-team and evaluate remediation assistance",
+      "problemOutcome": "Assistance should not graduate on appealing examples while hiding unsafe, irrelevant, or unverifiable recommendations.",
+      "acceptanceCriteria": [
+        "Evaluation measures applicability precision, unsafe suggestion rate, validation success, stale-evidence detection, reviewer acceptance and override, time saved or added, reproducibility, cost, and provider-data exposure by suggestion class.",
+        "Red-team cases include injection, secret leakage, destructive commands, policy weakening, broad waivers, dependency confusion, fabricated evidence, compromised providers, and automation bias; a public ADR records graduate, narrow, rule-only, or stop."
+      ],
+      "dependencies": ["M-002", "S-002", "S-003", "S-004", "S-005"],
+      "labels": [
+        "area:automation",
+        "area:quality",
+        "type:research",
+        "type:security",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q2",
+      "state": "open"
+    },
+    {
+      "id": "F-014",
+      "title": "Create the long-term deprecation and change-control register",
+      "problemOutcome": "A five-year program needs explicit owners and removal conditions for temporary compatibility paths.",
+      "acceptanceCriteria": [
+        "Every deprecated schema, CLI flag, adapter capability, and policy feature has an owner, review date, replacement, and removal gate.",
+        "Release CI reports overdue entries and blocks removal without a migration note and fixture update."
+      ],
+      "dependencies": ["P-002", "R-003"],
+      "labels": [
+        "area:operations",
+        "type:governance",
+        "type:release",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y5-Q2",
+      "state": "open"
+    },
+    {
+      "id": "P-020",
+      "title": "Define digest-bound policy bundle federation",
+      "problemOutcome": "Teams may need shared rules across repositories without requiring a central service or implicit trust.",
+      "acceptanceCriteria": [
+        "A local bundle format records policy source, version, digest, compatibility, owner, and expiry metadata.",
+        "Import verifies the digest and compatibility contract offline, and bundles cannot grant network, filesystem, or execution authority."
+      ],
+      "dependencies": ["P-016", "F-007", "E-008"],
+      "labels": [
+        "area:policy",
+        "area:interop",
+        "type:interop",
+        "type:security",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y5-Q2",
+      "state": "open"
+    },
+    {
+      "id": "P-021",
+      "title": "Test policy compatibility, expiry, and revocation migrations",
+      "problemOutcome": "Federated policy bundles become dangerous when old rules remain active after their assumptions change.",
+      "acceptanceCriteria": [
+        "Migration fixtures cover version upgrades, expiry, explicit revocation, incompatible selectors, and missing owners.",
+        "The evaluator produces a digest-only migration report and refuses to enforce an unreviewed incompatible bundle."
+      ],
+      "dependencies": ["P-020", "F-014"],
+      "labels": [
+        "area:policy",
+        "area:quality",
+        "type:test",
+        "type:security",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q2",
+      "state": "open"
+    },
+    {
+      "id": "A-009",
+      "title": "Rotate and verify assurance signing metadata",
+      "problemOutcome": "Long-lived assurance bundles need key-rotation and verification semantics that do not imply a hosted trust service.",
+      "acceptanceCriteria": [
+        "The local contract defines signer identity references, rotation, revocation, expiry, and algorithm/version compatibility.",
+        "Fixtures cover old keys, missing trust roots, tampered manifests, and explicit verification failure without fallback acceptance."
+      ],
+      "dependencies": ["A-002", "A-005", "F-014"],
+      "labels": [
+        "area:security",
+        "area:operations",
+        "type:security",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q2",
+      "state": "open"
+    },
+    {
+      "id": "S-007",
+      "title": "Separate remediation suggestions from canonical findings",
+      "problemOutcome": "A suggested fix must never mutate architecture evidence or be mistaken for a verified remediation.",
+      "acceptanceCriteria": [
+        "Suggestion records reference findings and proposed edits without changing graph, policy, or history truth.",
+        "Reports label suggestions as unverified and reject suggestions whose evidence or baseline digest is stale."
+      ],
+      "dependencies": ["S-001", "S-002", "D-007"],
+      "labels": [
+        "area:policy",
+        "area:security",
+        "type:feature",
+        "type:docs",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y5-Q2",
+      "state": "open"
+    },
+    {
+      "id": "V-001",
+      "title": "Publish a governed architecture-analysis replication corpus",
+      "problemOutcome": "Independent validation requires stable public inputs and expected evidence, while copied repositories and traces create licensing, privacy, representativeness, and maintenance risks.",
+      "acceptanceCriteria": [
+        "The corpus has provenance, licenses, inclusion and exclusion criteria, versioned tasks, expected outputs, uncertainty annotations, redaction review, maintenance ownership, and a documented process for correction or withdrawal.",
+        "It spans supported extraction, identity, diff, policy, ADR, runtime, workspace, workflow, history, and remediation scenarios without implying population-wide representativeness."
+      ],
+      "dependencies": ["E-010", "O-004", "H-006"],
+      "labels": [
+        "area:quality",
+        "area:ecosystem",
+        "type:research",
+        "type:community",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q3",
+      "state": "open"
+    },
+    {
+      "id": "V-002",
+      "title": "Run a transparent comparative architecture benchmark",
+      "problemOutcome": "CARTOGRAPH's value and limitations cannot be understood from internal baselines alone, but tool comparisons are misleading without aligned scope and evidence.",
+      "acceptanceCriteria": [
+        "A preregistered protocol compares selected open or reproducibly accessible tools on overlapping tasks, versions, configurations, hardware, time and resource budgets, supported constructs, evidence quality, unknown behavior, and reviewer tasks.",
+        "Raw results and analysis scripts are published; missing features and incomparable outputs are reported explicitly, and no ranking collapses correctness, coverage, usability, security, and performance into one score."
+      ],
+      "dependencies": ["Q-006", "V-001"],
+      "labels": ["area:quality", "type:research", "type:test", "priority:P1"],
+      "priority": "P1",
+      "milestone": "Y5-Q3",
+      "state": "open"
+    },
+    {
+      "id": "V-003",
+      "title": "Map CARTOGRAPH contracts to portable ecosystem formats",
+      "problemOutcome": "Architecture evidence remains siloed unless supported findings, provenance, components, and traces can interoperate without losing semantics or overstating equivalence.",
+      "acceptanceCriteria": [
+        "Documented mappings cover selected SARIF, SPDX or CycloneDX, OpenTelemetry, and provenance fields with direction, lossiness, unsupported concepts, identifiers, evidence, and version negotiation.",
+        "Round-trip and one-way fixtures quantify preserved, transformed, dropped, and ambiguous information; exports validate against upstream schemas and remain opt-in."
+      ],
+      "dependencies": ["O-001", "A-003", "V-001"],
+      "labels": [
+        "area:ecosystem",
+        "area:assurance",
+        "type:feature",
+        "type:research",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y5-Q3",
+      "state": "open"
+    },
+    {
+      "id": "V-004",
+      "title": "Establish an independent replication program",
+      "problemOutcome": "A self-published corpus and benchmark do not demonstrate that external researchers or maintainers can reproduce the methods and challenge the claims.",
+      "acceptanceCriteria": [
+        "A public protocol defines eligible replications, environment capture, blinded or adversarial cases where practical, issue disclosure, discrepancy handling, citation, contributor credit, and support boundaries.",
+        "At least one external replication or structured independent review completes; artifacts, deviations, failures, disagreements, and resulting corrections are published with consent."
+      ],
+      "dependencies": ["M-004", "M-008", "V-001", "V-002"],
+      "labels": [
+        "area:quality",
+        "type:research",
+        "type:community",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q3",
+      "state": "open"
+    },
+    {
+      "id": "V-005",
+      "title": "Publish validated claims, negative results, and limitations",
+      "problemOutcome": "Five years of engineering and experiments need a durable research record that separates supported conclusions from hypotheses and failed directions.",
+      "acceptanceCriteria": [
+        "A versioned report maps each research and product claim to methods, datasets, versions, statistical or qualitative evidence, uncertainty, threats to validity, replications, and contradictory or negative results.",
+        "The replication package has archival identifiers where practical, machine-readable metadata, environment instructions, and a correction policy; marketing and README claims are reconciled to the report."
+      ],
+      "dependencies": ["M-011", "V-002", "V-004"],
+      "labels": [
+        "area:quality",
+        "type:research",
+        "type:docs",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q3",
+      "state": "open"
+    },
+    {
+      "id": "V-006",
+      "title": "Record the interoperability and research gate decision",
+      "problemOutcome": "Standards and research investment should continue only where mappings, external demand, reproducibility, and maintenance capacity justify them.",
+      "acceptanceCriteria": [
+        "A public ADR evaluates mapping fidelity, upstream engagement, adoption, external replication, claim strength, unresolved discrepancies, security and privacy impact, and ongoing maintenance cost against predeclared gates.",
+        "The decision explicitly selects standardization work, maintained adapters only, further research, or closure; rejected directions create no implied compatibility promise."
+      ],
+      "dependencies": ["M-010", "S-006", "V-003", "V-005"],
+      "labels": [
+        "area:ecosystem",
+        "area:quality",
+        "type:research",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q3",
+      "state": "open"
+    },
+    {
+      "id": "O-016",
+      "title": "Run a reproducibility study for runtime evidence",
+      "problemOutcome": "Sampling and environment-dependent traces can produce unstable architecture conclusions.",
+      "acceptanceCriteria": [
+        "Repeated fixture imports under controlled perturbations measure classification stability, missingness, and redaction invariants.",
+        "The study publishes method, corpus digest, variance, and explicit non-guarantees without collecting live user traces."
+      ],
+      "dependencies": ["O-010", "O-006", "O-013"],
+      "labels": [
+        "area:research",
+        "area:runtime",
+        "type:research",
+        "type:test",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y5-Q3",
+      "state": "open"
+    },
+    {
+      "id": "O-017",
+      "title": "Make the runtime feature investment decision",
+      "problemOutcome": "Runtime reconciliation should not become permanent scope without evidence of reviewer value and acceptable privacy cost.",
+      "acceptanceCriteria": [
+        "A public ADR weighs reproducibility, privacy/security findings, adoption feedback, maintenance cost, and static-only usefulness.",
+        "The decision authorizes bounded follow-up issues or explicitly defers/sunsets runtime work without leaving hidden collection paths."
+      ],
+      "dependencies": ["O-016", "M-006", "P-020"],
+      "labels": [
+        "area:runtime",
+        "area:research",
+        "type:governance",
+        "type:research",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q3",
+      "state": "open"
+    },
+    {
+      "id": "G-012",
+      "title": "Publish the ownership and waiver governance gate",
+      "problemOutcome": "Governance metadata should not become an unbounded collaboration product without evidence of local value.",
+      "acceptanceCriteria": [
+        "A public gate report audits source precedence, signed/expiry behavior, drift detection, privacy, and reviewer usefulness.",
+        "The decision authorizes bounded maintenance/integration work or explicitly defers the surface without leaving implicit authority paths."
+      ],
+      "dependencies": ["G-006", "V-002", "M-014"],
+      "labels": [
+        "area:research",
+        "area:policy",
+        "type:research",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q3",
+      "state": "open"
+    },
+    {
+      "id": "A-012",
+      "title": "Publish the assurance-surface decision gate",
+      "problemOutcome": "Assurance packaging can become a compliance product without sufficient evidence of architecture-review value.",
+      "acceptanceCriteria": [
+        "A gate report weighs independent replay, provenance integrity, redaction, adoption, maintainer cost, and claim limitations.",
+        "The project records a bounded continuation, maintenance-only mode, or explicit defer/sunset decision with linked tasks."
+      ],
+      "dependencies": ["A-006", "V-002", "M-014"],
+      "labels": [
+        "area:research",
+        "area:interop",
+        "type:research",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q3",
+      "state": "open"
+    },
+    {
+      "id": "H-012",
+      "title": "Publish the architecture-history investment gate",
+      "problemOutcome": "Trend analysis should not become an analytics platform without evidence of reliable architecture decisions.",
+      "acceptanceCriteria": [
+        "A gate report audits provenance, missingness, privacy, storage, performance, reviewer usefulness, and maintenance burden.",
+        "The project authorizes bounded follow-up, maintenance-only mode, or explicit defer/sunset with a public rationale."
+      ],
+      "dependencies": ["H-006", "V-002", "M-014"],
+      "labels": [
+        "area:research",
+        "area:history",
+        "type:research",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q3",
+      "state": "open"
+    },
+    {
+      "id": "S-012",
+      "title": "Publish the remediation-assistance decision gate",
+      "problemOutcome": "Automated suggestions are not justified unless they improve review outcomes without weakening evidence or control.",
+      "acceptanceCriteria": [
+        "A study measures suggestion precision, accepted/rejected patches, reviewer effort, security failures, rollback success, and privacy cost.",
+        "A public ADR authorizes bounded continuation, local-only maintenance, or explicit defer/sunset without enabling unreviewed mutation."
+      ],
+      "dependencies": ["S-006", "V-002", "M-014"],
+      "labels": [
+        "area:research",
+        "area:security",
+        "type:research",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q3",
+      "state": "open"
+    },
+    {
+      "id": "L-001",
+      "title": "Define and cut the five-year LTS release line",
+      "problemOutcome": "Long-term users need a bounded support promise that separates stable contracts from experiments and does not exceed maintainer capacity.",
+      "acceptanceCriteria": [
+        "The LTS policy names supported runtime, platforms, schemas, snapshots, policies, adapters, workspace and history formats, Action versions, security fixes, deprecation windows, experimental exclusions, release cadence, and end-of-support date.",
+        "A reproducible signed release passes the full compatibility matrix, package and Action smoke tests, migration checks, assurance replay, security gates, and documented rollback before the line is announced."
+      ],
+      "dependencies": [
+        "M-003",
+        "M-007",
+        "V-006",
+        "O-017",
+        "G-012",
+        "A-012",
+        "H-012",
+        "S-012"
+      ],
+      "labels": [
+        "area:foundations",
+        "area:assurance",
+        "type:release",
+        "type:security",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q4",
+      "state": "open"
+    },
+    {
+      "id": "L-002",
+      "title": "Rehearse end-to-end migration, recovery, and downgrade",
+      "problemOutcome": "An LTS promise is weak unless representative users can move from prior formats and recover safely from failed or incompatible upgrades.",
+      "acceptanceCriteria": [
+        "A clean environment migrates every supported snapshot, policy, adapter, workspace, finding-lifecycle, assurance, and history version through documented steps while preserving originals and producing equivalence reports.",
+        "Tabletop and automated scenarios cover interruption, corruption, insufficient disk, revoked signatures, adapter removal, partial workspace, rollback, backup restore, and unsupported downgrade with measured recovery time."
+      ],
+      "dependencies": ["P-002", "E-011", "H-001", "L-001"],
+      "labels": [
+        "area:foundations",
+        "area:core",
+        "type:release",
+        "type:test",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q4",
+      "state": "open"
+    },
+    {
+      "id": "L-003",
+      "title": "Complete the LTS security and reproducibility audit",
+      "problemOutcome": "Long support windows amplify dependency, build, key, provenance, parser, workflow, and incident-response risks.",
+      "acceptanceCriteria": [
+        "The audit covers threat models, dependency and action pinning, build provenance, artifact verification, signing and rotation, supported parsers and adapters, fuzz regressions, CI permissions, release process, disclosure, patch SLAs, and reproducible rebuilds.",
+        "Critical and high findings are resolved or explicitly block release; medium findings have owners and dates, an independent review path is recorded, and the public summary distinguishes completed tests from unperformed work."
+      ],
+      "dependencies": ["M-002", "A-002", "M-009", "L-001", "L-002"],
+      "labels": [
+        "area:assurance",
+        "area:quality",
+        "type:security",
+        "type:release",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q4",
+      "state": "open"
+    },
+    {
+      "id": "L-004",
+      "title": "Establish maintainer succession and sustainable governance",
+      "problemOutcome": "An LTS release and public evidence corpus cannot depend on one person's indefinite availability or unfunded operational work.",
+      "acceptanceCriteria": [
+        "The governance plan defines maintainer roles, decision rights, security and release backups, access recovery, succession, conflict handling, funding disclosure, sponsor boundaries, archival triggers, and transfer or sunset procedures.",
+        "At least two authorized maintainers or documented fallback custodians complete access, release, vulnerability-triage, roadmap, and recovery drills; unresolved capacity gaps constrain the support promise."
+      ],
+      "dependencies": ["M-008", "M-010", "V-004", "L-001"],
+      "labels": [
+        "area:foundations",
+        "area:workflow",
+        "type:community",
+        "type:governance",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q4",
+      "state": "open"
+    },
+    {
+      "id": "L-005",
+      "title": "Publish the five-year technical, market, and research retrospective",
+      "problemOutcome": "The next strategy should be based on shipped outcomes, user value, costs, external evidence, and failed bets rather than backlog completion or vanity metrics.",
+      "acceptanceCriteria": [
+        "The retrospective compares original and revised goals with releases, compatibility, correctness, performance, security, incidents, adoption and retention, contributor health, support load, cost, revenue or funding where applicable, citations, replications, and negative results.",
+        "It distinguishes causal evidence from correlation and anecdotes, names discontinued and deferred work, audits current claims, includes stakeholder dissent, and publishes reusable lessons and open questions."
+      ],
+      "dependencies": ["M-005", "M-011", "V-005", "L-003", "L-004"],
+      "labels": [
+        "area:quality",
+        "area:foundations",
+        "type:research",
+        "type:governance",
+        "priority:P1"
+      ],
+      "priority": "P1",
+      "milestone": "Y5-Q4",
+      "state": "open"
+    },
+    {
+      "id": "L-006",
+      "title": "Record the next-horizon continue, scale, transfer, or sunset decision",
+      "problemOutcome": "A mature project needs an explicit terminal decision instead of automatically rolling unfinished ambition into another roadmap.",
+      "acceptanceCriteria": [
+        "A public ADR evaluates user value, strategic differentiation, research contribution, market evidence, security posture, maintenance and opportunity cost, funding, governance capacity, ecosystem fit, and credible alternatives using predeclared thresholds.",
+        "The decision selects and funds a bounded next program, maintains LTS only, transfers stewardship, or executes a safe sunset; each branch names owners, dates, user migration, security obligations, data and artifact disposition, and success or completion evidence."
+      ],
+      "dependencies": ["S-012", "V-006", "L-002", "L-003", "L-004", "L-005"],
+      "labels": [
+        "area:foundations",
+        "type:governance",
+        "type:docs",
+        "priority:P0"
+      ],
+      "priority": "P0",
+      "milestone": "Y5-Q4",
+      "state": "open"
     }
-  ]
+  ],
+  "roadmapHorizon": {
+    "start": "2026-08-23",
+    "end": "2031-07-31",
+    "years": 5,
+    "milestones": 20,
+    "issues": 179
+  }
 }

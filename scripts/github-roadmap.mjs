@@ -11,16 +11,69 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const MANIFEST_PATH = resolve(SCRIPT_DIR, "../roadmap/manifest.json");
 const MANAGED_MARKER = "cartograph";
-const EXPECTED_MILESTONES = 12;
-const EXPECTED_ISSUES = 48;
+const EXPECTED_MILESTONES = 20;
+const EXPECTED_LABELS = 36;
+const EXPECTED_ISSUES = 179;
+const EXPECTED_DEPENDENCY_EDGES = 514;
+const MIN_ISSUES_PER_MILESTONE = 6;
+const MAX_ISSUES_PER_MILESTONE = 15;
+const MAX_DEPENDENCY_DEPTH = 54;
+const MIN_P1_ISSUES = 70;
+const EXPECTED_ROOT_ISSUE_ID = "F-001";
+const EXPECTED_ROADMAP_HORIZON = Object.freeze({
+  start: "2026-08-23",
+  end: "2031-07-31",
+  years: 5,
+  milestones: EXPECTED_MILESTONES,
+  issues: EXPECTED_ISSUES,
+});
+const EXPECTED_MILESTONE_DUE_DATES = Object.freeze([
+  "2026-10-31",
+  "2027-01-31",
+  "2027-04-30",
+  "2027-07-31",
+  "2027-10-31",
+  "2028-01-31",
+  "2028-04-30",
+  "2028-07-31",
+  "2028-10-31",
+  "2029-01-31",
+  "2029-04-30",
+  "2029-07-31",
+  "2029-10-31",
+  "2030-01-31",
+  "2030-04-30",
+  "2030-07-31",
+  "2030-10-31",
+  "2031-01-31",
+  "2031-04-30",
+  "2031-07-31",
+]);
+const FORBIDDEN_PUBLIC_ISSUE_FIELDS = Object.freeze([
+  "agent",
+  "model",
+  "status",
+  "context",
+]);
+const MIN_ACCEPTANCE_CRITERIA = 2;
+const MIN_OUTCOME_CHARACTERS = 40;
+const MIN_CRITERION_CHARACTERS = 20;
 const MAX_GH_OUTPUT_BYTES = 4 * 1024 * 1024;
 const GH_TIMEOUT_MS = 30_000;
 const GH_MUTATION_INTERVAL_MS = 1_050;
 const POST_APPLY_VERIFY_MAX_ATTEMPTS = 5;
 const POST_APPLY_VERIFY_RETRY_DELAY_MS = 500;
+const NATIVE_DEPENDENCY_CONCURRENCY = 4;
+const MAX_NATIVE_DEPENDENCY_ROWS_PER_ISSUE = 100;
+const MAX_NATIVE_DEPENDENCY_ROWS_TOTAL = 10_000;
 const ALLOWED_LABEL_CATEGORIES = new Set(["area", "type", "priority"]);
 const ALLOWED_PRIORITIES = new Set(["P0", "P1", "P2"]);
 const ALLOWED_STATES = new Set(["open"]);
+const TRUSTED_AUTHOR_ASSOCIATIONS = new Set([
+  "OWNER",
+  "MEMBER",
+  "COLLABORATOR",
+]);
 
 const usage = `Usage:
   node scripts/github-roadmap.mjs validate
@@ -90,6 +143,39 @@ function sameLabelSet(left, right) {
   );
 }
 
+function isRealIsoDate(value) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/u.test(value)) {
+    return false;
+  }
+  const [year, month, day] = value.split("-").map(Number);
+  if (year < 1 || month < 1 || month > 12 || day < 1) return false;
+  const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [
+    31,
+    leapYear ? 29 : 28,
+    31,
+    30,
+    31,
+    30,
+    31,
+    31,
+    30,
+    31,
+    30,
+    31,
+  ];
+  return day <= daysInMonth[month - 1];
+}
+
+function milestoneDueOn(milestone) {
+  return `${milestone.dueOn}T23:59:59Z`;
+}
+
+function remoteDueOnDate(remoteMilestone) {
+  const dueOn = remoteMilestone?.due_on;
+  return typeof dueOn === "string" ? dueOn.slice(0, 10) : "";
+}
+
 function parseRepo(value) {
   if (typeof value !== "string" || !repoPattern.test(value)) {
     throw new Error(
@@ -129,6 +215,9 @@ function validateManifest(manifest) {
   const labelNames = new Set();
   const globalIds = new Set();
   const dependencyEdges = [];
+  const issueCountsByMilestone = new Map();
+  const issueCountsByPriority = new Map();
+  let lastIssueMilestoneIndex = -1;
 
   if (!isRecord(manifest)) {
     return {
@@ -148,6 +237,15 @@ function validateManifest(manifest) {
   if (manifest.defaultIssueState !== "open") {
     errors.push("defaultIssueState must be open");
   }
+  if (!isRecord(manifest.roadmapHorizon)) {
+    errors.push("roadmapHorizon must be an object");
+  } else {
+    for (const [field, expected] of Object.entries(EXPECTED_ROADMAP_HORIZON)) {
+      if (manifest.roadmapHorizon[field] !== expected) {
+        errors.push(`roadmapHorizon.${field} must be ${expected}`);
+      }
+    }
+  }
 
   const milestones = Array.isArray(manifest.milestones)
     ? manifest.milestones
@@ -164,6 +262,11 @@ function validateManifest(manifest) {
       `expected exactly ${EXPECTED_MILESTONES} milestones, found ${milestones.length}`,
     );
   }
+  if (labels.length !== EXPECTED_LABELS) {
+    errors.push(
+      `expected exactly ${EXPECTED_LABELS} labels, found ${labels.length}`,
+    );
+  }
   if (issues.length !== EXPECTED_ISSUES) {
     errors.push(
       `expected exactly ${EXPECTED_ISSUES} issues, found ${issues.length}`,
@@ -176,12 +279,45 @@ function validateManifest(manifest) {
       errors.push(`${prefix} must be an object`);
       continue;
     }
-    for (const field of ["id", "title", "description"]) {
+    for (const field of ["id", "title", "description", "dueOn"]) {
       if (!nonEmptyString(milestone[field]))
         errors.push(`${prefix}.${field} must be nonempty`);
     }
+    if (nonEmptyString(milestone.dueOn) && !isRealIsoDate(milestone.dueOn)) {
+      errors.push(
+        `${prefix}.dueOn must be a real date in strict YYYY-MM-DD format`,
+      );
+    }
+    if (
+      milestones.length === EXPECTED_MILESTONES &&
+      milestone.dueOn !== EXPECTED_MILESTONE_DUE_DATES[index]
+    ) {
+      errors.push(
+        `${prefix}.dueOn must be ${EXPECTED_MILESTONE_DUE_DATES[index] ?? "within the five-year horizon"}`,
+      );
+    }
     if (!ALLOWED_STATES.has(milestone.state)) {
       errors.push(`${prefix}.state must be open`);
+    }
+    const expectedYear = Math.floor(index / 4) + 1;
+    const expectedQuarter = (index % 4) + 1;
+    const expectedId = `Y${expectedYear}-Q${expectedQuarter}`;
+    if (milestone.id !== expectedId) {
+      errors.push(`${prefix}.id must be ${expectedId}`);
+    }
+    if (
+      nonEmptyString(milestone.title) &&
+      !milestone.title.startsWith(`Year ${expectedYear} Q${expectedQuarter} —`)
+    ) {
+      errors.push(
+        `${prefix}.title must begin with Year ${expectedYear} Q${expectedQuarter} —`,
+      );
+    }
+    if (
+      nonEmptyString(milestone.description) &&
+      !milestone.description.includes("Exit gate:")
+    ) {
+      errors.push(`${prefix}.description must include an Exit gate`);
     }
     if (nonEmptyString(milestone.id)) {
       if (milestoneIds.has(milestone.id))
@@ -243,6 +379,13 @@ function validateManifest(manifest) {
       errors.push(`${prefix} must be an object`);
       continue;
     }
+    for (const field of FORBIDDEN_PUBLIC_ISSUE_FIELDS) {
+      if (Object.hasOwn(issue, field)) {
+        errors.push(
+          `${prefix}.${field} is internal metadata and must be omitted`,
+        );
+      }
+    }
     for (const field of [
       "id",
       "title",
@@ -267,8 +410,21 @@ function validateManifest(manifest) {
         errors.push(`duplicate issue title: ${issue.title}`);
       issueTitles.add(issue.title);
     }
+    if (
+      nonEmptyString(issue.problemOutcome) &&
+      issue.problemOutcome.trim().length < MIN_OUTCOME_CHARACTERS
+    ) {
+      errors.push(
+        `${prefix}.problemOutcome must contain at least ${MIN_OUTCOME_CHARACTERS} characters`,
+      );
+    }
     if (!ALLOWED_PRIORITIES.has(issue.priority)) {
       errors.push(`${prefix}.priority must be one of P0, P1, P2`);
+    } else {
+      issueCountsByPriority.set(
+        issue.priority,
+        (issueCountsByPriority.get(issue.priority) ?? 0) + 1,
+      );
     }
     if (issue.state !== manifest.defaultIssueState) {
       errors.push(
@@ -279,19 +435,40 @@ function validateManifest(manifest) {
       errors.push(
         `${prefix}.milestone references unknown milestone ${issue.milestone}`,
       );
+    } else {
+      const milestoneIndex = milestones.findIndex(
+        (milestone) => milestone.id === issue.milestone,
+      );
+      issueCountsByMilestone.set(
+        issue.milestone,
+        (issueCountsByMilestone.get(issue.milestone) ?? 0) + 1,
+      );
+      if (milestoneIndex < lastIssueMilestoneIndex) {
+        errors.push(
+          `${prefix}.milestone must not move backward in the five-year sequence`,
+        );
+      }
+      lastIssueMilestoneIndex = Math.max(
+        lastIssueMilestoneIndex,
+        milestoneIndex,
+      );
     }
     if (
       !Array.isArray(issue.acceptanceCriteria) ||
-      issue.acceptanceCriteria.length === 0
+      issue.acceptanceCriteria.length < MIN_ACCEPTANCE_CRITERIA
     ) {
       errors.push(
-        `${prefix}.acceptanceCriteria must contain at least one criterion`,
+        `${prefix}.acceptanceCriteria must contain at least ${MIN_ACCEPTANCE_CRITERIA} criteria`,
       );
     } else {
       issue.acceptanceCriteria.forEach((criterion, criterionIndex) => {
         if (!nonEmptyString(criterion)) {
           errors.push(
             `${prefix}.acceptanceCriteria[${criterionIndex}] must be nonempty`,
+          );
+        } else if (criterion.trim().length < MIN_CRITERION_CHARACTERS) {
+          errors.push(
+            `${prefix}.acceptanceCriteria[${criterionIndex}] must contain at least ${MIN_CRITERION_CHARACTERS} characters`,
           );
         }
       });
@@ -300,6 +477,18 @@ function validateManifest(manifest) {
       errors.push(`${prefix}.dependencies must be an array`);
     } else {
       const seenDependencies = new Set();
+      if (
+        issue.id === EXPECTED_ROOT_ISSUE_ID &&
+        issue.dependencies.length !== 0
+      ) {
+        errors.push(`${prefix} root issue must not have dependencies`);
+      }
+      if (
+        issue.id !== EXPECTED_ROOT_ISSUE_ID &&
+        issue.dependencies.length === 0
+      ) {
+        errors.push(`${prefix} must depend on at least one earlier issue`);
+      }
       for (const dependency of issue.dependencies) {
         if (!nonEmptyString(dependency)) {
           errors.push(`${prefix}.dependencies contains an empty ID`);
@@ -325,6 +514,7 @@ function validateManifest(manifest) {
       errors.push(`${prefix}.labels must contain at least one label`);
     } else {
       const seenLabels = new Set();
+      const seenLabelCategories = new Set();
       for (const labelName of issue.labels) {
         if (!nonEmptyString(labelName)) {
           errors.push(`${prefix}.labels contains an empty label`);
@@ -336,6 +526,7 @@ function validateManifest(manifest) {
         if (!labelNames.has(labelName))
           errors.push(`${prefix} references unknown label ${labelName}`);
         const [category] = labelName.split(":", 1);
+        seenLabelCategories.add(category);
         if (!ALLOWED_LABEL_CATEGORIES.has(category)) {
           errors.push(`${prefix} uses unsupported label category ${category}`);
         }
@@ -343,7 +534,37 @@ function validateManifest(manifest) {
       if (!issue.labels.includes(`priority:${issue.priority}`)) {
         errors.push(`${prefix}.labels must include priority:${issue.priority}`);
       }
+      for (const requiredCategory of ALLOWED_LABEL_CATEGORIES) {
+        if (!seenLabelCategories.has(requiredCategory)) {
+          errors.push(
+            `${prefix}.labels must include a ${requiredCategory}: label`,
+          );
+        }
+      }
     }
+  }
+
+  for (const milestone of milestones) {
+    const count = issueCountsByMilestone.get(milestone.id) ?? 0;
+    if (count < MIN_ISSUES_PER_MILESTONE) {
+      errors.push(
+        `milestone ${milestone.id} must contain at least ${MIN_ISSUES_PER_MILESTONE} issue, found ${count}`,
+      );
+    }
+    if (count > MAX_ISSUES_PER_MILESTONE) {
+      errors.push(
+        `milestone ${milestone.id} must contain at most ${MAX_ISSUES_PER_MILESTONE} issues, found ${count}`,
+      );
+    }
+  }
+
+  if (dependencyEdges.length !== EXPECTED_DEPENDENCY_EDGES) {
+    errors.push(
+      `expected exactly ${EXPECTED_DEPENDENCY_EDGES} dependency edges, found ${dependencyEdges.length}`,
+    );
+  }
+  if ((issueCountsByPriority.get("P1") ?? 0) < MIN_P1_ISSUES) {
+    errors.push(`expected at least ${MIN_P1_ISSUES} P1 issues`);
   }
 
   if (issueIds.size > 0) {
@@ -373,6 +594,27 @@ function validateManifest(manifest) {
       visited.add(id);
     };
     for (const id of issueIds) visit(id);
+
+    const dependencyDepthByIssue = new Map();
+    for (const issue of issues) {
+      if (!isRecord(issue) || !nonEmptyString(issue.id)) continue;
+      const dependencies = Array.isArray(issue.dependencies)
+        ? issue.dependencies
+        : [];
+      const knownDepths = dependencies
+        .map((dependency) => dependencyDepthByIssue.get(dependency))
+        .filter(Number.isSafeInteger);
+      dependencyDepthByIssue.set(
+        issue.id,
+        1 + (knownDepths.length > 0 ? Math.max(...knownDepths) : 0),
+      );
+    }
+    const dependencyDepth = Math.max(0, ...dependencyDepthByIssue.values());
+    if (dependencyDepth > MAX_DEPENDENCY_DEPTH) {
+      errors.push(
+        `dependency depth must be at most ${MAX_DEPENDENCY_DEPTH}, found ${dependencyDepth}`,
+      );
+    }
   }
 
   return {
@@ -549,7 +791,162 @@ function flattenPaginated(value) {
   return value;
 }
 
-async function fetchGithubState(repo) {
+function flattenPaginatedStrict(value, context) {
+  if (!Array.isArray(value)) {
+    throw new Error(`${context} returned a non-array response`);
+  }
+  const rows = value.every((page) => Array.isArray(page))
+    ? value.flat()
+    : value;
+  if (!rows.every(isRecord)) {
+    throw new Error(`${context} returned a malformed row`);
+  }
+  return rows;
+}
+
+function positiveSafeInteger(value) {
+  return Number.isSafeInteger(value) && value > 0;
+}
+
+function nativeIssueIdentity(issue, context) {
+  const number = issue?.number;
+  const id = issue?.id;
+  if (!positiveSafeInteger(number)) {
+    throw new Error(`${context} has no valid GitHub issue number`);
+  }
+  if (!positiveSafeInteger(id)) {
+    throw new Error(`${context} has no valid GitHub issue database ID`);
+  }
+  return { number, id };
+}
+
+function nativeBlockedByRows(value, context) {
+  const rows = flattenPaginatedStrict(value, context);
+  if (rows.length > MAX_NATIVE_DEPENDENCY_ROWS_PER_ISSUE) {
+    throw new Error(
+      `${context} returned more than ${MAX_NATIVE_DEPENDENCY_ROWS_PER_ISSUE} rows`,
+    );
+  }
+  const seen = new Set();
+  return rows.map((row, index) => {
+    const identity = nativeIssueIdentity(row, `${context} row ${index + 1}`);
+    if (seen.has(identity.id)) {
+      throw new Error(
+        `${context} returned duplicate blocker database ID ${identity.id}`,
+      );
+    }
+    seen.add(identity.id);
+    return identity;
+  });
+}
+
+async function fetchNativeBlockedBy(repo, issueNumber, context) {
+  const raw = await ghJson(
+    [
+      "api",
+      "--paginate",
+      "--slurp",
+      `repos/${repo}/issues/${issueNumber}/dependencies/blocked_by?per_page=100`,
+    ],
+    undefined,
+    context,
+  );
+  return nativeBlockedByRows(raw, context);
+}
+
+async function mapWithConcurrency(values, concurrency, mapper) {
+  const results = new Array(values.length);
+  let nextIndex = 0;
+  const worker = async () => {
+    while (true) {
+      const index = nextIndex;
+      nextIndex += 1;
+      if (index >= values.length) return;
+      results[index] = await mapper(values[index], index);
+    }
+  };
+  const workerCount = Math.min(concurrency, values.length);
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  return results;
+}
+
+function blockedByRecords(state) {
+  const records = state?.blockedBy;
+  if (records === undefined || records === null) return [];
+  if (Array.isArray(records)) {
+    if (!records.every(isRecord)) {
+      throw new Error("blocked_by discovery state contains a malformed record");
+    }
+    return records;
+  }
+  if (records instanceof Map) {
+    const normalized = [...records.entries()].map(([key, blockers]) =>
+      positiveSafeInteger(key)
+        ? { issueNumber: key, blockers }
+        : { issueId: key, blockers },
+    );
+    if (!normalized.every(isRecord)) {
+      throw new Error("blocked_by discovery state contains a malformed record");
+    }
+    return normalized;
+  }
+  if (isRecord(records)) {
+    const normalized = Object.entries(records).map(([key, blockers]) =>
+      /^\d+$/u.test(key)
+        ? { issueNumber: Number(key), blockers }
+        : { issueId: key, blockers },
+    );
+    if (!normalized.every(isRecord)) {
+      throw new Error("blocked_by discovery state contains a malformed record");
+    }
+    return normalized;
+  }
+  throw new Error("blocked_by discovery state must be an array or object");
+}
+
+function blockersForIssue(state, issue, remote) {
+  const records = blockedByRecords(state);
+  const record = records.find(
+    (candidate) =>
+      candidate?.issueId === issue.id ||
+      (remote?.number !== undefined &&
+        candidate?.issueNumber === remote.number),
+  );
+  if (!record) {
+    if (remote && issue.dependencies.length > 0) {
+      throw new Error(
+        `blocked_by state for ${issue.id} was not discovered; refusing to assume an empty relationship set`,
+      );
+    }
+    return [];
+  }
+  if (
+    record.issueNumber !== undefined &&
+    !positiveSafeInteger(record.issueNumber)
+  ) {
+    throw new Error(
+      `blocked_by state for ${issue.id} has an invalid issue number`,
+    );
+  }
+  if (
+    remote?.number !== undefined &&
+    record.issueNumber !== undefined &&
+    record.issueNumber !== remote.number
+  ) {
+    throw new Error(
+      `blocked_by state for ${issue.id} has a mismatched issue number`,
+    );
+  }
+  if (!Array.isArray(record.blockers)) {
+    throw new Error(`blocked_by state for ${issue.id} is not an array`);
+  }
+  return nativeBlockedByRows(
+    record.blockers,
+    `blocked_by state for ${issue.id}`,
+  );
+}
+
+async function fetchGithubState(repo, manifest = null) {
   const [labels, milestones, issues] = await Promise.all([
     ghJson(
       ["api", "--paginate", "--slurp", `repos/${repo}/labels?per_page=100`],
@@ -578,11 +975,52 @@ async function fetchGithubState(repo) {
     ),
   ]);
 
-  return {
+  const state = {
     labels: flattenPaginated(labels),
     milestones: flattenPaginated(milestones),
     issues: flattenPaginated(issues).filter((issue) => !issue.pull_request),
   };
+
+  if (!manifest) return state;
+
+  const milestoneById = managedMilestones(manifest, state.milestones);
+  const issueById = managedIssues(
+    manifest,
+    state.issues,
+    managedMilestoneNumbers(milestoneById),
+  );
+  const managedRemoteIssues = manifest.issues
+    .map((issue) => ({ issue, remote: issueById.get(issue.id) }))
+    .filter(
+      ({ issue, remote }) => remote !== null && issue.dependencies.length > 0,
+    );
+  const blockedBy = await mapWithConcurrency(
+    managedRemoteIssues,
+    NATIVE_DEPENDENCY_CONCURRENCY,
+    async ({ issue, remote }) => {
+      const identity = nativeIssueIdentity(remote, `managed issue ${issue.id}`);
+      return {
+        issueId: issue.id,
+        issueNumber: identity.number,
+        blockers: await fetchNativeBlockedBy(
+          repo,
+          identity.number,
+          `blocked_by discovery for ${issue.id}`,
+        ),
+      };
+    },
+  );
+  const totalRows = blockedBy.reduce(
+    (total, record) => total + record.blockers.length,
+    0,
+  );
+  if (totalRows > MAX_NATIVE_DEPENDENCY_ROWS_TOTAL) {
+    throw new Error(
+      `blocked_by discovery returned more than ${MAX_NATIVE_DEPENDENCY_ROWS_TOTAL} rows`,
+    );
+  }
+
+  return { ...state, blockedBy };
 }
 
 function managedMilestones(manifest, remoteMilestones) {
@@ -623,18 +1061,22 @@ function managedIssues(manifest, remoteIssues, milestoneNumbers) {
   const byId = new Map();
   for (const issue of manifest.issues) {
     const marker = issueMarker(issue.id);
-    const exactMatches = remoteIssues.filter((candidate) =>
-      hasExactMarkerLine(candidate.body, marker),
-    );
-    const nearMatches = remoteIssues.filter(
+    const ownershipCandidates = remoteIssues.filter(
       (candidate) =>
         hasMarkerMention(candidate.body, marker) &&
-        !hasExactMarkerLine(candidate.body, marker),
+        (milestoneNumbers.has(candidate.milestone?.number) ||
+          TRUSTED_AUTHOR_ASSOCIATIONS.has(candidate.author_association)),
+    );
+    const exactMatches = ownershipCandidates.filter((candidate) =>
+      hasExactMarkerLine(candidate.body, marker),
+    );
+    const nearMatches = ownershipCandidates.filter(
+      (candidate) => !hasExactMarkerLine(candidate.body, marker),
     );
     if (nearMatches.length > 0) {
       throw new Error(`ownership marker collision for ${issue.id}`);
     }
-    const duplicateLine = remoteIssues.find(
+    const duplicateLine = ownershipCandidates.find(
       (candidate) => exactMarkerLineCount(candidate.body, marker) > 1,
     );
     if (duplicateLine) {
@@ -694,7 +1136,26 @@ function desiredIssueLabels(manifestIssue, remoteIssue, managedLabelNames) {
   return normalizedLabelNames([...existingUnmanaged, ...manifestIssue.labels]);
 }
 
-function bodyForIssue(issue, milestone, repo, issueNumbers, linkDependencies) {
+function checkedAcceptanceCriteria(body) {
+  const section = String(body ?? "").match(
+    /## Acceptance criteria\s*\n([\s\S]*?)(?:\n## Dependencies|$)/u,
+  )?.[1];
+  if (!section) return new Set();
+  return new Set(
+    [...section.matchAll(/^- \[[xX]\] (.+)$/gmu)].map((match) =>
+      match[1].trim(),
+    ),
+  );
+}
+
+function bodyForIssue(
+  issue,
+  milestone,
+  repo,
+  issueNumbers,
+  linkDependencies,
+  currentBody = "",
+) {
   const dependencies =
     issue.dependencies.length === 0
       ? "- None."
@@ -707,8 +1168,12 @@ function bodyForIssue(issue, milestone, repo, issueNumbers, linkDependencies) {
             return `- ${dependency}`;
           })
           .join("\n");
+  const checkedCriteria = checkedAcceptanceCriteria(currentBody);
   const criteria = issue.acceptanceCriteria
-    .map((criterion) => `- [ ] ${criterion}`)
+    .map(
+      (criterion) =>
+        `- [${checkedCriteria.has(criterion) ? "x" : " "}] ${criterion}`,
+    )
     .join("\n");
   return [
     issueMarker(issue.id),
@@ -727,7 +1192,7 @@ function bodyForIssue(issue, milestone, repo, issueNumbers, linkDependencies) {
     "## Managed metadata",
     `- Roadmap ID: ${issue.id}`,
     `- Priority: ${issue.priority}`,
-    `- State: ${issue.state}`,
+    `- Initial state: ${issue.state}`,
     `- Milestone: ${milestone.title}`,
     "",
   ].join("\n");
@@ -762,8 +1227,6 @@ function changesForIssue(issue, remote, milestoneNumber, labels) {
   const changes = {};
   if (remote.title !== issueTitle(issue))
     changes.title = { from: remote.title, to: issueTitle(issue) };
-  if (remote.state !== "open")
-    changes.state = { from: remote.state, to: "open" };
   const currentLabels = normalizedLabelNames(issueLabelNames(remote));
   if (!sameLabelSet(currentLabels, labels)) {
     changes.labels = { from: currentLabels, to: labels };
@@ -773,6 +1236,48 @@ function changesForIssue(issue, remote, milestoneNumber, labels) {
     changes.milestone = { from: currentMilestone, to: milestoneNumber };
   }
   return changes;
+}
+
+function nativeDependencyOperationId(issueId, dependencyId) {
+  return `${issueId}->${dependencyId}`;
+}
+
+function nativeDependencyOperations(manifest, issueById, state) {
+  const operations = [];
+  for (const issue of manifest.issues) {
+    const dependent = issueById.get(issue.id);
+    const currentBlockers = dependent
+      ? blockersForIssue(state, issue, dependent)
+      : [];
+    const currentBlockerIds = new Set(
+      currentBlockers.map((blocker) => blocker.id),
+    );
+    for (const dependency of issue.dependencies) {
+      const blocker = issueById.get(dependency);
+      if (dependent) {
+        nativeIssueIdentity(dependent, `managed issue ${issue.id}`);
+      }
+      if (blocker) {
+        nativeIssueIdentity(blocker, `managed issue ${dependency}`);
+      }
+      const present = blocker !== null && currentBlockerIds.has(blocker.id);
+      operations.push({
+        phase: "native-dependencies",
+        resource: "blocked_by",
+        action: present ? "noop" : "create",
+        id: nativeDependencyOperationId(issue.id, dependency),
+        changes: {
+          dependent: issue.id,
+          blockedBy: dependency,
+          issueNumber: dependent?.number ?? null,
+          issueDatabaseId: dependent?.id ?? null,
+          blockedByNumber: blocker?.number ?? null,
+          blockedByDatabaseId: blocker?.id ?? null,
+        },
+      });
+    }
+  }
+  return operations;
 }
 
 function buildPlan(manifest, state, repo) {
@@ -841,6 +1346,7 @@ function buildPlan(manifest, state, repo) {
         changes: {
           title: milestone.title,
           description: milestoneDescription(milestone),
+          due_on: milestoneDueOn(milestone),
           state: "open",
         },
       });
@@ -858,8 +1364,12 @@ function buildPlan(manifest, state, repo) {
         to: milestoneDescription(milestone),
       };
     }
-    if (remote.state !== "open")
-      changes.state = { from: remote.state, to: "open" };
+    if (remoteDueOnDate(remote) !== milestone.dueOn) {
+      changes.due_on = {
+        from: remote.due_on ?? null,
+        to: milestoneDueOn(milestone),
+      };
+    }
     operations.push({
       phase: "ensure",
       resource: "milestone",
@@ -893,6 +1403,7 @@ function buildPlan(manifest, state, repo) {
       repo,
       issueNumbers,
       true,
+      remote?.body,
     );
     const currentBody = normalizeText(remote?.body);
     const dependencyTargetWillBeCreated = issue.dependencies.some(
@@ -901,8 +1412,9 @@ function buildPlan(manifest, state, repo) {
         issueIndexById.get(dependency) > issueIndexById.get(issue.id),
     );
     const bodyChanged = remote
-      ? currentBody !== normalizeText(desiredBody) ||
-        dependencyTargetWillBeCreated
+      ? remote.state !== "closed" &&
+        (currentBody !== normalizeText(desiredBody) ||
+          dependencyTargetWillBeCreated)
       : dependencyTargetWillBeCreated;
     operations.push({
       phase: "dependencies",
@@ -919,6 +1431,8 @@ function buildPlan(manifest, state, repo) {
       },
     });
   }
+
+  operations.push(...nativeDependencyOperations(manifest, issueById, state));
 
   return {
     operations,
@@ -987,6 +1501,99 @@ function isRetryablePostApplyVerificationError(error) {
   );
 }
 
+async function applyNativeDependencies(
+  manifest,
+  repo,
+  issueById,
+  state,
+  mutate,
+  fetchBlockedBy,
+  applied,
+) {
+  const blockerIdsByIssue = new Map();
+  for (const issue of manifest.issues) {
+    const dependent = issueById.get(issue.id);
+    if (!dependent) {
+      throw new Error(
+        `managed issue ${issue.id} was not found before native dependencies`,
+      );
+    }
+    const identity = nativeIssueIdentity(
+      dependent,
+      `managed issue ${issue.id}`,
+    );
+    blockerIdsByIssue.set(
+      issue.id,
+      new Set(
+        blockersForIssue(state, issue, dependent).map((blocker) => blocker.id),
+      ),
+    );
+    for (const dependency of issue.dependencies) {
+      const blocker = issueById.get(dependency);
+      if (!blocker) {
+        throw new Error(
+          `managed dependency ${dependency} was not found before native dependencies for ${issue.id}`,
+        );
+      }
+      const blockerIdentity = nativeIssueIdentity(
+        blocker,
+        `managed issue ${dependency}`,
+      );
+      const existingBlockers = blockerIdsByIssue.get(issue.id);
+      if (existingBlockers.has(blockerIdentity.id)) {
+        applied.push({
+          phase: "native-dependencies",
+          resource: "blocked_by",
+          action: "noop",
+          id: nativeDependencyOperationId(issue.id, dependency),
+        });
+        continue;
+      }
+      try {
+        await mutate(
+          "POST",
+          `repos/${repo}/issues/${identity.number}/dependencies/blocked_by`,
+          { issue_id: blockerIdentity.id },
+          `add blocked_by ${issue.id} <- ${dependency}`,
+        );
+      } catch (error) {
+        let observedAfterFailure;
+        try {
+          observedAfterFailure = await fetchBlockedBy(
+            repo,
+            identity.number,
+            `verify blocked_by race for ${issue.id}`,
+          );
+        } catch {
+          throw error;
+        }
+        if (
+          !observedAfterFailure.some(
+            (candidate) => candidate.id === blockerIdentity.id,
+          )
+        ) {
+          throw error;
+        }
+        existingBlockers.add(blockerIdentity.id);
+        applied.push({
+          phase: "native-dependencies",
+          resource: "blocked_by",
+          action: "noop",
+          id: nativeDependencyOperationId(issue.id, dependency),
+        });
+        continue;
+      }
+      existingBlockers.add(blockerIdentity.id);
+      applied.push({
+        phase: "native-dependencies",
+        resource: "blocked_by",
+        action: "create",
+        id: nativeDependencyOperationId(issue.id, dependency),
+      });
+    }
+  }
+}
+
 function verifyPostApplyState(manifest, refreshed) {
   const refreshedMilestones = managedMilestones(manifest, refreshed.milestones);
   for (const milestone of manifest.milestones) {
@@ -1019,12 +1626,18 @@ function verifyPostApplyState(manifest, refreshed) {
     }
   }
 
-  return { refreshedIssues, refreshedMilestones, refreshedNumbers };
+  return {
+    refreshedIssues,
+    refreshedMilestones,
+    refreshedNumbers,
+    refreshedState: refreshed,
+  };
 }
 
 async function applyPlan(manifest, repo, initialState, runtime = {}) {
   const mutate = runtime.mutate ?? ghMutation;
   const discover = runtime.fetchState ?? fetchGithubState;
+  const fetchBlockedBy = runtime.fetchBlockedBy ?? fetchNativeBlockedBy;
   const pause =
     runtime.pause ??
     ((milliseconds) =>
@@ -1098,6 +1711,7 @@ async function applyPlan(manifest, repo, initialState, runtime = {}) {
     const payload = {
       title: milestone.title,
       description: milestoneDescription(milestone),
+      due_on: milestoneDueOn(milestone),
       state: "open",
     };
     if (!remote) {
@@ -1125,7 +1739,8 @@ async function applyPlan(manifest, repo, initialState, runtime = {}) {
       normalizeText(remote.description) !== normalizeText(payload.description)
     )
       changes.description = payload.description;
-    if (remote.state !== payload.state) changes.state = payload.state;
+    if (remoteDueOnDate(remote) !== milestone.dueOn)
+      changes.due_on = payload.due_on;
     if (Object.keys(changes).length > 0) {
       await mutate(
         "PATCH",
@@ -1191,7 +1806,6 @@ async function applyPlan(manifest, repo, initialState, runtime = {}) {
     issueNumbers.set(issue.id, remote.number);
     const payload = {};
     if (remote.title !== issueTitle(issue)) payload.title = issueTitle(issue);
-    if (remote.state !== "open") payload.state = "open";
     if (!sameLabelSet(issueLabelNames(remote), labels)) payload.labels = labels;
     if ((remote.milestone?.number ?? null) !== milestoneNumber)
       payload.milestone = milestoneNumber;
@@ -1225,7 +1839,7 @@ async function applyPlan(manifest, repo, initialState, runtime = {}) {
     attempt += 1
   ) {
     try {
-      verified = verifyPostApplyState(manifest, await discover(repo));
+      verified = verifyPostApplyState(manifest, await discover(repo, manifest));
       break;
     } catch (error) {
       if (
@@ -1240,6 +1854,15 @@ async function applyPlan(manifest, repo, initialState, runtime = {}) {
 
   if (!verified) throw new Error("post-apply verification did not complete");
   const { refreshedIssues, refreshedNumbers } = verified;
+  await applyNativeDependencies(
+    manifest,
+    repo,
+    refreshedIssues,
+    verified.refreshedState,
+    mutate,
+    fetchBlockedBy,
+    applied,
+  );
   for (const issue of manifest.issues) {
     const remote = refreshedIssues.get(issue.id);
     const milestone = manifest.milestones.find(
@@ -1251,8 +1874,12 @@ async function applyPlan(manifest, repo, initialState, runtime = {}) {
       repo,
       refreshedNumbers,
       true,
+      remote.body,
     );
-    if (normalizeText(remote.body) !== normalizeText(desiredBody)) {
+    if (
+      remote.state !== "closed" &&
+      normalizeText(remote.body) !== normalizeText(desiredBody)
+    ) {
       await mutate(
         "PATCH",
         `repos/${repo}/issues/${remote.number}`,
@@ -1296,7 +1923,7 @@ async function main(argv = process.argv.slice(2)) {
 
   if (command === "plan") {
     const repo = assertRepoOption(command, options);
-    const state = await fetchGithubState(repo);
+    const state = await fetchGithubState(repo, manifest);
     printPlan(repo, buildPlan(manifest, state, repo));
     return 0;
   }
@@ -1308,7 +1935,7 @@ async function main(argv = process.argv.slice(2)) {
         "apply is write-capable; pass --confirm explicitly to continue",
       );
     }
-    const state = await fetchGithubState(repo);
+    const state = await fetchGithubState(repo, manifest);
     const applied = await applyPlan(manifest, repo, state);
     process.stdout.write(
       `${JSON.stringify(
@@ -1350,7 +1977,9 @@ export {
   applyPlan,
   bodyForIssue,
   buildPlan,
+  fetchGithubState,
   hasExactMarkerLine,
+  isRealIsoDate,
   issueMarker,
   issueTitle,
   loadManifest,

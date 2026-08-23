@@ -71,7 +71,7 @@ CARTOGRAPH does not aim to:
 
 The analyzer, graph and diff schemas, CLI, local reports, policy engine, adapters, fixtures, evaluator, and GitHub Action belong in the Apache-2.0 repository.
 
-A future hosted product may provide multi-repository history, collaboration, RBAC, SSO, audit retention, and managed workers. It must not gate the complete local analysis and CI loop. Hosted work begins only after the traction and privacy gates in the Year 3 roadmap.
+Optional commercial work may eventually provide managed history, collaboration, administration, or workers, but it must never gate the complete local analysis and CI loop. The five-year public program authorizes only local-first work. Any hosted or account-based discovery requires a later ADR backed by traction, privacy, security, capacity, and funding evidence.
 
 ## Naming status
 

@@ -10,7 +10,7 @@ This file records user-visible changes. The project is currently unreleased; no 
 - Versioned graph/evidence schemas, deterministic canonicalization, and semantic architecture diffs.
 - TypeScript/Express extraction for supported imports, calls, routes, HTTP requests, and Prisma operations with explicit diagnostics.
 - Non-destructive Git revision comparison and JSON, Markdown, and self-contained HTML reports.
-- A validated twelve-quarter roadmap manifest and idempotent GitHub reconciliation tool.
+- A validated five-year roadmap with 20 dated milestones, 179 outcome-bearing issues, 514 prerequisite relationships, and an idempotent GitHub reconciliation tool.
 - Community, security, and contribution policies for the project’s early development phase.
 
 ### Notes
