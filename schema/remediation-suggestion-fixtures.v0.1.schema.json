@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/remediation-suggestion-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH remediation suggestion fixtures v0.1",
+  "description": "Scenario metadata for bounded, read-only remediation suggestion validation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "baselineDigest", "evidenceDigests", "cases"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "baselineDigest": { "$ref": "#/definitions/digest" },
+    "evidenceDigests": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/definitions/digest" },
+      "propertyNames": { "$ref": "#/definitions/identifier" }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "scenario", "expected"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "scenario": {
+          "enum": [
+            "supported",
+            "unsupported",
+            "stale-baseline",
+            "stale-evidence",
+            "ambiguous",
+            "ownerless",
+            "security-sensitive",
+            "resource-limit"
+          ]
+        },
+        "expected": {
+          "enum": [
+            "suggestion",
+            "unsupported-finding",
+            "stale-baseline",
+            "stale-evidence",
+            "ambiguous-finding",
+            "ownerless-finding",
+            "security-sensitive",
+            "resource-limit"
+          ]
+        }
+      }
+    }
+  }
+}

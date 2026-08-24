@@ -18,6 +18,9 @@ Their digest-only migration reports use the reviewed `policyBundleMigrations`
 contract and [`schema/policy-bundle-migration.v0.1.schema.json`](../schema/policy-bundle-migration.v0.1.schema.json).
 Assurance signing records use the reviewed `assuranceSigning` contract and
 [`schema/assurance-signing.v0.1.schema.json`](../schema/assurance-signing.v0.1.schema.json).
+Remediation suggestion records and reports use the reviewed
+`remediationSuggestions` contract and
+[`schema/remediation-suggestion.v0.1.schema.json`](../schema/remediation-suggestion.v0.1.schema.json).
 
 ## Change categories
 
