@@ -37,6 +37,17 @@ Do not run the analyzer against repositories containing secrets or data you are 
 
 The analyzer may encounter untrusted paths, source code, Git history, package metadata, and output paths. Changes that execute repository code, use shell interpolation for repository-controlled values, write outside an explicitly validated output directory, or add network access need a documented security review before they are considered.
 
+## Completion evidence contract
+
+An issue is not complete because CI is green. Before closure, the pull request and issue must
+link every acceptance criterion to a retained evidence or artifact ID, record the exact commit,
+device, OS, architecture, and toolchain, and include the relevant happy-path, negative/privacy,
+failure, recovery, and resource checks performed on the target device. The change must be pushed,
+reviewed, and merged to protected `main`; the same reproduction must then be rerun against the
+merged SHA. Record logs, measurements, artifact digests, limitations, and the merged SHA. If
+required hardware or a platform surface is unavailable, record an explicit blocked/no-go result;
+do not substitute a CI result.
+
 ## Contributions and licensing
 
 By contributing, you agree that your contribution is provided under the Apache-2.0 license used by this repository. Please keep public discussion factual and avoid including private source, credentials, personal data, or unpublished vulnerability details.

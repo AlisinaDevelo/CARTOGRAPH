@@ -101,6 +101,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 ## Project documents
 
 - [Product charter](docs/PRODUCT.md)
+- [Support matrix and review process](docs/SUPPORT_MATRIX.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Evaluation strategy](docs/EVALUATION.md)
 - [Landscape research](docs/RESEARCH.md)
