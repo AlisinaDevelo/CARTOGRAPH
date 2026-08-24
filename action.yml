@@ -27,9 +27,13 @@ inputs:
     required: false
     default: cartograph-architecture-diff
   retention-days:
-    description: Number of days to retain the report artifact
+    description: Number of days to retain the report artifact (1-90)
     required: false
     default: "7"
+  upload-report:
+    description: Upload the JSON and HTML report artifact; set false for sensitive repositories
+    required: false
+    default: "true"
 
 runs:
   using: composite
@@ -59,6 +63,8 @@ runs:
         CARTOGRAPH_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         CARTOGRAPH_COMPARISON: ${{ inputs.comparison }}
         CARTOGRAPH_ARTIFACT_NAME: ${{ inputs.artifact-name }}
+        CARTOGRAPH_RETENTION_DAYS: ${{ inputs.retention-days }}
+        CARTOGRAPH_UPLOAD_REPORT: ${{ inputs.upload-report }}
       run: |
         set -euo pipefail
         base_ref="${CARTOGRAPH_BASE_INPUT:-${CARTOGRAPH_PR_BASE_SHA:-}}"
@@ -71,6 +77,17 @@ runs:
           direct|merge-base) ;;
           *)
             echo "CARTOGRAPH comparison must be direct or merge-base" >&2
+            exit 1
+            ;;
+        esac
+        if [[ ! "$CARTOGRAPH_RETENTION_DAYS" =~ ^([1-9]|[1-8][0-9]|90)$ ]]; then
+          echo "CARTOGRAPH retention-days must be an integer from 1 through 90" >&2
+          exit 1
+        fi
+        case "$CARTOGRAPH_UPLOAD_REPORT" in
+          true|false) ;;
+          *)
+            echo "CARTOGRAPH upload-report must be true or false" >&2
             exit 1
             ;;
         esac
@@ -91,9 +108,12 @@ runs:
           "$CARTOGRAPH_ARTIFACT_NAME"
 
     - name: Upload architecture diff report
+      if: inputs.upload-report == 'true'
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: ${{ inputs.artifact-name }}
-        path: ${{ runner.temp }}/cartograph-report
+        path: |
+          ${{ runner.temp }}/cartograph-report/architecture-diff.json
+          ${{ runner.temp }}/cartograph-report/architecture-diff.html
         if-no-files-found: error
         retention-days: ${{ inputs.retention-days }}

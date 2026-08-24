@@ -64,8 +64,21 @@ forbidText(workflow, "github.token", "fixture workflow");
 forbidText(action, "pull_request_target", "composite action");
 forbidText(action, "secrets.", "composite action");
 forbidText(action, "github.token", "composite action");
+requireText(action, 'default: "7"', "retention default");
+requireText(action, 'default: "true"', "report upload default");
+requireText(action, "CARTOGRAPH_RETENTION_DAYS", "retention validation");
+requireText(action, "CARTOGRAPH_UPLOAD_REPORT", "report opt-out validation");
+requireText(
+  action,
+  "if: inputs.upload-report == 'true'",
+  "report upload opt-out",
+);
+requireText(action, "architecture-diff.json", "JSON artifact scope");
+requireText(action, "architecture-diff.html", "HTML artifact scope");
 requireText(docs, "Fork pull requests and permissions", "Action docs");
 requireText(docs, "Pin and update policy", "Action docs");
+requireText(docs, "Sensitive repositories", "Action retention docs");
+requireText(docs, "source snippet", "Action redaction docs");
 
 console.log(
   JSON.stringify({
@@ -75,5 +88,7 @@ console.log(
     contentsPermission: syntheticForkPullRequest.token.permissions.contents,
     secretsPassed: false,
     workflowWrites: false,
+    defaultRetentionDays: 7,
+    sensitiveRepositoryOptOut: true,
   }),
 );

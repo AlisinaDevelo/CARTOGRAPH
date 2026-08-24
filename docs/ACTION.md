@@ -2,9 +2,9 @@
 
 `action.yml` exposes the first hosted integration boundary for CARTOGRAPH. It
 is intentionally informational: the Action reads a pull request, writes a
-concise job summary, and uploads a static HTML/JSON report artifact. It does not
-comment, label, merge, change issues, execute repository code, use secrets, or
-require write permissions.
+concise job summary, and (unless opted out) uploads a static HTML/JSON report
+artifact. It does not comment, label, merge, change issues, execute repository
+code, use secrets, or require write permissions.
 
 ## Fork pull requests and permissions
 
@@ -61,6 +61,7 @@ jobs:
       - uses: AlisinaDevelo/CARTOGRAPH@629ee26cc179f08848b09f8c5caeaaf48f6e134c # D-013
         with:
           comparison: merge-base
+          retention-days: 7
 ```
 
 On a pull request, omitted `base` and `head` inputs resolve to
@@ -70,18 +71,38 @@ workflow. `merge-base` is the default and fails closed for shallow repositories,
 unrelated histories, or multiple merge bases; `direct` remains available for
 an explicit two-tree comparison.
 
-The artifact contains `architecture-diff.html` and the canonical
-`architecture-diff.json`. The retention default is seven days and can be
-changed with `retention-days`. The Action builds the checked-out CARTOGRAPH
-source with `npm ci --ignore-scripts` and Node.js 24 before analyzing the caller
-repository; the caller's source is parsed but never imported or executed.
+The report artifact is deliberately scoped to exactly two files:
+`architecture-diff.html` and the canonical `architecture-diff.json`. It never
+contains a source body, source snippet, credential, token, absolute local path,
+or arbitrary payload. Source evidence is limited to repository-relative paths,
+spans, detector identities, and content hashes; HTML values are escaped and the
+report has a 16 MiB byte ceiling plus node, edge, and diagnostic cardinality
+ceilings. The retention default is seven days; GitHub's supported range is 1–90
+days, and repositories should choose the shortest useful value.
+
+Sensitive repositories can keep the job summary while opting out of artifact
+upload entirely:
+
+```yaml
+with:
+  upload-report: false
+```
+
+`upload-report` defaults to `true`. The Action still validates the retention
+input and produces the report in the runner's temporary directory for the local
+rendering step, but no artifact is uploaded when the opt-out is set.
+
+The Action builds the checked-out CARTOGRAPH source with
+`npm ci --ignore-scripts` and Node.js 24 before analyzing the caller repository;
+the caller's source is parsed but never imported or executed.
 
 ## Local verification without hosted Actions
 
 `npm run action:validate` creates a temporary Git repository from the fixture,
 creates a base and pull-request head commit, runs the exact CLI comparison in
-both JSON and HTML modes, and verifies the comparison metadata and static
-report. `npm run action:security:validate` checks the copy-ready workflow and a
-synthetic fork pull-request event for the read-only permission, exact-SHA,
-no-secret, and no-`pull_request_target` invariants. These checks perform no
-network request, Action API call, or GitHub mutation.
+both JSON and HTML modes, and verifies the comparison metadata, static report,
+redaction boundary, and report-size ceiling. `npm run action:security:validate`
+checks the copy-ready workflow and a synthetic fork pull-request event for the
+read-only permission, exact-SHA, no-secret, no-`pull_request_target`, retention,
+and sensitive-repository opt-out invariants. These checks perform no network
+request, Action API call, or GitHub mutation.
