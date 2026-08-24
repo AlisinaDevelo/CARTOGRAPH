@@ -105,7 +105,8 @@ runs:
           "$report_dir/architecture-diff.json" \
           "$report_dir/architecture-diff.html" \
           "${GITHUB_STEP_SUMMARY:-}" \
-          "$CARTOGRAPH_ARTIFACT_NAME"
+          "$CARTOGRAPH_ARTIFACT_NAME" \
+          "$CARTOGRAPH_UPLOAD_REPORT"
 
     - name: Upload architecture diff report
       if: inputs.upload-report == 'true'

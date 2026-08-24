@@ -65,6 +65,11 @@ const runFixture = async () => {
     const jsonPath = join(outputDir, "architecture-diff.json");
     const htmlPath = join(outputDir, "architecture-diff.html");
     const summaryPath = join(outputDir, "summary.md");
+    const noUploadHtmlPath = join(
+      outputDir,
+      "architecture-diff-no-upload.html",
+    );
+    const noUploadSummaryPath = join(outputDir, "summary-no-upload.md");
     const cliPath = resolve(repositoryRoot, "dist/cli.js");
 
     await run(
@@ -98,10 +103,23 @@ const runFixture = async () => {
       ],
       repositoryRoot,
     );
+    await run(
+      process.execPath,
+      [
+        resolve(repositoryRoot, "scripts/action-report.mjs"),
+        jsonPath,
+        noUploadHtmlPath,
+        noUploadSummaryPath,
+        "cartograph-fixture-report",
+        "false",
+      ],
+      repositoryRoot,
+    );
 
     const diff = JSON.parse(await readFile(jsonPath, "utf8"));
     const html = await readFile(htmlPath, "utf8");
     const summary = await readFile(summaryPath, "utf8");
+    const noUploadSummary = await readFile(noUploadSummaryPath, "utf8");
     const serializedDiff = JSON.stringify(diff);
     const reportBytes = Buffer.byteLength(serializedDiff, "utf8");
     const htmlBytes = Buffer.byteLength(html, "utf8");
@@ -132,6 +150,11 @@ const runFixture = async () => {
       throw new Error("fixture report is not a CARTOGRAPH static HTML report");
     if (!summary.includes("### CARTOGRAPH architecture diff"))
       throw new Error("fixture summary was not emitted");
+    if (
+      !noUploadSummary.includes("Static report upload: disabled by policy") ||
+      noUploadSummary.includes("Static report: artifact")
+    )
+      throw new Error("upload opt-out summary did not disable artifact claim");
     if ((await git(["status", "--porcelain"], root)) !== "")
       throw new Error("fixture analysis modified the repository");
 
