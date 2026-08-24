@@ -38,6 +38,7 @@ import type {
   SourceLocation,
   ResourceLimits,
 } from "../core/index.js";
+import { CAPABILITY_REGISTRY_VERSION } from "../core/index.js";
 
 import {
   analyzeExpressRouteCall,
@@ -238,7 +239,7 @@ const DEFAULT_RESOURCE_LIMITS: ResourceLimits = {
   maxFileBytes: 2 * 1024 * 1024,
   maxSourceBytes: 64 * 1024 * 1024,
   maxArchiveBytes: 64 * 1024 * 1024,
-  maxMemoryBytes: 512 * 1024 * 1024,
+  maxMemoryBytes: 1024 * 1024 * 1024,
   maxWallClockMs: 30_000,
   maxReportItems: 10_000,
 };
@@ -1750,6 +1751,7 @@ export const analyzeTypeScriptRepository = (
 
   return {
     schemaVersion: 1,
+    capabilityRegistryVersion: CAPABILITY_REGISTRY_VERSION,
     revision,
     nodes: [...context.nodes.values()].sort((left, right) =>
       compareStrings(left.stableKey, right.stableKey),

@@ -11,6 +11,10 @@
       "const": 1,
       "description": "CARTOGRAPH GraphSnapshot schema version 0.1."
     },
+    "capabilityRegistryVersion": {
+      "const": 1,
+      "description": "Version of the extractor capability and unknown-semantics registry used for this snapshot."
+    },
     "revision": {
       "$ref": "#/definitions/revision"
     },

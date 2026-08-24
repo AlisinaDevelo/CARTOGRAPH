@@ -91,6 +91,8 @@ cross-record node references, duplicate identities, and canonical normalization.
 Schema compatibility and migration rules are documented in
 [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) and checked by
 `npm run schema:compatibility`.
+Every analyzer snapshot and diff carries the version of the published capability
+and unknown-semantics registry; unsupported registry versions fail closed.
 
 ## Privacy and security
 

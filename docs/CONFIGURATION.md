@@ -16,7 +16,7 @@ Pass it to `scan` or `diff` with `--config <path>`.
     "maxFileBytes": 2097152,
     "maxSourceBytes": 67108864,
     "maxArchiveBytes": 67108864,
-    "maxMemoryBytes": 536870912,
+    "maxMemoryBytes": 1073741824,
     "maxWallClockMs": 30000,
     "maxReportItems": 10000
   },

@@ -53,6 +53,7 @@ describe("GraphSnapshot v0.1 JSON Schema", () => {
     expect(validateJsonSchema.errors).toBeNull();
     expect(GraphSnapshotSchema.safeParse(fixture).success).toBe(true);
     expect(parseGraphSnapshot(fixture).schemaVersion).toBe(1);
+    expect(parseGraphSnapshot(fixture).capabilityRegistryVersion).toBe(1);
   });
 
   it("rejects the malformed fixture through both validators", () => {

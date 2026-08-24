@@ -89,6 +89,7 @@ export function renderMarkdownReport(diff: GraphDiff): string {
     "# Architecture diff",
     "",
     `From ${markdownCode(shortRevision(diff.fromRevision.commitSha))} to ${markdownCode(shortRevision(diff.toRevision.commitSha))}.`,
+    `Capability registry ${markdownCode(String(diff.capabilityRegistryVersion))}.`,
     "",
     "## Summary",
     "",
@@ -232,6 +233,7 @@ export function renderHtmlReport(diff: GraphDiff): string {
   <main>
     <h1>Architecture diff</h1>
     <p>From <code>${escapeHtml(shortRevision(diff.fromRevision.commitSha))}</code> to <code>${escapeHtml(shortRevision(diff.toRevision.commitSha))}</code>.</p>
+    <p>Capability registry <code>${escapeHtml(String(diff.capabilityRegistryVersion))}</code>.</p>
     <section aria-labelledby="summary-heading">
       <h2 id="summary-heading">Summary</h2>
       <div class="summary">

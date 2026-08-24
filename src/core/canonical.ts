@@ -10,6 +10,7 @@ import {
   type GraphNode,
   type GraphSnapshot,
 } from "./schemas.js";
+import { assertSupportedCapabilityRegistryVersion } from "./capabilities.js";
 
 export type ContractErrorCode = "duplicate" | "conflict";
 
@@ -209,6 +210,7 @@ export const canonicalizeGraphSnapshot = (input: unknown): GraphSnapshot => {
     "GraphSnapshot",
     GRAPH_SNAPSHOT_SCHEMA_VERSION,
   );
+  assertSupportedCapabilityRegistryVersion(input);
   const parsed = GraphSnapshotSchema.parse(input);
   const nodes = canonicalNodes(parsed.nodes);
   const edges = canonicalEdges(parsed.edges);
