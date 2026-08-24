@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/patch-preview-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH patch preview fixtures v0.1",
+  "description": "Scenario metadata for isolated patch preview safety tests.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "cases"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "cases": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "scenario", "expected"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "scenario": {
+          "enum": [
+            "clean",
+            "dirty",
+            "digest-conflict",
+            "malicious-path",
+            "validation-disabled",
+            "missing-target"
+          ]
+        },
+        "expected": {
+          "enum": ["passed", "conflict", "invalid-input", "validation-skipped"]
+        }
+      }
+    }
+  }
+}

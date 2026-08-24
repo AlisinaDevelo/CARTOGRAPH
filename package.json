@@ -24,7 +24,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run schema:compatibility && npm run migrations:validate && npm run fixtures:validate && npm run benchmark:validate && npm run policy-bundle:validate && npm run policy-bundle:migrations:validate && npm run assurance-signing:validate && npm run remediation-suggestions:validate && npm run remediation-rules:validate && npm run change-control:validate && npm run test:coverage && npm run roadmap:validate && npm run roadmap:test && npm run build",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run schema:compatibility && npm run migrations:validate && npm run fixtures:validate && npm run benchmark:validate && npm run policy-bundle:validate && npm run policy-bundle:migrations:validate && npm run assurance-signing:validate && npm run remediation-suggestions:validate && npm run remediation-rules:validate && npm run patch-preview:validate && npm run change-control:validate && npm run test:coverage && npm run roadmap:validate && npm run roadmap:test && npm run build",
     "dev": "tsx src/cli.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -39,6 +39,7 @@
     "assurance-signing:validate": "node --import tsx scripts/assurance-signing.mjs validate",
     "remediation-suggestions:validate": "node --import tsx scripts/remediation-suggestions.mjs validate",
     "remediation-rules:validate": "node --import tsx scripts/remediation-rules.mjs validate",
+    "patch-preview:validate": "node --import tsx scripts/patch-previews.mjs validate",
     "change-control:validate": "node scripts/change-control.mjs validate",
     "migrations:validate": "node scripts/migrations.mjs validate",
     "schema:compatibility": "node scripts/schema-compatibility.mjs check",
