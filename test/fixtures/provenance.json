@@ -38,6 +38,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "policy-bundles",
+      "path": "policy-bundles",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Scenario metadata applies deterministic expiry, revocation, version, selector, and owner mutations to the checked-in policy bundle without duplicating source content.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "review-regressions",
       "path": "review-regressions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

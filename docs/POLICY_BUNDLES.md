@@ -42,4 +42,5 @@ npm run policy-bundle:validate -- --as-of 2026-08-24T00:00:00.000Z
 
 The importer is intentionally a contract boundary, not a policy evaluator.
 Evaluation, composition, precedence, revocation, and signed distribution are
-separate roadmap work and must not be inferred from a valid bundle.
+covered by the separate [migration and revocation gate](POLICY_BUNDLE_MIGRATIONS.md)
+and must not be inferred from a valid bundle.

@@ -136,6 +136,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Evaluation strategy](docs/EVALUATION.md)
 - [Benchmark corpus and measurement protocol](docs/BENCHMARK_PROTOCOL.md)
 - [Digest-bound policy bundles](docs/POLICY_BUNDLES.md)
+- [Policy-bundle migration and revocation](docs/POLICY_BUNDLE_MIGRATIONS.md)
 - [Deprecation and change-control register](docs/CHANGE_CONTROL.md)
 - [Landscape research](docs/RESEARCH.md)
 - [Five-year roadmap](docs/ROADMAP.md)

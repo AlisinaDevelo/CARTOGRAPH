@@ -65,9 +65,12 @@ const checkHostedVersionChange = () => {
       file === "src/core/schemas.ts" ||
       file === "src/core/capabilities.ts" ||
       file === "src/core/policy-bundles.ts" ||
+      file === "src/core/policy-bundle-migrations.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
       file === "schema/capability-registry.v0.1.schema.json" ||
-      file === "schema/policy-bundle.v0.1.schema.json",
+      file === "schema/policy-bundle.v0.1.schema.json" ||
+      file === "schema/policy-bundle-migration.v0.1.schema.json" ||
+      file === "schema/policy-bundle-revocation.v0.1.schema.json",
   );
   const reviewRecorded = changed.some(
     (file) =>
@@ -87,11 +90,17 @@ const checkCompatibility = () => {
   const source = readText("src/core/schemas.ts");
   const capabilitySource = readText("src/core/capabilities.ts");
   const policyBundleSource = readText("src/core/policy-bundles.ts");
+  const policyBundleMigrationSource = readText(
+    "src/core/policy-bundle-migrations.ts",
+  );
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
   const capabilitySchema = readJson(
     "schema/capability-registry.v0.1.schema.json",
   );
   const policyBundleSchema = readJson("schema/policy-bundle.v0.1.schema.json");
+  const policyBundleMigrationSchema = readJson(
+    "schema/policy-bundle-migration.v0.1.schema.json",
+  );
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
     source,
@@ -106,12 +115,17 @@ const checkCompatibility = () => {
     policyBundleSource,
     "POLICY_BUNDLE_SCHEMA_VERSION",
   );
+  const policyBundleMigrationVersion = sourceVersion(
+    policyBundleMigrationSource,
+    "POLICY_BUNDLE_MIGRATION_SCHEMA_VERSION",
+  );
 
   if (
     snapshotVersion === undefined ||
     diffVersion === undefined ||
     capabilityVersion === undefined ||
-    policyBundleVersion === undefined
+    policyBundleVersion === undefined ||
+    policyBundleMigrationVersion === undefined
   ) {
     throw new Error("runtime schema version constants are missing");
   }
@@ -146,6 +160,16 @@ const checkCompatibility = () => {
     policyBundleSchema.properties.schemaVersion.const,
     policyBundleVersion,
   );
+  requireEqual(
+    "policy bundle migration runtime/policy",
+    policyBundleMigrationVersion,
+    contracts.policyBundleMigrations.current,
+  );
+  requireEqual(
+    "policy bundle migration JSON Schema/runtime",
+    policyBundleMigrationSchema.properties.schemaVersion.const,
+    policyBundleMigrationVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -159,6 +183,7 @@ const checkCompatibility = () => {
     diffVersion,
     capabilityVersion,
     policyBundleVersion,
+    policyBundleMigrationVersion,
   };
 };
 

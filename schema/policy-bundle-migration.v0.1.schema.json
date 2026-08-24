@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/policy-bundle-migration.v0.1.schema.json",
+  "title": "CARTOGRAPH policy-bundle migration report v0.1",
+  "description": "Digest-only migration findings for local policy bundles; it contains no policy source, selector, path, or owner text.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "digestOnly",
+    "bundleDigest",
+    "policyVersion",
+    "targetPolicyVersion",
+    "reviewed",
+    "status",
+    "enforceable",
+    "findings"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.policy-bundle-migration" },
+    "digestOnly": { "const": true },
+    "bundleDigest": { "$ref": "#/definitions/digest" },
+    "policyVersion": {
+      "anyOf": [{ "type": "null" }, { "$ref": "#/definitions/semver" }]
+    },
+    "targetPolicyVersion": {
+      "anyOf": [{ "type": "null" }, { "$ref": "#/definitions/semver" }]
+    },
+    "reviewed": { "type": "boolean" },
+    "status": {
+      "enum": ["ready", "migration-required", "review-required", "blocked"]
+    },
+    "enforceable": { "type": "boolean" },
+    "findings": {
+      "type": "array",
+      "maxItems": 32,
+      "items": { "$ref": "#/definitions/finding" }
+    }
+  },
+  "definitions": {
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "semver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "severity", "digest"],
+      "properties": {
+        "code": {
+          "enum": [
+            "version-upgrade",
+            "expired",
+            "revoked",
+            "incompatible-compatibility",
+            "incompatible-selector",
+            "missing-owner",
+            "digest-mismatch",
+            "unsupported-version",
+            "invalid-bundle"
+          ]
+        },
+        "severity": { "enum": ["review", "blocking"] },
+        "digest": { "$ref": "#/definitions/digest" }
+      }
+    }
+  }
+}

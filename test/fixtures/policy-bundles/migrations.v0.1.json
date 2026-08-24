@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "baseBundlePath": "schema/policy-bundle.v0.1.json",
+  "cases": [
+    {
+      "id": "version-upgrade",
+      "scenario": "version-upgrade",
+      "targetPolicyVersion": "1.0.0",
+      "expectedCodes": ["version-upgrade"]
+    },
+    {
+      "id": "expired-bundle",
+      "scenario": "expiry",
+      "createdAt": "2026-08-20T00:00:00.000Z",
+      "expiresAt": "2026-08-23T23:59:59.000Z",
+      "now": "2026-08-24T00:00:00.000Z",
+      "expectedCodes": ["expired"]
+    },
+    {
+      "id": "explicit-revocation",
+      "scenario": "revocation",
+      "revokedDigests": [
+        "sha256:63ecea51e1106c61e4567bda7471cffe9b0a320d5ea71ad34d01902186df548e"
+      ],
+      "expectedCodes": ["revoked"]
+    },
+    {
+      "id": "incompatible-selector",
+      "scenario": "incompatible-selector",
+      "selector": "javascript:require",
+      "expectedCodes": ["incompatible-selector"]
+    },
+    {
+      "id": "missing-owner",
+      "scenario": "missing-owner",
+      "ownerPresent": false,
+      "expectedCodes": ["missing-owner"]
+    }
+  ]
+}
