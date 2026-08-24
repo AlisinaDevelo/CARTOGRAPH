@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.runtime-traces",
+  "mediaType": "application/vnd.cartograph.runtime-traces+json",
+  "format": "otlp-json",
+  "spans": [
+    {
+      "traceId": "0123456789abcdef0123456789abcdef",
+      "spanId": "0123456789abcdef",
+      "name": "GET /health",
+      "kind": "server",
+      "startTimeUnixNano": "1700000000000000000",
+      "endTimeUnixNano": "1700000000001000000",
+      "serviceName": "sample-service",
+      "scopeName": "sample.instrumentation",
+      "scopeVersion": "1.0.0",
+      "status": "ok"
+    }
+  ],
+  "summary": {
+    "resourceSpans": 1,
+    "scopeSpans": 1,
+    "inputSpans": 1,
+    "normalizedSpans": 1,
+    "discardedAttributes": 5
+  }
+}

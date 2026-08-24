@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/runtime-traces.v0.1.schema.json",
+  "title": "CARTOGRAPH normalized runtime traces v0.1",
+  "description": "A bounded, local-only normalization of an OpenTelemetry Protocol JSON export. Arbitrary attributes, events, links, payloads, and status messages are not retained.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "format",
+    "spans",
+    "summary"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.runtime-traces" },
+    "mediaType": { "const": "application/vnd.cartograph.runtime-traces+json" },
+    "format": { "const": "otlp-json" },
+    "spans": {
+      "type": "array",
+      "maxItems": 1000000,
+      "items": { "$ref": "#/definitions/span" }
+    },
+    "summary": { "$ref": "#/definitions/summary" }
+  },
+  "definitions": {
+    "hex32": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+    "hex16": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+    "decimal": { "type": "string", "pattern": "^[0-9]+$" },
+    "kind": {
+      "enum": [
+        "unspecified",
+        "internal",
+        "server",
+        "client",
+        "producer",
+        "consumer"
+      ]
+    },
+    "status": { "enum": ["unset", "ok", "error"] },
+    "span": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "traceId",
+        "spanId",
+        "name",
+        "kind",
+        "startTimeUnixNano",
+        "endTimeUnixNano",
+        "status"
+      ],
+      "properties": {
+        "traceId": { "$ref": "#/definitions/hex32" },
+        "spanId": { "$ref": "#/definitions/hex16" },
+        "parentSpanId": { "$ref": "#/definitions/hex16" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "kind": { "$ref": "#/definitions/kind" },
+        "startTimeUnixNano": { "$ref": "#/definitions/decimal" },
+        "endTimeUnixNano": { "$ref": "#/definitions/decimal" },
+        "serviceName": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "scopeName": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "scopeVersion": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "status": { "$ref": "#/definitions/status" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resourceSpans",
+        "scopeSpans",
+        "inputSpans",
+        "normalizedSpans",
+        "discardedAttributes"
+      ],
+      "properties": {
+        "resourceSpans": { "type": "integer", "minimum": 0 },
+        "scopeSpans": { "type": "integer", "minimum": 0 },
+        "inputSpans": { "type": "integer", "minimum": 0 },
+        "normalizedSpans": { "type": "integer", "minimum": 0 },
+        "discardedAttributes": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

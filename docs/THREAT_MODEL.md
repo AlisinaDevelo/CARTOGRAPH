@@ -1,6 +1,7 @@
 # Threat model
 
-Status: initial design review, 2026-08-23. Revisit this document when CI, plugins, runtime traces, or a hosted service enter scope.
+Status: initial design review, 2026-08-24. Revisit this document when runtime
+reconciliation, plugins, or a hosted service enter scope.
 
 ## System and trust boundaries
 
@@ -35,19 +36,23 @@ The current design has no authentication, server, cloud storage, or telemetry bo
 
 ## Optional runtime traces
 
-Runtime trace ingestion is not part of the current CLI or report surface. No trace
-collector, OTLP listener, hosted receiver, or background telemetry process is enabled by
-default. The following controls become mandatory before a local trace input is accepted:
+The current core exposes only an inert local OTLP JSON normalizer; it is not
+part of the CLI or report surface. No trace collector, OTLP listener, hosted
+receiver, upload, or background telemetry process is enabled by default. The
+normalizer rejects malformed or oversized input and discards arbitrary
+attributes, events, links, payloads, and status messages. The following
+additional controls remain mandatory before runtime reconciliation is accepted:
 
 | Trace risk                                                    | Required control                                                                                                                      | Evidence                                                                           |
 | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Span attributes contain source, credentials, or personal data | Require an explicit local input path, schema validation, configurable redaction, and a documented sensitive-field denylist            | Redaction fixtures and a report scan proving raw attributes are absent             |
+| Span attributes contain source, credentials, or personal data | Require an explicit local input path, schema validation, configurable redaction, and a documented sensitive-field denylist            | O-001 discarded-attribute fixture; future redaction fixtures and a report scan     |
 | Trace history grows without a bound                           | Require user-selected retention and an explicit deletion/compaction operation; never retain traces implicitly                         | Retention and deletion tests with measured output size                             |
 | Dynamic edges are mistaken for static facts                   | Classify observations as runtime evidence, preserve trace identifiers only as references, and keep confidence separate from certainty | Reconciliation fixtures covering observed-only, static-only, and conflicting edges |
-| Trace input triggers network or code execution                | Parse trace data as inert records; do not load plugins, call URLs, or execute repository code                                         | Offline boundary test and a hostile-record fixture                                 |
+| Trace input triggers network or code execution                | Parse trace data as inert records; do not load plugins, call URLs, or execute repository code                                         | O-001 offline boundary test and future hostile-record fixture                      |
 
-Until those controls and tests exist, runtime behavior remains an explicit non-goal and
-unsupported input rather than an implied capability.
+Until reconciliation, redaction, and retention controls are implemented, runtime
+behavior remains an explicit non-goal and the normalized input is not interpreted
+as an architectural fact.
 
 ## Optional model-provider boundary
 
@@ -82,8 +87,8 @@ causing those operations to run during analysis.
 The offline boundary is verified by the repository-code execution test in
 `test/security/offline.test.ts`, static report tests, Git argument tests, and the exact
 device reproduction recorded in `docs/evidence/f-001-product-charter.md`. A future trace
-adapter must add a separate opt-in test and update this threat model before it is included
-in the support matrix.
+reconciliation adapter must add a separate opt-in test and update this threat model before
+it is included in the support matrix.
 
 ## Accepted residual risks
 
