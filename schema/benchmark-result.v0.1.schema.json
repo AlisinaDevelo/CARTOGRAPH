@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/benchmark-result.v0.1.schema.json",
   "type": "object",
   "additionalProperties": false,
@@ -75,8 +75,8 @@
           "id": { "type": "string", "minLength": 1 },
           "digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
           "fileCount": { "type": "integer", "minimum": 0 },
-          "cold": { "$ref": "#/$defs/timing" },
-          "warm": { "$ref": "#/$defs/timing" },
+          "cold": { "$ref": "#/definitions/timing" },
+          "warm": { "$ref": "#/definitions/timing" },
           "graph": {
             "type": "object",
             "additionalProperties": false,
@@ -95,8 +95,15 @@
                 "additionalProperties": false,
                 "required": ["edge", "diagnostic"],
                 "properties": {
-                  "edge": { "$ref": "#/$defs/accuracy" },
-                  "diagnostic": { "$ref": "#/$defs/accuracy" }
+                  "edge": { "$ref": "#/definitions/accuracy" },
+                  "diagnostic": { "$ref": "#/definitions/accuracy" },
+                  "families": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "additionalProperties": {
+                      "$ref": "#/definitions/familyAccuracy"
+                    }
+                  }
                 }
               }
             ]
@@ -105,7 +112,7 @@
       }
     }
   },
-  "$defs": {
+  "definitions": {
     "timing": {
       "type": "object",
       "additionalProperties": false,
@@ -142,6 +149,15 @@
         "expected": { "type": "integer", "minimum": 0 },
         "precision": { "type": "number", "minimum": 0, "maximum": 1 },
         "recall": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "familyAccuracy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["edge", "diagnostic"],
+      "properties": {
+        "edge": { "$ref": "#/definitions/accuracy" },
+        "diagnostic": { "$ref": "#/definitions/accuracy" }
       }
     }
   }

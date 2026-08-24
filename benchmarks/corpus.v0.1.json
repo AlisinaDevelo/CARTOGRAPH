@@ -31,6 +31,13 @@
       "id": "exclusions",
       "root": "test/fixtures/exclusions",
       "families": ["generated-directory-exclusion", "symlink-boundary"]
+    },
+    {
+      "id": "project-loader",
+      "root": "test/fixtures/project-loader",
+      "tsconfig": "tsconfig.json",
+      "expected": "test/fixtures/project-loader/expected.json",
+      "families": ["simple-modules", "project-references", "imports"]
     }
   ]
 }

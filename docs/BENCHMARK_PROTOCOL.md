@@ -29,8 +29,14 @@ makes no network requests and emits no telemetry.
 When an entry has an expected artifact, the runner compares canonical edge and
 diagnostic identities. Precision is true-positive emitted records divided by
 all emitted records. Recall is true-positive records divided by all expected
-records. Unsupported or unresolved constructs outside the declared expected
-subset are reported as diagnostics and do not become silently supported claims.
+records. Expected artifacts can additionally declare construct-family selectors
+over edge kinds, endpoint prefixes, and diagnostic codes; the runner reports
+precision and recall for every declared family. Selectors may overlap when one
+record represents more than one family. Unsupported or unresolved constructs
+outside the declared expected subset are reported as diagnostics and do not
+become silently supported claims. The benchmark test executes the evaluator
+against the checked-in corpus so an unexpected edge, diagnostic, or family
+score fails the local pipe.
 
 ## Variance gate
 

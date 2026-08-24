@@ -27,7 +27,8 @@
     "denominator": "expected records in the fixture's checked-in expected artifact",
     "precision": "true-positive emitted records divided by all emitted records",
     "recall": "true-positive emitted records divided by all expected records",
-    "unsupported": "records outside an expected artifact are not counted as supported accuracy"
+    "unsupported": "records outside an expected artifact are not counted as supported accuracy",
+    "families": "Expected artifacts may declare edge-kind, endpoint-prefix, and diagnostic-code selectors; the runner reports precision and recall for each declared family. Selectors may overlap when one record represents multiple construct families."
   },
   "variance": {
     "summary": ["min", "median", "p95", "max"],

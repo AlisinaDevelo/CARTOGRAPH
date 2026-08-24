@@ -1,7 +1,7 @@
 {
   "artifactVersion": 1,
   "protocolVersion": 1,
-  "generatedAt": "2026-08-24T14:17:38.848Z",
+  "generatedAt": "2026-08-24T14:44:11.224Z",
   "tool": {
     "packageVersion": "0.1.0",
     "nodeVersion": "v26.7.0",
@@ -12,9 +12,9 @@
   },
   "corpus": {
     "version": "0.1",
-    "digest": "c0f39dd009256ab24588252547ab14a2b5ab4252c35da92d5f56668189379d1c",
-    "fileCount": 22,
-    "fixtures": 4
+    "digest": "f1c6d898dbc8a5a046fe951dcf696d90da84d6efc57d05bc2115249a22be305d",
+    "fileCount": 34,
+    "fixtures": 5
   },
   "runs": {
     "cold": 1,
@@ -23,23 +23,23 @@
   "fixtures": [
     {
       "id": "typescript-express",
-      "digest": "59074d8c37d36162306bce287fc517bf11770705e6d723db10b03c00391a2694",
+      "digest": "d72e2a52dc108b40f226c9494d730005031728d17c91621f5a367c635e170fd4",
       "fileCount": 13,
       "cold": {
         "runs": 1,
-        "minMs": 434.468,
-        "medianMs": 434.468,
-        "p95Ms": 434.468,
-        "maxMs": 434.468,
-        "peakRssBytes": 351289344
+        "minMs": 489.361,
+        "medianMs": 489.361,
+        "p95Ms": 489.361,
+        "maxMs": 489.361,
+        "peakRssBytes": 352419840
       },
       "warm": {
         "runs": 3,
-        "minMs": 266.89,
-        "medianMs": 283.081,
-        "p95Ms": 303.185,
-        "maxMs": 303.185,
-        "peakRssBytes": 551976960
+        "minMs": 290.948,
+        "medianMs": 292.432,
+        "p95Ms": 324.155,
+        "maxMs": 324.155,
+        "peakRssBytes": 611155968
       },
       "graph": {
         "nodes": 35,
@@ -60,6 +60,104 @@
           "expected": 8,
           "precision": 1,
           "recall": 1
+        },
+        "families": {
+          "imports": {
+            "edge": {
+              "truePositives": 17,
+              "emitted": 17,
+              "expected": 17,
+              "precision": 1,
+              "recall": 1
+            },
+            "diagnostic": {
+              "truePositives": 0,
+              "emitted": 0,
+              "expected": 0,
+              "precision": 1,
+              "recall": 1
+            }
+          },
+          "calls": {
+            "edge": {
+              "truePositives": 3,
+              "emitted": 3,
+              "expected": 3,
+              "precision": 1,
+              "recall": 1
+            },
+            "diagnostic": {
+              "truePositives": 0,
+              "emitted": 0,
+              "expected": 0,
+              "precision": 1,
+              "recall": 1
+            }
+          },
+          "express": {
+            "edge": {
+              "truePositives": 11,
+              "emitted": 11,
+              "expected": 11,
+              "precision": 1,
+              "recall": 1
+            },
+            "diagnostic": {
+              "truePositives": 0,
+              "emitted": 0,
+              "expected": 0,
+              "precision": 1,
+              "recall": 1
+            }
+          },
+          "http": {
+            "edge": {
+              "truePositives": 1,
+              "emitted": 1,
+              "expected": 1,
+              "precision": 1,
+              "recall": 1
+            },
+            "diagnostic": {
+              "truePositives": 0,
+              "emitted": 0,
+              "expected": 0,
+              "precision": 1,
+              "recall": 1
+            }
+          },
+          "prisma": {
+            "edge": {
+              "truePositives": 3,
+              "emitted": 3,
+              "expected": 3,
+              "precision": 1,
+              "recall": 1
+            },
+            "diagnostic": {
+              "truePositives": 0,
+              "emitted": 0,
+              "expected": 0,
+              "precision": 1,
+              "recall": 1
+            }
+          },
+          "unsupported": {
+            "edge": {
+              "truePositives": 0,
+              "emitted": 0,
+              "expected": 0,
+              "precision": 1,
+              "recall": 1
+            },
+            "diagnostic": {
+              "truePositives": 8,
+              "emitted": 8,
+              "expected": 8,
+              "precision": 1,
+              "recall": 1
+            }
+          }
         }
       }
     },
@@ -69,19 +167,19 @@
       "fileCount": 3,
       "cold": {
         "runs": 1,
-        "minMs": 110.048,
-        "medianMs": 110.048,
-        "p95Ms": 110.048,
-        "maxMs": 110.048,
-        "peakRssBytes": 477200384
+        "minMs": 114.268,
+        "medianMs": 114.268,
+        "p95Ms": 114.268,
+        "maxMs": 114.268,
+        "peakRssBytes": 646053888
       },
       "warm": {
         "runs": 3,
-        "minMs": 99.403,
-        "medianMs": 110.979,
-        "p95Ms": 115.636,
-        "maxMs": 115.636,
-        "peakRssBytes": 601964544
+        "minMs": 109.855,
+        "medianMs": 111.684,
+        "p95Ms": 123.749,
+        "maxMs": 123.749,
+        "peakRssBytes": 693108736
       },
       "graph": {
         "nodes": 15,
@@ -96,19 +194,19 @@
       "fileCount": 1,
       "cold": {
         "runs": 1,
-        "minMs": 101.096,
-        "medianMs": 101.096,
-        "p95Ms": 101.096,
-        "maxMs": 101.096,
-        "peakRssBytes": 611647488
+        "minMs": 113.64,
+        "medianMs": 113.64,
+        "p95Ms": 113.64,
+        "maxMs": 113.64,
+        "peakRssBytes": 575995904
       },
       "warm": {
         "runs": 3,
-        "minMs": 89.907,
-        "medianMs": 90.444,
-        "p95Ms": 90.474,
-        "maxMs": 90.474,
-        "peakRssBytes": 630669312
+        "minMs": 98.492,
+        "medianMs": 99.146,
+        "p95Ms": 101.583,
+        "maxMs": 101.583,
+        "peakRssBytes": 598589440
       },
       "graph": {
         "nodes": 2,
@@ -123,19 +221,19 @@
       "fileCount": 5,
       "cold": {
         "runs": 1,
-        "minMs": 98.942,
-        "medianMs": 98.942,
-        "p95Ms": 98.942,
-        "maxMs": 98.942,
-        "peakRssBytes": 635305984
+        "minMs": 100.909,
+        "medianMs": 100.909,
+        "p95Ms": 100.909,
+        "maxMs": 100.909,
+        "peakRssBytes": 592936960
       },
       "warm": {
         "runs": 3,
-        "minMs": 94.402,
-        "medianMs": 97.925,
-        "p95Ms": 114.232,
-        "maxMs": 114.232,
-        "peakRssBytes": 629899264
+        "minMs": 95.678,
+        "medianMs": 100.096,
+        "p95Ms": 114.402,
+        "maxMs": 114.402,
+        "peakRssBytes": 601620480
       },
       "graph": {
         "nodes": 2,
@@ -143,6 +241,98 @@
         "diagnostics": 0
       },
       "accuracy": null
+    },
+    {
+      "id": "project-loader",
+      "digest": "28115dc345b37a4d4bc3379c9e75bded4b2f4a6a47b629433c00f4825bfad3ef",
+      "fileCount": 12,
+      "cold": {
+        "runs": 1,
+        "minMs": 99.298,
+        "medianMs": 99.298,
+        "p95Ms": 99.298,
+        "maxMs": 99.298,
+        "peakRssBytes": 601964544
+      },
+      "warm": {
+        "runs": 3,
+        "minMs": 96.718,
+        "medianMs": 100.139,
+        "p95Ms": 106.677,
+        "maxMs": 106.677,
+        "peakRssBytes": 602210304
+      },
+      "graph": {
+        "nodes": 3,
+        "edges": 1,
+        "diagnostics": 0
+      },
+      "accuracy": {
+        "edge": {
+          "truePositives": 1,
+          "emitted": 1,
+          "expected": 1,
+          "precision": 1,
+          "recall": 1
+        },
+        "diagnostic": {
+          "truePositives": 0,
+          "emitted": 0,
+          "expected": 0,
+          "precision": 1,
+          "recall": 1
+        },
+        "families": {
+          "simple-modules": {
+            "edge": {
+              "truePositives": 1,
+              "emitted": 1,
+              "expected": 1,
+              "precision": 1,
+              "recall": 1
+            },
+            "diagnostic": {
+              "truePositives": 0,
+              "emitted": 0,
+              "expected": 0,
+              "precision": 1,
+              "recall": 1
+            }
+          },
+          "project-references": {
+            "edge": {
+              "truePositives": 1,
+              "emitted": 1,
+              "expected": 1,
+              "precision": 1,
+              "recall": 1
+            },
+            "diagnostic": {
+              "truePositives": 0,
+              "emitted": 0,
+              "expected": 0,
+              "precision": 1,
+              "recall": 1
+            }
+          },
+          "imports": {
+            "edge": {
+              "truePositives": 1,
+              "emitted": 1,
+              "expected": 1,
+              "precision": 1,
+              "recall": 1
+            },
+            "diagnostic": {
+              "truePositives": 0,
+              "emitted": 0,
+              "expected": 0,
+              "precision": 1,
+              "recall": 1
+            }
+          }
+        }
+      }
     }
   ]
 }
