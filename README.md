@@ -94,6 +94,9 @@ The surrounding snapshot records the exact analyzed commit for revision-backed s
 The canonical [GraphSnapshot v0.1 JSON Schema](schema/graph-snapshot.v0.1.schema.json)
 defines the portable interchange shape. The runtime validator additionally checks
 cross-record node references, duplicate identities, and canonical normalization.
+Identifiers and repository paths use `/` separators, date-time metadata is emitted
+as UTC ISO 8601, and invalid snapshots fail with structured field paths through
+`GraphValidationError`.
 Schema compatibility and migration rules are documented in
 [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) and checked by
 `npm run schema:compatibility`.
