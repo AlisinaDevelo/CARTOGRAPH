@@ -83,6 +83,24 @@ async function createDiffRepository(): Promise<string> {
   return root;
 }
 
+async function createRenameDiffRepository(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "cartograph-cli-rename-test-"));
+  temporaryDirectories.push(root);
+  await run("git", ["init", "-b", "main"], root);
+  await run("git", ["config", "user.name", "CARTOGRAPH Test"], root);
+  await run("git", ["config", "user.email", "test@example.invalid"], root);
+  await writeFile(
+    join(root, "old.ts"),
+    "export const load = (): string => 'ok';\n",
+    "utf8",
+  );
+  await run("git", ["add", "old.ts"], root);
+  await run("git", ["commit", "-m", "add old module"], root);
+  await run("git", ["mv", "old.ts", "new.ts"], root);
+  await run("git", ["commit", "-m", "move module"], root);
+  return root;
+}
+
 afterEach(async () => {
   await Promise.all(
     temporaryDirectories
@@ -126,6 +144,26 @@ describe("command orchestration", () => {
       to: "external_service:https://payments.example",
     });
     expect(request?.evidence.length).toBeGreaterThan(0);
+  });
+
+  it("uses local Git rename history to explain moved snapshot identities", async () => {
+    const root = await createRenameDiffRepository();
+    const report = await diffRepositoryRevisions({
+      base: "HEAD~1",
+      format: "json",
+      head: "HEAD",
+      root,
+    });
+    const diff = parseGraphDiff(JSON.parse(report) as unknown);
+
+    expect(diff.nodes.added).toEqual([]);
+    expect(diff.nodes.removed).toEqual([]);
+    expect(diff.identity.matches.length).toBeGreaterThan(0);
+    expect(
+      diff.identity.matches.some((match) =>
+        match.signals.includes("path-history"),
+      ),
+    ).toBe(true);
   });
 
   it("diffs two snapshot paths without invoking Git", async () => {

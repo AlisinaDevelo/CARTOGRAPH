@@ -20,6 +20,7 @@ export {
   diffSnapshots,
   parseGraphDiff,
   serializeGraphDiff,
+  type GraphDiffOptions,
 } from "./diff.js";
 export {
   computeForwardImpact,
@@ -39,15 +40,23 @@ export {
 export {
   IdentityMatchConfidenceSchema,
   IdentityMatchMethodSchema,
+  IdentityMatchSchema,
   IdentitySignalSchema,
+  IdentityAmbiguitySchema,
+  IdentityCandidateSchema,
+  GraphDiffIdentitySchema,
+  IdentityPathHistorySchema,
   matchGraphNodeIdentities,
   reconcileGraphNodeIdentities,
   serializeIdentityReconciliation,
   type IdentityAmbiguity,
   type IdentityCandidate,
+  type GraphDiffIdentity,
   type IdentityMatch,
   type IdentityMatchConfidence,
   type IdentityMatchMethod,
+  type IdentityPathHistory,
+  type IdentityReconciliationOptions,
   type IdentityReconciliation,
   type IdentitySignal,
 } from "./identity.js";

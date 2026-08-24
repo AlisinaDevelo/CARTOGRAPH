@@ -26,7 +26,9 @@ const assertReportCardinality = (
   const nodeCount =
     diff.nodes.added.length +
     diff.nodes.removed.length +
-    diff.nodes.changed.length;
+    diff.nodes.changed.length +
+    diff.identity.matches.length +
+    diff.identity.ambiguous.length;
   const edgeCount =
     diff.edges.added.length +
     diff.edges.removed.length +
@@ -108,6 +110,16 @@ const markdownEdge = (edge: GraphEdge): string => {
 const changedPaths = (changes: readonly { readonly path: string }[]): string =>
   changes.map((change) => markdownCode(change.path)).join(", ");
 
+const markdownIdentityMatch = (
+  match: GraphDiff["identity"]["matches"][number],
+): string =>
+  `- ${markdownCode(match.beforeStableKey)} → ${markdownCode(match.afterStableKey)} — ${markdownCode(`${match.method}/${match.confidence}`)}; evidence: ${match.signals.map(markdownCode).join(", ")}`;
+
+const markdownIdentityAmbiguity = (
+  ambiguity: GraphDiff["identity"]["ambiguous"][number],
+): string =>
+  `- ${markdownCode(ambiguity.before.stableKey)} — ${markdownCode(ambiguity.reason)}; candidates: ${ambiguity.candidates.map((candidate) => markdownCode(candidate.afterStableKey)).join(", ")}`;
+
 const markdownDiagnostic = (
   diagnostic: GraphDiff["diagnostics"]["added"][number],
 ): string => {
@@ -155,6 +167,16 @@ export function renderMarkdownReport(diff: GraphDiff): string {
           `- ${markdownCode(node.stableKey)} — ${changedPaths(node.changes)}`,
       ),
     );
+  }
+
+  if (diff.identity.matches.length > 0) {
+    lines.push("", "## Matched identities", "");
+    lines.push(...diff.identity.matches.map(markdownIdentityMatch));
+  }
+
+  if (diff.identity.ambiguous.length > 0) {
+    lines.push("", "## Ambiguous identities", "");
+    lines.push(...diff.identity.ambiguous.map(markdownIdentityAmbiguity));
   }
 
   const edgeGroups = [
@@ -243,6 +265,16 @@ const htmlDiagnostic = (
 const htmlChanges = (changes: readonly { readonly path: string }[]): string =>
   changes.map((change) => `<code>${escapeHtml(change.path)}</code>`).join(", ");
 
+const htmlIdentityMatch = (
+  match: GraphDiff["identity"]["matches"][number],
+): string =>
+  `<code>${escapeHtml(match.beforeStableKey)}</code> <strong>→</strong> <code>${escapeHtml(match.afterStableKey)}</code><div class="evidence">${escapeHtml(`${match.method}/${match.confidence}`)}; evidence: ${match.signals.map((signal) => escapeHtml(signal)).join(", ")}</div>`;
+
+const htmlIdentityAmbiguity = (
+  ambiguity: GraphDiff["identity"]["ambiguous"][number],
+): string =>
+  `<code>${escapeHtml(ambiguity.before.stableKey)}</code><div class="evidence">${escapeHtml(ambiguity.reason)}; candidates: ${ambiguity.candidates.map((candidate) => escapeHtml(candidate.afterStableKey)).join(", ")}</div>`;
+
 export function renderHtmlReport(diff: GraphDiff): string {
   assertReportCardinality(diff, undefined);
   const summary = diff.summary;
@@ -251,6 +283,10 @@ export function renderHtmlReport(diff: GraphDiff): string {
   const changedNodes = diff.nodes.changed.map(
     (node) =>
       `<code>${escapeHtml(node.stableKey)}</code><div class="evidence">${htmlChanges(node.changes)}</div>`,
+  );
+  const matchedIdentities = diff.identity.matches.map(htmlIdentityMatch);
+  const ambiguousIdentities = diff.identity.ambiguous.map(
+    htmlIdentityAmbiguity,
   );
   const changedEdges = diff.edges.changed.map(
     (edge) =>
@@ -304,6 +340,8 @@ export function renderHtmlReport(diff: GraphDiff): string {
     <section aria-label="Added nodes"><h2>Added nodes</h2>${htmlList(addedNodes)}</section>
     <section aria-label="Removed nodes"><h2>Removed nodes</h2>${htmlList(removedNodes)}</section>
     <section aria-label="Changed nodes"><h2>Changed nodes</h2>${htmlList(changedNodes)}</section>
+    <section aria-label="Matched identities"><h2>Matched identities</h2>${htmlList(matchedIdentities)}</section>
+    <section aria-label="Ambiguous identities"><h2>Ambiguous identities</h2>${htmlList(ambiguousIdentities)}</section>
     <section aria-label="Added edges"><h2>Added edges</h2>${htmlList(diff.edges.added.map(htmlEdge))}</section>
     <section aria-label="Removed edges"><h2>Removed edges</h2>${htmlList(diff.edges.removed.map(htmlEdge))}</section>
     <section aria-label="Changed edges"><h2>Changed edges</h2>${htmlList(changedEdges)}</section>

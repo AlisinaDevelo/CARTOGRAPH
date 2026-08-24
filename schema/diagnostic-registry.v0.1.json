@@ -23,6 +23,13 @@
       "remediation": "Pin the package condition set or document the runtime environments that may select another branch."
     },
     {
+      "code": "AMBIGUOUS_IDENTITY_MATCH",
+      "severity": "warning",
+      "message": "Refactor identity has multiple equally plausible or non-mutual candidates.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Review the candidate identities and add stable source or path evidence before accepting the refactor match."
+    },
+    {
       "code": "UNRESOLVED_ROUTE_HANDLER",
       "severity": "warning",
       "message": "Could not resolve an Express route or middleware handler.",

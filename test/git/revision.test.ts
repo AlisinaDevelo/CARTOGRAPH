@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   materializeRevision,
+  readPathHistory,
   resolveCommit,
   withMaterializedRevision,
 } from "../../src/git/revision.js";
@@ -59,6 +60,24 @@ async function createRepository(): Promise<string> {
   );
   await run("git", ["add", "service.ts"], root);
   await run("git", ["commit", "-m", "change service"], root);
+  return root;
+}
+
+async function createRenameRepository(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "cartograph-git-rename-test-"));
+  temporaryDirectories.push(root);
+  await run("git", ["init", "-b", "main"], root);
+  await run("git", ["config", "user.name", "CARTOGRAPH Test"], root);
+  await run("git", ["config", "user.email", "test@example.invalid"], root);
+  await writeFile(
+    join(root, "old.ts"),
+    "export function load() { return 1; }\n",
+    "utf8",
+  );
+  await run("git", ["add", "old.ts"], root);
+  await run("git", ["commit", "-m", "add old path"], root);
+  await run("git", ["mv", "old.ts", "new.ts"], root);
+  await run("git", ["commit", "-m", "move path"], root);
   return root;
 }
 
@@ -118,6 +137,17 @@ describe("Git revision materialization", () => {
     await expect(resolveCommit(root, "HEAD\nmalicious")).rejects.toThrow(
       "unsafe Git ref",
     );
+    await expect(
+      readPathHistory(root, "HEAD\nmalicious", "HEAD"),
+    ).rejects.toThrow("unsafe Git ref");
+  });
+
+  it("reads deterministic Git rename history as portable path pairs", async () => {
+    const root = await createRenameRepository();
+
+    await expect(readPathHistory(root, "HEAD~1", "HEAD")).resolves.toEqual([
+      { beforePath: "old.ts", afterPath: "new.ts" },
+    ]);
   });
 
   it("rejects archived symbolic links before analysis", async () => {

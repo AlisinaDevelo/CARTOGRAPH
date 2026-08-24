@@ -24,7 +24,10 @@ const diffSchema = readJson(
   resolve(repositoryRoot, "schema/graph-diff.v0.1.schema.json"),
 ) as {
   required?: string[];
-  properties?: { schemaVersion?: { const?: number } };
+  properties?: {
+    schemaVersion?: { const?: number };
+    identity?: unknown;
+  };
 };
 const validateJsonSchema = new Ajv({ allErrors: true }).compile(diffSchema);
 
@@ -42,6 +45,7 @@ describe("GraphDiff v0.1 JSON Schema", () => {
       ]),
     );
     expect(diffSchema.properties?.schemaVersion?.const).toBe(1);
+    expect(diffSchema.properties?.identity).toBeDefined();
   });
 
   it("accepts the valid fixture through JSON Schema and runtime validation", () => {
@@ -102,6 +106,10 @@ describe("GraphDiff v0.1 JSON Schema", () => {
         changed: Array<{ classification: string }>;
         rewired: Array<{ classification: string }>;
       };
+      identity: {
+        matches: Array<{ method: string }>;
+        ambiguous: unknown[];
+      };
     };
 
     expect(validateJsonSchema(serialized)).toBe(true);
@@ -112,5 +120,7 @@ describe("GraphDiff v0.1 JSON Schema", () => {
     expect(serialized.edges.rewired.map((edge) => edge.classification)).toEqual(
       ["endpoint-rewired"],
     );
+    expect(serialized.identity.matches.length).toBeGreaterThan(0);
+    expect(serialized.identity.ambiguous).toEqual([]);
   });
 });

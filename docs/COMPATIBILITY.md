@@ -104,3 +104,14 @@ meaning, so readers that ignore the new fields remain compatible. Writers emit
 deterministic classifications and pair only unambiguous endpoint rewires;
 ambiguous candidates remain ordinary set differences. The published JSON
 Schema, runtime validator, and golden fixtures are checked together.
+
+## D-010 additive identity review
+
+D-010 adds an optional `identity` section to GraphDiff v0.1. It records
+refactor-aware matches and explicit ambiguous candidates while retaining the
+existing node, edge, diagnostic, and summary arrays. Unique matches suppress
+false node add/remove pairs; ambiguous nodes remain conservative add/remove
+records and emit the stable `AMBIGUOUS_IDENTITY_MATCH` diagnostic. The section,
+the identity method/signal enums, and the diagnostic registry entry are
+additive for readers that ignore them. Runtime canonicalization, the published
+JSON Schema, and golden diff fixtures are checked together.
