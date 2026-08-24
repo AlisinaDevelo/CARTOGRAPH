@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.runtime-reconciliation",
+  "mediaType": "application/vnd.cartograph.runtime-reconciliation+json",
+  "runtimeTraceSchemaVersion": 1,
+  "staticRevision": { "commitSha": "static-fixture" },
+  "records": [
+    {
+      "id": "ambiguous:module%3Aa=>module%3Ab",
+      "classification": "ambiguous",
+      "staticEdgeIds": [
+        "edge:module:a|calls|module:b",
+        "edge:module:a|imports|module:b"
+      ],
+      "staticEvidenceRefs": [
+        "static-evidence:edge-a-b-calls",
+        "static-evidence:edge-a-b-imports"
+      ],
+      "traceRefs": [
+        "trace:0123456789abcdef0123456789abcdef:aaaaaaaaaaaaaaaa",
+        "trace:0123456789abcdef0123456789abcdef:bbbbbbbbbbbbbbbb"
+      ],
+      "evidenceRefs": [
+        "static-evidence:edge-a-b-calls",
+        "static-evidence:edge-a-b-imports",
+        "trace:0123456789abcdef0123456789abcdef:aaaaaaaaaaaaaaaa",
+        "trace:0123456789abcdef0123456789abcdef:bbbbbbbbbbbbbbbb"
+      ],
+      "observedCount": 1,
+      "uncertainty": "ambiguous",
+      "reason": "runtime parent and child spans map to multiple static edges with the same endpoints"
+    },
+    {
+      "id": "modeled-not-observed:edge:module:b|calls|module:c",
+      "classification": "modeled-not-observed",
+      "staticEdgeIds": ["edge:module:b|calls|module:c"],
+      "staticEvidenceRefs": ["static-evidence:edge-b-c"],
+      "traceRefs": [],
+      "evidenceRefs": ["static-evidence:edge-b-c"],
+      "observedCount": 0,
+      "uncertainty": "unobserved",
+      "reason": "static edge has no matching mapped runtime parent/child observation"
+    },
+    {
+      "id": "observed-and-modeled:edge:module:d|calls|module:a",
+      "classification": "observed-and-modeled",
+      "staticEdgeIds": ["edge:module:d|calls|module:a"],
+      "staticEvidenceRefs": ["static-evidence:edge-d-a"],
+      "traceRefs": [
+        "trace:0123456789abcdef0123456789abcdef:dddddddddddddddd",
+        "trace:0123456789abcdef0123456789abcdef:eeeeeeeeeeeeeeee"
+      ],
+      "evidenceRefs": [
+        "static-evidence:edge-d-a",
+        "trace:0123456789abcdef0123456789abcdef:dddddddddddddddd",
+        "trace:0123456789abcdef0123456789abcdef:eeeeeeeeeeeeeeee"
+      ],
+      "observedCount": 1,
+      "uncertainty": "none",
+      "reason": "runtime parent and child spans map to one static edge"
+    },
+    {
+      "id": "observed-but-unmodeled:module%3Ac=>module%3Ad",
+      "classification": "observed-but-unmodeled",
+      "staticEdgeIds": [],
+      "staticEvidenceRefs": [],
+      "traceRefs": [
+        "trace:0123456789abcdef0123456789abcdef:cccccccccccccccc",
+        "trace:0123456789abcdef0123456789abcdef:dddddddddddddddd"
+      ],
+      "evidenceRefs": [
+        "trace:0123456789abcdef0123456789abcdef:cccccccccccccccc",
+        "trace:0123456789abcdef0123456789abcdef:dddddddddddddddd"
+      ],
+      "observedCount": 1,
+      "uncertainty": "unmapped",
+      "reason": "runtime parent and child spans map to nodes without a static edge"
+    }
+  ],
+  "summary": {
+    "staticEdges": 4,
+    "runtimeSpanEdges": 3,
+    "mappedSpans": 5,
+    "observedAndModeled": 1,
+    "modeledNotObserved": 1,
+    "observedButUnmodeled": 1,
+    "ambiguous": 1
+  }
+}

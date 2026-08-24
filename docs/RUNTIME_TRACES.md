@@ -21,7 +21,9 @@ spans, and attributes per record. `parseRuntimeTraceJson` enforces the byte
 limit before parsing; malformed JSON, malformed OTLP records, duplicate spans,
 and limit violations return `RuntimeTraceValidationError` with a stable code.
 The normalized artifact is in-memory only; retention, redaction policy, and
-static/runtime reconciliation remain separate follow-on contracts.
+CLI/report integration remain separate follow-on contracts. The explicit local
+static/runtime reconciliation contract is documented separately in
+[`RUNTIME_RECONCILIATION.md`](RUNTIME_RECONCILIATION.md).
 
 ```ts
 const normalized = parseRuntimeTraceJson(localOtlpJson, {

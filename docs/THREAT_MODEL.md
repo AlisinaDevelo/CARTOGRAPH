@@ -1,7 +1,7 @@
 # Threat model
 
 Status: initial design review, 2026-08-24. Revisit this document when runtime
-reconciliation, plugins, or a hosted service enter scope.
+redaction/retention, plugins, or a hosted service enter scope.
 
 ## System and trust boundaries
 
@@ -36,12 +36,13 @@ The current design has no authentication, server, cloud storage, or telemetry bo
 
 ## Optional runtime traces
 
-The current core exposes only an inert local OTLP JSON normalizer; it is not
-part of the CLI or report surface. No trace collector, OTLP listener, hosted
-receiver, upload, or background telemetry process is enabled by default. The
-normalizer rejects malformed or oversized input and discards arbitrary
-attributes, events, links, payloads, and status messages. The following
-additional controls remain mandatory before runtime reconciliation is accepted:
+The current core exposes an inert local OTLP JSON normalizer and an explicit
+static/runtime reconciliation function; neither is part of the CLI or report
+surface. No trace collector, OTLP listener, hosted receiver, upload, or
+background telemetry process is enabled by default. The normalizer rejects
+malformed or oversized input and discards arbitrary attributes, events, links,
+payloads, and status messages. The following additional controls remain
+mandatory before broader runtime behavior is accepted:
 
 | Trace risk                                                    | Required control                                                                                                                      | Evidence                                                                           |
 | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
@@ -50,9 +51,10 @@ additional controls remain mandatory before runtime reconciliation is accepted:
 | Dynamic edges are mistaken for static facts                   | Classify observations as runtime evidence, preserve trace identifiers only as references, and keep confidence separate from certainty | Reconciliation fixtures covering observed-only, static-only, and conflicting edges |
 | Trace input triggers network or code execution                | Parse trace data as inert records; do not load plugins, call URLs, or execute repository code                                         | O-001 offline boundary test and future hostile-record fixture                      |
 
-Until reconciliation, redaction, and retention controls are implemented, runtime
-behavior remains an explicit non-goal and the normalized input is not interpreted
-as an architectural fact.
+O-002 now classifies explicitly bound local observations conservatively, but
+redaction, retention, automatic binding, and report integration remain outside
+the boundary. Runtime behavior is not treated as an architectural fact, and
+the normalized input is still not collected or retained implicitly.
 
 ## Optional model-provider boundary
 
@@ -87,8 +89,8 @@ causing those operations to run during analysis.
 The offline boundary is verified by the repository-code execution test in
 `test/security/offline.test.ts`, static report tests, Git argument tests, and the exact
 device reproduction recorded in `docs/evidence/f-001-product-charter.md`. A future trace
-reconciliation adapter must add a separate opt-in test and update this threat model before
-it is included in the support matrix.
+collector or report integration must add a separate opt-in test and update this threat
+model before it is included in the support matrix.
 
 ## Accepted residual risks
 
