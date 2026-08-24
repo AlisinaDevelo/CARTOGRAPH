@@ -93,7 +93,7 @@ export function createCli(): Command {
   const program = new Command()
     .name("cartograph")
     .description(
-      "Evidence-backed architecture change control for TypeScript codebases",
+      "Deterministic architecture graph scanning and evidence-backed revision diffs for TypeScript.",
     )
     .version(VERSION)
     .showHelpAfterError()

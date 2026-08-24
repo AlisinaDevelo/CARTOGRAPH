@@ -1,6 +1,6 @@
 # CARTOGRAPH
 
-Evidence-backed architecture change control for TypeScript codebases.
+Deterministic architecture graph scanning and evidence-backed revision diffs for TypeScript.
 
 [![CI](https://github.com/AlisinaDevelo/CARTOGRAPH/actions/workflows/ci.yml/badge.svg)](https://github.com/AlisinaDevelo/CARTOGRAPH/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/AlisinaDevelo/CARTOGRAPH/actions/workflows/codeql.yml/badge.svg)](https://github.com/AlisinaDevelo/CARTOGRAPH/actions/workflows/codeql.yml)

@@ -4,9 +4,12 @@ CARTOGRAPH is not published to npm. A `v<package.version>` tag is the supported
 release trigger: [`.github/workflows/release.yml`](../.github/workflows/release.yml)
 checks the tagged source, creates an installable tarball, runs an isolated package
 consumer smoke test, and creates a GitHub release containing the tarball,
-`SHA256SUMS`, and `release-metadata.json`. The workflow does not publish to npm;
-that remains a separate trusted-publishing decision after package ownership and
-adoption are established.
+`SHA256SUMS`, a CycloneDX SBOM, a SLSA/in-toto provenance statement, and
+`release-metadata.json`. The workflow obtains a Sigstore-backed GitHub
+attestation for each release subject and verifies it against the release
+workflow identity before creating the GitHub release. The workflow does not
+publish to npm; that remains a separate trusted-publishing decision after
+package ownership and adoption are established.
 
 ## Release gate
 
@@ -28,10 +31,34 @@ Before creating a release tag:
 
 The release artifact metadata binds the package name and version, source commit,
 the downloaded tarball SHA-256 digest, the canonical gzip-decoded package-content
-digest, changelog section, and smoke-test commands. The content digest keeps the
-package payload comparable across npm versions that encode the same tar stream with
-different gzip wrappers. A consumer can verify `SHA256SUMS` before installing the
-tarball with lifecycle scripts disabled.
+digest, the lockfile digest and dependency count, SBOM/provenance digests,
+changelog section, and smoke-test commands. The content digest keeps the package
+payload comparable across npm versions that encode the same tar stream with
+different gzip wrappers. The generated SBOM is normalized to remove build-time
+timestamps and tool-version noise; its lockfile digest binds the dependency
+inventory to the tagged source. The provenance statement binds the tarball
+digest to the source commit, tag, lockfile, build type, and builder metadata.
+
+Before installing, a consumer can verify every release asset's checksum and
+inspect the provenance statement:
+
+```sh
+shasum -a 256 -c SHA256SUMS
+node -e 'const p=require("./cartograph-cli-0.1.0.tgz.provenance.json"); if (p.subject[0].digest.sha256.length !== 64 || p.predicateType !== "https://slsa.dev/provenance/v1") process.exit(1)'
+```
+
+GitHub's signed attestation can be verified independently with the GitHub CLI:
+
+```sh
+gh attestation verify cartograph-cli-0.1.0.tgz \
+  --repo AlisinaDevelo/CARTOGRAPH \
+  --signer-workflow AlisinaDevelo/CARTOGRAPH/.github/workflows/release.yml
+```
+
+The package contents are fail-closed against workflow, fixture, test, script,
+benchmark, and coverage paths; credentials and repository source fixtures are
+not release subjects. Install the tarball with lifecycle scripts disabled until
+the package and its provenance have been reviewed.
 
 Generated `dist`, coverage, temporary repositories, reports, and package tarballs stay out of source commits.
 
