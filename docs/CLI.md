@@ -59,6 +59,23 @@ rejected, stale, failed-validation, and applied-externally states, but never
 applies a patch, merges a pull request, changes policy, or invokes a repository
 command.
 
+## Output and diagnostic streams
+
+Successful commands write exactly one artifact to stdout when `--output` is
+omitted or set to `-`; stdout is otherwise empty when an output path is used.
+Warnings and failures go to stderr. A successful JSON report is a single
+canonical JSON document on stdout (JSON report mode), including `diff --format json` and
+`diff-snapshots --format json`; errors never emit a partial JSON artifact.
+
+The top-level diagnostic includes a stable boundary code such as
+`[cli-input]`, `[configuration-error]`, `[analysis-error]`, `[resource-limit]`,
+`[cancelled]`, `[git-error]`, or `[output-error]`. Default stderr redaction
+removes credentials and token assignments, bearer values, credential-bearing
+URLs, JWTs, absolute POSIX/Windows paths, and source-like snippets. Each
+redacted diagnostic remains actionable: relative repository paths and stable
+field names remain when they are safe to show. The redaction is a log boundary
+only; it does not change the canonical artifact or the library error object.
+
 ## Exit codes
 
 - **Exit code 0** means the requested command completed successfully. `--help`,
@@ -66,7 +83,8 @@ command.
 - **Exit code 1** means the request could not be completed because of invalid
   CLI input, an invalid report format, an unsafe or missing Git ref, a rejected
   path, an analysis error, or an output failure. The top-level handler writes a
-  stable `cartograph: ...` diagnostic to stderr and does not report success.
+  stable boundary-coded `cartograph [...]` diagnostic to stderr and does not
+  report success.
 
 The CLI does not promise a separate numeric code for each input failure. New
 failure classes preserve the nonzero contract and add a human-readable

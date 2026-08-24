@@ -11,6 +11,7 @@ const repositoryRoot = resolve(
   "../..",
 );
 const entrypoint = resolve(repositoryRoot, "src/cli.ts");
+const fixtureRoot = resolve(repositoryRoot, "test/fixtures/typescript-express");
 const migrationFixture = resolve(
   repositoryRoot,
   "test/fixtures/snapshots/legacy-v0.graph.json",
@@ -62,6 +63,96 @@ describe("CLI entrypoint", () => {
 
     expect(result.code).toBe(1);
     expect(result.stderr).toContain("error: unknown command 'not-a-command'");
+  });
+
+  it("keeps help and version as successful stdout-only controls", async () => {
+    const help = await runEntrypoint(["--help"]);
+    const version = await runEntrypoint(["--version"]);
+
+    expect(help.code).toBe(0);
+    expect(help.stderr).toBe("");
+    expect(help.stdout).toContain("Usage: cartograph");
+    expect(version.code).toBe(0);
+    expect(version.stderr).toBe("");
+    expect(version.stdout.trim()).toBe("0.1.0");
+  });
+
+  it("keeps JSON reports on stdout and diagnostics on stderr", async () => {
+    const root = await mkdtemp(join(tmpdir(), "cartograph-cli-json-mode-"));
+    temporaryDirectories.push(root);
+    const before = join(root, "before.json");
+    const after = join(root, "after.json");
+
+    const first = await runEntrypoint([
+      "scan",
+      fixtureRoot,
+      "--output",
+      before,
+    ]);
+    const second = await runEntrypoint([
+      "scan",
+      fixtureRoot,
+      "--output",
+      after,
+    ]);
+    const result = await runEntrypoint([
+      "diff-snapshots",
+      before,
+      after,
+      "--format",
+      "json",
+    ]);
+
+    expect(first.code).toBe(0);
+    expect(second.code).toBe(0);
+    expect(result.code).toBe(0);
+    expect(result.stderr).toBe("");
+    expect(result.stdout).toContain('"schemaVersion":1');
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      schemaVersion: 1,
+      fromRevision: { commitSha: "working-tree" },
+    });
+  });
+
+  it("redacts a configuration-path failure without leaking the supplied secret", async () => {
+    const secret = "TOP-SECRET-TOKEN";
+    const root = await mkdtemp(join(tmpdir(), "cartograph-cli-redaction-"));
+    temporaryDirectories.push(root);
+    const outsideConfig = join(root, `token=${secret}`, "config.json");
+    const result = await runEntrypoint([
+      "scan",
+      fixtureRoot,
+      "--config",
+      outsideConfig,
+    ]);
+
+    expect(result.code).toBe(1);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toContain("cartograph [output-error]");
+    expect(result.stderr).not.toContain(secret);
+    expect(result.stderr).not.toContain(outsideConfig);
+  });
+
+  it("reports an invalid configuration with a stable boundary and no secret value", async () => {
+    const secret = "TOP-SECRET-CREDENTIAL";
+    const root = await mkdtemp(join(tmpdir(), "cartograph-cli-config-error-"));
+    temporaryDirectories.push(root);
+    await writeFile(
+      join(root, "cartograph.json"),
+      JSON.stringify({ schemaVersion: 1, credential: secret }),
+      "utf8",
+    );
+    const result = await runEntrypoint([
+      "scan",
+      root,
+      "--config",
+      "cartograph.json",
+    ]);
+
+    expect(result.code).toBe(1);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toContain("cartograph [configuration-error]");
+    expect(result.stderr).not.toContain(secret);
   });
 
   it("runs a no-op scan without executing repository code", async () => {

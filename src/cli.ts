@@ -8,6 +8,12 @@ import { pathToFileURL } from "node:url";
 import { Command, InvalidArgumentError } from "commander";
 
 import {
+  formatCliError,
+  formatCliWarning,
+  redactCliText,
+  isCommanderControlError,
+} from "./cli-errors.js";
+import {
   diffRepositoryRevisions,
   diffSnapshotFiles,
   migrateSnapshotFile,
@@ -26,6 +32,21 @@ import type { ReportFormat } from "./report/render.js";
 
 const VERSION = "0.1.0";
 
+const writeRedactedError = (message: string): void => {
+  process.stderr.write(
+    message
+      .replaceAll("\r", "")
+      .split("\n")
+      .map((line) => {
+        const safe = redactCliText(line);
+        return safe.startsWith("error:")
+          ? `cartograph [cli-input]: ${safe}`
+          : safe;
+      })
+      .join("\n"),
+  );
+};
+
 type OutputOptions = {
   force?: boolean;
   output?: string;
@@ -42,7 +63,7 @@ const readConfigOption = (
   if (configPath === undefined) return undefined;
   const parsed = readCartographConfig(root, configPath);
   for (const warning of parsed.warnings)
-    process.stderr.write(`cartograph: warning: ${warning}\n`);
+    process.stderr.write(`${formatCliWarning(warning)}\n`);
   return parsed.config;
 };
 
@@ -68,7 +89,10 @@ export function createCli(): Command {
     )
     .version(VERSION)
     .showHelpAfterError()
-    .showSuggestionAfterError();
+    .showSuggestionAfterError()
+    .configureOutput({
+      writeErr: writeRedactedError,
+    });
 
   program
     .command("scan")
@@ -235,8 +259,8 @@ const invokedDirectly = (() => {
 
 if (invokedDirectly) {
   runCli().catch((error: unknown) => {
-    const message = error instanceof Error ? error.message : String(error);
-    process.stderr.write(`cartograph: ${message}\n`);
+    if (isCommanderControlError(error)) return;
+    process.stderr.write(`${formatCliError(error)}\n`);
     process.exitCode = 1;
   });
 }

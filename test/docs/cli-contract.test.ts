@@ -20,6 +20,9 @@ describe("CLI contract", () => {
     expect(policy).toContain("## Exit codes");
     expect(policy).toContain("Exit code 0");
     expect(policy).toContain("Exit code 1");
+    expect(policy).toContain("## Output and diagnostic streams");
+    expect(policy).toContain("JSON report mode");
+    expect(policy).toContain("redacted");
     expect(policy).toContain("## No-op scan boundary");
     expect(policy).toContain("does not execute repository code");
     expect(readme).toContain("[CLI runtime and exit policy](docs/CLI.md)");
