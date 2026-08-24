@@ -68,6 +68,26 @@ Every edge must contain at least one evidence record or an explicit unresolved r
 
 Canonicalization validates records, rejects conflicting identities, removes exact duplicates, and sorts every collection. The runtime validator also enforces cross-record node references that JSON Schema cannot express portably. Identical input must serialize identically.
 
+## Diff semantics
+
+The diff engine compares canonical snapshots by semantic identity rather than
+array position:
+
+- nodes use `stableKey`;
+- edges use the `from`/`to`/`kind` tuple; confidence, evidence, and an
+  `unresolvedReason` are fields on that relationship;
+- diagnostics use their stable `id` and retain severity, remediation, edge or
+  node context, and evidence.
+
+Each identity is reported as added, removed, or changed. Changed records retain
+the complete before/after values plus a deterministic list of changed field
+paths. An evidence-only relationship update therefore remains a changed edge
+with an `evidence` field change, while a new unresolved diagnostic is reported
+under `diagnostics.added` with its source evidence. Canonicalization sorts
+records and evidence before comparison, so equivalent input ordering produces
+the same serialized diff. Golden mutation fixtures under
+`test/fixtures/snapshots/graph-diff/` exercise every classification.
+
 ## Identity
 
 The initial stable key combines the node kind with normalized module and symbol identity. This is deterministic but is not yet refactor-stable. The Year 2 identity work adds Git rename evidence, AST fingerprints, signatures, and neighborhood similarity while surfacing ambiguous matches rather than guessing.

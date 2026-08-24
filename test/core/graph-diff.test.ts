@@ -1,3 +1,7 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -8,6 +12,15 @@ import {
   serializeGraphDiff,
   serializeGraphSnapshot,
 } from "../../src/index.js";
+
+const graphDiffFixtureRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../fixtures/snapshots/graph-diff",
+);
+const readFixture = (name: string): unknown =>
+  JSON.parse(
+    readFileSync(resolve(graphDiffFixtureRoot, name), "utf8"),
+  ) as unknown;
 
 const sourceEvidence = (id: string, path = "src/index.ts", line = 1) => ({
   id,
@@ -522,5 +535,85 @@ describe("graph diffs", () => {
     };
 
     expect(serializeGraphDiff(diff)).toBe(serializeGraphDiff(reordered));
+  });
+
+  it("matches the golden semantic classification fixture", () => {
+    const before = readFixture("before.graph.json");
+    const after = readFixture("after.graph.json");
+    const expected = readFixture("expected.json") as {
+      nodes: {
+        added: string[];
+        removed: string[];
+        changed: string[];
+      };
+      edges: {
+        added: string[];
+        removed: string[];
+        changed: Array<{ identity: string; paths: string[] }>;
+      };
+      diagnostics: {
+        added: string[];
+        removed: string[];
+        changed: string[];
+      };
+    };
+
+    const diff = diffGraphSnapshots(before, after);
+    expect({
+      nodes: {
+        added: diff.nodes.added.map((node) => node.stableKey),
+        removed: diff.nodes.removed.map((node) => node.stableKey),
+        changed: diff.nodes.changed.map((node) => node.stableKey),
+      },
+      edges: {
+        added: diff.edges.added.map(
+          (edge) => `${edge.from}|${edge.kind}|${edge.to}`,
+        ),
+        removed: diff.edges.removed.map(
+          (edge) => `${edge.from}|${edge.kind}|${edge.to}`,
+        ),
+        changed: diff.edges.changed.map((edge) => ({
+          identity: `${edge.from}|${edge.kind}|${edge.to}`,
+          paths: edge.changes.map((change) => change.path),
+        })),
+      },
+      diagnostics: {
+        added: diff.diagnostics.added.map((diagnostic) => diagnostic.id),
+        removed: diff.diagnostics.removed.map((diagnostic) => diagnostic.id),
+        changed: diff.diagnostics.changed.map((diagnostic) => diagnostic.id),
+      },
+    }).toEqual(expected);
+
+    const shuffledBefore = {
+      ...(before as Record<string, unknown>),
+      nodes: [...(before as { nodes: unknown[] }).nodes].reverse(),
+      edges: [...(before as { edges: unknown[] }).edges].reverse(),
+      diagnostics: [
+        ...(before as { diagnostics: unknown[] }).diagnostics,
+      ].reverse(),
+    };
+    const shuffledAfter = {
+      ...(after as Record<string, unknown>),
+      nodes: [...(after as { nodes: unknown[] }).nodes].reverse(),
+      edges: [...(after as { edges: unknown[] }).edges].reverse(),
+      diagnostics: [
+        ...(after as { diagnostics: unknown[] }).diagnostics,
+      ].reverse(),
+    };
+    expect(serializeGraphDiff(diff)).toBe(
+      serializeGraphDiff(diffGraphSnapshots(shuffledBefore, shuffledAfter)),
+    );
+
+    const evidenceChange = diff.edges.changed.find(
+      (edge) => edge.from === "node-a" && edge.to === "service:billing",
+    );
+    expect(evidenceChange?.changes).toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: "evidence" })]),
+    );
+    expect(
+      diff.diagnostics.changed.find(
+        (diagnostic) => diagnostic.after.code === "UNRESOLVED_IMPORT",
+      )?.after,
+    ).toMatchObject({ severity: "warning" });
   });
 });

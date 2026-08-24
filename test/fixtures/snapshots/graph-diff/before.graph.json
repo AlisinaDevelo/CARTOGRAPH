@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "capabilityRegistryVersion": 1,
+  "revision": {
+    "commitSha": "1111111111111111111111111111111111111111",
+    "branch": "main"
+  },
+  "nodes": [
+    {
+      "id": "node-a",
+      "stableKey": "function:src/a.ts:a",
+      "kind": "function",
+      "name": "a",
+      "language": "typescript"
+    },
+    {
+      "id": "node-b",
+      "stableKey": "function:src/b.ts:b",
+      "kind": "function",
+      "name": "b",
+      "language": "typescript"
+    },
+    {
+      "id": "service:billing",
+      "stableKey": "service:billing",
+      "kind": "service",
+      "name": "billing"
+    }
+  ],
+  "edges": [
+    {
+      "from": "node-a",
+      "to": "node-b",
+      "kind": "calls",
+      "confidence": "certain",
+      "evidence": [
+        {
+          "id": "evidence-call-before",
+          "kind": "source",
+          "path": "src/a.ts",
+          "line": 10,
+          "detector": "cartograph.test@1",
+          "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    {
+      "from": "node-a",
+      "to": "service:billing",
+      "kind": "requests",
+      "confidence": "observed",
+      "evidence": [
+        {
+          "id": "evidence-request-before",
+          "kind": "source",
+          "path": "src/a.ts",
+          "line": 20,
+          "detector": "cartograph.test@1",
+          "contentHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ]
+    },
+    {
+      "from": "node-b",
+      "to": "service:billing",
+      "kind": "writes",
+      "confidence": "inferred",
+      "evidence": [
+        {
+          "id": "evidence-removed",
+          "kind": "source",
+          "path": "src/b.ts",
+          "line": 8,
+          "detector": "cartograph.test@1",
+          "contentHash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "unresolved-diagnostic",
+      "code": "UNRESOLVED_IMPORT",
+      "severity": "warning",
+      "message": "could not resolve import before",
+      "remediation": "Review the module boundary manually.",
+      "nodeId": "node-a",
+      "edge": {
+        "from": "node-a",
+        "to": "service:billing",
+        "kind": "imports"
+      },
+      "evidence": [
+        {
+          "id": "diagnostic-before",
+          "kind": "source",
+          "path": "src/a.ts",
+          "line": 30,
+          "detector": "cartograph.test@1",
+          "contentHash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        }
+      ]
+    },
+    {
+      "id": "removed-diagnostic",
+      "code": "UNRESOLVED_CALL",
+      "severity": "warning",
+      "message": "call target was unresolved",
+      "nodeId": "node-b",
+      "evidence": [
+        {
+          "id": "diagnostic-removed",
+          "kind": "source",
+          "path": "src/b.ts",
+          "line": 12,
+          "detector": "cartograph.test@1",
+          "contentHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+      ]
+    }
+  ]
+}

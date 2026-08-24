@@ -305,6 +305,14 @@ export const canonicalizeGraphDiff = (input: unknown): GraphDiff => {
   return GraphDiffSchema.parse(canonical);
 };
 
+/**
+ * Compare two snapshots using semantic identities instead of serialized
+ * positions. Nodes are identified by stableKey, edges by from/to/kind, and
+ * diagnostics by id. A matching identity is classified as changed when any
+ * canonical field differs; the field list therefore makes confidence,
+ * evidence, unresolved reasons, and diagnostic context reviewable without
+ * treating a reordering as a graph change.
+ */
 export const diffGraphSnapshots = (
   beforeInput: unknown,
   afterInput: unknown,
