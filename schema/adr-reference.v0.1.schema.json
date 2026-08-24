@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/adr-reference.v0.1.schema.json",
+  "title": "CARTOGRAPH local ADR references v0.1",
+  "description": "A bounded, repository-local index that links architecture decision records to their Markdown files and graph identities. It contains no hosted or executable reference.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "references"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "references": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 512,
+      "items": { "$ref": "#/definitions/reference" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "portablePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!~)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\u0000)(?!.*\\r)(?!.*\\n).+$",
+      "description": "A normalized repository-relative path; absolute paths, URI schemes, and parent traversal are not allowed."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "proposed",
+        "accepted",
+        "rejected",
+        "deprecated",
+        "superseded"
+      ]
+    },
+    "graphId": {
+      "$ref": "#/definitions/identifier",
+      "description": "A graph node ID/stable key, or an edge ID encoded as edge:<from>|<kind>|<to>."
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "file", "title", "status", "graphIds"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "file": { "$ref": "#/definitions/portablePath" },
+        "title": { "$ref": "#/definitions/title" },
+        "status": { "$ref": "#/definitions/status" },
+        "graphIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "items": { "$ref": "#/definitions/graphId" },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}
