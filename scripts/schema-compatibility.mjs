@@ -68,6 +68,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/policy-bundles.ts" ||
       file === "src/core/policy.ts" ||
       file === "src/core/adr.ts" ||
+      file === "src/core/policy-evaluation.ts" ||
       file === "src/core/policy-bundle-migrations.ts" ||
       file === "src/core/assurance-signing.ts" ||
       file === "src/core/remediation-suggestions.ts" ||
@@ -82,6 +83,7 @@ const checkHostedVersionChange = () => {
       file === "schema/policy-bundle.v0.1.schema.json" ||
       file === "schema/policy.v0.1.schema.json" ||
       file === "schema/adr-reference.v0.1.schema.json" ||
+      file === "schema/policy-evaluation.v0.1.schema.json" ||
       file === "schema/policy-bundle-migration.v0.1.schema.json" ||
       file === "schema/policy-bundle-revocation.v0.1.schema.json" ||
       file === "schema/assurance-signing.v0.1.schema.json" ||
@@ -117,6 +119,7 @@ const checkCompatibility = () => {
   const policyBundleSource = readText("src/core/policy-bundles.ts");
   const localPolicySource = readText("src/core/policy.ts");
   const adrReferenceSource = readText("src/core/adr.ts");
+  const policyEvaluationSource = readText("src/core/policy-evaluation.ts");
   const policyBundleMigrationSource = readText(
     "src/core/policy-bundle-migrations.ts",
   );
@@ -141,6 +144,9 @@ const checkCompatibility = () => {
   const policyBundleSchema = readJson("schema/policy-bundle.v0.1.schema.json");
   const localPolicySchema = readJson("schema/policy.v0.1.schema.json");
   const adrReferenceSchema = readJson("schema/adr-reference.v0.1.schema.json");
+  const policyEvaluationSchema = readJson(
+    "schema/policy-evaluation.v0.1.schema.json",
+  );
   const policyBundleMigrationSchema = readJson(
     "schema/policy-bundle-migration.v0.1.schema.json",
   );
@@ -195,6 +201,10 @@ const checkCompatibility = () => {
     adrReferenceSource,
     "ADR_REFERENCE_SCHEMA_VERSION",
   );
+  const policyEvaluationVersion = sourceVersion(
+    policyEvaluationSource,
+    "POLICY_EVALUATION_SCHEMA_VERSION",
+  );
   const policyBundleMigrationVersion = sourceVersion(
     policyBundleMigrationSource,
     "POLICY_BUNDLE_MIGRATION_SCHEMA_VERSION",
@@ -232,6 +242,7 @@ const checkCompatibility = () => {
     policyBundleVersion === undefined ||
     localPolicyVersion === undefined ||
     adrReferenceVersion === undefined ||
+    policyEvaluationVersion === undefined ||
     policyBundleMigrationVersion === undefined ||
     assuranceSigningVersion === undefined ||
     remediationSuggestionVersion === undefined ||
@@ -307,6 +318,16 @@ const checkCompatibility = () => {
     "ADR reference JSON Schema/runtime",
     adrReferenceSchema.properties.schemaVersion.const,
     adrReferenceVersion,
+  );
+  requireEqual(
+    "policy evaluation runtime/policy",
+    policyEvaluationVersion,
+    contracts.policyEvaluations.current,
+  );
+  requireEqual(
+    "policy evaluation JSON Schema/runtime",
+    policyEvaluationSchema.properties.schemaVersion.const,
+    policyEvaluationVersion,
   );
   requireEqual(
     "policy bundle migration runtime/policy",
@@ -409,6 +430,7 @@ const checkCompatibility = () => {
     policyBundleVersion,
     localPolicyVersion,
     adrReferenceVersion,
+    policyEvaluationVersion,
     policyBundleMigrationVersion,
     assuranceSigningVersion,
     remediationSuggestionVersion,

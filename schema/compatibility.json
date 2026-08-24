@@ -37,6 +37,11 @@
       "supportedReaders": [1],
       "reviewedVersions": [1]
     },
+    "policyEvaluations": {
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
+    },
     "adrReferences": {
       "current": 1,
       "supportedReaders": [1],

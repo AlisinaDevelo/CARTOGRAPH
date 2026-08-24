@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.policy-evaluation",
+  "policyId": "baseline-local-policy",
+  "policyVersion": "0.1.0",
+  "inputKind": "snapshot",
+  "mode": "informational",
+  "status": "violations",
+  "evaluatedRules": 3,
+  "passedRules": 1,
+  "unsupportedRules": 1,
+  "violations": [
+    {
+      "id": "violation:unknown-edge-review",
+      "policyId": "baseline-local-policy",
+      "ruleId": "unknown-edge-review",
+      "target": "edge",
+      "assertion": "absent",
+      "effect": "informational",
+      "count": 1,
+      "expected": 0,
+      "matches": ["edge:module:a|unknown|module:a"],
+      "reason": "policy rule unknown-edge-review forbids matching edge, but 1 matched",
+      "evidenceRefs": [
+        "edge:module:a|unknown|module:a",
+        "input:snapshot",
+        "policy:baseline-local-policy",
+        "policy-rule:unknown-edge-review"
+      ]
+    }
+  ],
+  "unsupported": [
+    {
+      "id": "unsupported:new-node-review",
+      "policyId": "baseline-local-policy",
+      "ruleId": "new-node-review",
+      "target": "diff",
+      "code": "unsupported-target",
+      "reason": "diff-target policy rules require a canonical GraphDiff input; a snapshot does not contain change records",
+      "evidenceRefs": [
+        "input:snapshot",
+        "policy:baseline-local-policy",
+        "policy-rule:new-node-review"
+      ]
+    }
+  ]
+}

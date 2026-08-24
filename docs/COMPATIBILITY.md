@@ -37,6 +37,8 @@ Offline remediation evaluation reports use the reviewed `remediationEvaluations`
 contract and [`schema/remediation-evaluation.v0.1.schema.json`](../schema/remediation-evaluation.v0.1.schema.json).
 Local ADR reference indexes use the reviewed `adrReferences` contract and
 [`schema/adr-reference.v0.1.schema.json`](../schema/adr-reference.v0.1.schema.json).
+Policy evaluation reports use the reviewed `policyEvaluations` contract and
+[`schema/policy-evaluation.v0.1.schema.json`](../schema/policy-evaluation.v0.1.schema.json).
 
 ## Change categories
 
@@ -132,6 +134,17 @@ informational-by-default mode. Unknown fields, executable expressions, URLs,
 and out-of-repository policy paths fail closed. The runtime parser and local
 reader are deterministic and offline; policy evaluation and enforcing exit
 behavior remain additive follow-on contracts.
+
+## P-004 policy evaluation
+
+P-004 publishes the versioned local evaluation report in
+`schema/policy-evaluation.v0.1.schema.json` and
+`src/core/policy-evaluation.ts`. It evaluates structured node, edge, and diff
+rules over canonical snapshots or diffs, emits one deterministic violation per
+failing rule with stable IDs, reasons, matched IDs, and evidence references,
+and records unsupported diff-target rules on snapshot input explicitly. It is
+read-only and offline; CI exit behavior and enforcing workflow integration are
+reserved for P-005.
 
 ## P-007 local ADR references
 

@@ -208,6 +208,23 @@ export {
   type AdrStatus,
 } from "./adr.js";
 export {
+  evaluatePolicy,
+  evaluatePolicyConfig,
+  evaluatePolicyOnDiff,
+  evaluatePolicyOnSnapshot,
+  POLICY_EVALUATION_CONTRACT,
+  POLICY_EVALUATION_SCHEMA_VERSION,
+  PolicyEvaluationError,
+  PolicyEvaluationSchema,
+  PolicyUnsupportedSchema,
+  PolicyViolationSchema,
+  serializePolicyEvaluation,
+  type PolicyEvaluation,
+  type PolicyEvaluationInput,
+  type PolicyUnsupported,
+  type PolicyViolation,
+} from "./policy-evaluation.js";
+export {
   assuranceSigningPayload,
   AssuranceSigningKeySchema,
   AssuranceSigningKeyringSchema,
