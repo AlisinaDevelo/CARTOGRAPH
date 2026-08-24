@@ -16,6 +16,13 @@
       "remediation": "Verify the module path and keep the imported implementation inside the analyzed repository."
     },
     {
+      "code": "AMBIGUOUS_PACKAGE_CONDITION",
+      "severity": "warning",
+      "message": "Package resolution depends on an environment-specific condition branch.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Pin the package condition set or document the runtime environments that may select another branch."
+    },
+    {
       "code": "UNRESOLVED_ROUTE_HANDLER",
       "severity": "warning",
       "message": "Could not resolve an Express route or middleware handler.",

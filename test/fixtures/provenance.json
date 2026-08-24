@@ -155,6 +155,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "package-resolution",
+      "path": "package-resolution",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A small NodeNext package fixture exercises self-referencing exports, internal imports, deterministic import/require/node conditions, and environment-dependent condition diagnostics.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "secrets",
       "path": "secrets",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

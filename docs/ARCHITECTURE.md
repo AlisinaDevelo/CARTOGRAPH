@@ -50,6 +50,14 @@ deterministic `TypeScriptConfigError` codes and paths. Source and
 dependency/build paths are selected in canonical order; symlinked or out-of-root
 files are never loaded.
 
+For Node16 and NodeNext projects, module resolution also follows in-repository
+package `exports` and `imports` maps. The resolver passes TypeScript’s implied
+per-file ESM or CommonJS mode into the compiler, so `import`, `require`, `node`,
+and `types` branches produce edges to the compiler-selected target. Conditional
+maps that expose additional environment branches remain visible as an
+`AMBIGUOUS_PACKAGE_CONDITION` warning with the selected and available condition
+sets in the diagnostic message.
+
 Adapters depend on the core contract. The core does not depend on a framework adapter.
 
 ## Canonical graph

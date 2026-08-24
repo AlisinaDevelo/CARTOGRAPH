@@ -49,12 +49,14 @@ export const CAPABILITY_REGISTRY: CapabilityRegistry =
           {
             id: "typescript.imports",
             diagnosticCodes: [
+              "AMBIGUOUS_PACKAGE_CONDITION",
               "UNRESOLVED_IMPORT",
               "UNSUPPORTED_DYNAMIC_IMPORT",
             ],
             confidence: ["certain", "inferred"],
             examples: [
               "Static relative imports and re-exports carry source evidence.",
+              "Package exports and imports conditions record selected and available branches.",
               "Dynamic import expressions remain diagnostics unless the specifier is a literal.",
             ],
           },

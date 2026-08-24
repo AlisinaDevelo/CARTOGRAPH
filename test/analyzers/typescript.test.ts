@@ -35,6 +35,10 @@ const projectLoaderConfigsRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
   "../fixtures/project-loader-configs",
 );
+const packageResolutionRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../fixtures/package-resolution",
+);
 const inheritedProjectRoot = resolve(projectLoaderConfigsRoot, "inherited");
 const cycleProjectRoot = resolve(projectLoaderConfigsRoot, "cycle");
 const missingBaseProjectRoot = resolve(
@@ -335,6 +339,62 @@ describe("TypeScript analyzer", () => {
         name: "TypeScriptConfigError",
         code: "unsupported",
       }),
+    );
+  });
+
+  it("resolves package exports and imports conditions with evidence", () => {
+    const snapshot = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: packageResolutionRoot }),
+    );
+    const imports = snapshot.edges.filter(
+      (edge) => edge.kind === "imports" && edge.from === "module:src/entry.ts",
+    );
+
+    expect(imports).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          to: "module:src/internal-default.ts",
+        }),
+        expect.objectContaining({
+          to: "module:src/internal-node.ts",
+        }),
+        expect.objectContaining({
+          to: "module:src/public-import.ts",
+        }),
+      ]),
+    );
+    expect(snapshot.edges).toContainEqual(
+      expect.objectContaining({
+        kind: "imports",
+        from: "module:src/cjs-entry.cts",
+        to: "module:src/public-require.cts",
+      }),
+    );
+    for (const edge of imports) {
+      expect(edge.evidence.length).toBeGreaterThan(0);
+      expect(
+        edge.evidence.every((evidence) => evidence.kind === "source"),
+      ).toBe(true);
+      expect(edge.from).toMatch(/^module:/u);
+      expect(edge.to).toMatch(/^module:/u);
+    }
+
+    const conditionDiagnostics = snapshot.diagnostics.filter(
+      (diagnostic) => diagnostic.code === "AMBIGUOUS_PACKAGE_CONDITION",
+    );
+    expect(conditionDiagnostics).toHaveLength(1);
+    expect(conditionDiagnostics[0]?.message).toContain(
+      "selected conditions: import, node, types",
+    );
+    expect(conditionDiagnostics[0]?.message).toContain(
+      "available conditions: default, development, production",
+    );
+    expect(JSON.stringify(snapshot)).toBe(
+      JSON.stringify(
+        parseGraphSnapshot(
+          analyzeTypeScriptRepository({ rootDir: packageResolutionRoot }),
+        ),
+      ),
     );
   });
 
