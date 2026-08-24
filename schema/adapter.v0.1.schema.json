@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/adapter.v0.1.schema.json",
+  "title": "CARTOGRAPH adapter capability manifest v0.1",
+  "description": "A versioned, data-only declaration for a local adapter. The execution policy is explicit and forbids network access, child processes, dynamic module loading, and repository-code execution.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "contract",
+    "mediaType",
+    "id",
+    "version",
+    "compatibilityVersion",
+    "capabilityRegistryVersion",
+    "capabilities",
+    "execution"
+  ],
+  "properties": {
+    "apiVersion": { "const": 1 },
+    "contract": { "const": "cartograph.adapter" },
+    "mediaType": { "const": "application/vnd.cartograph.adapter+json" },
+    "id": { "$ref": "#/definitions/identifier" },
+    "version": { "$ref": "#/definitions/semver" },
+    "compatibilityVersion": { "const": 1 },
+    "capabilityRegistryVersion": { "const": 1 },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "items": { "$ref": "#/definitions/capability" },
+      "uniqueItems": true
+    },
+    "execution": { "$ref": "#/definitions/execution" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "diagnosticCode": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    },
+    "confidence": {
+      "enum": ["certain", "inferred", "observed", "user_confirmed"]
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "diagnosticCodes",
+        "confidence",
+        "examples"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "description": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "diagnosticCodes": {
+          "type": "array",
+          "maxItems": 256,
+          "items": { "$ref": "#/definitions/diagnosticCode" },
+          "uniqueItems": true
+        },
+        "confidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/confidence" },
+          "uniqueItems": true
+        },
+        "examples": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2048 }
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "filesystem",
+        "network",
+        "childProcess",
+        "dynamicModuleLoading",
+        "repositoryCodeExecution"
+      ],
+      "properties": {
+        "filesystem": { "enum": ["source-read-only", "none"] },
+        "network": { "const": false },
+        "childProcess": { "const": false },
+        "dynamicModuleLoading": { "const": false },
+        "repositoryCodeExecution": { "const": false }
+      }
+    }
+  }
+}

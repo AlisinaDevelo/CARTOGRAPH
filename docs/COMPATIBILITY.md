@@ -39,6 +39,8 @@ Local ADR reference indexes use the reviewed `adrReferences` contract and
 [`schema/adr-reference.v0.1.schema.json`](../schema/adr-reference.v0.1.schema.json).
 Policy evaluation reports use the reviewed `policyEvaluations` contract and
 [`schema/policy-evaluation.v0.1.schema.json`](../schema/policy-evaluation.v0.1.schema.json).
+Local adapter requests, capability manifests, and graph results use the reviewed
+`adapters` contract and [`schema/adapter.v0.1.schema.json`](../schema/adapter.v0.1.schema.json).
 
 ## Change categories
 
@@ -156,3 +158,19 @@ snapshot membership offline, reporting missing, malformed, stale, and
 uncovered references deterministically. This is an additive new contract; ADR
 lifecycle transitions, report rendering, and policy binding remain follow-on
 roadmap work.
+
+## E-001 adapter API and capability manifest
+
+E-001 publishes adapter API version `1` in `src/core/adapters.ts`. The
+request/result types are structured JSON contracts: a request carries a local
+source root, repository-relative selectors, JSON-only configuration, and
+resource limits; a result carries a canonical GraphSnapshot, evidence,
+diagnostics, and the producing capability manifest. `runAdapter` validates the
+declared and returned manifests and fails closed on mismatches.
+
+The v0.1 execution policy permits only source-read-only or no filesystem access
+and requires network, child processes, dynamic module loading, and repository
+code execution to be false. The sample adapter and validator are local,
+deterministic, and offline. This is an additive new contract; framework
+adapters, isolation sandboxes, and runtime-specific resource enforcement remain
+follow-on work.
