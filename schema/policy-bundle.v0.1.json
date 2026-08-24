@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "bundleId": "baseline-architecture-policy",
+  "policy": {
+    "id": "baseline-architecture",
+    "version": "0.1.0",
+    "source": {
+      "path": ".cartograph/policy.json",
+      "mediaType": "application/vnd.cartograph.policy+json",
+      "digest": "sha256:63ecea51e1106c61e4567bda7471cffe9b0a320d5ea71ad34d01902186df548e",
+      "rules": [
+        {
+          "id": "bounded-endpoint-count",
+          "target": "node",
+          "selector": "kind=endpoint",
+          "assertion": "count-at-most",
+          "effect": "informational",
+          "value": 1000
+        },
+        {
+          "id": "no-unknown-enforced-edges",
+          "target": "edge",
+          "selector": "kind=unknown",
+          "assertion": "absent",
+          "effect": "enforce"
+        }
+      ]
+    }
+  },
+  "compatibility": {
+    "contract": "cartograph.policy-bundle",
+    "bundleVersion": 1,
+    "graphSnapshotSchemaVersion": 1,
+    "graphDiffSchemaVersion": 1,
+    "capabilityRegistryVersion": 1
+  },
+  "owner": "cartograph-policy-maintainers",
+  "createdAt": "2026-08-24T00:00:00.000Z",
+  "expiresAt": "2031-01-31T23:59:59.000Z",
+  "authority": {
+    "network": false,
+    "filesystem": false,
+    "execution": false
+  }
+}

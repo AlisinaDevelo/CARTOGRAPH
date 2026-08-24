@@ -11,6 +11,9 @@ GraphSnapshot shape is in
 The extractor capability and unknown-semantics registry is versioned separately
 in [`schema/capability-registry.v0.1.json`](../schema/capability-registry.v0.1.json)
 and its JSON Schema.
+Digest-bound policy bundles use the independent `policyBundles` contract in the
+same manifest and are defined by
+[`schema/policy-bundle.v0.1.schema.json`](../schema/policy-bundle.v0.1.schema.json).
 
 ## Change categories
 
@@ -24,9 +27,9 @@ and its JSON Schema.
 - **Migration-required:** a deterministic rewrite or explicit reader migration
   is required before an artifact can be consumed safely.
 
-The same categories apply to snapshots, diffs, reports, policies, and adapters.
-Reports, policies, and adapters do not yet have a released numeric format; the
-manifest records that boundary explicitly rather than implying compatibility.
+The same categories apply to snapshots, diffs, reports, policies, adapters, and
+policy bundles. A policy bundle's compatibility block must match the graph,
+diff, capability, and bundle versions accepted by the importer.
 
 ## Reader and writer rules
 
