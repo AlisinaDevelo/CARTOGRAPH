@@ -171,7 +171,17 @@ export function renderMarkdownReport(diff: GraphDiff): string {
     lines.push(
       ...diff.edges.changed.map(
         (edge) =>
-          `- ${markdownCode(edgeLabel(edge.after))} — ${changedPaths(edge.changes)}`,
+          `- ${markdownCode(edgeLabel(edge.after))} — ${markdownCode(edge.classification)}; ${changedPaths(edge.changes)}`,
+      ),
+    );
+  }
+
+  if (diff.edges.rewired.length > 0) {
+    lines.push("", "## Rewired edges", "");
+    lines.push(
+      ...diff.edges.rewired.map(
+        (edge) =>
+          `- ${markdownCode(edgeLabel(edge.before))} → ${markdownCode(edgeLabel(edge.after))} — ${markdownCode(edge.classification)}; ${changedPaths(edge.changes)}`,
       ),
     );
   }
@@ -244,7 +254,11 @@ export function renderHtmlReport(diff: GraphDiff): string {
   );
   const changedEdges = diff.edges.changed.map(
     (edge) =>
-      `${htmlEdge(edge.after)}<div class="evidence">changed: ${htmlChanges(edge.changes)}</div>`,
+      `${htmlEdge(edge.after)}<div class="evidence">${escapeHtml(edge.classification)}: ${htmlChanges(edge.changes)}</div>`,
+  );
+  const rewiredEdges = diff.edges.rewired.map(
+    (edge) =>
+      `${htmlEdge(edge.before)} <strong>→</strong> ${htmlEdge(edge.after)}<div class="evidence">${escapeHtml(edge.classification)}: ${htmlChanges(edge.changes)}</div>`,
   );
   const addedDiagnostics = diff.diagnostics.added.map(htmlDiagnostic);
   const removedDiagnostics = diff.diagnostics.removed.map(htmlDiagnostic);
@@ -293,6 +307,7 @@ export function renderHtmlReport(diff: GraphDiff): string {
     <section aria-label="Added edges"><h2>Added edges</h2>${htmlList(diff.edges.added.map(htmlEdge))}</section>
     <section aria-label="Removed edges"><h2>Removed edges</h2>${htmlList(diff.edges.removed.map(htmlEdge))}</section>
     <section aria-label="Changed edges"><h2>Changed edges</h2>${htmlList(changedEdges)}</section>
+    <section aria-label="Rewired edges"><h2>Rewired edges</h2>${htmlList(rewiredEdges)}</section>
     <section aria-label="Added diagnostics"><h2>Added diagnostics</h2>${htmlList(addedDiagnostics)}</section>
     <section aria-label="Removed diagnostics"><h2>Removed diagnostics</h2>${htmlList(removedDiagnostics)}</section>
     <section aria-label="Changed diagnostics"><h2>Changed diagnostics</h2>${htmlList(changedDiagnostics)}</section>

@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import {
+  diffGraphSnapshots,
   GraphDiffSchema,
   parseGraphDiff,
   serializeGraphDiff,
@@ -87,5 +88,29 @@ describe("GraphDiff v0.1 JSON Schema", () => {
     const first = serializeGraphDiff(fixture);
     expect(serializeGraphDiff(parseGraphDiff(fixture))).toBe(first);
     expect(serializeGraphDiff(fixture)).toBe(first);
+  });
+
+  it("publishes endpoint and field-change classifications in canonical output", () => {
+    const before = readJson(
+      resolve(fixtureRoot, "graph-diff/before.graph.json"),
+    );
+    const after = readJson(resolve(fixtureRoot, "graph-diff/after.graph.json"));
+    const serialized = JSON.parse(
+      serializeGraphDiff(diffGraphSnapshots(before, after)),
+    ) as {
+      edges: {
+        changed: Array<{ classification: string }>;
+        rewired: Array<{ classification: string }>;
+      };
+    };
+
+    expect(validateJsonSchema(serialized)).toBe(true);
+    expect(validateJsonSchema.errors).toBeNull();
+    expect(serialized.edges.changed.map((edge) => edge.classification)).toEqual(
+      ["evidence-only", "confidence-changed"],
+    );
+    expect(serialized.edges.rewired.map((edge) => edge.classification)).toEqual(
+      ["endpoint-rewired"],
+    );
   });
 });

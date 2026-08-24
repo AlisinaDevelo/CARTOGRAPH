@@ -10,7 +10,21 @@
     "changed": [
       {
         "identity": "node-a|requests|service:billing",
-        "paths": ["evidence"]
+        "paths": ["evidence"],
+        "classification": "evidence-only"
+      },
+      {
+        "identity": "service:billing|publishes|node-a",
+        "paths": ["confidence"],
+        "classification": "confidence-changed"
+      }
+    ],
+    "rewired": [
+      {
+        "before": "node-a|calls|node-b",
+        "after": "node-a|calls|node-d",
+        "paths": ["evidence", "to"],
+        "classification": "endpoint-rewired"
       }
     ]
   },

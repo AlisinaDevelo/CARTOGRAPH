@@ -484,6 +484,50 @@ describe("graph diffs", () => {
     expect(diffGraphSnapshots(first, second).nodes.changed).toEqual([]);
   });
 
+  it("fails closed when endpoint rewire candidates are ambiguous", () => {
+    const node = (id: string) => ({
+      id,
+      stableKey: id,
+      kind: "function" as const,
+      name: id,
+    });
+    const edge = (from: string, to: string, evidenceId: string) => ({
+      from,
+      to,
+      kind: "calls" as const,
+      confidence: "certain" as const,
+      evidence: [sourceEvidence(evidenceId)],
+    });
+    const nodes = [
+      node("node-a"),
+      node("node-b"),
+      node("node-c"),
+      node("node-d"),
+      node("node-e"),
+    ];
+    const before = parseGraphSnapshot(
+      snapshot({
+        nodes,
+        edges: [
+          edge("node-a", "node-b", "before-b"),
+          edge("node-a", "node-c", "before-c"),
+        ],
+      }),
+    );
+    const after = parseGraphSnapshot(
+      snapshot({
+        nodes,
+        revision: { commitSha: "after", branch: "main" },
+        edges: [
+          edge("node-a", "node-d", "after-d"),
+          edge("node-a", "node-e", "after-e"),
+        ],
+      }),
+    );
+
+    expect(diffGraphSnapshots(before, after).edges.rewired).toEqual([]);
+  });
+
   it("serializes diff arrays canonically", () => {
     const before = parseGraphSnapshot(snapshot());
     const after = parseGraphSnapshot(
@@ -550,6 +594,12 @@ describe("graph diffs", () => {
         added: string[];
         removed: string[];
         changed: Array<{ identity: string; paths: string[] }>;
+        rewired: Array<{
+          before: string;
+          after: string;
+          paths: string[];
+          classification: string;
+        }>;
       };
       diagnostics: {
         added: string[];
@@ -575,6 +625,13 @@ describe("graph diffs", () => {
         changed: diff.edges.changed.map((edge) => ({
           identity: `${edge.from}|${edge.kind}|${edge.to}`,
           paths: edge.changes.map((change) => change.path),
+          classification: edge.classification,
+        })),
+        rewired: diff.edges.rewired.map((edge) => ({
+          before: `${edge.before.from}|${edge.before.kind}|${edge.before.to}`,
+          after: `${edge.after.from}|${edge.after.kind}|${edge.after.to}`,
+          paths: edge.changes.map((change) => change.path),
+          classification: edge.classification,
         })),
       },
       diagnostics: {
@@ -610,6 +667,18 @@ describe("graph diffs", () => {
     expect(evidenceChange?.changes).toEqual(
       expect.arrayContaining([expect.objectContaining({ path: "evidence" })]),
     );
+    expect(evidenceChange?.classification).toBe("evidence-only");
+    expect(
+      diff.edges.changed.find(
+        (edge) => edge.from === "service:billing" && edge.kind === "publishes",
+      )?.classification,
+    ).toBe("confidence-changed");
+    expect(diff.edges.rewired).toHaveLength(1);
+    expect(diff.edges.rewired[0]).toMatchObject({
+      classification: "endpoint-rewired",
+      before: { from: "node-a", to: "node-b", kind: "calls" },
+      after: { from: "node-a", to: "node-d", kind: "calls" },
+    });
     expect(
       diff.diagnostics.changed.find(
         (diagnostic) => diagnostic.after.code === "UNRESOLVED_IMPORT",
