@@ -137,6 +137,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Local ADR references](docs/ADR_REFERENCES.md)
 - [Local adapter contract](docs/ADAPTERS.md)
 - [Local runtime trace import](docs/RUNTIME_TRACES.md)
+- [Runtime trace sampling and cost budgets](docs/RUNTIME_TRACE_BUDGETS.md)
 - [Local static/runtime reconciliation](docs/RUNTIME_RECONCILIATION.md)
 - [Runtime trace safety policy](docs/RUNTIME_TRACE_SAFETY.md)
 - [Fixture provenance](docs/FIXTURES.md)

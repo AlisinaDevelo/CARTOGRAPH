@@ -72,6 +72,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/runtime-traces.ts" ||
       file === "src/core/runtime-reconciliation.ts" ||
       file === "src/core/runtime-trace-safety.ts" ||
+      file === "src/core/runtime-trace-budgets.ts" ||
       file === "src/core/policy-evaluation.ts" ||
       file === "src/core/policy-bundle-migrations.ts" ||
       file === "src/core/assurance-signing.ts" ||
@@ -91,6 +92,7 @@ const checkHostedVersionChange = () => {
       file === "schema/runtime-traces.v0.1.schema.json" ||
       file === "schema/runtime-reconciliation.v0.1.schema.json" ||
       file === "schema/runtime-trace-safety.v0.1.schema.json" ||
+      file === "schema/runtime-trace-budgets.v0.1.schema.json" ||
       file === "schema/policy-evaluation.v0.1.schema.json" ||
       file === "schema/policy-bundle-migration.v0.1.schema.json" ||
       file === "schema/policy-bundle-revocation.v0.1.schema.json" ||
@@ -133,6 +135,9 @@ const checkCompatibility = () => {
     "src/core/runtime-reconciliation.ts",
   );
   const runtimeTraceSafetySource = readText("src/core/runtime-trace-safety.ts");
+  const runtimeTraceBudgetsSource = readText(
+    "src/core/runtime-trace-budgets.ts",
+  );
   const policyEvaluationSource = readText("src/core/policy-evaluation.ts");
   const policyBundleMigrationSource = readText(
     "src/core/policy-bundle-migrations.ts",
@@ -165,6 +170,9 @@ const checkCompatibility = () => {
   );
   const runtimeTraceSafetySchema = readJson(
     "schema/runtime-trace-safety.v0.1.schema.json",
+  );
+  const runtimeTraceBudgetsSchema = readJson(
+    "schema/runtime-trace-budgets.v0.1.schema.json",
   );
   const policyEvaluationSchema = readJson(
     "schema/policy-evaluation.v0.1.schema.json",
@@ -236,6 +244,10 @@ const checkCompatibility = () => {
     runtimeTraceSafetySource,
     "RUNTIME_TRACE_SAFETY_SCHEMA_VERSION",
   );
+  const runtimeTraceBudgetsVersion = sourceVersion(
+    runtimeTraceBudgetsSource,
+    "RUNTIME_TRACE_BUDGETS_SCHEMA_VERSION",
+  );
   const policyEvaluationVersion = sourceVersion(
     policyEvaluationSource,
     "POLICY_EVALUATION_SCHEMA_VERSION",
@@ -281,6 +293,7 @@ const checkCompatibility = () => {
     runtimeTraceVersion === undefined ||
     runtimeReconciliationVersion === undefined ||
     runtimeTraceSafetyVersion === undefined ||
+    runtimeTraceBudgetsVersion === undefined ||
     policyEvaluationVersion === undefined ||
     policyBundleMigrationVersion === undefined ||
     assuranceSigningVersion === undefined ||
@@ -399,6 +412,16 @@ const checkCompatibility = () => {
     runtimeTraceSafetyVersion,
   );
   requireEqual(
+    "runtime trace budgets runtime/policy",
+    runtimeTraceBudgetsVersion,
+    contracts.runtimeTraceBudgets.current,
+  );
+  requireEqual(
+    "runtime trace budgets JSON Schema/runtime",
+    runtimeTraceBudgetsSchema.properties.schemaVersion.const,
+    runtimeTraceBudgetsVersion,
+  );
+  requireEqual(
     "policy evaluation runtime/policy",
     policyEvaluationVersion,
     contracts.policyEvaluations.current,
@@ -513,6 +536,7 @@ const checkCompatibility = () => {
     runtimeTraceVersion,
     runtimeReconciliationVersion,
     runtimeTraceSafetyVersion,
+    runtimeTraceBudgetsVersion,
     policyEvaluationVersion,
     policyBundleMigrationVersion,
     assuranceSigningVersion,

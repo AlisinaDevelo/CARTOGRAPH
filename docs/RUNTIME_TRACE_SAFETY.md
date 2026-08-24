@@ -45,6 +45,12 @@ A caller must explicitly import a local trace, apply a safety policy, retain it
 in the bounded store if desired, and invoke reconciliation. The safety policy
 does not grant authority to execute repository code or contact a network.
 
+For import-time input, cardinality, analysis-time, and report-size ceilings,
+use the separate O-013 budget contract in
+[`RUNTIME_TRACE_BUDGETS.md`](RUNTIME_TRACE_BUDGETS.md). It applies this
+redaction boundary before returning or sizing a normalized trace and keeps
+trace-count truncation explicitly incomplete.
+
 Validate the policy, sensitive-value negative fixture, retention bounds, and
 offline boundary with:
 

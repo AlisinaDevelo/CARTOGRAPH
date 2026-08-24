@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.runtime-trace-budgets",
+  "mediaType": "application/vnd.cartograph.runtime-trace-budgets+json",
+  "policy": {
+    "maxInputBytes": 67108864,
+    "maxResourceSpans": 10000,
+    "maxScopeSpans": 100000,
+    "maxSpans": 100000,
+    "maxAttributesPerRecord": 256,
+    "maxTraces": 10000,
+    "maxAnalysisMs": 30000,
+    "maxReportBytes": 4194304,
+    "overflow": "fail-closed",
+    "redaction": {
+      "fields": [
+        "span.name",
+        "span.serviceName",
+        "span.scopeName",
+        "span.scopeVersion"
+      ],
+      "replacement": "[REDACTED]"
+    }
+  },
+  "trace": {
+    "schemaVersion": 1,
+    "contract": "cartograph.runtime-traces",
+    "mediaType": "application/vnd.cartograph.runtime-traces+json",
+    "format": "otlp-json",
+    "spans": [
+      {
+        "traceId": "0123456789abcdef0123456789abcdef",
+        "spanId": "0123456789abcdef",
+        "name": "[REDACTED]",
+        "kind": "server",
+        "startTimeUnixNano": "1700000000000000000",
+        "endTimeUnixNano": "1700000000001000000",
+        "serviceName": "[REDACTED]",
+        "scopeName": "[REDACTED]",
+        "scopeVersion": "[REDACTED]",
+        "status": "ok"
+      }
+    ],
+    "summary": {
+      "resourceSpans": 1,
+      "scopeSpans": 1,
+      "inputSpans": 1,
+      "normalizedSpans": 1,
+      "discardedAttributes": 5
+    }
+  },
+  "coverage": {
+    "complete": true,
+    "truncated": false,
+    "inputTraces": 1,
+    "retainedTraces": 1,
+    "droppedTraces": 0,
+    "inputSpans": 1,
+    "retainedSpans": 1,
+    "droppedSpans": 0
+  },
+  "diagnostics": [],
+  "reportBytes": 541,
+  "redacted": true,
+  "tempFiles": false
+}
