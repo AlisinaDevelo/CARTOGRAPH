@@ -1,0 +1,38 @@
+{
+  "protocolVersion": 1,
+  "name": "CARTOGRAPH local benchmark protocol",
+  "fixtureSelection": {
+    "manifest": "benchmarks/corpus.v0.1.json",
+    "sourceBodiesInArtifacts": false,
+    "digest": "SHA-256 over sorted repository-relative file paths and bytes"
+  },
+  "runModes": {
+    "cold": "The first scan invocation for each fixture in a fresh benchmark process.",
+    "warm": "Subsequent scan invocations for the same fixture in that process after module and parser initialization."
+  },
+  "disclosure": {
+    "required": [
+      "packageVersion",
+      "nodeVersion",
+      "platform",
+      "arch",
+      "cpuCount",
+      "totalMemoryBytes"
+    ],
+    "network": "none",
+    "telemetry": "none",
+    "sourceBodies": "never included"
+  },
+  "accuracy": {
+    "denominator": "expected records in the fixture's checked-in expected artifact",
+    "precision": "true-positive emitted records divided by all emitted records",
+    "recall": "true-positive emitted records divided by all expected records",
+    "unsupported": "records outside an expected artifact are not counted as supported accuracy"
+  },
+  "variance": {
+    "summary": ["min", "median", "p95", "max"],
+    "acceptableRegression": "A result over 20% slower than the recorded baseline requires an explanation before release.",
+    "timingUnits": "milliseconds",
+    "memoryUnits": "bytes"
+  }
+}

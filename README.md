@@ -134,6 +134,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Fixture provenance](docs/FIXTURES.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Evaluation strategy](docs/EVALUATION.md)
+- [Benchmark corpus and measurement protocol](docs/BENCHMARK_PROTOCOL.md)
 - [Landscape research](docs/RESEARCH.md)
 - [Five-year roadmap](docs/ROADMAP.md)
 - [Design-partner outreach](docs/OUTREACH.md)
