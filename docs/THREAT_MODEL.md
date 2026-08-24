@@ -1,7 +1,7 @@
 # Threat model
 
-Status: initial design review, 2026-08-24. Revisit this document when runtime
-redaction/retention, plugins, or a hosted service enter scope.
+Status: initial design review, 2026-08-24. Revisit this document when automatic
+binding, plugins, or a hosted service enter scope.
 
 ## System and trust boundaries
 
@@ -44,15 +44,16 @@ malformed or oversized input and discards arbitrary attributes, events, links,
 payloads, and status messages. The following additional controls remain
 mandatory before broader runtime behavior is accepted:
 
-| Trace risk                                                    | Required control                                                                                                                      | Evidence                                                                           |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Span attributes contain source, credentials, or personal data | Require an explicit local input path, schema validation, configurable redaction, and a documented sensitive-field denylist            | O-001 discarded-attribute fixture; future redaction fixtures and a report scan     |
-| Trace history grows without a bound                           | Require user-selected retention and an explicit deletion/compaction operation; never retain traces implicitly                         | Retention and deletion tests with measured output size                             |
-| Dynamic edges are mistaken for static facts                   | Classify observations as runtime evidence, preserve trace identifiers only as references, and keep confidence separate from certainty | Reconciliation fixtures covering observed-only, static-only, and conflicting edges |
-| Trace input triggers network or code execution                | Parse trace data as inert records; do not load plugins, call URLs, or execute repository code                                         | O-001 offline boundary test and future hostile-record fixture                      |
+| Trace risk                                                    | Required control                                                                                                                                                | Evidence                                                                           |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Span attributes contain source, credentials, or personal data | O-001 discards arbitrary attributes, events, links, payloads, and status messages; O-003 applies an explicit field-level redaction policy to retained free text | O-001 discarded-attribute fixture; O-003 sensitive-value negative test             |
+| Trace history grows without a bound                           | Require explicit in-memory count, byte, and TTL bounds; support discard-after-read and explicit clear; never retain traces implicitly                           | O-003 retention eviction, TTL, byte-bound, and discard-after-read tests            |
+| Dynamic edges are mistaken for static facts                   | Classify observations as runtime evidence, preserve trace identifiers only as references, and keep confidence separate from certainty                           | Reconciliation fixtures covering observed-only, static-only, and conflicting edges |
+| Trace input triggers network or code execution                | Parse trace data as inert records; do not load plugins, call URLs, or execute repository code                                                                   | O-001 offline boundary test and future hostile-record fixture                      |
 
-O-002 now classifies explicitly bound local observations conservatively, but
-redaction, retention, automatic binding, and report integration remain outside
+O-002 now classifies explicitly bound local observations conservatively, and
+O-003 redacts retained free text before bounded in-memory retention. Automatic
+binding, report integration, collectors, and hosted retention remain outside
 the boundary. Runtime behavior is not treated as an architectural fact, and
 the normalized input is still not collected or retained implicitly.
 

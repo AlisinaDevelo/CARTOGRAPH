@@ -20,9 +20,11 @@ The parser applies explicit limits to input bytes, resource spans, scope spans,
 spans, and attributes per record. `parseRuntimeTraceJson` enforces the byte
 limit before parsing; malformed JSON, malformed OTLP records, duplicate spans,
 and limit violations return `RuntimeTraceValidationError` with a stable code.
-The normalized artifact is in-memory only; retention, redaction policy, and
-CLI/report integration remain separate follow-on contracts. The explicit local
-static/runtime reconciliation contract is documented separately in
+The normalized artifact is in-memory only. O-003 adds the explicit field-level
+redaction and bounded-retention boundary documented in
+[`RUNTIME_TRACE_SAFETY.md`](RUNTIME_TRACE_SAFETY.md); CLI/report integration
+remains a separate follow-on contract. The explicit local static/runtime
+reconciliation contract is documented separately in
 [`RUNTIME_RECONCILIATION.md`](RUNTIME_RECONCILIATION.md).
 
 ```ts
