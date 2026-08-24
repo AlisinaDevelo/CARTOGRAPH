@@ -21,7 +21,7 @@ const CREDENTIAL_URL =
 const JWT_VALUE =
   /\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/gu;
 const STANDALONE_SENSITIVE_VALUE =
-  /\b(?:TOP-SECRET|SECRET|TOKEN|CREDENTIAL|PASSWORD)(?:[-_][A-Za-z0-9._-]+)+\b/giu;
+  /\b(?:TOP-SECRET|SECRET|TOKEN|CREDENTIAL|PASSWORD)[-_][A-Za-z0-9._-]+\b/giu;
 const WINDOWS_PATH = /\b[A-Za-z]:[\\/][^\s"'`<>;,)]*/gu;
 const ABSOLUTE_PATH =
   /(?<![A-Za-z0-9:])\/(?:[^/\s"'`<>;,)]+\/)+[^/\s"'`<>;,)]*/gu;
