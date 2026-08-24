@@ -2,7 +2,9 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    testTimeout: 20_000,
+    // TypeScript project construction is materially slower under Node 24 with
+    // V8 coverage enabled on the supported 8 GB development device.
+    testTimeout: 60_000,
     coverage: {
       exclude: ["src/**/index.ts", "src/index.ts"],
       include: ["src/**/*.ts"],
