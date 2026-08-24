@@ -20,6 +20,18 @@ export {
   serializeGraphDiff,
 } from "./diff.js";
 export {
+  CARTOGRAPH_CONFIG_SCHEMA_VERSION,
+  CartographConfigSchema,
+  ConfigValidationError,
+  defaultCartographConfig,
+  parseCartographConfig,
+  readCartographConfig,
+  type CartographConfig,
+  type ConfigUnknownFieldMode,
+  type ParsedCartographConfig,
+  type ResourceLimits,
+} from "./config.js";
+export {
   DiagnosticSchema,
   EvidenceSchema,
   GraphDiffSchema,

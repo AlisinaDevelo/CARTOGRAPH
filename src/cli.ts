@@ -14,6 +14,7 @@ import {
   serializeScan,
   writeOutputFile,
 } from "./commands.js";
+import { readCartographConfig, type CartographConfig } from "./core/index.js";
 import type { ReportFormat } from "./report/render.js";
 
 const VERSION = "0.1.0";
@@ -21,6 +22,21 @@ const VERSION = "0.1.0";
 type OutputOptions = {
   force?: boolean;
   output?: string;
+};
+
+type ConfigOptions = {
+  config?: string;
+};
+
+const readConfigOption = (
+  root: string,
+  configPath: string | undefined,
+): CartographConfig | undefined => {
+  if (configPath === undefined) return undefined;
+  const parsed = readCartographConfig(root, configPath);
+  for (const warning of parsed.warnings)
+    process.stderr.write(`cartograph: warning: ${warning}\n`);
+  return parsed.config;
 };
 
 const reportFormat = (value: string): ReportFormat => {
@@ -53,15 +69,18 @@ export function createCli(): Command {
     .description("scan a working tree and emit a canonical graph snapshot")
     .argument("[root]", "repository or project root", ".")
     .option("--tsconfig <path>", "TypeScript configuration path")
+    .option("--config <path>", "repository-relative CARTOGRAPH JSON config")
     .option("-o, --output <path>", "output file; stdout when omitted")
     .option("--force", "replace an existing output file", false)
     .action(
       async (
         root: string,
-        options: OutputOptions & { tsconfig?: string },
+        options: OutputOptions & ConfigOptions & { tsconfig?: string },
       ): Promise<void> => {
+        const config = readConfigOption(root, options.config);
         const snapshot = scanRepository({
           root,
+          ...(config === undefined ? {} : { config }),
           ...(options.tsconfig === undefined
             ? {}
             : { tsconfigPath: options.tsconfig }),
@@ -86,6 +105,7 @@ export function createCli(): Command {
       "--tsconfig <path>",
       "repository-relative TypeScript configuration path",
     )
+    .option("--config <path>", "repository-relative CARTOGRAPH JSON config")
     .option("-o, --output <path>", "output file; stdout when omitted")
     .option("--force", "replace an existing output file", false)
     .action(
@@ -96,13 +116,16 @@ export function createCli(): Command {
           format: ReportFormat;
           head: string;
           tsconfig?: string;
+          config?: string;
         },
       ): Promise<void> => {
+        const config = readConfigOption(root, options.config);
         const report = await diffRepositoryRevisions({
           base: options.base,
           format: options.format,
           head: options.head,
           root,
+          ...(config === undefined ? {} : { config }),
           ...(options.tsconfig === undefined
             ? {}
             : { tsconfigPath: options.tsconfig }),

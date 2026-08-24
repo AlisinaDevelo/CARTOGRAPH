@@ -3,6 +3,7 @@ export {
   analyzeTypeScriptRepository,
   type TypeScriptAnalyzerOptions,
   type TypeScriptAnalyzerResult,
+  ResourceLimitError,
 } from "./typescript.js";
 export {
   analyzeExpressRouteCall,
