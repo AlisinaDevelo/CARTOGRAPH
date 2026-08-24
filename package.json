@@ -15,6 +15,7 @@
   "files": [
     "dist",
     "schema",
+    "CHANGELOG.md",
     "LICENSE",
     "NOTICE",
     "README.md"
@@ -24,6 +25,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "release:validate": "node scripts/release-artifact.mjs",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run schema:compatibility && npm run migrations:validate && npm run fixtures:validate && npm run benchmark:validate && npm run benchmark:ci && npm run policy:validate && npm run policy-bundle:validate && npm run policy-bundle:migrations:validate && npm run assurance-signing:validate && npm run remediation-suggestions:validate && npm run remediation-separation:validate && npm run remediation-rules:validate && npm run patch-preview:validate && npm run model-provider-privacy:validate && npm run remediation-review:validate && npm run remediation-evaluation:validate && npm run change-control:validate && npm run adr:validate && npm run policy-evaluation:validate && npm run adapter:validate && npm run runtime-traces:validate && npm run runtime-reconciliation:validate && npm run runtime-trace-safety:validate && npm run runtime-trace-budgets:validate && npm run test:coverage && npm run roadmap:validate && npm run roadmap:test && npm run build && npm run action:validate",
     "dev": "tsx src/cli.ts",
     "format": "prettier --write .",

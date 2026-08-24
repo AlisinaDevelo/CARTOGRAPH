@@ -1,8 +1,15 @@
 # Changelog
 
-This file records user-visible changes. The project is currently unreleased; no npm or GitHub release has been published, and no release or publish workflow is configured.
+This file records user-visible changes. The project is currently unreleased; no npm
+package has been published. A `v<package-version>` tag runs the read-only package
+gate and creates a GitHub release with the installable tarball, release notes, and
+checksums.
 
 ## [Unreleased]
+
+No unreleased changes.
+
+## [0.1.0]
 
 ### Added
 
