@@ -48,7 +48,6 @@ runs:
         npm run build
 
     - name: Analyze pull-request revisions
-      id: report
       shell: bash
       working-directory: ${{ github.workspace }}
       env:
@@ -58,7 +57,6 @@ runs:
         CARTOGRAPH_HEAD_INPUT: ${{ inputs.head }}
         CARTOGRAPH_PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         CARTOGRAPH_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        CARTOGRAPH_EVENT_NAME: ${{ github.event_name }}
         CARTOGRAPH_COMPARISON: ${{ inputs.comparison }}
         CARTOGRAPH_ARTIFACT_NAME: ${{ inputs.artifact-name }}
       run: |
@@ -91,11 +89,6 @@ runs:
           "$report_dir/architecture-diff.html" \
           "${GITHUB_STEP_SUMMARY:-}" \
           "$CARTOGRAPH_ARTIFACT_NAME"
-        {
-          echo "report-directory=$report_dir"
-          echo "base-ref=$base_ref"
-          echo "head-ref=$head_ref"
-        } >> "$GITHUB_OUTPUT"
 
     - name: Upload architecture diff report
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
