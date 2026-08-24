@@ -1,0 +1,23 @@
+{
+  "name": "cartograph-package-fixture",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./public": {
+      "import": "./src/public-import.ts",
+      "require": "./src/public-require.cts",
+      "default": "./src/public-default.ts"
+    }
+  },
+  "imports": {
+    "#internal": {
+      "node": "./src/internal-node.ts",
+      "default": "./src/internal-default.ts"
+    },
+    "#ambiguous": {
+      "development": "./src/internal-development.ts",
+      "production": "./src/internal-production.ts",
+      "default": "./src/internal-default.ts"
+    }
+  }
+}

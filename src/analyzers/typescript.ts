@@ -172,6 +172,11 @@ interface AnalyzerContext {
     moduleName: string,
     containingFile: string,
   ) => string | undefined;
+  resolveModuleInfo: (
+    moduleName: string,
+    containingFile: string,
+    resolutionMode?: ts.ResolutionMode,
+  ) => ModuleResolutionInfo;
   rootDir: string;
   sourcePaths: Set<string>;
   sourceFiles: SourceFile[];
@@ -962,6 +967,65 @@ type ProjectSetup = {
     moduleName: string,
     containingFile: string,
   ) => string | undefined;
+  resolveModuleInfo: (
+    moduleName: string,
+    containingFile: string,
+    resolutionMode?: ts.ResolutionMode,
+  ) => ModuleResolutionInfo;
+};
+
+type PackageConditionInfo = {
+  packageJsonPath: string;
+  selectedConditions: readonly string[];
+  availableConditions: readonly string[];
+  ambiguous: boolean;
+};
+
+type ModuleResolutionInfo = {
+  resolvedPath: string | undefined;
+  conditionInfo?: PackageConditionInfo | undefined;
+};
+
+type PackageManifest = {
+  path: string;
+  data: Record<string, unknown>;
+};
+
+const DETERMINISTIC_PACKAGE_CONDITIONS = new Set([
+  "default",
+  "import",
+  "node",
+  "require",
+  "types",
+]);
+
+const packageNameForSpecifier = (specifier: string): string => {
+  const parts = specifier.split("/");
+  return specifier.startsWith("@")
+    ? parts.slice(0, 2).join("/")
+    : (parts[0] ?? specifier);
+};
+
+const packageSubpathForSpecifier = (specifier: string): string => {
+  const packageName = packageNameForSpecifier(specifier);
+  const suffix = specifier.slice(packageName.length);
+  return suffix.length === 0 ? "." : `.${suffix}`;
+};
+
+const packageConditionKeys = (
+  value: unknown,
+  keys: Set<string> = new Set(),
+): Set<string> => {
+  if (Array.isArray(value)) {
+    for (const candidate of value) packageConditionKeys(candidate, keys);
+    return keys;
+  }
+  if (!value || typeof value !== "object") return keys;
+  for (const [key, candidate] of Object.entries(value)) {
+    keys.add(key);
+    packageConditionKeys(candidate, keys);
+  }
+  return keys;
 };
 
 const projectFor = (
@@ -980,35 +1044,208 @@ const projectFor = (
     return candidate?.options ?? loaded.compilerOptions;
   };
   const safeResolutionHost = safeConfigHost(rootDir, checkBudget);
+  const packageManifestCache = new Map<string, PackageManifest | null>();
+  const packageManifestAt = (
+    directory: string,
+  ): PackageManifest | undefined => {
+    const manifestPath = resolve(directory, "package.json");
+    const cached = packageManifestCache.get(manifestPath);
+    if (cached !== undefined) return cached ?? undefined;
+    if (!isInsideRoot(rootDir, manifestPath)) {
+      packageManifestCache.set(manifestPath, null);
+      return undefined;
+    }
+    const raw = safeResolutionHost.readFile(manifestPath);
+    if (raw === undefined) {
+      packageManifestCache.set(manifestPath, null);
+      return undefined;
+    }
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        packageManifestCache.set(manifestPath, null);
+        return undefined;
+      }
+      const manifest = {
+        path: manifestPath,
+        data: parsed as Record<string, unknown>,
+      };
+      packageManifestCache.set(manifestPath, manifest);
+      return manifest;
+    } catch {
+      packageManifestCache.set(manifestPath, null);
+      return undefined;
+    }
+  };
+  const packageManifestsFor = (containingFile: string): PackageManifest[] => {
+    const manifests: PackageManifest[] = [];
+    let directory = resolve(dirname(containingFile));
+    const root = resolve(rootDir);
+    while (isInsideRoot(root, directory)) {
+      const manifest = packageManifestAt(directory);
+      if (manifest) manifests.push(manifest);
+      if (directory === root) break;
+      const parent = dirname(directory);
+      if (parent === directory) break;
+      directory = parent;
+    }
+    return manifests;
+  };
+  const selectedPackageConditions = (
+    resolutionMode: ts.ResolutionMode,
+  ): string[] =>
+    [
+      ...(resolutionMode === ts.ModuleKind.ESNext
+        ? ["import"]
+        : resolutionMode === ts.ModuleKind.CommonJS
+          ? ["require"]
+          : []),
+      "types",
+      "node",
+    ].sort(compareStrings);
+  const conditionInfoForEntry = (
+    manifest: PackageManifest,
+    entry: unknown,
+    resolutionMode: ts.ResolutionMode,
+  ): PackageConditionInfo | undefined => {
+    if (entry === undefined || typeof entry === "string") return undefined;
+    const availableConditions = [...packageConditionKeys(entry)].sort(
+      compareStrings,
+    );
+    const selectedConditions = selectedPackageConditions(resolutionMode);
+    return {
+      packageJsonPath: manifest.path,
+      selectedConditions,
+      availableConditions,
+      ambiguous: availableConditions.some(
+        (condition) => !DETERMINISTIC_PACKAGE_CONDITIONS.has(condition),
+      ),
+    };
+  };
+  const packageConditionInfoFor = (
+    moduleName: string,
+    containingFile: string,
+    resolutionMode: ts.ResolutionMode,
+  ): PackageConditionInfo | undefined => {
+    const manifests = packageManifestsFor(containingFile);
+    if (moduleName.startsWith("#")) {
+      const manifest = manifests[0];
+      if (!manifest) return undefined;
+      const importsMap = manifest.data.imports;
+      if (
+        !importsMap ||
+        typeof importsMap !== "object" ||
+        Array.isArray(importsMap)
+      )
+        return undefined;
+      return conditionInfoForEntry(
+        manifest,
+        (importsMap as Record<string, unknown>)[moduleName],
+        resolutionMode,
+      );
+    }
+
+    const manifest = manifests.find(
+      (candidate) =>
+        candidate.data.name === packageNameForSpecifier(moduleName),
+    );
+    if (!manifest) return undefined;
+    const exportsMap = manifest.data.exports;
+    if (exportsMap === undefined) return undefined;
+    const subpath = packageSubpathForSpecifier(moduleName);
+    let entry: unknown;
+    if (
+      exportsMap &&
+      typeof exportsMap === "object" &&
+      !Array.isArray(exportsMap)
+    ) {
+      const record = exportsMap as Record<string, unknown>;
+      const hasSubpathKeys = Object.keys(record).some((key) =>
+        key.startsWith("."),
+      );
+      entry = hasSubpathKeys ? record[subpath] : record;
+    } else if (subpath === ".") {
+      entry = exportsMap;
+    }
+    return conditionInfoForEntry(manifest, entry, resolutionMode);
+  };
+  const resolutionModeForFile = (
+    containingFile: string,
+    options: ts.CompilerOptions,
+    moduleResolutionHost: ts.ModuleResolutionHost,
+  ): ts.ResolutionMode => {
+    if (
+      options.moduleResolution !== ts.ModuleResolutionKind.Node16 &&
+      options.moduleResolution !== ts.ModuleResolutionKind.NodeNext
+    )
+      return undefined;
+    return ts.getImpliedNodeFormatForFile(
+      containingFile,
+      undefined,
+      moduleResolutionHost,
+      options,
+    );
+  };
+  const resolveModuleInfo = (
+    moduleName: string,
+    containingFile: string,
+    moduleResolutionHost: ts.ModuleResolutionHost,
+    requestedResolutionMode?: ts.ResolutionMode,
+  ): ModuleResolutionInfo => {
+    if (moduleName.startsWith("."))
+      return {
+        resolvedPath: findAllowedLocalModule(
+          rootDir,
+          containingFile,
+          moduleName,
+          sourcePaths,
+        ),
+      };
+
+    const options = compilerOptionsForFile(containingFile);
+    const resolutionMode =
+      requestedResolutionMode ??
+      resolutionModeForFile(containingFile, options, moduleResolutionHost);
+
+    const resolved = ts.resolveModuleName(
+      moduleName,
+      containingFile,
+      options,
+      moduleResolutionHost,
+      undefined,
+      undefined,
+      resolutionMode,
+    ).resolvedModule;
+    const resolvedPath =
+      resolved &&
+      isAllowedRelativeModulePath(
+        rootDir,
+        resolved.resolvedFileName,
+        sourcePaths,
+      )
+        ? resolved.resolvedFileName
+        : undefined;
+    return {
+      resolvedPath,
+      ...(options.moduleResolution === ts.ModuleResolutionKind.Node16 ||
+      options.moduleResolution === ts.ModuleResolutionKind.NodeNext
+        ? {
+            conditionInfo: packageConditionInfoFor(
+              moduleName,
+              containingFile,
+              resolutionMode,
+            ),
+          }
+        : {}),
+    };
+  };
   const resolveModule = (
     moduleName: string,
     containingFile: string,
     moduleResolutionHost: ts.ModuleResolutionHost,
   ): string | undefined => {
-    if (moduleName.startsWith("."))
-      return findAllowedLocalModule(
-        rootDir,
-        containingFile,
-        moduleName,
-        sourcePaths,
-      );
-
-    const resolved = ts.resolveModuleName(
-      moduleName,
-      containingFile,
-      compilerOptionsForFile(containingFile),
-      moduleResolutionHost,
-    ).resolvedModule;
-    if (
-      resolved === undefined ||
-      !isAllowedRelativeModulePath(
-        rootDir,
-        resolved.resolvedFileName,
-        sourcePaths,
-      )
-    )
-      return undefined;
-    return resolved.resolvedFileName;
+    return resolveModuleInfo(moduleName, containingFile, moduleResolutionHost)
+      .resolvedPath;
   };
   const resolutionHost = (
     moduleResolutionHost: ts.ModuleResolutionHost,
@@ -1037,6 +1274,13 @@ const projectFor = (
     }),
     resolveModule: (moduleName, containingFile) =>
       resolveModule(moduleName, containingFile, safeResolutionHost),
+    resolveModuleInfo: (moduleName, containingFile, resolutionMode) =>
+      resolveModuleInfo(
+        moduleName,
+        containingFile,
+        safeResolutionHost,
+        resolutionMode,
+      ),
   };
 };
 
@@ -1215,6 +1459,7 @@ const addDiagnostic = (
   code: string,
   _message: string,
   node: Node,
+  detail?: string,
 ): void => {
   const definition = getDiagnosticDefinition(code);
   if (!definition) {
@@ -1222,11 +1467,14 @@ const addDiagnostic = (
   }
   const location = sourcePosition(context.rootDir, node);
   const evidence = evidenceFor(context, node, `${DETECTOR_VERSION}/diagnostic`);
+  const message = detail
+    ? `${definition.message} ${detail}`
+    : definition.message;
   const diagnostic: Diagnostic = {
-    id: diagnosticKey(code, location, definition.message),
+    id: diagnosticKey(code, location, message),
     code,
     severity: definition.severity,
-    message: definition.message,
+    message,
     remediation: definition.remediation,
     location,
     evidence: [evidence],
@@ -1433,7 +1681,11 @@ const resolveImportedModule = (
   sourceFile: SourceFile,
   specifier: string,
   specifierNode?: Node,
-): GraphNode | undefined => {
+  resolutionMode?: ts.ResolutionMode,
+): {
+  target: GraphNode | undefined;
+  conditionInfo?: PackageConditionInfo | undefined;
+} => {
   if (specifier.startsWith(".")) {
     const candidatePath = findAllowedLocalModule(
       context.rootDir,
@@ -1441,11 +1693,13 @@ const resolveImportedModule = (
       specifier,
       context.sourcePaths,
     );
-    if (!candidatePath) return undefined;
+    if (!candidatePath) return { target: undefined };
     const candidate = context.filesByPath.get(
       sourceFilePath(context.rootDir, candidatePath),
     );
-    return candidate ? moduleForFile(context, candidate) : undefined;
+    return {
+      target: candidate ? moduleForFile(context, candidate) : undefined,
+    };
   }
 
   const declarationTarget = specifierNode?.getParent();
@@ -1458,28 +1712,37 @@ const resolveImportedModule = (
     (declarationTarget && Node.isExportDeclaration(declarationTarget))
       ? declarationTarget.getModuleSpecifierSourceFile()
       : undefined;
-  const resolvedPath = context.resolveModule(
+  const resolution = context.resolveModuleInfo(
     specifier,
     sourceFile.getFilePath(),
+    resolutionMode,
   );
-  const resolvedTarget = resolvedPath
-    ? context.filesByPath.get(sourceFilePath(context.rootDir, resolvedPath))
+  const resolvedTarget = resolution.resolvedPath
+    ? context.filesByPath.get(
+        sourceFilePath(context.rootDir, resolution.resolvedPath),
+      )
     : undefined;
-  const target = moduleSpecifier ?? declaredTarget ?? resolvedTarget;
+  const target = resolvedTarget ?? moduleSpecifier ?? declaredTarget;
 
   if (target && isInsideRoot(context.rootDir, target.getFilePath())) {
     const targetPath = sourceFilePath(context.rootDir, target.getFilePath());
     if (context.filesByPath.has(targetPath))
-      return moduleForFile(context, target);
+      return {
+        target: moduleForFile(context, target),
+        conditionInfo: resolution.conditionInfo,
+      };
   }
 
   const safeSpecifier = safeModuleSpecifier(specifier);
-  return addNode(
-    context,
-    `module:external:${safeSpecifier}`,
-    "module",
-    safeSpecifier,
-  );
+  return {
+    target: addNode(
+      context,
+      `module:external:${safeSpecifier}`,
+      "module",
+      safeSpecifier,
+    ),
+    conditionInfo: resolution.conditionInfo,
+  };
 };
 
 const addImportEdge = (
@@ -1487,13 +1750,27 @@ const addImportEdge = (
   sourceFile: SourceFile,
   specifierNode: Node,
   specifier: string,
+  resolutionMode?: ts.ResolutionMode,
 ): void => {
-  const target = resolveImportedModule(
+  const resolution = resolveImportedModule(
     context,
     sourceFile,
     specifier,
     specifierNode,
+    resolutionMode,
   );
+  const target = resolution.target;
+  if (resolution.conditionInfo?.ambiguous) {
+    const selected = resolution.conditionInfo.selectedConditions.join(", ");
+    const available = resolution.conditionInfo.availableConditions.join(", ");
+    addDiagnostic(
+      context,
+      "AMBIGUOUS_PACKAGE_CONDITION",
+      "Package resolution depends on an environment-specific condition branch.",
+      specifierNode,
+      `(selected conditions: ${selected}; available conditions: ${available})`,
+    );
+  }
   if (!target) {
     if (specifier.startsWith(".")) {
       context.blockedRelativeImports.add(
@@ -1554,6 +1831,7 @@ const importSourceFiles = (context: AnalyzerContext): void => {
             sourceFile,
             argument,
             argument.getLiteralValue(),
+            ts.ModuleKind.ESNext,
           );
         } else {
           addDiagnostic(
@@ -1576,6 +1854,7 @@ const importSourceFiles = (context: AnalyzerContext): void => {
             sourceFile,
             argument,
             argument.getLiteralValue(),
+            ts.ModuleKind.CommonJS,
           );
         } else {
           addDiagnostic(
@@ -2304,6 +2583,7 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
     nodes: new Map(),
     project,
     resolveModule: projectSetup.resolveModule,
+    resolveModuleInfo: projectSetup.resolveModuleInfo,
     rootDir,
     sourcePaths,
     sourceFiles,
