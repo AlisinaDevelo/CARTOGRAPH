@@ -4,7 +4,7 @@ CARTOGRAPH evaluates extraction as a measurable program-analysis system, not by 
 
 ## Fixture corpus
 
-Each curated fixture contains source, an expected canonical graph, and an explanation of unsupported or ambiguous constructs. The initial families are:
+Each curated fixture contains source, an expected canonical graph, and an explanation of unsupported or ambiguous constructs. License, source, reference, transformation, and local redistribution metadata are maintained in the [fixture provenance manifest](../test/fixtures/provenance.json) and checked by `npm run fixtures:validate`. The initial families are:
 
 1. local imports and re-exports;
 2. named functions, class methods, and resolved calls;

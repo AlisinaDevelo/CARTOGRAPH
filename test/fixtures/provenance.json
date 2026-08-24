@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "fixtures": [
+    {
+      "id": "exclusions",
+      "path": "exclusions",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Minimal TypeScript files with intentionally generated-directory lookalikes for discovery exclusion tests.",
+      "redistribution": "allowed",
+      "generated": [
+        {
+          "path": "build",
+          "reason": "Intentionally generated-directory lookalike; it must remain excluded from scans."
+        },
+        {
+          "path": "coverage",
+          "reason": "Intentionally generated-directory lookalike; it must remain excluded from scans."
+        },
+        {
+          "path": "dist",
+          "reason": "Intentionally generated-directory lookalike; it must remain excluded from scans."
+        },
+        {
+          "path": "node_modules",
+          "reason": "Intentionally dependency-directory lookalike; it must remain excluded from scans."
+        }
+      ]
+    },
+    {
+      "id": "outside-import",
+      "path": "outside-import",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A project and sentinel outside its project root exercise repository-boundary import resolution.",
+      "redistribution": "allowed"
+    },
+    {
+      "id": "review-regressions",
+      "path": "review-regressions",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Small hand-authored programs preserve negative regressions for framework-like method names and Prisma resolution.",
+      "redistribution": "allowed"
+    },
+    {
+      "id": "secrets",
+      "path": "secrets",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Synthetic secret-shaped values exercise redaction and privacy checks; values are non-functional test data.",
+      "redistribution": "allowed"
+    },
+    {
+      "id": "snapshots",
+      "path": "snapshots",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Hand-authored canonical JSON fixtures cover valid, malformed, and legacy contract behavior.",
+      "redistribution": "allowed"
+    },
+    {
+      "id": "typescript-express",
+      "path": "typescript-express",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A compact TypeScript/Express/Prisma-shaped project with expected relationships and unsupported dynamic constructs.",
+      "redistribution": "allowed"
+    }
+  ]
+}
