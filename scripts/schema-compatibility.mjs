@@ -64,6 +64,7 @@ const checkHostedVersionChange = () => {
     (file) =>
       file === "src/core/schemas.ts" ||
       file === "src/core/capabilities.ts" ||
+      file === "src/core/diagnostics.ts" ||
       file === "src/core/policy-bundles.ts" ||
       file === "src/core/policy-bundle-migrations.ts" ||
       file === "src/core/assurance-signing.ts" ||
@@ -74,6 +75,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/remediation-evaluation.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
       file === "schema/capability-registry.v0.1.schema.json" ||
+      file === "schema/diagnostic-registry.v0.1.schema.json" ||
       file === "schema/policy-bundle.v0.1.schema.json" ||
       file === "schema/policy-bundle-migration.v0.1.schema.json" ||
       file === "schema/policy-bundle-revocation.v0.1.schema.json" ||
@@ -106,6 +108,7 @@ const checkCompatibility = () => {
   const policy = readJson("schema/compatibility.json");
   const source = readText("src/core/schemas.ts");
   const capabilitySource = readText("src/core/capabilities.ts");
+  const diagnosticSource = readText("src/core/diagnostics.ts");
   const policyBundleSource = readText("src/core/policy-bundles.ts");
   const policyBundleMigrationSource = readText(
     "src/core/policy-bundle-migrations.ts",
@@ -123,6 +126,9 @@ const checkCompatibility = () => {
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
   const capabilitySchema = readJson(
     "schema/capability-registry.v0.1.schema.json",
+  );
+  const diagnosticSchema = readJson(
+    "schema/diagnostic-registry.v0.1.schema.json",
   );
   const policyBundleSchema = readJson("schema/policy-bundle.v0.1.schema.json");
   const policyBundleMigrationSchema = readJson(
@@ -163,6 +169,10 @@ const checkCompatibility = () => {
     capabilitySource,
     "CAPABILITY_REGISTRY_VERSION",
   );
+  const diagnosticVersion = sourceVersion(
+    diagnosticSource,
+    "DIAGNOSTIC_REGISTRY_VERSION",
+  );
   const policyBundleVersion = sourceVersion(
     policyBundleSource,
     "POLICY_BUNDLE_SCHEMA_VERSION",
@@ -200,6 +210,7 @@ const checkCompatibility = () => {
     snapshotVersion === undefined ||
     diffVersion === undefined ||
     capabilityVersion === undefined ||
+    diagnosticVersion === undefined ||
     policyBundleVersion === undefined ||
     policyBundleMigrationVersion === undefined ||
     assuranceSigningVersion === undefined ||
@@ -231,6 +242,16 @@ const checkCompatibility = () => {
     "capability registry JSON Schema/runtime",
     capabilitySchema.properties.registryVersion.const,
     capabilityVersion,
+  );
+  requireEqual(
+    "diagnostic registry runtime/policy",
+    diagnosticVersion,
+    contracts.diagnostics.current,
+  );
+  requireEqual(
+    "diagnostic registry JSON Schema/runtime",
+    diagnosticSchema.properties.registryVersion.const,
+    diagnosticVersion,
   );
   requireEqual(
     "policy bundle runtime/policy",
@@ -339,6 +360,7 @@ const checkCompatibility = () => {
     snapshotVersion,
     diffVersion,
     capabilityVersion,
+    diagnosticVersion,
     policyBundleVersion,
     policyBundleMigrationVersion,
     assuranceSigningVersion,

@@ -23,6 +23,7 @@ For each construct family, the evaluator reports:
 - edge recall;
 - endpoint-to-sink path accuracy where a path is defined;
 - unresolved-edge and unsupported-diagnostic rates;
+- diagnostic-code coverage, evidence completeness, and remediation guidance;
 - evidence completeness;
 - source-location accuracy.
 

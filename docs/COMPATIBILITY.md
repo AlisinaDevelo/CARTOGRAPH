@@ -11,6 +11,10 @@ GraphSnapshot shape is in
 The extractor capability and unknown-semantics registry is versioned separately
 in [`schema/capability-registry.v0.1.json`](../schema/capability-registry.v0.1.json)
 and its JSON Schema.
+Unsupported-construct definitions are versioned in
+[`schema/diagnostic-registry.v0.1.json`](../schema/diagnostic-registry.v0.1.json)
+and its JSON Schema; every analyzer diagnostic resolves to a registered code,
+severity, source-span evidence contract, and actionable remediation.
 Digest-bound policy bundles use the independent `policyBundles` contract in the
 same manifest and are defined by
 [`schema/policy-bundle.v0.1.schema.json`](../schema/policy-bundle.v0.1.schema.json).

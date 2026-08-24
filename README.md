@@ -54,7 +54,7 @@ New output files are created with private permissions and are not overwritten un
 | Direct Express `app`/`router` routes and bounded `use` middleware with literal paths   | Endpoint and handler relationships                                           |
 | Literal `fetch` and Axios destinations                                                 | Outbound request relationships                                               |
 | Conventional Prisma model operations                                                   | Read/write relationships to data nodes                                       |
-| Dynamic routes, imports, HTTP destinations, models, or unresolved handlers/calls       | Stable diagnostics; no confident guessed edge                                |
+| Dynamic routes, imports, HTTP destinations, models, or unresolved handlers/calls       | Stable diagnostics with source evidence and remediation; no guessed edge     |
 
 JavaScript files, generated routes, framework metaprogramming, and complete runtime behavior are not supported. A plausible-looking result outside the table is not a support claim.
 

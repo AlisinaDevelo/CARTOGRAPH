@@ -81,8 +81,12 @@ const changedPaths = (changes: readonly { readonly path: string }[]): string =>
 
 const markdownDiagnostic = (
   diagnostic: GraphDiff["diagnostics"]["added"][number],
-): string =>
-  `- ${markdownCode(`${diagnostic.severity} ${diagnostic.code}`)} — ${markdownCode(diagnostic.message)}`;
+): string => {
+  const remediation = diagnostic.remediation
+    ? `; remediation: ${markdownCode(diagnostic.remediation)}`
+    : "";
+  return `- ${markdownCode(`${diagnostic.severity} ${diagnostic.code}`)} — ${markdownCode(diagnostic.message)}${remediation}`;
+};
 
 export function renderMarkdownReport(diff: GraphDiff): string {
   const summary = summarize(diff);
@@ -187,8 +191,12 @@ const htmlNode = (node: GraphDiff["nodes"]["added"][number]): string =>
 
 const htmlDiagnostic = (
   diagnostic: GraphDiff["diagnostics"]["added"][number],
-): string =>
-  `<strong>${escapeHtml(diagnostic.severity)} ${escapeHtml(diagnostic.code)}</strong>: ${escapeHtml(diagnostic.message)}`;
+): string => {
+  const remediation = diagnostic.remediation
+    ? `<div class="remediation">Remediation: ${escapeHtml(diagnostic.remediation)}</div>`
+    : "";
+  return `<strong>${escapeHtml(diagnostic.severity)} ${escapeHtml(diagnostic.code)}</strong>: ${escapeHtml(diagnostic.message)}${remediation}`;
+};
 
 const htmlChanges = (changes: readonly { readonly path: string }[]): string =>
   changes.map((change) => `<code>${escapeHtml(change.path)}</code>`).join(", ");
