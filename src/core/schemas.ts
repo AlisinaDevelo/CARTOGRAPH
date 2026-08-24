@@ -40,6 +40,10 @@ const ConfidenceSchema = z.enum([
   "user_confirmed",
 ]);
 const DiagnosticSeveritySchema = z.enum(["info", "warning", "error"]);
+const DetectorSchema = TextSchema.regex(
+  /^(?:@[A-Za-z0-9._-]+\/)?[A-Za-z0-9._-]+@[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)*$/u,
+  "must include an extractor identity and version",
+);
 const ContentHashSchema = z
   .string()
   .trim()
@@ -72,6 +76,7 @@ const normalizePath = (value: string): string | undefined => {
 
 const PortableRelativePathSchema = z
   .string()
+  .trim()
   .min(1)
   .transform((value, context) => {
     const normalized = normalizePath(value);
@@ -129,7 +134,7 @@ const EvidenceCommonShape = {
   reference: PortableReferenceSchema.optional(),
   observedAt: DateTimeSchema.optional(),
   observedCount: z.number().int().nonnegative().optional(),
-  detector: TextSchema.optional(),
+  detector: DetectorSchema.optional(),
   contentHash: ContentHashSchema.optional(),
 };
 
@@ -137,7 +142,7 @@ const SourceEvidenceInputSchema = z
   .object({
     ...EvidenceCommonShape,
     kind: z.literal("source"),
-    detector: TextSchema,
+    detector: DetectorSchema,
     contentHash: ContentHashSchema,
   })
   .strict()
@@ -148,6 +153,13 @@ const SourceEvidenceInputSchema = z
         path: ["path"],
         message:
           "source evidence requires a repository-relative path or location",
+      });
+    }
+    if (!evidence.location && evidence.line === undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["line"],
+        message: "source evidence requires a source span",
       });
     }
   });

@@ -75,9 +75,13 @@ The Git revision flow validates refs, archives each commit into an isolated temp
 JSON is the canonical interchange format. A source evidence record includes:
 
 - a repository-relative path and source position;
-- a stable detector identity;
+- a versioned detector identity;
 - a SHA-256 content hash;
 - no source body or absolute path.
+
+Each edge also records explicit confidence and must carry evidence or an
+actionable unresolved reason. Unknown evidence fields are rejected by the
+runtime contract.
 
 The surrounding snapshot records the exact analyzed commit for revision-backed scans. Graphs and diffs are runtime-validated, referentially checked, deduplicated, and canonically sorted. Identical input produces byte-identical normalized JSON.
 
