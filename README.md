@@ -81,6 +81,10 @@ JSON is the canonical interchange format. A source evidence record includes:
 
 The surrounding snapshot records the exact analyzed commit for revision-backed scans. Graphs and diffs are runtime-validated, referentially checked, deduplicated, and canonically sorted. Identical input produces byte-identical normalized JSON.
 
+The canonical [GraphSnapshot v0.1 JSON Schema](schema/graph-snapshot.v0.1.schema.json)
+defines the portable interchange shape. The runtime validator additionally checks
+cross-record node references, duplicate identities, and canonical normalization.
+
 ## Privacy and security
 
 Local analysis performs no network request, hidden telemetry, build, package lifecycle script, or module import. Static HTML reports contain no remote asset or script. Repository input is untrusted; review the [threat model](docs/THREAT_MODEL.md) before processing sensitive code and report vulnerabilities through [SECURITY.md](SECURITY.md).

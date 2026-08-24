@@ -38,11 +38,11 @@ Adapters depend on the core contract. The core does not depend on a framework ad
 
 ## Canonical graph
 
-A snapshot contains versioned metadata, typed nodes, typed edges, evidence, and diagnostics. Portable artifacts use repository-relative POSIX paths. They do not contain absolute paths or source bodies.
+A snapshot contains versioned metadata, typed nodes, typed edges, evidence, and diagnostics. The checked-in [GraphSnapshot v0.1 JSON Schema](../schema/graph-snapshot.v0.1.schema.json) defines the portable interchange shape. Portable artifacts use repository-relative POSIX paths. They do not contain absolute paths or source bodies.
 
 Every edge must contain at least one evidence record or an explicit unresolved reason. Source-evidence records contain a normalized path, source span, detector identity, and content hash. Confidence is recorded on the edge; it distinguishes direct semantic evidence from bounded inference and is not a probability.
 
-Canonicalization validates records, rejects conflicting identities, removes exact duplicates, and sorts every collection. Identical input must serialize identically.
+Canonicalization validates records, rejects conflicting identities, removes exact duplicates, and sorts every collection. The runtime validator also enforces cross-record node references that JSON Schema cannot express portably. Identical input must serialize identically.
 
 ## Identity
 

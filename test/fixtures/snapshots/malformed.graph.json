@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "revision": {
+    "commitSha": "malformed"
+  },
+  "nodes": [
+    {
+      "id": "module:src/entry.ts",
+      "stableKey": "module:src/entry.ts",
+      "kind": "module",
+      "name": "src/entry.ts"
+    }
+  ],
+  "edges": [
+    {
+      "from": "module:src/entry.ts",
+      "to": "missing-node",
+      "kind": "imports",
+      "confidence": "certain",
+      "evidence": []
+    }
+  ],
+  "diagnostics": []
+}
