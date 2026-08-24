@@ -94,6 +94,21 @@ export {
   type PolicySource,
   type VerifyPolicyBundleOptions,
 } from "./policy-bundles.js";
+export {
+  evaluatePolicyBundleMigration,
+  migratePolicyBundle,
+  POLICY_BUNDLE_MIGRATION_CONTRACT,
+  POLICY_BUNDLE_MIGRATION_SCHEMA_VERSION,
+  PolicyBundleMigrationError,
+  PolicyBundleMigrationReportSchema,
+  PolicyBundleRevocationListSchema,
+  serializePolicyBundleMigrationReport,
+  type EvaluatePolicyBundleMigrationOptions,
+  type PolicyBundleMigrationErrorCode,
+  type PolicyBundleMigrationFinding,
+  type PolicyBundleMigrationReport,
+  type PolicyBundleRevocationList,
+} from "./policy-bundle-migrations.js";
 export type {
   ChangedDiagnostic,
   ChangedEdge,

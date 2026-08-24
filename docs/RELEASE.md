@@ -9,8 +9,9 @@ Before the first tagged release:
 3. Install the packed tarball in a temporary fixture and run `cartograph --version`, `cartograph --help`, a scan, and a diff.
 4. Validate schema compatibility, deterministic fixtures, and the declared support matrix.
 5. Run `npm run change-control:validate`; overdue compatibility surfaces or removals without a migration note and fixture update block the release gate.
-6. Review dependencies, pinned workflows, threat-model gates, and open security findings.
-7. Update `CHANGELOG.md`, version, migration notes, and checksums or provenance metadata.
-8. Create a signed or otherwise provenance-backed release only after publishing credentials use trusted publishing or an equally scoped mechanism.
+6. Run `npm run policy-bundle:migrations:validate`; expiry, revocation, owner, selector, or compatibility migration failures must remain blocked until reviewed or repaired.
+7. Review dependencies, pinned workflows, threat-model gates, and open security findings.
+8. Update `CHANGELOG.md`, version, migration notes, and checksums or provenance metadata.
+9. Create a signed or otherwise provenance-backed release only after publishing credentials use trusted publishing or an equally scoped mechanism.
 
 Generated `dist`, coverage, temporary repositories, reports, and package tarballs stay out of source commits.

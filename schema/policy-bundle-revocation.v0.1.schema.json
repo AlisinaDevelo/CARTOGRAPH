@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/policy-bundle-revocation.v0.1.schema.json",
+  "title": "CARTOGRAPH policy-bundle revocation list v0.1",
+  "description": "An explicit offline list of revoked policy bundle source digests.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "revokedDigests"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "revokedDigests": {
+      "type": "array",
+      "maxItems": 10000,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+    }
+  }
+}

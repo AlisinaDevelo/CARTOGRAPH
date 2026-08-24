@@ -14,6 +14,8 @@ and its JSON Schema.
 Digest-bound policy bundles use the independent `policyBundles` contract in the
 same manifest and are defined by
 [`schema/policy-bundle.v0.1.schema.json`](../schema/policy-bundle.v0.1.schema.json).
+Their digest-only migration reports use the reviewed `policyBundleMigrations`
+contract and [`schema/policy-bundle-migration.v0.1.schema.json`](../schema/policy-bundle-migration.v0.1.schema.json).
 
 ## Change categories
 
