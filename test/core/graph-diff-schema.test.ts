@@ -109,6 +109,7 @@ describe("GraphDiff v0.1 JSON Schema", () => {
       identity: {
         matches: Array<{ method: string }>;
         ambiguous: unknown[];
+        unsupported: unknown[];
       };
     };
 
@@ -122,5 +123,11 @@ describe("GraphDiff v0.1 JSON Schema", () => {
     );
     expect(serialized.identity.matches.length).toBeGreaterThan(0);
     expect(serialized.identity.ambiguous).toEqual([]);
+    expect(serialized.identity.unsupported).toHaveLength(1);
+    expect(serialized.identity.unsupported[0]).toMatchObject({
+      reason: "unsupported-rename",
+      before: { stableKey: "function:src/b.ts:b" },
+      after: { stableKey: "function:src/d.ts:d" },
+    });
   });
 });

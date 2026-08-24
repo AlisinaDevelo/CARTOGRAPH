@@ -10,6 +10,7 @@ import {
   type IdentityMatch,
   type IdentityMatchMethod,
   type IdentitySignal,
+  type IdentityUnsupported,
 } from "./schemas.js";
 
 export {
@@ -20,6 +21,7 @@ export {
   IdentityMatchSchema,
   IdentitySignalSchema,
   GraphDiffIdentitySchema,
+  IdentityUnsupportedSchema,
 } from "./schemas.js";
 export type {
   IdentityAmbiguity,
@@ -29,6 +31,7 @@ export type {
   IdentityMatchMethod,
   IdentitySignal,
   GraphDiffIdentity,
+  IdentityUnsupported,
 } from "./schemas.js";
 
 export const IdentityPathHistorySchema = z
@@ -49,6 +52,7 @@ export type IdentityReconciliation = {
   added: GraphNode[];
   removed: GraphNode[];
   ambiguous: IdentityAmbiguity[];
+  unsupported: IdentityUnsupported[];
 };
 
 const EXACT_MATCH_SCORE = 1_000;
@@ -118,6 +122,7 @@ const candidateFor = (
   before: GraphNode,
   after: GraphNode,
   pathHistory: ReadonlySet<string>,
+  minimumScore = 60,
 ): IdentityCandidate | undefined => {
   if (before.stableKey === after.stableKey) return undefined;
 
@@ -166,7 +171,7 @@ const candidateFor = (
 
   // A same-kind/name move or a same-kind/neighborhood rename is supported;
   // weaker similarities remain unmatched rather than becoming guesses.
-  if (score < 60) return undefined;
+  if (score < minimumScore) return undefined;
   return {
     beforeStableKey: before.stableKey,
     afterStableKey: after.stableKey,
@@ -213,7 +218,9 @@ const matchMethod = (
  * snapshot's stable keys. Exact stable keys cover line moves. Unique
  * same-kind/name candidates cover supported file moves, while a unique
  * same-kind/neighborhood candidate covers a supported rename. Ties and
- * non-mutual candidates are returned as ambiguity records and never guessed.
+ * non-mutual candidates are returned as ambiguity records and never guessed;
+ * weak same-path or neighborhood candidates are returned as unsupported
+ * rename records for reviewer diagnostics.
  */
 export const reconcileGraphNodeIdentities = (
   beforeInput: unknown,
@@ -265,6 +272,7 @@ export const reconcileGraphNodeIdentities = (
 
   const beforeCandidates = new Map<string, IdentityCandidate[]>();
   const afterCandidates = new Map<string, IdentityCandidate[]>();
+  const unsupported = new Map<string, IdentityUnsupported>();
   let candidateEvaluations = 0;
   for (const before of beforeSnapshot.nodes) {
     if (matchedBefore.has(before.stableKey)) continue;
@@ -283,7 +291,33 @@ export const reconcileGraphNodeIdentities = (
         after,
         pathHistory,
       );
-      if (candidate === undefined) continue;
+      if (candidate === undefined) {
+        const weakCandidate = candidateFor(
+          beforeSnapshot,
+          afterSnapshot,
+          before,
+          after,
+          pathHistory,
+          0,
+        );
+        const beforePath = nodePath(before);
+        const afterPath = nodePath(after);
+        if (
+          weakCandidate !== undefined &&
+          before.name !== after.name &&
+          ((beforePath !== undefined && beforePath === afterPath) ||
+            weakCandidate.signals.includes("neighborhood-overlap"))
+        ) {
+          unsupported.set(`${before.stableKey}\u0000${after.stableKey}`, {
+            before,
+            after,
+            score: weakCandidate.score,
+            signals: weakCandidate.signals,
+            reason: "unsupported-rename",
+          });
+        }
+        continue;
+      }
       const beforeList = beforeCandidates.get(before.stableKey) ?? [];
       beforeList.push(candidate);
       beforeCandidates.set(before.stableKey, beforeList);
@@ -353,6 +387,15 @@ export const reconcileGraphNodeIdentities = (
     ambiguous: [...ambiguous.values()].sort((left, right) =>
       compareStrings(left.before.stableKey, right.before.stableKey),
     ),
+    unsupported: [...unsupported.values()].sort((left, right) => {
+      const beforeOrder = compareStrings(
+        left.before.stableKey,
+        right.before.stableKey,
+      );
+      return beforeOrder !== 0
+        ? beforeOrder
+        : compareStrings(left.after.stableKey, right.after.stableKey);
+    }),
   };
 };
 

@@ -111,7 +111,12 @@ D-010 adds an optional `identity` section to GraphDiff v0.1. It records
 refactor-aware matches and explicit ambiguous candidates while retaining the
 existing node, edge, diagnostic, and summary arrays. Unique matches suppress
 false node add/remove pairs; ambiguous nodes remain conservative add/remove
-records and emit the stable `AMBIGUOUS_IDENTITY_MATCH` diagnostic. The section,
-the identity method/signal enums, and the diagnostic registry entry are
-additive for readers that ignore them. Runtime canonicalization, the published
-JSON Schema, and golden diff fixtures are checked together.
+records. P-010 distinguishes equal-score ambiguity with
+`AMBIGUOUS_IDENTITY_MATCH`, non-mutual destination contention with
+`IDENTITY_COLLISION`, weak rename candidates with
+`UNSUPPORTED_IDENTITY_RENAME`, and supported non-stable-key matches with
+`IDENTITY_FALLBACK_MATCH`. Each emitted record carries deterministic evidence
+for the candidates or signals a reviewer must inspect. The section, identity
+method/signal enums, and diagnostic registry entries are additive for readers
+that ignore them. Runtime canonicalization, the published JSON Schema, and
+golden diff fixtures are checked together.
