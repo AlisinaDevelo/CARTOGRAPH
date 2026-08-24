@@ -35,7 +35,7 @@ CI analyzes the same fixture with varied discovery order and asserts byte-identi
 
 ## Diff evaluation
 
-Mutation fixtures introduce one known change at a time: an endpoint, dependency, data access, outbound request, removal, rename, cycle, or unresolved construct. Golden diffs must classify the expected change and retain evidence from the correct revision.
+Mutation fixtures introduce one known change at a time: an endpoint, dependency, data access, outbound request, removal, rename, cycle, or unresolved construct. The graph-diff golden fixture also combines the contract-level added, removed, changed, evidence, and unresolved-diagnostic cases so the semantic categories cannot regress while individual analyzer fixtures evolve. Golden diffs must classify the expected change and retain evidence from the correct revision.
 
 ## Practical compatibility
 

@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "capabilityRegistryVersion": 1,
+  "revision": {
+    "commitSha": "2222222222222222222222222222222222222222",
+    "branch": "main"
+  },
+  "nodes": [
+    {
+      "id": "node-a",
+      "stableKey": "function:src/a.ts:a",
+      "kind": "function",
+      "name": "a-renamed",
+      "language": "typescript"
+    },
+    {
+      "id": "service:billing",
+      "stableKey": "service:billing",
+      "kind": "service",
+      "name": "billing"
+    },
+    {
+      "id": "node-d",
+      "stableKey": "function:src/d.ts:d",
+      "kind": "function",
+      "name": "d",
+      "language": "typescript"
+    }
+  ],
+  "edges": [
+    {
+      "from": "node-a",
+      "to": "service:billing",
+      "kind": "requests",
+      "confidence": "observed",
+      "evidence": [
+        {
+          "id": "evidence-request-after",
+          "kind": "source",
+          "path": "src/a.ts",
+          "line": 21,
+          "detector": "cartograph.test@1",
+          "contentHash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      ]
+    },
+    {
+      "from": "node-a",
+      "to": "node-d",
+      "kind": "calls",
+      "confidence": "certain",
+      "evidence": [
+        {
+          "id": "evidence-added",
+          "kind": "source",
+          "path": "src/d.ts",
+          "line": 5,
+          "detector": "cartograph.test@1",
+          "contentHash": "1111111111111111111111111111111111111111111111111111111111111111"
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "unresolved-diagnostic",
+      "code": "UNRESOLVED_IMPORT",
+      "severity": "warning",
+      "message": "could not resolve import after",
+      "remediation": "Review the module boundary manually.",
+      "nodeId": "node-a",
+      "edge": {
+        "from": "node-a",
+        "to": "service:billing",
+        "kind": "imports"
+      },
+      "evidence": [
+        {
+          "id": "diagnostic-after",
+          "kind": "source",
+          "path": "src/a.ts",
+          "line": 31,
+          "detector": "cartograph.test@1",
+          "contentHash": "6666666666666666666666666666666666666666666666666666666666666666"
+        }
+      ]
+    },
+    {
+      "id": "added-diagnostic",
+      "code": "UNSUPPORTED_DYNAMIC_IMPORT",
+      "severity": "warning",
+      "message": "dynamic import destination was unresolved",
+      "remediation": "Use a literal module specifier.",
+      "nodeId": "node-a",
+      "evidence": [
+        {
+          "id": "diagnostic-added",
+          "kind": "source",
+          "path": "src/a.ts",
+          "line": 40,
+          "detector": "cartograph.test@1",
+          "contentHash": "7777777777777777777777777777777777777777777777777777777777777777"
+        }
+      ]
+    }
+  ]
+}

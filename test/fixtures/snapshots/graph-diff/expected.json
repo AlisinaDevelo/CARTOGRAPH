@@ -1,0 +1,22 @@
+{
+  "nodes": {
+    "added": ["function:src/d.ts:d"],
+    "removed": ["function:src/b.ts:b"],
+    "changed": ["function:src/a.ts:a"]
+  },
+  "edges": {
+    "added": ["node-a|calls|node-d"],
+    "removed": ["node-a|calls|node-b", "node-b|writes|service:billing"],
+    "changed": [
+      {
+        "identity": "node-a|requests|service:billing",
+        "paths": ["evidence"]
+      }
+    ]
+  },
+  "diagnostics": {
+    "added": ["added-diagnostic"],
+    "removed": ["removed-diagnostic"],
+    "changed": ["unresolved-diagnostic"]
+  }
+}
