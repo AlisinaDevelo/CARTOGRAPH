@@ -24,7 +24,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run schema:compatibility && npm run migrations:validate && npm run fixtures:validate && npm run benchmark:validate && npm run test:coverage && npm run roadmap:validate && npm run roadmap:test && npm run build",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run schema:compatibility && npm run migrations:validate && npm run fixtures:validate && npm run benchmark:validate && npm run change-control:validate && npm run test:coverage && npm run roadmap:validate && npm run roadmap:test && npm run build",
     "dev": "tsx src/cli.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -34,6 +34,7 @@
     "fixtures:validate": "node scripts/fixture-provenance.mjs validate",
     "benchmark:run": "node --import tsx scripts/benchmark.mjs run",
     "benchmark:validate": "node scripts/benchmark.mjs validate",
+    "change-control:validate": "node scripts/change-control.mjs validate",
     "migrations:validate": "node scripts/migrations.mjs validate",
     "schema:compatibility": "node scripts/schema-compatibility.mjs check",
     "test": "vitest run",
