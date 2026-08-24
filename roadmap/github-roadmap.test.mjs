@@ -8,7 +8,9 @@ import {
   buildPlan,
   issueMarker,
   issueTitle,
+  parseIncludedGhResponse,
   validateManifest,
+  withSecondaryRateLimitRetry,
 } from "../scripts/github-roadmap.mjs";
 
 const testManifest = {
@@ -132,6 +134,168 @@ function operationsFor(plan, resource, phase = "ensure") {
     (operation) => operation.resource === resource && operation.phase === phase,
   );
 }
+
+test("secondary content limits retry with bounded exponential delays", async () => {
+  const pauses = [];
+  const retries = [];
+  let attempts = 0;
+  const result = await withSecondaryRateLimitRetry(
+    async () => {
+      attempts += 1;
+      if (attempts < 3) {
+        throw new Error(
+          "gh api failed: secondary rate limit; temporarily blocked from content creation (HTTP 403)",
+        );
+      }
+      return "created";
+    },
+    "create issue T-001",
+    {
+      pause: async (milliseconds) => pauses.push(milliseconds),
+      onRetry: (retry) => retries.push(retry),
+    },
+  );
+
+  assert.equal(result, "created");
+  assert.equal(attempts, 3);
+  assert.deepEqual(pauses, [60_000, 120_000]);
+  assert.deepEqual(
+    retries.map(({ nextAttempt, maxAttempts }) => ({
+      nextAttempt,
+      maxAttempts,
+    })),
+    [
+      { nextAttempt: 2, maxAttempts: 8 },
+      { nextAttempt: 3, maxAttempts: 8 },
+    ],
+  );
+});
+
+test("secondary-limit retries honor retry-after and reject unrelated 403s", async () => {
+  const pauses = [];
+  let attempts = 0;
+  await withSecondaryRateLimitRetry(
+    async () => {
+      attempts += 1;
+      if (attempts === 1) {
+        throw new Error(
+          "gh api failed: secondary rate limit (HTTP 429)\nRetry-After: 90",
+        );
+      }
+      return null;
+    },
+    "update milestone T-Q1",
+    {
+      pause: async (milliseconds) => pauses.push(milliseconds),
+      onRetry: () => {},
+    },
+  );
+  assert.deepEqual(pauses, [90_000]);
+
+  let deterministicAttempts = 0;
+  await assert.rejects(
+    withSecondaryRateLimitRetry(
+      async () => {
+        deterministicAttempts += 1;
+        throw new Error("gh api failed: validation failed (HTTP 403)");
+      },
+      "create issue T-002",
+      {
+        pause: async () => {
+          throw new Error("deterministic failure must not pause");
+        },
+        onRetry: () => {},
+      },
+    ),
+    /validation failed/,
+  );
+  assert.equal(deterministicAttempts, 1);
+});
+
+test("included GitHub responses preserve server cooldown headers", async () => {
+  const response = parseIncludedGhResponse(
+    [
+      "HTTP/2.0 429 Too Many Requests",
+      "Retry-After: 1800",
+      "X-RateLimit-Remaining: 4999",
+      "",
+      '{"message":"secondary rate limit"}',
+    ].join("\n"),
+  );
+  assert.equal(response.statusCode, 429);
+  assert.equal(response.headers["retry-after"], "1800");
+  assert.equal(response.body, '{"message":"secondary rate limit"}');
+
+  const error = new Error("GitHub rejected the mutation (HTTP 429)");
+  error.ghResponse = response;
+  const pauses = [];
+  await withSecondaryRateLimitRetry(
+    async () => {
+      throw error;
+    },
+    "create issue T-003",
+    {
+      maxAttempts: 2,
+      pause: async (milliseconds) => pauses.push(milliseconds),
+      onRetry: () => {},
+    },
+  ).catch(() => {});
+  assert.deepEqual(pauses, [1_800_000]);
+});
+
+test("primary reset headers are honored when GitHub reports no remaining quota", async () => {
+  const error = new Error("GitHub rejected the mutation (HTTP 403)");
+  error.ghResponse = {
+    body: '{"message":"API rate limit exceeded"}',
+    headers: {
+      "x-ratelimit-remaining": "0",
+      "x-ratelimit-reset": "2000",
+    },
+    statusCode: 403,
+  };
+  const pauses = [];
+  let attempts = 0;
+  await withSecondaryRateLimitRetry(
+    async () => {
+      attempts += 1;
+      if (attempts === 1) throw error;
+      return "ok";
+    },
+    "update issue T-003",
+    {
+      now: () => 1_000_000,
+      pause: async (milliseconds) => pauses.push(milliseconds),
+      onRetry: () => {},
+    },
+  );
+  assert.deepEqual(pauses, [1_000_000]);
+});
+
+test("secondary-limit retries stop after the configured attempt bound", async () => {
+  const pauses = [];
+  let attempts = 0;
+  await assert.rejects(
+    withSecondaryRateLimitRetry(
+      async () => {
+        attempts += 1;
+        throw new Error(
+          "gh api failed: temporarily blocked from content creation (HTTP 403)",
+        );
+      },
+      "create label area:test",
+      {
+        maxAttempts: 3,
+        initialDelayMs: 10,
+        maxDelayMs: 15,
+        pause: async (milliseconds) => pauses.push(milliseconds),
+        onRetry: () => {},
+      },
+    ),
+    /temporarily blocked from content creation/,
+  );
+  assert.equal(attempts, 3);
+  assert.deepEqual(pauses, [10, 15]);
+});
 
 function createFakeGithub() {
   const state = emptyState();
@@ -764,6 +928,31 @@ test("a concurrent native dependency create is re-read as a noop", async () => {
         operation.id === "T-001->T-002" && operation.action === "noop",
     ),
   );
+});
+
+test("an exhausted native rate limit does not trigger a verification read", async () => {
+  const fake = createFakeGithub();
+  const rateLimitError = new Error(
+    "gh api failed: temporarily blocked from content creation (HTTP 403)",
+  );
+  let blockedByReads = 0;
+  const mutate = async (method, endpoint, payload, context) => {
+    if (endpoint.includes("/dependencies/blocked_by")) throw rateLimitError;
+    return fake.mutate(method, endpoint, payload, context);
+  };
+
+  await assert.rejects(
+    applyPlan(testManifest, "OWNER/REPO", emptyState(), {
+      mutate,
+      fetchState: fake.fetchState,
+      fetchBlockedBy: async () => {
+        blockedByReads += 1;
+        return [];
+      },
+    }),
+    /temporarily blocked from content creation/,
+  );
+  assert.equal(blockedByReads, 0);
 });
 
 test("native blocked_by state is bounded and fails closed on unsafe rows", () => {

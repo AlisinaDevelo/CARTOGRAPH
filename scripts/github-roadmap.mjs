@@ -61,6 +61,9 @@ const MIN_CRITERION_CHARACTERS = 20;
 const MAX_GH_OUTPUT_BYTES = 4 * 1024 * 1024;
 const GH_TIMEOUT_MS = 30_000;
 const GH_MUTATION_INTERVAL_MS = 1_050;
+const GH_SECONDARY_RATE_LIMIT_MAX_ATTEMPTS = 8;
+const GH_SECONDARY_RATE_LIMIT_INITIAL_DELAY_MS = 60_000;
+const GH_SECONDARY_RATE_LIMIT_MAX_DELAY_MS = 15 * 60_000;
 const POST_APPLY_VERIFY_MAX_ATTEMPTS = 5;
 const POST_APPLY_VERIFY_RETRY_DELAY_MS = 500;
 const NATIVE_DEPENDENCY_CONCURRENCY = 4;
@@ -756,13 +759,16 @@ function runGh(args, input = undefined) {
         return;
       }
       if (code !== 0) {
-        const detail = truncate(stderr.toString("utf8").trim());
+        const stderrText = stderr.toString("utf8");
+        const detail = truncate(stderrText.trim());
         const suffix = detail.length > 0 ? `: ${detail}` : "";
-        rejectPromise(
-          new Error(
-            `gh ${args.join(" ")} failed with ${signal ?? `exit ${code}`}${suffix}`,
-          ),
+        const commandError = new Error(
+          `gh ${args.join(" ")} failed with ${signal ?? `exit ${code}`}${suffix}`,
         );
+        commandError.ghStdout = stdout.toString("utf8");
+        commandError.ghStderr = stderrText;
+        commandError.ghExitCode = code;
+        rejectPromise(commandError);
         return;
       }
       resolvePromise(stdout.toString("utf8"));
@@ -777,6 +783,64 @@ async function ghJson(args, input, context) {
   const output = await runGh(args, input);
   try {
     return JSON.parse(output);
+  } catch (error) {
+    throw new Error(
+      `${context} returned invalid JSON: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
+    );
+  }
+}
+
+function parseIncludedGhResponse(output, context = "gh api --include") {
+  if (typeof output !== "string") {
+    throw new Error(`${context} returned a non-string response`);
+  }
+  const boundary = /\r?\n\r?\n/u.exec(output);
+  if (!boundary) throw new Error(`${context} returned no HTTP header block`);
+  const headerBlock = output.slice(0, boundary.index);
+  const body = output.slice(boundary.index + boundary[0].length);
+  const [statusLine, ...headerLines] = headerBlock.split(/\r?\n/u);
+  const statusMatch = statusLine.match(/^HTTP\/\S+\s+(\d{3})(?:\s|$)/u);
+  if (!statusMatch) throw new Error(`${context} returned no HTTP status line`);
+  const statusCode = Number(statusMatch[1]);
+  const headers = {};
+  for (const line of headerLines) {
+    const separator = line.indexOf(":");
+    if (separator <= 0) {
+      throw new Error(`${context} returned a malformed HTTP header`);
+    }
+    const name = line.slice(0, separator).trim().toLowerCase();
+    const value = line.slice(separator + 1).trim();
+    headers[name] = Object.hasOwn(headers, name)
+      ? `${headers[name]}, ${value}`
+      : value;
+  }
+  return { body, headers, statusCode, statusLine };
+}
+
+async function ghJsonWithHeaders(args, input, context) {
+  let output;
+  try {
+    output = await runGh(args, input);
+  } catch (error) {
+    if (error instanceof Error && typeof error.ghStdout === "string") {
+      try {
+        error.ghResponse = parseIncludedGhResponse(
+          error.ghStdout,
+          `${context} error response`,
+        );
+      } catch {
+        // Preserve the original command failure when GitHub emitted no headers.
+      }
+    }
+    throw error;
+  }
+  const response = parseIncludedGhResponse(output, context);
+  try {
+    return {
+      data: JSON.parse(response.body),
+      response,
+    };
   } catch (error) {
     throw new Error(
       `${context} returned invalid JSON: ${error instanceof Error ? error.message : String(error)}`,
@@ -1471,22 +1535,135 @@ function printPlan(repo, plan) {
 
 let lastGhMutationAt = 0;
 
-async function ghMutation(method, endpoint, payload, context) {
-  const waitMilliseconds = Math.max(
-    0,
-    GH_MUTATION_INTERVAL_MS - (Date.now() - lastGhMutationAt),
-  );
-  if (waitMilliseconds > 0) {
-    await new Promise((resolvePromise) =>
-      setTimeout(resolvePromise, waitMilliseconds),
-    );
+function responseStatusCode(error) {
+  if (!(error instanceof Error)) return null;
+  if (Number.isInteger(error.ghResponse?.statusCode))
+    return error.ghResponse.statusCode;
+  const match = error.message.match(/HTTP\s+(\d{3})/iu);
+  return match ? Number(match[1]) : null;
+}
+
+function responseHeader(error, name) {
+  if (!(error instanceof Error)) return null;
+  const value = error.ghResponse?.headers?.[name.toLowerCase()];
+  return typeof value === "string" ? value : null;
+}
+
+function responseText(error) {
+  if (!(error instanceof Error)) return "";
+  return [error.message, error.ghStderr, error.ghResponse?.body]
+    .filter((value) => typeof value === "string")
+    .join("\n");
+}
+
+function retryAfterMilliseconds(error) {
+  const headerValue = responseHeader(error, "retry-after");
+  if (headerValue !== null) {
+    const seconds = Number(headerValue.trim());
+    if (Number.isSafeInteger(seconds) && seconds >= 0) return seconds * 1_000;
   }
-  lastGhMutationAt = Date.now();
-  return ghJson(
-    ["api", "--method", method, "--input", "-", endpoint],
-    payload,
-    context,
+  const source = headerValue ?? responseText(error);
+  const match = source.match(
+    /(?:retry-after\s*:\s*|retry after\s+)(\d+)(?:\s+seconds?)?/iu,
   );
+  if (!match) return null;
+  const seconds = Number(match[1]);
+  if (!Number.isSafeInteger(seconds) || seconds < 0) return null;
+  return seconds * 1_000;
+}
+
+function rateLimitResetMilliseconds(error, now = Date.now()) {
+  const remaining = responseHeader(error, "x-ratelimit-remaining");
+  const reset = Number(responseHeader(error, "x-ratelimit-reset"));
+  if (remaining !== "0" || !Number.isSafeInteger(reset)) return null;
+  return Math.max(0, reset * 1_000 - now);
+}
+
+function isSecondaryRateLimitError(error) {
+  const statusCode = responseStatusCode(error);
+  if (statusCode === 429) return true;
+  if (statusCode !== 403) return false;
+  const hasServerCooldown =
+    retryAfterMilliseconds(error) !== null ||
+    rateLimitResetMilliseconds(error) !== null;
+  return (
+    hasServerCooldown ||
+    /secondary rate limit|temporarily blocked from content creation/iu.test(
+      responseText(error),
+    )
+  );
+}
+
+async function withSecondaryRateLimitRetry(operation, context, runtime = {}) {
+  const pause =
+    runtime.pause ??
+    ((milliseconds) =>
+      new Promise((resolvePromise) =>
+        setTimeout(resolvePromise, milliseconds),
+      ));
+  const maxAttempts =
+    runtime.maxAttempts ?? GH_SECONDARY_RATE_LIMIT_MAX_ATTEMPTS;
+  const initialDelayMs =
+    runtime.initialDelayMs ?? GH_SECONDARY_RATE_LIMIT_INITIAL_DELAY_MS;
+  const maxDelayMs = runtime.maxDelayMs ?? GH_SECONDARY_RATE_LIMIT_MAX_DELAY_MS;
+  const now = runtime.now ?? Date.now;
+  const onRetry =
+    runtime.onRetry ??
+    (({ delayMs, nextAttempt }) => {
+      process.stderr.write(
+        `GitHub rate limit while attempting ${context}; retrying in ${Math.ceil(delayMs / 1_000)}s (${nextAttempt}/${maxAttempts}).\n`,
+      );
+    });
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (!isSecondaryRateLimitError(error) || attempt === maxAttempts) {
+        throw error;
+      }
+      const exponentialDelay = Math.min(
+        maxDelayMs,
+        initialDelayMs * 2 ** (attempt - 1),
+      );
+      const delayMs =
+        retryAfterMilliseconds(error) ??
+        rateLimitResetMilliseconds(error, now()) ??
+        exponentialDelay;
+      onRetry({
+        attempt,
+        context,
+        delayMs,
+        error,
+        maxAttempts,
+        nextAttempt: attempt + 1,
+      });
+      await pause(delayMs);
+    }
+  }
+
+  throw new Error(`secondary rate-limit retry loop exhausted for ${context}`);
+}
+
+async function ghMutation(method, endpoint, payload, context) {
+  return withSecondaryRateLimitRetry(async () => {
+    const waitMilliseconds = Math.max(
+      0,
+      GH_MUTATION_INTERVAL_MS - (Date.now() - lastGhMutationAt),
+    );
+    if (waitMilliseconds > 0) {
+      await new Promise((resolvePromise) =>
+        setTimeout(resolvePromise, waitMilliseconds),
+      );
+    }
+    lastGhMutationAt = Date.now();
+    const response = await ghJsonWithHeaders(
+      ["api", "--include", "--method", method, "--input", "-", endpoint],
+      payload,
+      context,
+    );
+    return response.data;
+  }, context);
 }
 
 function isRetryablePostApplyVerificationError(error) {
@@ -1557,6 +1734,7 @@ async function applyNativeDependencies(
           `add blocked_by ${issue.id} <- ${dependency}`,
         );
       } catch (error) {
+        if (isSecondaryRateLimitError(error)) throw error;
         let observedAfterFailure;
         try {
           observedAfterFailure = await fetchBlockedBy(
@@ -1985,5 +2163,7 @@ export {
   loadManifest,
   main,
   managedIssues,
+  parseIncludedGhResponse,
   validateManifest,
+  withSecondaryRateLimitRetry,
 };
