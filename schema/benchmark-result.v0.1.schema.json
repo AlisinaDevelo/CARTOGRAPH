@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/benchmark-result.v0.1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifactVersion",
+    "protocolVersion",
+    "generatedAt",
+    "tool",
+    "corpus",
+    "runs",
+    "fixtures"
+  ],
+  "properties": {
+    "artifactVersion": { "const": 1 },
+    "protocolVersion": { "const": 1 },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packageVersion",
+        "nodeVersion",
+        "platform",
+        "arch",
+        "cpuCount",
+        "totalMemoryBytes"
+      ],
+      "properties": {
+        "packageVersion": { "type": "string", "minLength": 1 },
+        "nodeVersion": { "type": "string", "minLength": 1 },
+        "platform": { "type": "string", "minLength": 1 },
+        "arch": { "type": "string", "minLength": 1 },
+        "cpuCount": { "type": "integer", "minimum": 1 },
+        "totalMemoryBytes": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "corpus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "digest", "fileCount", "fixtures"],
+      "properties": {
+        "version": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "fileCount": { "type": "integer", "minimum": 0 },
+        "fixtures": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "runs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cold", "warm"],
+      "properties": {
+        "cold": { "type": "integer", "minimum": 1 },
+        "warm": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "fixtures": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "digest",
+          "fileCount",
+          "cold",
+          "warm",
+          "graph",
+          "accuracy"
+        ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "fileCount": { "type": "integer", "minimum": 0 },
+          "cold": { "$ref": "#/$defs/timing" },
+          "warm": { "$ref": "#/$defs/timing" },
+          "graph": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["nodes", "edges", "diagnostics"],
+            "properties": {
+              "nodes": { "type": "integer", "minimum": 0 },
+              "edges": { "type": "integer", "minimum": 0 },
+              "diagnostics": { "type": "integer", "minimum": 0 }
+            }
+          },
+          "accuracy": {
+            "anyOf": [
+              { "type": "null" },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["edge", "diagnostic"],
+                "properties": {
+                  "edge": { "$ref": "#/$defs/accuracy" },
+                  "diagnostic": { "$ref": "#/$defs/accuracy" }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runs",
+        "minMs",
+        "medianMs",
+        "p95Ms",
+        "maxMs",
+        "peakRssBytes"
+      ],
+      "properties": {
+        "runs": { "type": "integer", "minimum": 1 },
+        "minMs": { "type": "number", "minimum": 0 },
+        "medianMs": { "type": "number", "minimum": 0 },
+        "p95Ms": { "type": "number", "minimum": 0 },
+        "maxMs": { "type": "number", "minimum": 0 },
+        "peakRssBytes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "accuracy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "truePositives",
+        "emitted",
+        "expected",
+        "precision",
+        "recall"
+      ],
+      "properties": {
+        "truePositives": { "type": "integer", "minimum": 0 },
+        "emitted": { "type": "integer", "minimum": 0 },
+        "expected": { "type": "integer", "minimum": 0 },
+        "precision": { "type": "number", "minimum": 0, "maximum": 1 },
+        "recall": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "protocolVersion": 1,
+  "corpusVersion": "0.1",
+  "fixtures": [
+    {
+      "id": "typescript-express",
+      "root": "test/fixtures/typescript-express",
+      "tsconfig": "tsconfig.json",
+      "expected": "test/fixtures/typescript-express/expected.json",
+      "families": [
+        "imports",
+        "calls",
+        "express",
+        "http",
+        "prisma",
+        "unsupported"
+      ]
+    },
+    {
+      "id": "review-regressions",
+      "root": "test/fixtures/review-regressions",
+      "tsconfig": "tsconfig.json",
+      "families": ["shadowing", "prisma-identity", "dynamic-negative"]
+    },
+    {
+      "id": "outside-import",
+      "root": "test/fixtures/outside-import/project",
+      "families": ["repository-boundary", "unresolved-import"]
+    },
+    {
+      "id": "exclusions",
+      "root": "test/fixtures/exclusions",
+      "families": ["generated-directory-exclusion", "symlink-boundary"]
+    }
+  ]
+}

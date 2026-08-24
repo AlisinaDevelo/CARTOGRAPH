@@ -1,0 +1,148 @@
+{
+  "artifactVersion": 1,
+  "protocolVersion": 1,
+  "generatedAt": "2026-08-24T10:35:14.557Z",
+  "tool": {
+    "packageVersion": "0.1.0",
+    "nodeVersion": "v26.7.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpuCount": 8,
+    "totalMemoryBytes": 8589934592
+  },
+  "corpus": {
+    "version": "0.1",
+    "digest": "8caf6fd723217d350543811a3243643a5e52a69731e014b9b08e215aa76765a7",
+    "fileCount": 19,
+    "fixtures": 4
+  },
+  "runs": {
+    "cold": 1,
+    "warm": 3
+  },
+  "fixtures": [
+    {
+      "id": "typescript-express",
+      "digest": "6feec7ba3dbab32e9189976e14c14321c70ca5bcd41ce60781c0c880ffdcad07",
+      "fileCount": 10,
+      "cold": {
+        "runs": 1,
+        "minMs": 449.195,
+        "medianMs": 449.195,
+        "p95Ms": 449.195,
+        "maxMs": 449.195,
+        "peakRssBytes": 348143616
+      },
+      "warm": {
+        "runs": 3,
+        "minMs": 274.024,
+        "medianMs": 279.853,
+        "p95Ms": 318.178,
+        "maxMs": 318.178,
+        "peakRssBytes": 610942976
+      },
+      "graph": {
+        "nodes": 24,
+        "edges": 23,
+        "diagnostics": 5
+      },
+      "accuracy": {
+        "edge": {
+          "truePositives": 23,
+          "emitted": 23,
+          "expected": 23,
+          "precision": 1,
+          "recall": 1
+        },
+        "diagnostic": {
+          "truePositives": 4,
+          "emitted": 5,
+          "expected": 4,
+          "precision": 0.8,
+          "recall": 1
+        }
+      }
+    },
+    {
+      "id": "review-regressions",
+      "digest": "f084e168008c9bcdd9047e9996255c3febc8dc798ca7d0678e156130272b3b14",
+      "fileCount": 3,
+      "cold": {
+        "runs": 1,
+        "minMs": 117.716,
+        "medianMs": 117.716,
+        "p95Ms": 117.716,
+        "maxMs": 117.716,
+        "peakRssBytes": 643481600
+      },
+      "warm": {
+        "runs": 3,
+        "minMs": 111.988,
+        "medianMs": 113.774,
+        "p95Ms": 116.659,
+        "maxMs": 116.659,
+        "peakRssBytes": 768196608
+      },
+      "graph": {
+        "nodes": 15,
+        "edges": 8,
+        "diagnostics": 2
+      },
+      "accuracy": null
+    },
+    {
+      "id": "outside-import",
+      "digest": "e4f764275ba0a398e0520dac5662bb3e8d7f16e3df24a40dca0fc5d814c15e6b",
+      "fileCount": 1,
+      "cold": {
+        "runs": 1,
+        "minMs": 121,
+        "medianMs": 121,
+        "p95Ms": 121,
+        "maxMs": 121,
+        "peakRssBytes": 760709120
+      },
+      "warm": {
+        "runs": 3,
+        "minMs": 97.274,
+        "medianMs": 97.51,
+        "p95Ms": 99.913,
+        "maxMs": 99.913,
+        "peakRssBytes": 761446400
+      },
+      "graph": {
+        "nodes": 2,
+        "edges": 0,
+        "diagnostics": 2
+      },
+      "accuracy": null
+    },
+    {
+      "id": "exclusions",
+      "digest": "641193c8fb128c903eb701df5f6a2719ba70ffe9bdf63da3493add39d8a853b5",
+      "fileCount": 5,
+      "cold": {
+        "runs": 1,
+        "minMs": 100.757,
+        "medianMs": 100.757,
+        "p95Ms": 100.757,
+        "maxMs": 100.757,
+        "peakRssBytes": 761692160
+      },
+      "warm": {
+        "runs": 3,
+        "minMs": 100.61,
+        "medianMs": 102.809,
+        "p95Ms": 110.26,
+        "maxMs": 110.26,
+        "peakRssBytes": 762183680
+      },
+      "graph": {
+        "nodes": 2,
+        "edges": 0,
+        "diagnostics": 0
+      },
+      "accuracy": null
+    }
+  ]
+}

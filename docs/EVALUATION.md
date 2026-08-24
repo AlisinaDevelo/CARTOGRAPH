@@ -42,7 +42,12 @@ Before v0.1, CARTOGRAPH will analyze at least three representative public TypeSc
 
 ## Performance
 
-Benchmarks record cold scan time, peak memory, graph size, diff time, and report size on small, medium, and large tiers. A later incremental cache may record warm scan time. A regression greater than 20% requires an explanation before release; this is a review threshold, not a universal performance guarantee.
+The governed corpus and measurement rules live in the
+[benchmark protocol](BENCHMARK_PROTOCOL.md). The checked-in baseline records
+cold and warm scan time, peak memory, graph size, and accuracy denominators
+without copying source bodies or telemetry. A regression greater than 20%
+requires an explanation before release; this is a review threshold, not a
+universal performance guarantee.
 
 ## Human usefulness
 
