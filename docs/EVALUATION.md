@@ -37,6 +37,12 @@ CI analyzes the same fixture with varied discovery order and asserts byte-identi
 
 Mutation fixtures introduce one known change at a time: an endpoint, dependency, data access, outbound request, removal, rename, cycle, or unresolved construct. The graph-diff golden fixture also combines the contract-level added, removed, changed, endpoint-rewire, evidence-only, confidence-change, and unresolved-diagnostic cases so the semantic categories cannot regress while individual analyzer fixtures evolve. Rewire pairing fails closed when multiple candidates are equally plausible, and golden diffs must remain stable under unrelated graph ordering changes while retaining evidence from the correct revision.
 
+Impact traversal uses a hand-authored reachability fixture with a cycle, an
+unresolved edge, and a known depth boundary. Forward and reverse runs assert
+the exact node and edge sets, confidence/evidence preservation, cycle paths,
+unresolved-edge visibility, depth-limit reporting, ordering stability, and a
+bounded local timing sample. No network or source execution is involved.
+
 ## Practical compatibility
 
 Before v0.1, CARTOGRAPH will analyze at least three representative public TypeScript repositories or recorded snapshots. The report will publish supported, unresolved, and failed construct counts without copying third-party source into the repository.

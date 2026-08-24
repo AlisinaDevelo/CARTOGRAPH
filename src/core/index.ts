@@ -22,6 +22,21 @@ export {
   serializeGraphDiff,
 } from "./diff.js";
 export {
+  computeForwardImpact,
+  computeImpactSubgraph,
+  computeReverseImpact,
+  ImpactDirectionSchema,
+  ImpactQuerySchema,
+  serializeImpactSubgraph,
+  type ImpactCycle,
+  type ImpactDirection,
+  type ImpactEdge,
+  type ImpactNode,
+  type ImpactQuery,
+  type ImpactSubgraph,
+  type ImpactTraversalOptions,
+} from "./impact.js";
+export {
   assertCompatibleCapabilityRegistryVersion,
   assertSupportedCapabilityRegistryVersion,
   CAPABILITY_REGISTRY,
