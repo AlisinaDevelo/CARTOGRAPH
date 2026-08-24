@@ -3,6 +3,7 @@ import {
   GraphEdgeSchema,
   GraphNodeSchema,
   GraphSnapshotSchema,
+  GRAPH_SNAPSHOT_SCHEMA_VERSION,
   type Diagnostic,
   type Evidence,
   type GraphEdge,
@@ -21,6 +22,49 @@ export class GraphContractError extends Error {
     this.code = code;
   }
 }
+
+export class GraphSchemaVersionError extends Error {
+  readonly contract: string;
+  readonly requestedVersion: unknown;
+  readonly supportedVersion: number;
+
+  constructor(
+    contract: string,
+    requestedVersion: unknown,
+    supportedVersion: number,
+  ) {
+    const renderedVersion =
+      typeof requestedVersion === "string"
+        ? requestedVersion
+        : JSON.stringify(requestedVersion);
+    super(
+      `unsupported ${contract} schema version ${renderedVersion}; supported version is ${supportedVersion}. Add or run an explicit migration before analysis.`,
+    );
+    this.name = "GraphSchemaVersionError";
+    this.contract = contract;
+    this.requestedVersion = requestedVersion;
+    this.supportedVersion = supportedVersion;
+  }
+}
+
+export const assertSupportedSchemaVersion = (
+  input: unknown,
+  contract: string,
+  supportedVersion: number,
+): void => {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return;
+
+  const record = input as Record<string, unknown>;
+  const requestedVersion =
+    "schemaVersion" in record ? record.schemaVersion : record.version;
+  if (requestedVersion !== undefined && requestedVersion !== supportedVersion) {
+    throw new GraphSchemaVersionError(
+      contract,
+      requestedVersion,
+      supportedVersion,
+    );
+  }
+};
 
 const compareStrings = (left: string, right: string): number => {
   if (left < right) return -1;
@@ -160,6 +204,11 @@ const validateGlobalEvidenceIdentity = (
 };
 
 export const canonicalizeGraphSnapshot = (input: unknown): GraphSnapshot => {
+  assertSupportedSchemaVersion(
+    input,
+    "GraphSnapshot",
+    GRAPH_SNAPSHOT_SCHEMA_VERSION,
+  );
   const parsed = GraphSnapshotSchema.parse(input);
   const nodes = canonicalNodes(parsed.nodes);
   const edges = canonicalEdges(parsed.edges);

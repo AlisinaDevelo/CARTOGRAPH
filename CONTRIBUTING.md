@@ -18,7 +18,9 @@ npm run check
 npm pack --dry-run --ignore-scripts
 ```
 
-`npm run check` runs formatting, linting, type-checking, tests, and the build. Run individual commands while iterating when that gives faster feedback:
+`npm run check` runs formatting, linting, type-checking, schema compatibility,
+tests, roadmap validation, and the build. Run individual commands while iterating
+when that gives faster feedback:
 
 ```sh
 npm run format:check
