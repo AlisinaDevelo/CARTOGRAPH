@@ -31,6 +31,11 @@ node dist/cli.js --version
 npm pack --dry-run --ignore-scripts
 ```
 
+The [full quickstart and limitations guide](docs/QUICKSTART.md) uses the
+[sample repository](examples/sample-repository/) to demonstrate a first scan,
+revision diff, configuration, privacy boundary, unsupported constructs,
+troubleshooting, and the read-only Action.
+
 Tagged releases are produced by the read-only package gate in
 [`docs/RELEASE.md`](docs/RELEASE.md). Each GitHub release includes an installable
 tarball, release notes, a SHA-256 checksum, and package-install smoke-test metadata.
@@ -159,6 +164,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 ## Project documents
 
 - [Product charter](docs/PRODUCT.md)
+- [Quickstart and limitations](docs/QUICKSTART.md)
 - [CLI runtime and exit policy](docs/CLI.md)
 - [Read-only GitHub Action](docs/ACTION.md)
 - [Support matrix and review process](docs/SUPPORT_MATRIX.md)
