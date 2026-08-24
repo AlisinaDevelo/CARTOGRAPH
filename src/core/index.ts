@@ -232,6 +232,10 @@ export {
   type RemediationReviewRequest,
   type RemediationReviewState,
 } from "./remediation-review.js";
+export {
+  REMEDIATION_EVALUATION_CONTRACT,
+  REMEDIATION_EVALUATION_SCHEMA_VERSION,
+} from "./remediation-evaluation.js";
 export type {
   ChangedDiagnostic,
   ChangedEdge,

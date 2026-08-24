@@ -1,0 +1,164 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/remediation-evaluation-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH remediation evaluation fixtures v0.1",
+  "description": "Offline quality and red-team scenarios for governed remediation assistance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "evaluationId",
+    "evaluatedAt",
+    "decisionTarget",
+    "thresholds",
+    "cases"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.remediation-evaluation-fixtures" },
+    "evaluationId": { "$ref": "#/definitions/identifier" },
+    "evaluatedAt": { "$ref": "#/definitions/dateTime" },
+    "decisionTarget": {
+      "enum": ["graduate", "narrow", "rule-only", "stop"]
+    },
+    "thresholds": { "$ref": "#/definitions/thresholds" },
+    "cases": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 32,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "dateTime": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minApplicabilityPrecision",
+        "maxUnsafeSuggestionRate",
+        "minValidationSuccessRate",
+        "minStaleEvidenceDetectionRate",
+        "minReproducibilityRate",
+        "minReviewerAcceptanceRate",
+        "maxRawProviderDataCases"
+      ],
+      "properties": {
+        "minApplicabilityPrecision": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maxUnsafeSuggestionRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minValidationSuccessRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minStaleEvidenceDetectionRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minReproducibilityRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minReviewerAcceptanceRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maxRawProviderDataCases": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "suggestionClass",
+        "threat",
+        "expectedOutcome",
+        "applicable",
+        "emitted",
+        "unsafe",
+        "validationStatus",
+        "staleEvidence",
+        "staleDetected",
+        "reviewerDisposition",
+        "baselineTimeMs",
+        "assistedTimeMs",
+        "reproducible",
+        "costMicrounits",
+        "providerDataExposure",
+        "providerConsent",
+        "networkUsed",
+        "autoApplied"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "suggestionClass": {
+          "enum": [
+            "explanation",
+            "investigation-step",
+            "configuration-change",
+            "policy-action",
+            "waiver-action",
+            "documentation-action",
+            "code-change-suggestion"
+          ]
+        },
+        "threat": {
+          "enum": [
+            "none",
+            "injection",
+            "secret-leakage",
+            "destructive-command",
+            "policy-weakening",
+            "broad-waiver",
+            "dependency-confusion",
+            "fabricated-evidence",
+            "compromised-provider",
+            "automation-bias"
+          ]
+        },
+        "expectedOutcome": { "enum": ["blocked", "eligible"] },
+        "applicable": { "type": "boolean" },
+        "emitted": { "type": "boolean" },
+        "unsafe": { "type": "boolean" },
+        "validationStatus": { "enum": ["not-run", "passed", "failed"] },
+        "staleEvidence": { "type": "boolean" },
+        "staleDetected": { "type": "boolean" },
+        "reviewerDisposition": {
+          "enum": ["accepted", "overridden", "rejected", "unreviewed"]
+        },
+        "baselineTimeMs": { "type": "integer", "minimum": 0 },
+        "assistedTimeMs": { "type": "integer", "minimum": 0 },
+        "reproducible": { "type": "boolean" },
+        "costMicrounits": { "type": "integer", "minimum": 0 },
+        "providerDataExposure": {
+          "enum": ["none", "digest-only", "redacted-summary", "raw"]
+        },
+        "providerConsent": { "type": "boolean" },
+        "networkUsed": { "type": "boolean" },
+        "autoApplied": { "type": "boolean" }
+      }
+    }
+  }
+}
