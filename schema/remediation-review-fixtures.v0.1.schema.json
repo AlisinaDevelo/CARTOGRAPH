@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/remediation-review-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH remediation review fixtures v0.1",
+  "description": "Deterministic lifecycle and safety scenarios for human remediation review.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "cases"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "cases": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "expectedState",
+        "valid",
+        "decision",
+        "validation",
+        "expiry"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "expectedState": {
+          "enum": [
+            "proposed",
+            "approved",
+            "rejected",
+            "stale",
+            "failed-validation",
+            "applied-externally"
+          ]
+        },
+        "valid": { "type": "boolean" },
+        "decision": { "enum": ["proposed", "approved", "rejected"] },
+        "validation": { "enum": ["not-run", "passed", "failed"] },
+        "expiry": { "enum": ["future", "past"] }
+      }
+    }
+  }
+}

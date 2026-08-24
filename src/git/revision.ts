@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   lstat,
   mkdir,
@@ -22,6 +23,12 @@ const COMMAND_TIMEOUT_MS = 30_000;
 const MAX_REF_LENGTH = 512;
 const DEFAULT_ARCHIVE_BYTES = 64 * 1024 * 1024;
 const DEFAULT_MEMORY_BYTES = 1024 * 1024 * 1024;
+
+export const revisionTemporaryPrefix = (repositoryRoot: string): string =>
+  `cartograph-revision-${createHash("sha256")
+    .update(repositoryRoot, "utf8")
+    .digest("hex")
+    .slice(0, 16)}-`;
 
 export type MaterializationOptions = {
   resources?: {
@@ -245,7 +252,9 @@ export async function materializeRevision(
   checkBudget();
   const commit = await resolveCommit(root, ref, processConfig);
   checkBudget();
-  const temporaryRoot = await mkdtemp(join(tmpdir(), "cartograph-revision-"));
+  const temporaryRoot = await mkdtemp(
+    join(tmpdir(), revisionTemporaryPrefix(root)),
+  );
   const archivePath = join(temporaryRoot, "revision.tar");
   const treeRoot = join(temporaryRoot, "tree");
   let cleaned = false;

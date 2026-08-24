@@ -45,6 +45,13 @@ emits the migrated v1 snapshot with `--output` and writes a deterministic
 identity migration report with `--report`. The report must be reviewed before
 the migrated snapshot is used as a baseline.
 
+`review-remediation <input>` evaluates a bounded human remediation review
+request and emits a canonical JSON report. `--as-of` makes stale/expiry
+evaluation reproducible. The command distinguishes proposed, approved,
+rejected, stale, failed-validation, and applied-externally states, but never
+applies a patch, merges a pull request, changes policy, or invokes a repository
+command.
+
 ## Exit codes
 
 - **Exit code 0** means the requested command completed successfully. `--help`,

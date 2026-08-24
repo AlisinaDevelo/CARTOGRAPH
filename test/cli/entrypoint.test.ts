@@ -147,4 +147,66 @@ describe("CLI entrypoint", () => {
     });
     expect(migration.changedEdgeIdentities).toHaveLength(1);
   });
+
+  it("emits a read-only remediation review state without applying changes", async () => {
+    const root = await mkdtemp(
+      join(tmpdir(), "cartograph-cli-remediation-review-test-"),
+    );
+    temporaryDirectories.push(root);
+    const input = join(root, "review.json");
+    const digest =
+      "sha256:3e2d9a1a2c5b4d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6";
+    await writeFile(
+      input,
+      JSON.stringify({
+        schemaVersion: 1,
+        contract: "cartograph.remediation-review",
+        reviewId: "review-cli",
+        suggestionId: "suggestion-cli",
+        suggestionVersion: 1,
+        suggestionDigest: digest,
+        ownerId: "team-architecture",
+        reviewerId: "reviewer-architecture",
+        evidenceRevision: {
+          sourceCommit: "a".repeat(40),
+          baselineDigest: digest,
+          evidenceDigest: digest,
+        },
+        decision: "approved",
+        rationale: "The bounded preview was reviewed by the owner.",
+        validation: {
+          status: "passed",
+          resultDigest: digest,
+          commands: ["review-fixture-validator"],
+        },
+        expiresAt: "2031-01-01T00:00:00.000Z",
+        reviewedAt: "2030-01-01T00:00:00.000Z",
+        finalDisposition: "unapplied",
+        externalApplication: null,
+      }),
+      "utf8",
+    );
+
+    const result = await runEntrypoint([
+      "review-remediation",
+      input,
+      "--as-of",
+      "2030-01-01T00:00:00.000Z",
+    ]);
+    const report = JSON.parse(result.stdout) as {
+      state?: string;
+      readOnly?: boolean;
+      autoApply?: boolean;
+      mergeAutomation?: boolean;
+    };
+
+    expect(result.code).toBe(0);
+    expect(result.stderr).toBe("");
+    expect(report).toMatchObject({
+      state: "approved",
+      readOnly: true,
+      autoApply: false,
+      mergeAutomation: false,
+    });
+  });
 });

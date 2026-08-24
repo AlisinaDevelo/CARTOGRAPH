@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "proposed",
+      "expectedState": "proposed",
+      "valid": true,
+      "decision": "proposed",
+      "validation": "not-run",
+      "expiry": "future"
+    },
+    {
+      "id": "approved",
+      "expectedState": "approved",
+      "valid": true,
+      "decision": "approved",
+      "validation": "passed",
+      "expiry": "future"
+    },
+    {
+      "id": "rejected",
+      "expectedState": "rejected",
+      "valid": true,
+      "decision": "rejected",
+      "validation": "not-run",
+      "expiry": "future"
+    },
+    {
+      "id": "stale",
+      "expectedState": "stale",
+      "valid": true,
+      "decision": "proposed",
+      "validation": "not-run",
+      "expiry": "past"
+    },
+    {
+      "id": "failed-validation",
+      "expectedState": "failed-validation",
+      "valid": true,
+      "decision": "proposed",
+      "validation": "failed",
+      "expiry": "future"
+    },
+    {
+      "id": "applied-externally",
+      "expectedState": "applied-externally",
+      "valid": true,
+      "decision": "approved",
+      "validation": "passed",
+      "expiry": "future"
+    },
+    {
+      "id": "approved-without-reviewer",
+      "expectedState": "approved",
+      "valid": false,
+      "decision": "approved",
+      "validation": "passed",
+      "expiry": "future"
+    },
+    {
+      "id": "applied-without-proof",
+      "expectedState": "applied-externally",
+      "valid": false,
+      "decision": "approved",
+      "validation": "passed",
+      "expiry": "future"
+    }
+  ]
+}

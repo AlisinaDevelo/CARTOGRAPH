@@ -25,6 +25,7 @@ import {
   previewPatch,
   serializePatchPreviewReport,
 } from "../../src/core/index.js";
+import { revisionTemporaryPrefix } from "../../src/git/revision.js";
 
 const repositoryRoot = resolve(import.meta.dirname, "../..");
 const temporaryDirectories: string[] = [];
@@ -66,10 +67,18 @@ const createRepository = async (): Promise<string> => {
   return root;
 };
 
-const revisionDirectories = async (): Promise<string[]> =>
+const revisionDirectories = async (root: string): Promise<string[]> =>
   (await readdir(tmpdir())).filter((entry) =>
-    entry.startsWith("cartograph-revision-"),
+    entry.startsWith(revisionTemporaryPrefix(root)),
   );
+
+const expectNoNewRevisionDirectories = async (
+  root: string,
+  before: readonly string[],
+): Promise<void> => {
+  const after = await revisionDirectories(root);
+  expect(after.filter((entry) => !before.includes(entry))).toEqual([]);
+};
 
 const requestFor = async (
   root: string,
@@ -243,7 +252,7 @@ describe("isolated patch previews", () => {
     await symlink("/etc/passwd", join(root, "outside-link"));
     await run("git", ["add", "outside-link"], root);
     await run("git", ["commit", "-m", "add link"], root);
-    const before = await revisionDirectories();
+    const before = await revisionDirectories(root);
 
     await expect(
       previewPatch({
@@ -261,7 +270,7 @@ describe("isolated patch previews", () => {
     ).rejects.toMatchObject({
       code: "materialization-failed",
     });
-    await expect(revisionDirectories()).resolves.toEqual(before);
+    await expectNoNewRevisionDirectories(root, before);
     expect((await lstat(join(root, "outside-link"))).isSymbolicLink()).toBe(
       true,
     );
@@ -269,7 +278,7 @@ describe("isolated patch previews", () => {
 
   it("enforces replacement ceilings and cleans the isolated revision", async () => {
     const root = await createRepository();
-    const before = await revisionDirectories();
+    const before = await revisionDirectories(root);
     await expect(
       previewPatch({
         root,
@@ -277,7 +286,7 @@ describe("isolated patch previews", () => {
         resources: { maxReplacementBytes: 1 },
       }),
     ).rejects.toMatchObject({ code: "resource-limit" });
-    await expect(revisionDirectories()).resolves.toEqual(before);
+    await expectNoNewRevisionDirectories(root, before);
     await expect(readFile(join(root, "README.md"), "utf8")).resolves.toBe(
       "original\n",
     );
