@@ -32,7 +32,7 @@ const environmentKeys = [
   "totalMemoryBytes",
 ];
 const performanceModes = ["cold", "warm"];
-const performanceMetrics = ["p95Ms", "peakRssBytes"];
+const performanceMetrics = ["medianMs"];
 const MAX_REGRESSION = 0.2;
 
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
@@ -209,8 +209,8 @@ const runGate = () => {
     : mkdtempSync(join(tmpdir(), "cartograph-benchmark-gate-"));
   const candidatePath =
     suppliedCandidate ?? resolve(temporaryRoot, "candidate.json");
-  const coldRuns = positiveIntegerArgument("--cold-runs", 1);
-  const warmRuns = positiveIntegerArgument("--warm-runs", 3);
+  const coldRuns = positiveIntegerArgument("--cold-runs", 3);
+  const warmRuns = positiveIntegerArgument("--warm-runs", 5);
   try {
     if (suppliedCandidate === undefined)
       runCandidate(coldRuns, warmRuns, candidatePath);

@@ -132,7 +132,7 @@ describe("benchmark corpus and artifact governance", () => {
     ) as {
       fixtures: Array<{
         graph: { edges: number };
-        warm: { p95Ms: number };
+        warm: { medianMs: number };
       }>;
     };
     const writeCandidate = (candidate: unknown): void => {
@@ -156,12 +156,12 @@ describe("benchmark corpus and artifact governance", () => {
       ).toThrow(/benchmark gate failed/u);
 
       const performanceRegression = JSON.parse(JSON.stringify(baseline)) as {
-        fixtures: Array<{ warm: { p95Ms: number } }>;
+        fixtures: Array<{ warm: { medianMs: number } }>;
       };
       const performanceFixture = performanceRegression.fixtures[0];
       if (performanceFixture === undefined)
         throw new Error("baseline fixture is missing");
-      performanceFixture.warm.p95Ms *= 1.5;
+      performanceFixture.warm.medianMs *= 1.5;
       writeCandidate(performanceRegression);
       expect(() =>
         execFileSync(
