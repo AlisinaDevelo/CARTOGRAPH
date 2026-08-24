@@ -73,5 +73,32 @@
     "UNSUPPORTED_DYNAMIC_ROUTE",
     "UNSUPPORTED_DYNAMIC_ROUTE",
     "UNSUPPORTED_DYNAMIC_ROUTE"
-  ]
+  ],
+  "families": {
+    "imports": {
+      "edgeKinds": ["imports"]
+    },
+    "calls": {
+      "edgeKinds": ["calls"],
+      "edgeFromPrefixes": ["function:"]
+    },
+    "express": {
+      "edgeKinds": ["calls"],
+      "edgeFromPrefixes": ["endpoint:"]
+    },
+    "http": {
+      "edgeKinds": ["requests"]
+    },
+    "prisma": {
+      "edgeKinds": ["reads", "writes"]
+    },
+    "unsupported": {
+      "diagnosticCodes": [
+        "UNSUPPORTED_DYNAMIC_HTTP_DESTINATION",
+        "UNSUPPORTED_DYNAMIC_IMPORT",
+        "UNSUPPORTED_DYNAMIC_PRISMA_MODEL",
+        "UNSUPPORTED_DYNAMIC_ROUTE"
+      ]
+    }
+  }
 }

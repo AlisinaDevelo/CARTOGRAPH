@@ -1,0 +1,25 @@
+{
+  "edges": [
+    [
+      "imports",
+      "module:packages/app/src/main.ts",
+      "module:packages/core/src/index.ts"
+    ]
+  ],
+  "diagnostics": [],
+  "families": {
+    "simple-modules": {
+      "edgeKinds": ["imports"],
+      "edgeFromPrefixes": ["module:packages/app/src/"],
+      "edgeToPrefixes": ["module:packages/core/src/"]
+    },
+    "project-references": {
+      "edgeKinds": ["imports"],
+      "edgeFromPrefixes": ["module:packages/app/src/"],
+      "edgeToPrefixes": ["module:packages/core/src/"]
+    },
+    "imports": {
+      "edgeKinds": ["imports"]
+    }
+  }
+}

@@ -4,7 +4,7 @@ CARTOGRAPH evaluates extraction as a measurable program-analysis system, not by 
 
 ## Fixture corpus
 
-Each curated fixture contains source, an expected canonical graph, and an explanation of unsupported or ambiguous constructs. License, source, reference, transformation, and local redistribution metadata are maintained in the [fixture provenance manifest](../test/fixtures/provenance.json) and checked by `npm run fixtures:validate`. The initial families are:
+Each curated fixture contains source, an expected canonical graph, and an explanation of unsupported or ambiguous constructs. The governed corpus contains five fixtures spanning simple modules, project references, imports, routers, middleware, and dynamic or unsupported cases. License, source, reference, transformation, and local redistribution metadata are maintained in the [fixture provenance manifest](../test/fixtures/provenance.json) and checked by `npm run fixtures:validate`. The initial families are:
 
 1. local imports and re-exports;
 2. named functions, class methods, and resolved calls;
@@ -27,7 +27,7 @@ For each construct family, the evaluator reports:
 - evidence completeness;
 - source-location accuracy.
 
-The first release target is at least 0.90 precision and 0.85 recall for explicitly supported constructs, with 100% evidence or an explicit unresolved reason on emitted edges. Results outside the declared subset do not count as supported merely because the analyzer emits something plausible.
+The first release target is at least 0.90 precision and 0.85 recall for explicitly supported constructs, with 100% evidence or an explicit unresolved reason on emitted edges. Results outside the declared subset do not count as supported merely because the analyzer emits something plausible. The benchmark evaluator runs these expected records in the local test pipe, including family-level precision and recall, so unexpected changes fail before publication.
 
 ## Determinism
 

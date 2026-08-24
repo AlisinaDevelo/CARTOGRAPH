@@ -235,13 +235,75 @@ const score = (actual, expected) => {
 
 const edgeIdentity = (edge) => `${edge.kind}\u0000${edge.from}\u0000${edge.to}`;
 
-const accuracyFor = (snapshot, expectedPath) => {
-  if (!expectedPath) return null;
-  const expected = readJson(expectedPath);
+const familySelectorKeys = new Set([
+  "edgeKinds",
+  "edgeFromPrefixes",
+  "edgeToPrefixes",
+  "diagnosticCodes",
+]);
+
+const validateFamilySelector = (selector, label) => {
+  exactObject(selector, familySelectorKeys, label);
+  const selectorFields = [...familySelectorKeys].filter((key) =>
+    Object.hasOwn(selector, key),
+  );
+  if (selectorFields.length === 0)
+    fail(`${label} must select edges or diagnostics`);
+  for (const key of selectorFields) {
+    if (
+      !Array.isArray(selector[key]) ||
+      selector[key].some(
+        (value) => typeof value !== "string" || value.length === 0,
+      )
+    )
+      fail(`${label}.${key} must contain non-empty strings`);
+  }
+};
+
+const validateExpected = (expected, expectedPath) => {
+  if (!expected || typeof expected !== "object" || Array.isArray(expected))
+    fail(`expected artifact must be an object: ${expectedPath}`);
   if (!Array.isArray(expected.edges) || !Array.isArray(expected.diagnostics))
     fail(
       `expected artifact must contain edge and diagnostic arrays: ${expectedPath}`,
     );
+  if (expected.families !== undefined) {
+    if (
+      !expected.families ||
+      typeof expected.families !== "object" ||
+      Array.isArray(expected.families)
+    )
+      fail(`expected families must be an object: ${expectedPath}`);
+    if (Object.keys(expected.families).length === 0)
+      fail(`expected artifact has no construct families: ${expectedPath}`);
+    for (const [family, selector] of Object.entries(expected.families))
+      validateFamilySelector(selector, `expected family ${family}`);
+  }
+};
+
+const matchesFamilyPrefix = (value, prefixes) =>
+  prefixes === undefined || prefixes.some((prefix) => value.startsWith(prefix));
+
+const hasEdgeFamilySelector = (selector) =>
+  selector.edgeKinds !== undefined ||
+  selector.edgeFromPrefixes !== undefined ||
+  selector.edgeToPrefixes !== undefined;
+
+const matchesEdgeFamily = (edge, selector) =>
+  hasEdgeFamilySelector(selector) &&
+  (selector.edgeKinds === undefined ||
+    selector.edgeKinds.includes(edge.kind)) &&
+  matchesFamilyPrefix(edge.from, selector.edgeFromPrefixes) &&
+  matchesFamilyPrefix(edge.to, selector.edgeToPrefixes);
+
+const matchesDiagnosticFamily = (diagnostic, selector) =>
+  selector.diagnosticCodes !== undefined &&
+  selector.diagnosticCodes.includes(diagnostic.code ?? diagnostic);
+
+const accuracyFor = (snapshot, expectedPath) => {
+  if (!expectedPath) return null;
+  const expected = readJson(expectedPath);
+  validateExpected(expected, expectedPath);
   const actualEdges = snapshot.edges.map(edgeIdentity);
   const expectedEdges = expected.edges.map((edge) => {
     if (!Array.isArray(edge) || edge.length !== 3)
@@ -256,10 +318,34 @@ const accuracyFor = (snapshot, expectedPath) => {
       fail(`expected diagnostic identity is malformed: ${expectedPath}`);
     return diagnostic;
   });
-  return {
+  const accuracy = {
     edge: score(actualEdges, expectedEdges),
     diagnostic: score(actualDiagnostics, expectedDiagnostics),
   };
+  if (expected.families !== undefined) {
+    const familyAccuracy = {};
+    for (const [family, selector] of Object.entries(expected.families)) {
+      const actualFamilyEdges = snapshot.edges
+        .filter((edge) => matchesEdgeFamily(edge, selector))
+        .map(edgeIdentity);
+      const expectedFamilyEdges = expected.edges
+        .map((edge) => ({ kind: edge[0], from: edge[1], to: edge[2] }))
+        .filter((edge) => matchesEdgeFamily(edge, selector))
+        .map(edgeIdentity);
+      const actualFamilyDiagnostics = snapshot.diagnostics
+        .filter((diagnostic) => matchesDiagnosticFamily(diagnostic, selector))
+        .map((diagnostic) => diagnostic.code);
+      const expectedFamilyDiagnostics = expectedDiagnostics.filter(
+        (diagnostic) => matchesDiagnosticFamily(diagnostic, selector),
+      );
+      familyAccuracy[family] = {
+        edge: score(actualFamilyEdges, expectedFamilyEdges),
+        diagnostic: score(actualFamilyDiagnostics, expectedFamilyDiagnostics),
+      };
+    }
+    accuracy.families = familyAccuracy;
+  }
+  return accuracy;
 };
 
 const runBenchmark = async () => {
@@ -557,11 +643,34 @@ const validateArtifact = (artifact, manifest, protocol, options = {}) => {
     if (fixture.accuracy !== null) {
       exactObject(
         fixture.accuracy,
-        new Set(["edge", "diagnostic"]),
+        new Set(["edge", "diagnostic", "families"]),
         `benchmark accuracy ${fixture.id}`,
       );
       validateScore(fixture.accuracy?.edge, `${fixture.id} edge`);
       validateScore(fixture.accuracy?.diagnostic, `${fixture.id} diagnostic`);
+      if (fixture.accuracy.families !== undefined) {
+        exactObject(
+          fixture.accuracy.families,
+          new Set(Object.keys(fixture.accuracy.families)),
+          `benchmark accuracy families ${fixture.id}`,
+        );
+        if (Object.keys(fixture.accuracy.families).length === 0)
+          fail(`benchmark accuracy families are empty: ${fixture.id}`);
+        for (const [family, familyAccuracy] of Object.entries(
+          fixture.accuracy.families,
+        )) {
+          exactObject(
+            familyAccuracy,
+            new Set(["edge", "diagnostic"]),
+            `benchmark accuracy ${fixture.id}.${family}`,
+          );
+          validateScore(familyAccuracy.edge, `${fixture.id}.${family} edge`);
+          validateScore(
+            familyAccuracy.diagnostic,
+            `${fixture.id}.${family} diagnostic`,
+          );
+        }
+      }
     }
   }
   rejectSensitiveArtifactFields(artifact);
@@ -618,6 +727,7 @@ const validateManifest = (manifest, protocol, schema) => {
       );
       if (!existsSync(expected) || !lstatSync(expected).isFile())
         fail(`benchmark expected artifact is missing: ${fixture.expected}`);
+      validateExpected(readJson(expected), fixture.expected);
     }
     if (!Array.isArray(fixture.families) || fixture.families.length === 0)
       fail(`benchmark fixture has no construct families: ${fixture.id}`);
