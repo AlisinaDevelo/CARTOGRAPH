@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/assurance-signing-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH assurance signing fixtures v0.1",
+  "description": "Scenario metadata for generated-key offline signing verification tests.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "manifestDigest", "cases"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "manifestDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "cases": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "scenario", "expectedCode"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "scenario": {
+          "enum": [
+            "old-key",
+            "missing-trust-root",
+            "tampered-manifest",
+            "no-fallback",
+            "revoked-key"
+          ]
+        },
+        "expectedCode": {
+          "enum": [
+            "verified",
+            "missing-trust-root",
+            "invalid-signature",
+            "missing-key",
+            "revoked"
+          ]
+        }
+      }
+    }
+  }
+}

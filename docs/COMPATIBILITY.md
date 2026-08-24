@@ -16,6 +16,8 @@ same manifest and are defined by
 [`schema/policy-bundle.v0.1.schema.json`](../schema/policy-bundle.v0.1.schema.json).
 Their digest-only migration reports use the reviewed `policyBundleMigrations`
 contract and [`schema/policy-bundle-migration.v0.1.schema.json`](../schema/policy-bundle-migration.v0.1.schema.json).
+Assurance signing records use the reviewed `assuranceSigning` contract and
+[`schema/assurance-signing.v0.1.schema.json`](../schema/assurance-signing.v0.1.schema.json).
 
 ## Change categories
 

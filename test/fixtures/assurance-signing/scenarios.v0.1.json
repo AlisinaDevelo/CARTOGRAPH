@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "manifestDigest": "sha256:9f84d0f4b7f4b7595e3f4f9c7a1d4bb5c13ce6d5d1cc9a1a7dfb143d5c9a9b2e",
+  "cases": [
+    { "id": "old-key", "scenario": "old-key", "expectedCode": "verified" },
+    {
+      "id": "missing-trust-root",
+      "scenario": "missing-trust-root",
+      "expectedCode": "missing-trust-root"
+    },
+    {
+      "id": "tampered-manifest",
+      "scenario": "tampered-manifest",
+      "expectedCode": "invalid-signature"
+    },
+    {
+      "id": "no-fallback",
+      "scenario": "no-fallback",
+      "expectedCode": "missing-key"
+    },
+    {
+      "id": "revoked-key",
+      "scenario": "revoked-key",
+      "expectedCode": "revoked"
+    }
+  ]
+}

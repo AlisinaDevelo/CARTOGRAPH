@@ -29,6 +29,15 @@
       ]
     },
     {
+      "id": "assurance-signing",
+      "path": "assurance-signing",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Scenario metadata drives ephemeral Ed25519 keys for old-key, missing-root, tamper, no-fallback, and revocation verification tests; private keys are generated only in memory.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "outside-import",
       "path": "outside-import",
       "source": "CARTOGRAPH repository-authored synthetic fixture",
