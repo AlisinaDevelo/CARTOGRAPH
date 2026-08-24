@@ -155,13 +155,22 @@
           "minimum": 0
         },
         "detector": {
-          "$ref": "#/definitions/text"
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?:@[A-Za-z0-9._-]+/)?[A-Za-z0-9._-]+@[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$"
         },
         "contentHash": {
           "$ref": "#/definitions/contentHash"
         }
       },
-      "anyOf": [{ "required": ["path"] }, { "required": ["location"] }]
+      "allOf": [
+        {
+          "anyOf": [{ "required": ["path"] }, { "required": ["location"] }]
+        },
+        {
+          "anyOf": [{ "required": ["line"] }, { "required": ["location"] }]
+        }
+      ]
     },
     "nonSourceEvidence": {
       "type": "object",
@@ -210,7 +219,9 @@
           "minimum": 0
         },
         "detector": {
-          "$ref": "#/definitions/text"
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?:@[A-Za-z0-9._-]+/)?[A-Za-z0-9._-]+@[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$"
         },
         "contentHash": {
           "$ref": "#/definitions/contentHash"
