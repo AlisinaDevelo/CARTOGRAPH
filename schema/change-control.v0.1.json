@@ -1,0 +1,106 @@
+{
+  "registerVersion": 1,
+  "asOf": "2026-08-24",
+  "entries": [
+    {
+      "id": "schema.graph-snapshot-v1",
+      "kind": "schema",
+      "status": "active",
+      "introducedVersion": "0.1.0",
+      "owner": "core-maintainers",
+      "reviewDate": "2027-06-30",
+      "replacement": null,
+      "deprecationReason": null,
+      "deprecatedSince": null,
+      "removalGate": null
+    },
+    {
+      "id": "schema.graph-diff-v1",
+      "kind": "schema",
+      "status": "active",
+      "introducedVersion": "0.1.0",
+      "owner": "core-maintainers",
+      "reviewDate": "2027-06-30",
+      "replacement": null,
+      "deprecationReason": null,
+      "deprecatedSince": null,
+      "removalGate": null
+    },
+    {
+      "id": "schema.capability-registry-v1",
+      "kind": "schema",
+      "status": "active",
+      "introducedVersion": "0.1.0",
+      "owner": "extractor-maintainers",
+      "reviewDate": "2027-09-30",
+      "replacement": null,
+      "deprecationReason": null,
+      "deprecatedSince": null,
+      "removalGate": null
+    },
+    {
+      "id": "schema.legacy-v0-identities",
+      "kind": "schema",
+      "status": "deprecated",
+      "introducedVersion": "0.1.0",
+      "owner": "core-maintainers",
+      "reviewDate": "2027-06-30",
+      "replacement": "GraphSnapshot v1 canonical stableKey identities",
+      "deprecationReason": "Legacy v0 hash-separated node identities remain readable only through explicit migration.",
+      "deprecatedSince": "2026-08-24",
+      "removalGate": {
+        "migrationNote": "schema/migrations/snapshot-v0-to-v1.md",
+        "fixtureUpdate": ["test/fixtures/snapshots/legacy-v0.graph.json"],
+        "validationCommand": "npm run migrations:validate"
+      }
+    },
+    {
+      "id": "cli.scan-config",
+      "kind": "cli-flag",
+      "status": "active",
+      "introducedVersion": "0.1.0",
+      "owner": "cli-maintainers",
+      "reviewDate": "2027-06-30",
+      "replacement": null,
+      "deprecationReason": null,
+      "deprecatedSince": null,
+      "removalGate": null
+    },
+    {
+      "id": "cli.scan-tsconfig",
+      "kind": "cli-flag",
+      "status": "active",
+      "introducedVersion": "0.1.0",
+      "owner": "cli-maintainers",
+      "reviewDate": "2027-06-30",
+      "replacement": null,
+      "deprecationReason": null,
+      "deprecatedSince": null,
+      "removalGate": null
+    },
+    {
+      "id": "adapter.typescript-express-v1",
+      "kind": "adapter-capability",
+      "status": "active",
+      "introducedVersion": "0.1.0",
+      "owner": "extractor-maintainers",
+      "reviewDate": "2027-09-30",
+      "replacement": null,
+      "deprecationReason": null,
+      "deprecatedSince": null,
+      "removalGate": null
+    },
+    {
+      "id": "policy.config-unknown-fields-warn",
+      "kind": "policy-feature",
+      "status": "active",
+      "introducedVersion": "0.1.0",
+      "owner": "policy-maintainers",
+      "reviewDate": "2027-09-30",
+      "replacement": null,
+      "deprecationReason": null,
+      "deprecatedSince": null,
+      "removalGate": null
+    }
+  ]
+}
