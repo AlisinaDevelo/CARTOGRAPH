@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "policyId": "baseline-local-policy",
+  "version": "0.1.0",
+  "rules": [
+    {
+      "id": "endpoint-count",
+      "target": "node",
+      "selector": { "kind": "endpoint" },
+      "assertion": "count-at-most",
+      "value": 1000
+    },
+    {
+      "id": "unknown-edge-review",
+      "target": "edge",
+      "selector": { "kind": "unknown" },
+      "assertion": "absent"
+    },
+    {
+      "id": "new-node-review",
+      "target": "diff",
+      "selector": { "kind": "node-added" },
+      "assertion": "count-at-most",
+      "value": 100
+    }
+  ]
+}

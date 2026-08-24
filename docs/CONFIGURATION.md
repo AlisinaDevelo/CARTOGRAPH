@@ -47,8 +47,11 @@ explicit instead of silently accepting misspelled limits or paths.
 The `output` object describes the intended consumer format (`snapshot` or
 `diff`, and `json`, `markdown`, or `html`); command-line output flags remain
 authoritative for the current invocation. `policyRefs` records repository-local
-policy inputs for callers and is validated for portability without executing
-or loading those files.
+policy inputs for callers and is validated for portability without executing or
+loading those files. A caller that wants to validate one of those files can use
+the v0.1 local policy contract and `readPolicyConfig`; the reader accepts only
+an in-repository regular JSON file and never fetches a URL or executes policy
+content. See [`POLICIES.md`](POLICIES.md).
 
 Library callers may pass an `AbortSignal` to `scanRepository`,
 `diffRepositoryRevisions`, or the analyzer. Cancellation raises a stable

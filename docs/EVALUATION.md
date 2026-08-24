@@ -56,6 +56,16 @@ and `IDENTITY_FALLBACK_MATCH` diagnostics, with one evidence record per
 candidate or contributing signal and reviewer remediation text. P-001 is the
 core primitive; D-010 and P-010 consume its matches in the graph-diff pipeline.
 
+## Policy configuration evaluation
+
+The policy fixture validates the versioned local contract through both the
+published JSON Schema and the runtime parser. It covers node, edge, and diff
+targets, count and presence assertions, informational defaults, unknown-field
+rejection, selector bounds, deterministic serialization, and repository-local
+file loading. A URL, executable field, or path outside the repository is
+rejected before any evaluation boundary is reached. P-004 owns evaluation;
+these fixtures do not claim that a valid policy has passed.
+
 ## Practical compatibility
 
 Before v0.1, CARTOGRAPH will analyze at least three representative public TypeScript repositories or recorded snapshots. The report will publish supported, unresolved, and failed construct counts without copying third-party source into the repository.
