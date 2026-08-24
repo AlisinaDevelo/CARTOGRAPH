@@ -83,6 +83,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "model-provider-privacy",
+      "path": "model-provider-privacy",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Inert scenario markers exercise the design-only no-provider default, local redaction, prompt-injection, secret-exfiltration, provider-failure, nondeterminism, confidence, retention-policy, and budget deferral controls without network access.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "review-regressions",
       "path": "review-regressions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

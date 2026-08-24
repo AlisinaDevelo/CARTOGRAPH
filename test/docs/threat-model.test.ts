@@ -17,7 +17,9 @@ describe("threat-model contract", () => {
     );
 
     expect(threatModel).toContain("## Optional runtime traces");
+    expect(threatModel).toContain("## Optional model-provider boundary");
     expect(threatModel).toContain("## Default offline behavior");
+    expect(threatModel).toContain("no-provider default");
     expect(threatModel).toContain("no network requests");
     expect(threatModel).toContain("no source execution");
     expect(threatModel).toContain("redaction");

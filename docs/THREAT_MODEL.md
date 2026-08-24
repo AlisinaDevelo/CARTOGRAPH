@@ -49,6 +49,28 @@ default. The following controls become mandatory before a local trace input is a
 Until those controls and tests exist, runtime behavior remains an explicit non-goal and
 unsupported input rather than an implied capability.
 
+## Optional model-provider boundary
+
+The model-provider boundary is design-only and disabled by default. No provider
+client, credential loader, or network transport is present in CARTOGRAPH. The
+RFC in `docs/MODEL_PROVIDER_PRIVACY.md` defines the future boundary and the
+offline fixture validator in `scripts/model-provider-privacy.mjs` checks that
+each adversarial case has a no-leak disposition.
+
+| Threat                                      | Control                                                                                                             | Fixture                                             |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Source or issue prompt injection            | Treat all text as untrusted data; never let it select providers, commands, credentials, or policy.                  | `source-prompt-injection`, `issue-prompt-injection` |
+| Secret exfiltration                         | Redact locally, send only the exact allowlist, omit uncertain fields, and defer on credential-shaped input.         | `secret-exfiltration`                               |
+| Untrusted reports or malicious suggestions  | Keep output unverified and authority-free; reject destructive commands, policy weakening, and unsupported evidence. | `untrusted-report`, `malicious-suggestion`          |
+| Provider failure or unavailable policy      | Use typed bounded budgets and explicit deferral; never convert failure into success.                                | `provider-failure`                                  |
+| Nondeterminism or misleading confidence     | Record input/response digests and uncertainty; confidence never upgrades evidence.                                  | `nondeterminism`, `misleading-confidence`           |
+| Configuration attempts to enable a provider | Use a no-provider default and per-request user consent; repository files cannot opt in.                             | `no-provider-default`                               |
+
+Raw source, issue bodies, credentials, absolute paths, credential-bearing URLs,
+and provider tokens are not eligible for transmission. A future provider
+adapter must pass these fixtures plus transport, retention, deletion, and
+independent red-team review before integration.
+
 ## Default offline behavior
 
 The `scan`, `diff`, and `diff-snapshots` commands make no network requests, use no hidden
