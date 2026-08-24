@@ -138,6 +138,18 @@ method/signal enums, and diagnostic registry entries are additive for readers
 that ignore them. Runtime canonicalization, the published JSON Schema, and
 golden diff fixtures are checked together.
 
+## D-013 additive revision-comparison review
+
+D-013 adds an optional `comparison` section to GraphDiff v0.1. It records the
+requested base and head references, their exact resolved commits, the selected
+comparison mode, and—when using merge-base semantics—the unique resolved merge
+base. Direct comparisons retain the existing two-tree behavior; merge-base
+comparisons make pull-request-style three-dot behavior explicit. The field is
+optional, so readers that ignore it retain the prior diff meaning, and no
+contract version or migration is required. The runtime, JSON Schema, reports,
+CLI, and fixtures reject shallow repositories, unrelated histories, and
+ambiguous merge bases without fetching remote history.
+
 ## P-003 local policy configuration
 
 P-003 publishes the versioned local policy contract in
