@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    { "id": "clean", "scenario": "clean", "expected": "passed" },
+    { "id": "dirty", "scenario": "dirty", "expected": "passed" },
+    {
+      "id": "digest-conflict",
+      "scenario": "digest-conflict",
+      "expected": "conflict"
+    },
+    {
+      "id": "malicious-path",
+      "scenario": "malicious-path",
+      "expected": "invalid-input"
+    },
+    {
+      "id": "validation-disabled",
+      "scenario": "validation-disabled",
+      "expected": "validation-skipped"
+    },
+    {
+      "id": "missing-target",
+      "scenario": "missing-target",
+      "expected": "conflict"
+    }
+  ]
+}
