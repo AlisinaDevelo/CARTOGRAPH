@@ -42,17 +42,22 @@ describe("public OSS and security baseline", () => {
     const codeql = read(".github/workflows/codeql.yml");
     const dependencyReview = read(".github/workflows/dependency-review.yml");
     const maintenance = read("docs/MAINTENANCE.md");
+    const benchmarkProtocol = read("docs/BENCHMARK_PROTOCOL.md");
 
     expect(ci).toContain('"22.x"');
     expect(ci).toContain('"24.x"');
     expect(ci).toContain("npm ci --ignore-scripts");
     expect(ci).toContain("npm run test:coverage");
+    expect(ci).toContain("npm run benchmark:ci");
     expect(ci).toContain("npm pack --dry-run --ignore-scripts --json");
     expect(ci).not.toContain("pull_request_target");
     expect(codeql).toContain("security-events: write");
     expect(codeql).toContain("javascript-typescript");
     expect(dependencyReview).toContain("Review dependency changes");
     expect(dependencyReview).toContain("fail-on-severity: high");
+    expect(benchmarkProtocol).toContain("## CI gate");
+    expect(benchmarkProtocol).toContain("--require-compatible-environment");
+    expect(benchmarkProtocol).toContain("20%");
     for (const context of [
       "Node 22.x",
       "Node 24.x",
@@ -61,6 +66,9 @@ describe("public OSS and security baseline", () => {
     ]) {
       expect(maintenance).toContain(`\`${context}\``);
     }
+    expect(maintenance).toContain(
+      "benchmark gate runs inside both Node matrix jobs",
+    );
   });
 
   it("documents dependency ownership and private disclosure routing", () => {

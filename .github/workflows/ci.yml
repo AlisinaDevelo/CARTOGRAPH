@@ -52,6 +52,12 @@ jobs:
       - name: Type-check
         run: npm run typecheck
 
+      - name: Validate benchmark baseline
+        run: npm run benchmark:validate
+
+      - name: Run correctness, determinism, and performance gate
+        run: npm run benchmark:ci
+
       - name: Validate release change-control register
         run: npm run change-control:validate
 

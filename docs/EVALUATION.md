@@ -77,7 +77,9 @@ The governed corpus and measurement rules live in the
 cold and warm scan time, peak memory, graph size, and accuracy denominators
 without copying source bodies or telemetry. A regression greater than 20%
 requires an explanation before release; this is a review threshold, not a
-universal performance guarantee.
+universal performance guarantee. CI runs `npm run benchmark:ci` against a
+temporary artifact so correctness, determinism, schema, and the applicable
+performance gate are checked without rewriting the baseline.
 
 ## Human usefulness
 
