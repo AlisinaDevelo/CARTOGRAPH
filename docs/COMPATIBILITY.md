@@ -21,6 +21,8 @@ Assurance signing records use the reviewed `assuranceSigning` contract and
 Remediation suggestion records and reports use the reviewed
 `remediationSuggestions` contract and
 [`schema/remediation-suggestion.v0.1.schema.json`](../schema/remediation-suggestion.v0.1.schema.json).
+The deterministic rule catalog uses the reviewed `remediationRules` contract
+and [`schema/remediation-rules.v0.1.schema.json`](../schema/remediation-rules.v0.1.schema.json).
 
 ## Change categories
 

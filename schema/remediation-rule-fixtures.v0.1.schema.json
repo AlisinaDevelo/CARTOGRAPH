@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/remediation-rule-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH remediation rule fixtures v0.1",
+  "description": "Golden positive and negative scenarios for the reviewed deterministic remediation rule catalog.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "baselineDigest", "evidenceDigest", "cases"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "baselineDigest": { "$ref": "#/definitions/digest" },
+    "evidenceDigest": { "$ref": "#/definitions/digest" },
+    "cases": {
+      "type": "array",
+      "minItems": 12,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "ruleId", "findingCode", "expectation"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "ruleId": { "$ref": "#/definitions/identifier" },
+        "findingCode": { "$ref": "#/definitions/identifier" },
+        "expectation": { "enum": ["positive", "negative"] },
+        "negativeReason": { "const": "stale-baseline" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "expectation": { "const": "negative" } } },
+          "then": { "required": ["negativeReason"] }
+        },
+        {
+          "if": { "properties": { "expectation": { "const": "positive" } } },
+          "then": { "not": { "required": ["negativeReason"] } }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "baselineDigest": "sha256:6a2c6f1a0d68c0a41c9a1c5e5a8ddf759f31f3a4fbe4b1e45a8b1c83f8dd9d11",
+  "evidenceDigest": "sha256:3e2d9a1a2c5b4d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6",
+  "cases": [
+    {
+      "id": "policy-unknown-edge-positive",
+      "ruleId": "policy-unknown-edge-review",
+      "findingCode": "policy.unknown-edge",
+      "expectation": "positive"
+    },
+    {
+      "id": "policy-unknown-edge-negative",
+      "ruleId": "policy-unknown-edge-review",
+      "findingCode": "policy.unknown-edge",
+      "expectation": "negative",
+      "negativeReason": "stale-baseline"
+    },
+    {
+      "id": "configuration-missing-boundary-positive",
+      "ruleId": "configuration-missing-boundary-review",
+      "findingCode": "configuration.missing-boundary",
+      "expectation": "positive"
+    },
+    {
+      "id": "configuration-missing-boundary-negative",
+      "ruleId": "configuration-missing-boundary-review",
+      "findingCode": "configuration.missing-boundary",
+      "expectation": "negative",
+      "negativeReason": "stale-baseline"
+    },
+    {
+      "id": "decision-reference-missing-positive",
+      "ruleId": "decision-reference-missing-review",
+      "findingCode": "decision.missing-reference",
+      "expectation": "positive"
+    },
+    {
+      "id": "decision-reference-missing-negative",
+      "ruleId": "decision-reference-missing-review",
+      "findingCode": "decision.missing-reference",
+      "expectation": "negative",
+      "negativeReason": "stale-baseline"
+    },
+    {
+      "id": "ownership-missing-owner-positive",
+      "ruleId": "ownership-missing-owner-review",
+      "findingCode": "ownership.missing-owner",
+      "expectation": "positive"
+    },
+    {
+      "id": "ownership-missing-owner-negative",
+      "ruleId": "ownership-missing-owner-review",
+      "findingCode": "ownership.missing-owner",
+      "expectation": "negative",
+      "negativeReason": "stale-baseline"
+    },
+    {
+      "id": "exception-expired-positive",
+      "ruleId": "exception-expired-review",
+      "findingCode": "exception.expired",
+      "expectation": "positive"
+    },
+    {
+      "id": "exception-expired-negative",
+      "ruleId": "exception-expired-review",
+      "findingCode": "exception.expired",
+      "expectation": "negative",
+      "negativeReason": "stale-baseline"
+    },
+    {
+      "id": "dependency-unresolved-positive",
+      "ruleId": "dependency-unresolved-review",
+      "findingCode": "dependency.unresolved",
+      "expectation": "positive"
+    },
+    {
+      "id": "dependency-unresolved-negative",
+      "ruleId": "dependency-unresolved-review",
+      "findingCode": "dependency.unresolved",
+      "expectation": "negative",
+      "negativeReason": "stale-baseline"
+    }
+  ]
+}
