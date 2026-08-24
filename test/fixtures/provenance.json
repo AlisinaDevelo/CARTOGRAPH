@@ -92,6 +92,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "remediation-review",
+      "path": "remediation-review",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Lifecycle metadata exercises proposed, approved, rejected, stale, failed-validation, applied-externally, reviewer-provenance, and authority-denial states without applying changes or merging work.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "review-regressions",
       "path": "review-regressions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

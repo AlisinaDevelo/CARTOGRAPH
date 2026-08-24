@@ -23,6 +23,7 @@ describe("CLI", () => {
       "diff",
       "diff-snapshots",
       "migrate-snapshot",
+      "review-remediation",
     ]);
   });
 

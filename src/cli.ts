@@ -11,6 +11,7 @@ import {
   diffRepositoryRevisions,
   diffSnapshotFiles,
   migrateSnapshotFile,
+  reviewRemediationFile,
   scanRepository,
   serializeScan,
   writeOutputFile,
@@ -188,6 +189,27 @@ export function createCli(): Command {
           serializeMigrationReport(result.report),
           options.force ?? false,
         );
+      },
+    );
+
+  program
+    .command("review-remediation")
+    .description(
+      "evaluate a human remediation review record without applying it",
+    )
+    .argument("<input>", "remediation review request JSON")
+    .option(
+      "--as-of <timestamp>",
+      "evaluation timestamp; current time when omitted",
+    )
+    .option("-o, --output <path>", "output JSON report; stdout when omitted")
+    .option("--force", "replace an existing output file", false)
+    .action(
+      async (
+        input: string,
+        options: OutputOptions & { asOf?: string },
+      ): Promise<void> => {
+        await emit(await reviewRemediationFile(input, options.asOf), options);
       },
     );
 

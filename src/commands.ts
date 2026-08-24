@@ -13,7 +13,9 @@ import {
   parseGraphSnapshot,
   defaultCartographConfig,
   readCartographConfig,
+  createRemediationReview,
   serializeGraphSnapshot,
+  serializeRemediationReview,
   validateMigrationOutput,
   type CartographConfig,
   type GraphSnapshot,
@@ -23,6 +25,7 @@ import { withMaterializedRevision } from "./git/revision.js";
 import { renderDiff, type ReportFormat } from "./report/render.js";
 
 const MAX_SNAPSHOT_BYTES = 64 * 1024 * 1024;
+const MAX_REMEDIATION_REVIEW_BYTES = 2 * 1024 * 1024;
 // macOS exposes these root-owned aliases for /private/{tmp,var}; they are not
 // user-controlled path components and must remain usable for normal temp paths.
 const MACOS_ROOT_SYMLINKS = new Set(["/tmp", "/var"]);
@@ -236,6 +239,37 @@ export async function migrateSnapshotFile(
   const result = migrateGraphSnapshot(value);
   validateMigrationOutput(result);
   return result;
+}
+
+export async function reviewRemediationFile(
+  inputPath: string,
+  asOf?: string,
+): Promise<string> {
+  const resolvedInput = resolve(inputPath);
+  const metadata = await stat(resolvedInput);
+  if (!metadata.isFile())
+    throw new Error(`remediation review is not a regular file: ${inputPath}`);
+  if (metadata.size > MAX_REMEDIATION_REVIEW_BYTES)
+    throw new Error(
+      `remediation review exceeds the 2 MiB input limit: ${inputPath}`,
+    );
+  let value: unknown;
+  try {
+    value = JSON.parse(await readFile(resolvedInput, "utf8")) as unknown;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "invalid JSON";
+    throw new Error(
+      `could not parse remediation review ${inputPath}: ${detail}`,
+      {
+        cause: error,
+      },
+    );
+  }
+  const review = createRemediationReview(
+    value,
+    asOf === undefined ? {} : { now: asOf },
+  );
+  return `${serializeRemediationReview(review)}\n`;
 }
 
 export async function writeOutputFile(

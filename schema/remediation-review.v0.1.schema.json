@@ -1,0 +1,142 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/remediation-review.v0.1.schema.json",
+  "title": "CARTOGRAPH remediation review report v0.1",
+  "description": "Digest-bound human review state for a remediation suggestion; it never applies, merges, or weakens policy.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "reviewId",
+    "suggestionId",
+    "suggestionVersion",
+    "suggestionDigest",
+    "ownerId",
+    "reviewerId",
+    "evidenceRevision",
+    "decision",
+    "rationale",
+    "validation",
+    "expiresAt",
+    "reviewedAt",
+    "finalDisposition",
+    "externalApplication",
+    "reviewDigest",
+    "state",
+    "readOnly",
+    "authority",
+    "autoApply",
+    "policyMutation",
+    "mergeAutomation"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.remediation-review" },
+    "reviewId": { "$ref": "#/definitions/identifier" },
+    "suggestionId": { "$ref": "#/definitions/identifier" },
+    "suggestionVersion": { "type": "integer", "minimum": 1 },
+    "suggestionDigest": { "$ref": "#/definitions/digest" },
+    "ownerId": { "$ref": "#/definitions/identifier" },
+    "reviewerId": {
+      "anyOf": [{ "type": "null" }, { "$ref": "#/definitions/identifier" }]
+    },
+    "evidenceRevision": { "$ref": "#/definitions/evidenceRevision" },
+    "decision": { "enum": ["proposed", "approved", "rejected"] },
+    "rationale": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "validation": { "$ref": "#/definitions/validation" },
+    "expiresAt": { "$ref": "#/definitions/dateTime" },
+    "reviewedAt": {
+      "anyOf": [{ "type": "null" }, { "$ref": "#/definitions/dateTime" }]
+    },
+    "finalDisposition": { "enum": ["unapplied", "applied-externally"] },
+    "externalApplication": {
+      "anyOf": [
+        { "type": "null" },
+        { "$ref": "#/definitions/externalApplication" }
+      ]
+    },
+    "reviewDigest": { "$ref": "#/definitions/digest" },
+    "state": {
+      "enum": [
+        "proposed",
+        "approved",
+        "rejected",
+        "stale",
+        "failed-validation",
+        "applied-externally"
+      ]
+    },
+    "readOnly": { "const": true },
+    "authority": { "$ref": "#/definitions/authority" },
+    "autoApply": { "const": false },
+    "policyMutation": { "const": false },
+    "mergeAutomation": { "const": false }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "dateTime": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "evidenceRevision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceCommit", "baselineDigest", "evidenceDigest"],
+      "properties": {
+        "sourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40,64}$" },
+        "baselineDigest": { "$ref": "#/definitions/digest" },
+        "evidenceDigest": { "$ref": "#/definitions/digest" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "resultDigest", "commands"],
+      "properties": {
+        "status": { "enum": ["not-run", "passed", "failed"] },
+        "resultDigest": {
+          "anyOf": [{ "type": "null" }, { "$ref": "#/definitions/digest" }]
+        },
+        "commands": {
+          "type": "array",
+          "maxItems": 16,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    },
+    "externalApplication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "externalReference",
+        "actorId",
+        "appliedAt",
+        "evidenceDigest"
+      ],
+      "properties": {
+        "externalReference": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "actorId": { "$ref": "#/definitions/identifier" },
+        "appliedAt": { "$ref": "#/definitions/dateTime" },
+        "evidenceDigest": { "$ref": "#/definitions/digest" }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["network", "filesystem", "execution"],
+      "properties": {
+        "network": { "const": false },
+        "filesystem": { "const": false },
+        "execution": { "const": false }
+      }
+    }
+  }
+}
