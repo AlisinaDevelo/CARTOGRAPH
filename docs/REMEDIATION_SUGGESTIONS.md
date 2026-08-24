@@ -37,3 +37,11 @@ npm run remediation-suggestions:validate
 This contract is a proposal surface only. Deterministic rule authoring,
 isolated patch preview, provider boundaries, approval, and red-team evaluation
 remain separate roadmap controls.
+
+The S-007 separation audit also verifies that a supported suggestion references
+its finding and both evidence digests without mutating the input, while
+`stale-baseline` and `stale-evidence` cases are rejected. Run it with:
+
+```sh
+npm run remediation-separation:validate
+```
