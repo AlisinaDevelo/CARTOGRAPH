@@ -44,13 +44,17 @@ unresolved-edge visibility, depth-limit reporting, ordering stability, and a
 bounded local timing sample. No network or source execution is involved.
 
 Identity fixtures cover a source-line move, a unique same-name file move, a
-rename supported by an unchanged directed neighborhood, and duplicate-name
-ambiguity. They assert the match method and confidence, preserve explicit
-ambiguity instead of guessing, retain ambiguous nodes conservatively in the
-added/removed sets, and serialize identically when node and edge input order
-changes. D-010 adds a path-history rename diff, stable ambiguity diagnostics,
-and a candidate-ceiling failure fixture. P-001 is the core primitive; D-010
-consumes its matches in the graph-diff pipeline.
+rename supported by an unchanged directed neighborhood, duplicate-name
+ambiguity, a non-mutual destination collision, and a weak unsupported rename.
+They assert the match method and confidence, preserve explicit ambiguity
+instead of guessing, retain ambiguous and unsupported nodes conservatively in
+the added/removed sets, and serialize identically when node and edge input
+order changes. D-010 adds a path-history rename diff, stable ambiguity
+diagnostics, and a candidate-ceiling failure fixture. P-010 additionally
+asserts deterministic `IDENTITY_COLLISION`, `UNSUPPORTED_IDENTITY_RENAME`,
+and `IDENTITY_FALLBACK_MATCH` diagnostics, with one evidence record per
+candidate or contributing signal and reviewer remediation text. P-001 is the
+core primitive; D-010 and P-010 consume its matches in the graph-diff pipeline.
 
 ## Practical compatibility
 

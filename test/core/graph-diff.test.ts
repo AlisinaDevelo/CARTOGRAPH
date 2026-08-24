@@ -738,6 +738,177 @@ describe("graph diffs", () => {
     expect(diff.identity.matches[0]?.signals).toContain("path-history");
   });
 
+  it("distinguishes fallback matches and preserves evidence for each signal", () => {
+    const before = parseGraphSnapshot(
+      snapshot({
+        revision: { commitSha: "before", branch: "main" },
+        nodes: [
+          {
+            id: "old-node",
+            stableKey: "function:src/old.ts:load",
+            kind: "function",
+            name: "load",
+            language: "typescript",
+            location: { path: "src/old.ts", line: 4 },
+          },
+        ],
+        edges: [],
+      }),
+    );
+    const after = parseGraphSnapshot(
+      snapshot({
+        revision: { commitSha: "after", branch: "main" },
+        nodes: [
+          {
+            id: "new-node",
+            stableKey: "function:src/new.ts:load",
+            kind: "function",
+            name: "load",
+            language: "typescript",
+            location: { path: "src/new.ts", line: 7 },
+          },
+        ],
+        edges: [],
+      }),
+    );
+
+    const diff = diffGraphSnapshots(before, after);
+    const fallback = diff.diagnostics.added.find(
+      (diagnostic) => diagnostic.code === "IDENTITY_FALLBACK_MATCH",
+    );
+
+    expect(diff.identity.matches).toHaveLength(1);
+    expect(diff.identity.matches[0]?.method).toBe("same-name");
+    expect(fallback).toMatchObject({ severity: "info", nodeId: "new-node" });
+    expect(fallback?.evidence).toHaveLength(
+      diff.identity.matches[0]!.signals.length,
+    );
+    expect(diff.identity.unsupported).toEqual([]);
+  });
+
+  it("reports a non-mutual candidate as a collision with candidate evidence", () => {
+    const before = parseGraphSnapshot(
+      snapshot({
+        revision: { commitSha: "before", branch: "main" },
+        nodes: [
+          {
+            id: "before-strong",
+            stableKey: "function:src/strong.ts:load",
+            kind: "function",
+            name: "load",
+            language: "typescript",
+            location: { path: "src/strong.ts", line: 4 },
+          },
+          {
+            id: "before-weak",
+            stableKey: "function:src/weak.ts:load",
+            kind: "function",
+            name: "load",
+            language: "typescript",
+            location: { path: "src/weak.ts", line: 4 },
+          },
+        ],
+        edges: [],
+      }),
+    );
+    const after = parseGraphSnapshot(
+      snapshot({
+        revision: { commitSha: "after", branch: "main" },
+        nodes: [
+          {
+            id: "after-node",
+            stableKey: "function:src/new.ts:load",
+            kind: "function",
+            name: "load",
+            language: "typescript",
+            location: { path: "src/new.ts", line: 7 },
+          },
+        ],
+        edges: [],
+      }),
+    );
+
+    const diff = diffGraphSnapshots(before, after, {
+      identity: {
+        pathHistory: [{ beforePath: "src/strong.ts", afterPath: "src/new.ts" }],
+      },
+    });
+    const collision = diff.diagnostics.added.find(
+      (diagnostic) => diagnostic.code === "IDENTITY_COLLISION",
+    );
+
+    expect(diff.identity.matches).toHaveLength(1);
+    expect(diff.identity.ambiguous).toHaveLength(1);
+    expect(diff.identity.ambiguous[0]?.before.id).toBe("before-weak");
+    expect(diff.identity.ambiguous[0]?.reason).toBe("non-mutual-best");
+    expect(collision).toMatchObject({
+      severity: "warning",
+      nodeId: "before-weak",
+    });
+    expect(collision?.evidence).toHaveLength(
+      diff.identity.ambiguous[0]!.candidates.length,
+    );
+    expect(collision?.message).toContain("candidates:");
+    expect(collision?.id).toContain("identity_collision");
+  });
+
+  it("reports unsupported same-path renames without guessing", () => {
+    const before = parseGraphSnapshot(
+      snapshot({
+        revision: { commitSha: "before", branch: "main" },
+        nodes: [
+          {
+            id: "before-node",
+            stableKey: "function:src/renamed.ts:oldName",
+            kind: "function",
+            name: "oldName",
+            language: "typescript",
+            location: { path: "src/renamed.ts", line: 4 },
+          },
+        ],
+        edges: [],
+      }),
+    );
+    const after = parseGraphSnapshot(
+      snapshot({
+        revision: { commitSha: "after", branch: "main" },
+        nodes: [
+          {
+            id: "after-node",
+            stableKey: "function:src/renamed.ts:newName",
+            kind: "function",
+            name: "newName",
+            language: "typescript",
+            location: { path: "src/renamed.ts", line: 4 },
+          },
+        ],
+        edges: [],
+      }),
+    );
+
+    const diff = diffGraphSnapshots(before, after);
+    const unsupported = diff.diagnostics.added.find(
+      (diagnostic) => diagnostic.code === "UNSUPPORTED_IDENTITY_RENAME",
+    );
+
+    expect(diff.identity.matches).toEqual([]);
+    expect(diff.identity.unsupported).toHaveLength(1);
+    expect(diff.identity.unsupported[0]).toMatchObject({
+      reason: "unsupported-rename",
+      before: { id: "before-node" },
+      after: { id: "after-node" },
+    });
+    expect(diff.nodes.added).toHaveLength(1);
+    expect(diff.nodes.removed).toHaveLength(1);
+    expect(unsupported).toMatchObject({
+      severity: "warning",
+      nodeId: "after-node",
+    });
+    expect(unsupported?.evidence).toHaveLength(
+      diff.identity.unsupported[0]!.signals.length,
+    );
+  });
+
   it("keeps ambiguous nodes conservative and emits a stable diagnostic", () => {
     const nodes = (prefix: string) => [
       {

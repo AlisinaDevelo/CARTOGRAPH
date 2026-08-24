@@ -230,31 +230,80 @@ const nodeDiff = (
   return { added, removed, changed };
 };
 
-const identityDiagnostic = (
+const identityEvidence = (key: string, detail: string) => ({
+  id: `identity-evidence:${key}:${encodeURIComponent(detail)}`,
+  kind: "user" as const,
+  reference: `graph://identity/${key}/${encodeURIComponent(detail)}`,
+});
+
+const identityAmbiguityDiagnostic = (
   ambiguity: IdentityReconciliation["ambiguous"][number],
 ): Diagnostic => {
   const key = encodeURIComponent(ambiguity.before.stableKey);
+  const code =
+    ambiguity.reason === "non-mutual-best"
+      ? "IDENTITY_COLLISION"
+      : "AMBIGUOUS_IDENTITY_MATCH";
   const candidateKeys = ambiguity.candidates
     .map((candidate) => candidate.afterStableKey)
     .sort(compareStrings)
     .join(", ");
+  const message =
+    ambiguity.reason === "non-mutual-best"
+      ? `Identity candidates collide for ${ambiguity.before.stableKey}; candidates: ${candidateKeys}.`
+      : `Could not safely match ${ambiguity.before.stableKey}; candidates: ${candidateKeys}.`;
+  const remediation =
+    ambiguity.reason === "non-mutual-best"
+      ? "Review every candidate and add stable source, path, or neighborhood evidence before accepting identity continuity."
+      : "Review the candidate identities and add stable source or path evidence before accepting the refactor match.";
   return {
-    id: `diagnostic:identity-ambiguity:${key}`,
-    code: "AMBIGUOUS_IDENTITY_MATCH",
+    id: `diagnostic:identity:${code.toLowerCase()}:${key}`,
+    code,
     severity: "warning",
-    message: `Could not safely match ${ambiguity.before.stableKey}; candidates: ${candidateKeys}.`,
-    remediation:
-      "Review the candidate identities and add stable source or path evidence before accepting the refactor match.",
+    message,
+    remediation,
     nodeId: ambiguity.before.id,
-    evidence: [
-      {
-        id: `identity-evidence:${key}`,
-        kind: "user",
-        reference: `graph://identity/ambiguity/${key}`,
-      },
-    ],
+    evidence: ambiguity.candidates.map((candidate) =>
+      identityEvidence(`ambiguity/${key}`, candidate.afterStableKey),
+    ),
   };
 };
+
+const identityFallbackDiagnostic = (
+  match: IdentityReconciliation["matches"][number],
+): Diagnostic => ({
+  id: `diagnostic:identity-fallback:${encodeURIComponent(match.beforeStableKey)}`,
+  code: "IDENTITY_FALLBACK_MATCH",
+  severity: "info",
+  message: `Used ${match.method} fallback identity for ${match.beforeStableKey} => ${match.afterStableKey}; evidence: ${match.signals.join(", ")}.`,
+  remediation:
+    "Review the contributing identity signals before treating the fallback match as canonical history.",
+  nodeId: match.after.id,
+  evidence: match.signals.map((signal) =>
+    identityEvidence(
+      `fallback/${encodeURIComponent(match.beforeStableKey)}`,
+      signal,
+    ),
+  ),
+});
+
+const identityUnsupportedDiagnostic = (
+  candidate: IdentityReconciliation["unsupported"][number],
+): Diagnostic => ({
+  id: `diagnostic:identity-unsupported:${encodeURIComponent(candidate.before.stableKey)}:${encodeURIComponent(candidate.after.stableKey)}`,
+  code: "UNSUPPORTED_IDENTITY_RENAME",
+  severity: "warning",
+  message: `Could not safely reconcile a possible rename from ${candidate.before.stableKey} to ${candidate.after.stableKey}; similarity score ${candidate.score}.`,
+  remediation:
+    "Review the rename manually or provide path-history, source, or neighborhood evidence before accepting identity continuity.",
+  nodeId: candidate.after.id,
+  evidence: candidate.signals.map((signal) =>
+    identityEvidence(
+      `unsupported/${encodeURIComponent(candidate.before.stableKey)}`,
+      signal,
+    ),
+  ),
+});
 
 const edgeDiff = (
   before: readonly GraphEdge[],
@@ -567,7 +616,27 @@ const canonicalizeIdentity = (
     compareStrings(left.before.stableKey, right.before.stableKey),
   );
 
-  return { matches, ambiguous };
+  const unsupported = deduplicateDiffRecords(
+    identity.unsupported.map((candidate) => ({
+      ...candidate,
+      before: canonicalizeGraphNode(candidate.before),
+      after: canonicalizeGraphNode(candidate.after),
+      signals: [...candidate.signals].sort(compareStrings),
+    })),
+    (candidate) =>
+      `${candidate.before.stableKey}\u0000${candidate.after.stableKey}`,
+    "unsupported identity candidate",
+  ).sort((left, right) => {
+    const beforeOrder = compareStrings(
+      left.before.stableKey,
+      right.before.stableKey,
+    );
+    return beforeOrder !== 0
+      ? beforeOrder
+      : compareStrings(left.after.stableKey, right.after.stableKey);
+  });
+
+  return { matches, ambiguous, unsupported };
 };
 
 export const canonicalizeGraphDiff = (input: unknown): GraphDiff => {
@@ -650,7 +719,11 @@ export const diffGraphSnapshots = (
     ...baseDiagnostics,
     added: [
       ...baseDiagnostics.added,
-      ...identity.ambiguous.map(identityDiagnostic),
+      ...identity.ambiguous.map(identityAmbiguityDiagnostic),
+      ...identity.matches
+        .filter((match) => match.method !== "stable-key")
+        .map(identityFallbackDiagnostic),
+      ...identity.unsupported.map(identityUnsupportedDiagnostic),
     ],
   };
   const diff = {
@@ -663,6 +736,7 @@ export const diffGraphSnapshots = (
     identity: {
       matches: identity.matches,
       ambiguous: identity.ambiguous,
+      unsupported: identity.unsupported,
     },
     edges,
     diagnostics,

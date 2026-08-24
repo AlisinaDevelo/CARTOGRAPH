@@ -25,9 +25,30 @@
     {
       "code": "AMBIGUOUS_IDENTITY_MATCH",
       "severity": "warning",
-      "message": "Refactor identity has multiple equally plausible or non-mutual candidates.",
+      "message": "Refactor identity has multiple equally plausible candidates.",
       "evidence": { "kind": "source", "location": "source-span" },
       "remediation": "Review the candidate identities and add stable source or path evidence before accepting the refactor match."
+    },
+    {
+      "code": "IDENTITY_COLLISION",
+      "severity": "warning",
+      "message": "Refactor identity candidates compete for the same destination and cannot be selected safely.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Review every candidate and add stable source, path, or neighborhood evidence before accepting identity continuity."
+    },
+    {
+      "code": "UNSUPPORTED_IDENTITY_RENAME",
+      "severity": "warning",
+      "message": "A possible refactor rename lacks enough evidence for a supported identity match.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Review the rename manually or provide path-history, source, or neighborhood evidence before accepting identity continuity."
+    },
+    {
+      "code": "IDENTITY_FALLBACK_MATCH",
+      "severity": "info",
+      "message": "A refactor identity used a fallback matching path.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Review the contributing identity signals before treating the fallback match as canonical history."
     },
     {
       "code": "UNRESOLVED_ROUTE_HANDLER",

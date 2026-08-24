@@ -98,10 +98,11 @@ node sets. Unique refactor matches are emitted under `identity.matches` with
 the selected method, confidence, score, and contributing signals; their nodes
 are removed from false added/removed pairs. Optional Git path-history pairs can
 add a bounded `path-history` signal, and `maxCandidates` fails closed when the
-similarity search would exceed its local budget. Ambiguous or non-mutual
+similarity search would exceed its local budget. Equal-score and non-mutual
 candidates remain in the conservative added/removed sets and also appear under
-`identity.ambiguous` with an `AMBIGUOUS_IDENTITY_MATCH` diagnostic, so distinct
-nodes are not silently collapsed.
+`identity.ambiguous`, with `AMBIGUOUS_IDENTITY_MATCH` for equal-score ties and
+`IDENTITY_COLLISION` for non-mutual destination contention, so distinct nodes
+are not silently collapsed.
 
 ## Impact traversal
 
@@ -133,11 +134,17 @@ identity primitive used to compare two canonical snapshots:
 
 Candidates are canonicalized and sorted before matching. Equal-score or
 non-mutual candidates are returned as explicit ambiguity records; they are
-never selected as a best effort. Ambiguous nodes remain in the conservative
-added/removed sets alongside their diagnostic, so a genuinely distinct object
-is not hidden. The matcher does not rewrite stable keys or mutate snapshots.
-The diff pipeline consumes this contract without rewriting canonical stable
-keys.
+never selected as a best effort. Non-mutual candidates emit
+`IDENTITY_COLLISION`; equal-score candidates emit `AMBIGUOUS_IDENTITY_MATCH`.
+Fallback matches emit `IDENTITY_FALLBACK_MATCH` with one evidence record per
+signal. Weak same-path or neighborhood-overlap rename candidates are exposed
+under `identity.unsupported` with `UNSUPPORTED_IDENTITY_RENAME` rather than
+being guessed. Ambiguous and unsupported nodes remain in the conservative
+added/removed sets alongside their diagnostics, so a genuinely distinct object
+is not hidden. Every candidate or signal is retained as deterministic evidence
+for reviewer action. The matcher does not rewrite stable keys or mutate
+snapshots. The diff pipeline consumes this contract without rewriting
+canonical stable keys.
 
 ## Git revisions
 

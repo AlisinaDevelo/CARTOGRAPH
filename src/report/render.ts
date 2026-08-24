@@ -28,7 +28,8 @@ const assertReportCardinality = (
     diff.nodes.removed.length +
     diff.nodes.changed.length +
     diff.identity.matches.length +
-    diff.identity.ambiguous.length;
+    diff.identity.ambiguous.length +
+    diff.identity.unsupported.length;
   const edgeCount =
     diff.edges.added.length +
     diff.edges.removed.length +
@@ -120,6 +121,11 @@ const markdownIdentityAmbiguity = (
 ): string =>
   `- ${markdownCode(ambiguity.before.stableKey)} — ${markdownCode(ambiguity.reason)}; candidates: ${ambiguity.candidates.map((candidate) => markdownCode(candidate.afterStableKey)).join(", ")}`;
 
+const markdownIdentityUnsupported = (
+  candidate: GraphDiff["identity"]["unsupported"][number],
+): string =>
+  `- ${markdownCode(candidate.before.stableKey)} → ${markdownCode(candidate.after.stableKey)} — ${markdownCode(candidate.reason)}; score: ${markdownCode(String(candidate.score))}; evidence: ${candidate.signals.map(markdownCode).join(", ")}`;
+
 const markdownDiagnostic = (
   diagnostic: GraphDiff["diagnostics"]["added"][number],
 ): string => {
@@ -177,6 +183,11 @@ export function renderMarkdownReport(diff: GraphDiff): string {
   if (diff.identity.ambiguous.length > 0) {
     lines.push("", "## Ambiguous identities", "");
     lines.push(...diff.identity.ambiguous.map(markdownIdentityAmbiguity));
+  }
+
+  if (diff.identity.unsupported.length > 0) {
+    lines.push("", "## Unsupported identities", "");
+    lines.push(...diff.identity.unsupported.map(markdownIdentityUnsupported));
   }
 
   const edgeGroups = [
@@ -275,6 +286,11 @@ const htmlIdentityAmbiguity = (
 ): string =>
   `<code>${escapeHtml(ambiguity.before.stableKey)}</code><div class="evidence">${escapeHtml(ambiguity.reason)}; candidates: ${ambiguity.candidates.map((candidate) => escapeHtml(candidate.afterStableKey)).join(", ")}</div>`;
 
+const htmlIdentityUnsupported = (
+  candidate: GraphDiff["identity"]["unsupported"][number],
+): string =>
+  `<code>${escapeHtml(candidate.before.stableKey)}</code> <strong>→</strong> <code>${escapeHtml(candidate.after.stableKey)}</code><div class="evidence">${escapeHtml(candidate.reason)}; score: ${escapeHtml(String(candidate.score))}; evidence: ${candidate.signals.map((signal) => escapeHtml(signal)).join(", ")}</div>`;
+
 export function renderHtmlReport(diff: GraphDiff): string {
   assertReportCardinality(diff, undefined);
   const summary = diff.summary;
@@ -287,6 +303,9 @@ export function renderHtmlReport(diff: GraphDiff): string {
   const matchedIdentities = diff.identity.matches.map(htmlIdentityMatch);
   const ambiguousIdentities = diff.identity.ambiguous.map(
     htmlIdentityAmbiguity,
+  );
+  const unsupportedIdentities = diff.identity.unsupported.map(
+    htmlIdentityUnsupported,
   );
   const changedEdges = diff.edges.changed.map(
     (edge) =>
@@ -342,6 +361,7 @@ export function renderHtmlReport(diff: GraphDiff): string {
     <section aria-label="Changed nodes"><h2>Changed nodes</h2>${htmlList(changedNodes)}</section>
     <section aria-label="Matched identities"><h2>Matched identities</h2>${htmlList(matchedIdentities)}</section>
     <section aria-label="Ambiguous identities"><h2>Ambiguous identities</h2>${htmlList(ambiguousIdentities)}</section>
+    <section aria-label="Unsupported identities"><h2>Unsupported identities</h2>${htmlList(unsupportedIdentities)}</section>
     <section aria-label="Added edges"><h2>Added edges</h2>${htmlList(diff.edges.added.map(htmlEdge))}</section>
     <section aria-label="Removed edges"><h2>Removed edges</h2>${htmlList(diff.edges.removed.map(htmlEdge))}</section>
     <section aria-label="Changed edges"><h2>Changed edges</h2>${htmlList(changedEdges)}</section>

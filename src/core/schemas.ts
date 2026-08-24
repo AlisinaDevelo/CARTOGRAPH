@@ -352,10 +352,21 @@ export const IdentityAmbiguitySchema = z
   })
   .strict();
 
+export const IdentityUnsupportedSchema = z
+  .object({
+    before: GraphNodeSchema,
+    after: GraphNodeSchema,
+    score: z.number().finite(),
+    signals: z.array(IdentitySignalSchema).min(1),
+    reason: z.literal("unsupported-rename"),
+  })
+  .strict();
+
 export const GraphDiffIdentitySchema = z
   .object({
     matches: z.array(IdentityMatchSchema).default([]),
     ambiguous: z.array(IdentityAmbiguitySchema).default([]),
+    unsupported: z.array(IdentityUnsupportedSchema).default([]),
   })
   .strict();
 
@@ -553,7 +564,11 @@ export const GraphDiffSchema = z
         changed: z.array(ChangedNodeSchema),
       })
       .strict(),
-    identity: GraphDiffIdentitySchema.default({ matches: [], ambiguous: [] }),
+    identity: GraphDiffIdentitySchema.default({
+      matches: [],
+      ambiguous: [],
+      unsupported: [],
+    }),
     edges: z
       .object({
         added: z.array(GraphEdgeSchema),
@@ -584,6 +599,7 @@ export type IdentitySignal = z.infer<typeof IdentitySignalSchema>;
 export type IdentityCandidate = z.infer<typeof IdentityCandidateSchema>;
 export type IdentityMatch = z.infer<typeof IdentityMatchSchema>;
 export type IdentityAmbiguity = z.infer<typeof IdentityAmbiguitySchema>;
+export type IdentityUnsupported = z.infer<typeof IdentityUnsupportedSchema>;
 export type GraphDiffIdentity = z.infer<typeof GraphDiffIdentitySchema>;
 export type GraphEdge = z.infer<typeof GraphEdgeSchema>;
 export type Diagnostic = z.infer<typeof DiagnosticSchema>;

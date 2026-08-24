@@ -29,7 +29,10 @@
     ]
   },
   "diagnostics": {
-    "added": ["added-diagnostic"],
+    "added": [
+      "added-diagnostic",
+      "diagnostic:identity-unsupported:function%3Asrc%2Fb.ts%3Ab:function%3Asrc%2Fd.ts%3Ad"
+    ],
     "removed": ["removed-diagnostic"],
     "changed": ["unresolved-diagnostic"]
   }
