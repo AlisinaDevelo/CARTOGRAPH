@@ -49,6 +49,9 @@ contract and
 Redaction and bounded local retention use the reviewed `runtimeTraceSafety`
 contract and
 [`schema/runtime-trace-safety.v0.1.schema.json`](../schema/runtime-trace-safety.v0.1.schema.json).
+Bounded runtime imports and explicit incomplete trace selection use the reviewed
+`runtimeTraceBudgets` contract and
+[`schema/runtime-trace-budgets.v0.1.schema.json`](../schema/runtime-trace-budgets.v0.1.schema.json).
 
 ## Change categories
 
@@ -211,6 +214,23 @@ with explicit `maxTraces`, `maxBytes`, and `ttlMs` bounds. It supports
 eviction, and explicit clearing. It never writes files, starts a collector, or
 implicitly invokes reconciliation. O-003 is additive; the O-001 and O-002
 artifact contracts remain version `1`.
+
+## O-013 runtime trace budgets
+
+O-013 publishes runtime trace budget result schema version `1` in
+`src/core/runtime-trace-budgets.ts`. The importer composes O-001's bounded OTLP
+normalizer with O-003's redaction boundary and adds explicit input-byte,
+resource/scope/span, per-record attribute, trace-count, analysis-time, and
+serialized-report ceilings. Every malformed input or hard ceiling violation
+fails closed with a stable diagnostic code.
+
+Trace-count overflow is fail-closed by default. The only permitted alternative
+is an explicit `truncate-incomplete` policy, which retains the lowest canonical
+trace IDs, emits a diagnostic, and sets `coverage.complete` to `false` with
+dropped trace/span counts. Redaction occurs before report sizing and no result
+creates temporary files or contacts a collector. This additive contract does
+not enable automatic collection, binding, CLI integration, or hosted runtime
+evidence.
 
 ## E-001 adapter API and capability manifest
 

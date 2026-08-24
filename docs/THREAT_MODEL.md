@@ -36,26 +36,28 @@ The current design has no authentication, server, cloud storage, or telemetry bo
 
 ## Optional runtime traces
 
-The current core exposes an inert local OTLP JSON normalizer and an explicit
-static/runtime reconciliation function; neither is part of the CLI or report
-surface. No trace collector, OTLP listener, hosted receiver, upload, or
-background telemetry process is enabled by default. The normalizer rejects
-malformed or oversized input and discards arbitrary attributes, events, links,
-payloads, and status messages. The following additional controls remain
-mandatory before broader runtime behavior is accepted:
+The current core exposes an inert local OTLP JSON normalizer, a bounded budgeted
+import result, and an explicit static/runtime reconciliation function; none is
+part of the CLI or report surface. No trace collector, OTLP listener, hosted
+receiver, upload, or background telemetry process is enabled by default. The
+normalizer rejects malformed or oversized input and discards arbitrary
+attributes, events, links, payloads, and status messages. The following
+controls remain mandatory before broader runtime behavior is accepted:
 
 | Trace risk                                                    | Required control                                                                                                                                                | Evidence                                                                           |
 | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | Span attributes contain source, credentials, or personal data | O-001 discards arbitrary attributes, events, links, payloads, and status messages; O-003 applies an explicit field-level redaction policy to retained free text | O-001 discarded-attribute fixture; O-003 sensitive-value negative test             |
 | Trace history grows without a bound                           | Require explicit in-memory count, byte, and TTL bounds; support discard-after-read and explicit clear; never retain traces implicitly                           | O-003 retention eviction, TTL, byte-bound, and discard-after-read tests            |
+| Import or report work exceeds the local cost ceiling          | Apply input, cardinality, analysis-time, and report-size budgets; fail closed with stable codes; permit only explicit trace-count truncation marked incomplete  | O-013 budget fixture and stable-diagnostic tests                                   |
 | Dynamic edges are mistaken for static facts                   | Classify observations as runtime evidence, preserve trace identifiers only as references, and keep confidence separate from certainty                           | Reconciliation fixtures covering observed-only, static-only, and conflicting edges |
 | Trace input triggers network or code execution                | Parse trace data as inert records; do not load plugins, call URLs, or execute repository code                                                                   | O-001 offline boundary test and future hostile-record fixture                      |
 
-O-002 now classifies explicitly bound local observations conservatively, and
-O-003 redacts retained free text before bounded in-memory retention. Automatic
-binding, report integration, collectors, and hosted retention remain outside
-the boundary. Runtime behavior is not treated as an architectural fact, and
-the normalized input is still not collected or retained implicitly.
+O-002 now classifies explicitly bound local observations conservatively, O-003
+redacts retained free text before bounded in-memory retention, and O-013 applies
+fail-closed import/report budgets before returning a result. Automatic binding,
+report integration, collectors, and hosted retention remain outside the
+boundary. Runtime behavior is not treated as an architectural fact, and the
+normalized input is still not collected or retained implicitly.
 
 ## Optional model-provider boundary
 

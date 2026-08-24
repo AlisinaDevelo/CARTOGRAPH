@@ -188,5 +188,5 @@ The following are roadmap items, not current implementation claims:
 - additional framework or language adapters and stronger runtime isolation
   enforcement beyond the v0.1 data-only adapter policy;
 - automatic binding and CLI/report integration beyond the v0.1 local
-  reconciliation and trace-safety contracts;
+  reconciliation, trace-safety, and budget contracts;
 - hosted collaboration or organizational history.

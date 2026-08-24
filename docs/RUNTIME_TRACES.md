@@ -23,7 +23,9 @@ and limit violations return `RuntimeTraceValidationError` with a stable code.
 The normalized artifact is in-memory only. O-003 adds the explicit field-level
 redaction and bounded-retention boundary documented in
 [`RUNTIME_TRACE_SAFETY.md`](RUNTIME_TRACE_SAFETY.md); CLI/report integration
-remains a separate follow-on contract. The explicit local static/runtime
+remains a separate follow-on contract. O-013 adds the explicit bounded import
+and cost policy documented in [`RUNTIME_TRACE_BUDGETS.md`](RUNTIME_TRACE_BUDGETS.md);
+trace-count truncation is opt-in and always marked incomplete. The explicit local static/runtime
 reconciliation contract is documented separately in
 [`RUNTIME_RECONCILIATION.md`](RUNTIME_RECONCILIATION.md).
 

@@ -1,0 +1,224 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/runtime-trace-budgets.v0.1.schema.json",
+  "title": "CARTOGRAPH runtime trace budget result v0.1",
+  "description": "A bounded, redacted local runtime trace import result. Hard input, cardinality, analysis-time, and report-size limits fail closed; explicit trace-count truncation is marked incomplete.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "policy",
+    "trace",
+    "coverage",
+    "diagnostics",
+    "reportBytes",
+    "redacted",
+    "tempFiles"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.runtime-trace-budgets" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.runtime-trace-budgets+json"
+    },
+    "policy": { "$ref": "#/definitions/policy" },
+    "trace": { "$ref": "#/definitions/trace" },
+    "coverage": { "$ref": "#/definitions/coverage" },
+    "diagnostics": {
+      "type": "array",
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/diagnostic" }
+    },
+    "reportBytes": { "type": "integer", "minimum": 0 },
+    "redacted": { "const": true },
+    "tempFiles": { "const": false }
+  },
+  "definitions": {
+    "hex32": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+    "hex16": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+    "decimal": { "type": "string", "pattern": "^[0-9]+$" },
+    "kind": {
+      "enum": [
+        "unspecified",
+        "internal",
+        "server",
+        "client",
+        "producer",
+        "consumer"
+      ]
+    },
+    "status": { "enum": ["unset", "ok", "error"] },
+    "trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "mediaType",
+        "format",
+        "spans",
+        "summary"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.runtime-traces" },
+        "mediaType": {
+          "const": "application/vnd.cartograph.runtime-traces+json"
+        },
+        "format": { "const": "otlp-json" },
+        "spans": {
+          "type": "array",
+          "maxItems": 1000000,
+          "items": { "$ref": "#/definitions/span" }
+        },
+        "summary": { "$ref": "#/definitions/traceSummary" }
+      }
+    },
+    "span": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "traceId",
+        "spanId",
+        "name",
+        "kind",
+        "startTimeUnixNano",
+        "endTimeUnixNano",
+        "status"
+      ],
+      "properties": {
+        "traceId": { "$ref": "#/definitions/hex32" },
+        "spanId": { "$ref": "#/definitions/hex16" },
+        "parentSpanId": { "$ref": "#/definitions/hex16" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "kind": { "$ref": "#/definitions/kind" },
+        "startTimeUnixNano": { "$ref": "#/definitions/decimal" },
+        "endTimeUnixNano": { "$ref": "#/definitions/decimal" },
+        "serviceName": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "scopeName": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "scopeVersion": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "status": { "$ref": "#/definitions/status" }
+      }
+    },
+    "traceSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resourceSpans",
+        "scopeSpans",
+        "inputSpans",
+        "normalizedSpans",
+        "discardedAttributes"
+      ],
+      "properties": {
+        "resourceSpans": { "type": "integer", "minimum": 0 },
+        "scopeSpans": { "type": "integer", "minimum": 0 },
+        "inputSpans": { "type": "integer", "minimum": 0 },
+        "normalizedSpans": { "type": "integer", "minimum": 0 },
+        "discardedAttributes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "redactionField": {
+      "enum": [
+        "span.name",
+        "span.serviceName",
+        "span.scopeName",
+        "span.scopeVersion"
+      ]
+    },
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fields", "replacement"],
+      "properties": {
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/redactionField" }
+        },
+        "replacement": { "type": "string", "minLength": 1, "maxLength": 64 }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxInputBytes",
+        "maxResourceSpans",
+        "maxScopeSpans",
+        "maxSpans",
+        "maxAttributesPerRecord",
+        "maxTraces",
+        "maxAnalysisMs",
+        "maxReportBytes",
+        "overflow",
+        "redaction"
+      ],
+      "properties": {
+        "maxInputBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1073741824
+        },
+        "maxResourceSpans": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "maxScopeSpans": { "type": "integer", "minimum": 1, "maximum": 100000 },
+        "maxSpans": { "type": "integer", "minimum": 1, "maximum": 1000000 },
+        "maxAttributesPerRecord": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "maxTraces": { "type": "integer", "minimum": 1, "maximum": 100000 },
+        "maxAnalysisMs": { "type": "integer", "minimum": 1, "maximum": 300000 },
+        "maxReportBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 67108864
+        },
+        "overflow": { "enum": ["fail-closed", "truncate-incomplete"] },
+        "redaction": { "$ref": "#/definitions/redaction" }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "complete",
+        "truncated",
+        "inputTraces",
+        "retainedTraces",
+        "droppedTraces",
+        "inputSpans",
+        "retainedSpans",
+        "droppedSpans"
+      ],
+      "properties": {
+        "complete": { "type": "boolean" },
+        "truncated": { "type": "boolean" },
+        "inputTraces": { "type": "integer", "minimum": 0 },
+        "retainedTraces": { "type": "integer", "minimum": 0 },
+        "droppedTraces": { "type": "integer", "minimum": 0 },
+        "inputSpans": { "type": "integer", "minimum": 0 },
+        "retainedSpans": { "type": "integer", "minimum": 0 },
+        "droppedSpans": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": { "const": "trace-count-truncated" },
+        "message": { "type": "string", "minLength": 1, "maxLength": 2048 }
+      }
+    }
+  }
+}
