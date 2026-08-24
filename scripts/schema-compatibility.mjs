@@ -67,6 +67,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/policy-bundles.ts" ||
       file === "src/core/policy-bundle-migrations.ts" ||
       file === "src/core/assurance-signing.ts" ||
+      file === "src/core/remediation-suggestions.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
       file === "schema/capability-registry.v0.1.schema.json" ||
       file === "schema/policy-bundle.v0.1.schema.json" ||
@@ -75,7 +76,9 @@ const checkHostedVersionChange = () => {
       file === "schema/assurance-signing.v0.1.schema.json" ||
       file === "schema/assurance-signing-key.v0.1.schema.json" ||
       file === "schema/assurance-signing-keyring.v0.1.schema.json" ||
-      file === "schema/assurance-signing-verification.v0.1.schema.json",
+      file === "schema/assurance-signing-verification.v0.1.schema.json" ||
+      file === "schema/remediation-suggestion.v0.1.schema.json" ||
+      file === "schema/remediation-suggestion-report.v0.1.schema.json",
   );
   const reviewRecorded = changed.some(
     (file) =>
@@ -99,6 +102,9 @@ const checkCompatibility = () => {
     "src/core/policy-bundle-migrations.ts",
   );
   const assuranceSigningSource = readText("src/core/assurance-signing.ts");
+  const remediationSuggestionSource = readText(
+    "src/core/remediation-suggestions.ts",
+  );
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
   const capabilitySchema = readJson(
     "schema/capability-registry.v0.1.schema.json",
@@ -112,6 +118,12 @@ const checkCompatibility = () => {
   );
   const assuranceSigningVerificationSchema = readJson(
     "schema/assurance-signing-verification.v0.1.schema.json",
+  );
+  const remediationSuggestionSchema = readJson(
+    "schema/remediation-suggestion.v0.1.schema.json",
+  );
+  const remediationSuggestionReportSchema = readJson(
+    "schema/remediation-suggestion-report.v0.1.schema.json",
   );
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
@@ -135,6 +147,10 @@ const checkCompatibility = () => {
     assuranceSigningSource,
     "ASSURANCE_SIGNING_SCHEMA_VERSION",
   );
+  const remediationSuggestionVersion = sourceVersion(
+    remediationSuggestionSource,
+    "REMEDIATION_SUGGESTION_SCHEMA_VERSION",
+  );
 
   if (
     snapshotVersion === undefined ||
@@ -142,7 +158,8 @@ const checkCompatibility = () => {
     capabilityVersion === undefined ||
     policyBundleVersion === undefined ||
     policyBundleMigrationVersion === undefined ||
-    assuranceSigningVersion === undefined
+    assuranceSigningVersion === undefined ||
+    remediationSuggestionVersion === undefined
   ) {
     throw new Error("runtime schema version constants are missing");
   }
@@ -202,6 +219,21 @@ const checkCompatibility = () => {
     assuranceSigningVerificationSchema.properties.schemaVersion.const,
     assuranceSigningVersion,
   );
+  requireEqual(
+    "remediation suggestion runtime/policy",
+    remediationSuggestionVersion,
+    contracts.remediationSuggestions.current,
+  );
+  requireEqual(
+    "remediation suggestion JSON Schema/runtime",
+    remediationSuggestionSchema.properties.schemaVersion.const,
+    remediationSuggestionVersion,
+  );
+  requireEqual(
+    "remediation suggestion report JSON Schema/runtime",
+    remediationSuggestionReportSchema.properties.schemaVersion.const,
+    remediationSuggestionVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -217,6 +249,7 @@ const checkCompatibility = () => {
     policyBundleVersion,
     policyBundleMigrationVersion,
     assuranceSigningVersion,
+    remediationSuggestionVersion,
   };
 };
 

@@ -1,0 +1,195 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/remediation-suggestion.v0.1.schema.json",
+  "title": "CARTOGRAPH governed remediation suggestion v0.1",
+  "description": "An unverified, read-only remediation suggestion bound to a canonical finding, baseline digest, and evidence digest.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "suggestionId",
+    "ruleId",
+    "findingId",
+    "findingCode",
+    "findingDigest",
+    "baselineDigest",
+    "evidenceDigest",
+    "kind",
+    "status",
+    "title",
+    "rationale",
+    "inputs",
+    "evidence",
+    "confidence",
+    "assumptions",
+    "risk",
+    "proposal",
+    "validationPlan",
+    "readOnly",
+    "authority"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.remediation-suggestion" },
+    "suggestionId": { "$ref": "#/definitions/identifier" },
+    "ruleId": { "$ref": "#/definitions/identifier" },
+    "findingId": { "$ref": "#/definitions/identifier" },
+    "findingCode": { "$ref": "#/definitions/identifier" },
+    "findingDigest": { "$ref": "#/definitions/digest" },
+    "baselineDigest": { "$ref": "#/definitions/digest" },
+    "evidenceDigest": { "$ref": "#/definitions/digest" },
+    "kind": { "$ref": "#/definitions/kind" },
+    "status": { "const": "unverified" },
+    "title": { "$ref": "#/definitions/text" },
+    "rationale": { "$ref": "#/definitions/text" },
+    "inputs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": { "$ref": "#/definitions/input" }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": { "$ref": "#/definitions/evidence" }
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "assumptions": {
+      "type": "array",
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/text" }
+    },
+    "risk": { "$ref": "#/definitions/risk" },
+    "proposal": { "$ref": "#/definitions/proposal" },
+    "validationPlan": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/validation" }
+    },
+    "readOnly": { "const": true },
+    "authority": { "$ref": "#/definitions/authority" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "reference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "not": {
+        "anyOf": [
+          { "pattern": "^/" },
+          { "pattern": "^\\\\" },
+          { "pattern": "^~" },
+          { "pattern": "^[A-Za-z]:" },
+          { "pattern": "^file:" },
+          { "pattern": "(^|[/\\\\])\\.\\.([/\\\\]|$)" },
+          { "pattern": "\\u0000" }
+        ]
+      }
+    },
+    "kind": {
+      "enum": [
+        "explanation",
+        "investigation-step",
+        "configuration-change",
+        "policy-action",
+        "waiver-action",
+        "documentation-action",
+        "code-change-suggestion"
+      ]
+    },
+    "risk": { "enum": ["low", "medium", "high", "critical"] },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "reference", "valueDigest"],
+      "properties": {
+        "name": { "$ref": "#/definitions/identifier" },
+        "reference": { "$ref": "#/definitions/reference" },
+        "valueDigest": { "$ref": "#/definitions/digest" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "digest", "reference"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "kind": {
+          "enum": ["source", "diff", "policy", "runtime", "review"]
+        },
+        "digest": { "$ref": "#/definitions/digest" },
+        "reference": { "$ref": "#/definitions/reference" }
+      }
+    },
+    "edit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "change", "reversible"],
+      "properties": {
+        "target": { "$ref": "#/definitions/reference" },
+        "change": { "$ref": "#/definitions/text" },
+        "reversible": { "const": true }
+      }
+    },
+    "proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "description", "targets", "edits"],
+      "properties": {
+        "operation": {
+          "enum": [
+            "explain",
+            "investigate",
+            "configure",
+            "policy",
+            "waiver",
+            "document",
+            "code"
+          ]
+        },
+        "description": { "$ref": "#/definitions/text" },
+        "targets": {
+          "type": "array",
+          "maxItems": 16,
+          "items": { "$ref": "#/definitions/reference" }
+        },
+        "edits": {
+          "type": "array",
+          "maxItems": 16,
+          "items": { "$ref": "#/definitions/edit" }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action", "expected"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "action": { "$ref": "#/definitions/text" },
+        "expected": { "$ref": "#/definitions/text" }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["network", "filesystem", "execution"],
+      "properties": {
+        "network": { "const": false },
+        "filesystem": { "const": false },
+        "execution": { "const": false }
+      }
+    }
+  }
+}

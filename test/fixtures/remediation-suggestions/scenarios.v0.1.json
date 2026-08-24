@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "baselineDigest": "sha256:6a2c6f1a0d68c0a41c9a1c5e5a8ddf759f31f3a4fbe4b1e45a8b1c83f8dd9d11",
+  "evidenceDigests": {
+    "finding-supported": "sha256:3e2d9a1a2c5b4d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6",
+    "finding-unsupported": "sha256:3e2d9a1a2c5b4d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6",
+    "finding-stale-baseline": "sha256:3e2d9a1a2c5b4d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6",
+    "finding-stale-evidence": "sha256:3e2d9a1a2c5b4d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6",
+    "finding-ambiguous": "sha256:3e2d9a1a2c5b4d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6",
+    "finding-ownerless": "sha256:3e2d9a1a2c5b4d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6",
+    "finding-security-sensitive": "sha256:3e2d9a1a2c5b4d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6",
+    "finding-resource-a": "sha256:3e2d9a1a2c5b4d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6",
+    "finding-resource-b": "sha256:3e2d9a1a2c5b4d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6"
+  },
+  "cases": [
+    { "id": "supported", "scenario": "supported", "expected": "suggestion" },
+    {
+      "id": "unsupported",
+      "scenario": "unsupported",
+      "expected": "unsupported-finding"
+    },
+    {
+      "id": "stale-baseline",
+      "scenario": "stale-baseline",
+      "expected": "stale-baseline"
+    },
+    {
+      "id": "stale-evidence",
+      "scenario": "stale-evidence",
+      "expected": "stale-evidence"
+    },
+    {
+      "id": "ambiguous",
+      "scenario": "ambiguous",
+      "expected": "ambiguous-finding"
+    },
+    {
+      "id": "ownerless",
+      "scenario": "ownerless",
+      "expected": "ownerless-finding"
+    },
+    {
+      "id": "security-sensitive",
+      "scenario": "security-sensitive",
+      "expected": "security-sensitive"
+    },
+    {
+      "id": "resource-limit",
+      "scenario": "resource-limit",
+      "expected": "resource-limit"
+    }
+  ]
+}
