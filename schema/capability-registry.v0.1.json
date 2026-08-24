@@ -1,0 +1,62 @@
+{
+  "registryVersion": 1,
+  "extractors": [
+    {
+      "id": "cartograph.typescript-express",
+      "version": "1",
+      "capabilities": [
+        {
+          "id": "typescript.imports",
+          "diagnosticCodes": [
+            "UNRESOLVED_IMPORT",
+            "UNSUPPORTED_DYNAMIC_IMPORT"
+          ],
+          "confidence": ["certain", "inferred"],
+          "examples": [
+            "Static relative imports and re-exports carry source evidence.",
+            "Dynamic import expressions remain diagnostics unless the specifier is a literal."
+          ]
+        },
+        {
+          "id": "typescript.calls",
+          "diagnosticCodes": ["UNRESOLVED_CALL"],
+          "confidence": ["certain", "inferred"],
+          "examples": [
+            "Calls resolved through a local declaration become call edges.",
+            "Unresolved or computed call targets remain diagnostics."
+          ]
+        },
+        {
+          "id": "express.routes",
+          "diagnosticCodes": [
+            "UNRESOLVED_ROUTE_HANDLER",
+            "UNSUPPORTED_DYNAMIC_ROUTE"
+          ],
+          "confidence": ["inferred"],
+          "examples": [
+            "Literal app and router methods produce endpoint relationships.",
+            "Computed route methods or handlers remain unsupported diagnostics."
+          ]
+        },
+        {
+          "id": "http.requests",
+          "diagnosticCodes": ["UNSUPPORTED_DYNAMIC_HTTP_DESTINATION"],
+          "confidence": ["certain", "inferred"],
+          "examples": [
+            "Literal fetch and Axios destinations produce request edges.",
+            "Computed destinations never become confident external-service edges."
+          ]
+        },
+        {
+          "id": "prisma.models",
+          "diagnosticCodes": ["UNSUPPORTED_DYNAMIC_PRISMA_MODEL"],
+          "confidence": ["inferred"],
+          "examples": [
+            "Statically named Prisma model operations produce read/write edges.",
+            "Computed model or operation names remain unsupported diagnostics."
+          ]
+        }
+      ]
+    }
+  ]
+}

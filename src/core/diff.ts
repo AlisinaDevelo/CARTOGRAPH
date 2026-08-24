@@ -11,6 +11,10 @@ import {
   type GraphNode,
 } from "./schemas.js";
 import {
+  assertCompatibleCapabilityRegistryVersion,
+  assertSupportedCapabilityRegistryVersion,
+} from "./capabilities.js";
+import {
   canonicalizeDiagnostic,
   canonicalizeGraphEdge,
   canonicalizeGraphNode,
@@ -277,6 +281,7 @@ const canonicalizeChangedDiagnostics = (
 
 export const canonicalizeGraphDiff = (input: unknown): GraphDiff => {
   assertSupportedSchemaVersion(input, "GraphDiff", GRAPH_DIFF_SCHEMA_VERSION);
+  assertSupportedCapabilityRegistryVersion(input);
   const parsed = GraphDiffSchema.parse(input);
   const canonical = {
     ...parsed,
@@ -306,8 +311,13 @@ export const diffGraphSnapshots = (
 ): GraphDiff => {
   const before = canonicalizeGraphSnapshot(beforeInput);
   const after = canonicalizeGraphSnapshot(afterInput);
+  assertCompatibleCapabilityRegistryVersion(
+    before.capabilityRegistryVersion,
+    after.capabilityRegistryVersion,
+  );
   const diff = {
     schemaVersion: 1 as const,
+    capabilityRegistryVersion: before.capabilityRegistryVersion,
     fromRevision: before.revision,
     toRevision: after.revision,
     nodes: nodeDiff(before.nodes, after.nodes),

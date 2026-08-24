@@ -17,6 +17,11 @@
       "supportedReaders": [1],
       "reviewedVersions": [1]
     },
+    "capabilities": {
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
+    },
     "reports": {
       "current": null,
       "supportedReaders": [],

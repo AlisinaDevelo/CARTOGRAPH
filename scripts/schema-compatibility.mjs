@@ -63,7 +63,9 @@ const checkHostedVersionChange = () => {
   const versionChanged = changed.some(
     (file) =>
       file === "src/core/schemas.ts" ||
-      file === "schema/graph-snapshot.v0.1.schema.json",
+      file === "src/core/capabilities.ts" ||
+      file === "schema/graph-snapshot.v0.1.schema.json" ||
+      file === "schema/capability-registry.v0.1.schema.json",
   );
   const reviewRecorded = changed.some(
     (file) =>
@@ -81,15 +83,27 @@ const checkHostedVersionChange = () => {
 const checkCompatibility = () => {
   const policy = readJson("schema/compatibility.json");
   const source = readText("src/core/schemas.ts");
+  const capabilitySource = readText("src/core/capabilities.ts");
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
+  const capabilitySchema = readJson(
+    "schema/capability-registry.v0.1.schema.json",
+  );
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
     source,
     "GRAPH_SNAPSHOT_SCHEMA_VERSION",
   );
   const diffVersion = sourceVersion(source, "GRAPH_DIFF_SCHEMA_VERSION");
+  const capabilityVersion = sourceVersion(
+    capabilitySource,
+    "CAPABILITY_REGISTRY_VERSION",
+  );
 
-  if (snapshotVersion === undefined || diffVersion === undefined) {
+  if (
+    snapshotVersion === undefined ||
+    diffVersion === undefined ||
+    capabilityVersion === undefined
+  ) {
     throw new Error("runtime schema version constants are missing");
   }
   requireEqual(
@@ -103,6 +117,16 @@ const checkCompatibility = () => {
     snapshotSchema.properties.schemaVersion.const,
     snapshotVersion,
   );
+  requireEqual(
+    "capability registry runtime/policy",
+    capabilityVersion,
+    contracts.capabilities.current,
+  );
+  requireEqual(
+    "capability registry JSON Schema/runtime",
+    capabilitySchema.properties.registryVersion.const,
+    capabilityVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -114,6 +138,7 @@ const checkCompatibility = () => {
     policyVersion: policy.policyVersion,
     snapshotVersion,
     diffVersion,
+    capabilityVersion,
   };
 };
 

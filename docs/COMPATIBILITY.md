@@ -8,6 +8,9 @@ The current contract inventory is in
 [`schema/compatibility.json`](../schema/compatibility.json), and the canonical
 GraphSnapshot shape is in
 [`schema/graph-snapshot.v0.1.schema.json`](../schema/graph-snapshot.v0.1.schema.json).
+The extractor capability and unknown-semantics registry is versioned separately
+in [`schema/capability-registry.v0.1.json`](../schema/capability-registry.v0.1.json)
+and its JSON Schema.
 
 ## Change categories
 
@@ -34,8 +37,10 @@ version. A migration belongs in [`schema/migrations/`](../schema/migrations/)
 and must include representative fixtures and a review decision.
 
 The GraphSnapshot v0.1 runtime currently reads version `1`. GraphDiff v0.1
-also uses version `1`. The JSON Schema and runtime validator must change
-together; the compatibility check rejects drift between them.
+also uses version `1`. Snapshots and diffs expose capability registry version
+`1`; a registry mismatch fails closed before a diff or report is produced. The
+JSON Schema and runtime validator must change together; the compatibility check
+rejects drift between them.
 
 ## Change control
 

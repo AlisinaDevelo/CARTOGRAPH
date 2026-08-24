@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { CAPABILITY_REGISTRY_VERSION } from "./capabilities.js";
+
 export const GRAPH_SNAPSHOT_SCHEMA_VERSION = 1 as const;
 export const GRAPH_DIFF_SCHEMA_VERSION = 1 as const;
 
@@ -351,6 +353,9 @@ const GraphSnapshotInputSchema = z
     schemaVersion: z
       .literal(GRAPH_SNAPSHOT_SCHEMA_VERSION)
       .default(GRAPH_SNAPSHOT_SCHEMA_VERSION),
+    capabilityRegistryVersion: z
+      .literal(CAPABILITY_REGISTRY_VERSION)
+      .default(CAPABILITY_REGISTRY_VERSION),
     revision: RevisionSchema,
     nodes: z.array(GraphNodeSchema).default([]),
     edges: z.array(GraphEdgeSchema).default([]),
@@ -443,6 +448,9 @@ const ChangedDiagnosticSchema = z
 export const GraphDiffSchema = z
   .object({
     schemaVersion: z.literal(GRAPH_DIFF_SCHEMA_VERSION),
+    capabilityRegistryVersion: z
+      .literal(CAPABILITY_REGISTRY_VERSION)
+      .default(CAPABILITY_REGISTRY_VERSION),
     fromRevision: RevisionSchema,
     toRevision: RevisionSchema,
     nodes: z

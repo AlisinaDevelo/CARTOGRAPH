@@ -20,6 +20,18 @@ export {
   serializeGraphDiff,
 } from "./diff.js";
 export {
+  assertCompatibleCapabilityRegistryVersion,
+  assertSupportedCapabilityRegistryVersion,
+  CAPABILITY_REGISTRY,
+  CAPABILITY_REGISTRY_VERSION,
+  CapabilityRegistrySchema,
+  CapabilityRegistryVersionError,
+  type Capability,
+  type CapabilityConfidence,
+  type CapabilityRegistry,
+  type ExtractorCapability,
+} from "./capabilities.js";
+export {
   CARTOGRAPH_CONFIG_SCHEMA_VERSION,
   CartographConfigSchema,
   ConfigValidationError,
