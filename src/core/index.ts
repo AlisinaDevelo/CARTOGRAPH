@@ -109,6 +109,28 @@ export {
   type PolicyBundleMigrationReport,
   type PolicyBundleRevocationList,
 } from "./policy-bundle-migrations.js";
+export {
+  assuranceSigningPayload,
+  AssuranceSigningKeySchema,
+  AssuranceSigningKeyringSchema,
+  AssuranceSigningRecordSchema,
+  AssuranceSigningVerificationError,
+  AssuranceSigningVerificationReportSchema,
+  ASSURANCE_SIGNING_ALGORITHM,
+  ASSURANCE_SIGNING_ALGORITHM_VERSION,
+  ASSURANCE_SIGNING_CONTRACT,
+  ASSURANCE_SIGNING_SCHEMA_VERSION,
+  evaluateAssuranceSigningRecord,
+  serializeAssuranceSigningVerificationReport,
+  verifyAssuranceSigningRecord,
+  type AssuranceSigningKey,
+  type AssuranceSigningKeyring,
+  type AssuranceSigningRecord,
+  type AssuranceSigningVerificationCode,
+  type AssuranceSigningVerificationErrorCode,
+  type AssuranceSigningVerificationReport,
+  type VerifyAssuranceSigningOptions,
+} from "./assurance-signing.js";
 export type {
   ChangedDiagnostic,
   ChangedEdge,

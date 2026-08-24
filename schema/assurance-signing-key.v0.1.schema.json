@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/assurance-signing-key.v0.1.schema.json",
+  "title": "CARTOGRAPH assurance signing key metadata v0.1",
+  "description": "Public key identity, trust-root reference, rotation, validity, and revocation metadata. Private key material is not part of this contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "keyId",
+    "trustRootId",
+    "algorithm",
+    "algorithmVersion",
+    "publicKey",
+    "status",
+    "validFrom",
+    "validUntil",
+    "retiredAt",
+    "revokedAt",
+    "rotatedFrom"
+  ],
+  "properties": {
+    "keyId": { "$ref": "#/definitions/identifier" },
+    "trustRootId": { "$ref": "#/definitions/identifier" },
+    "algorithm": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "algorithmVersion": { "type": "integer", "minimum": 1 },
+    "publicKey": { "$ref": "#/definitions/base64url" },
+    "status": { "enum": ["active", "retired", "revoked"] },
+    "validFrom": { "$ref": "#/definitions/dateTime" },
+    "validUntil": { "$ref": "#/definitions/dateTime" },
+    "retiredAt": {
+      "anyOf": [{ "type": "null" }, { "$ref": "#/definitions/dateTime" }]
+    },
+    "revokedAt": {
+      "anyOf": [{ "type": "null" }, { "$ref": "#/definitions/dateTime" }]
+    },
+    "rotatedFrom": {
+      "anyOf": [{ "type": "null" }, { "$ref": "#/definitions/identifier" }]
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "retired" } } },
+      "then": { "not": { "properties": { "retiredAt": { "const": null } } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "revoked" } } },
+      "then": { "not": { "properties": { "revokedAt": { "const": null } } } }
+    }
+  ],
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "dateTime": { "type": "string", "format": "date-time" },
+    "base64url": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    }
+  }
+}

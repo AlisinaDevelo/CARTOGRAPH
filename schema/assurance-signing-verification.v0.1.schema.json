@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/assurance-signing-verification.v0.1.schema.json",
+  "title": "CARTOGRAPH assurance signing verification report v0.1",
+  "description": "Digest-only offline verification result with no public key, signature, source, or fallback details.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "digestOnly",
+    "manifestDigest",
+    "signerKeyId",
+    "status",
+    "code"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.assurance-signing" },
+    "digestOnly": { "const": true },
+    "manifestDigest": { "$ref": "#/definitions/digest" },
+    "signerKeyId": { "$ref": "#/definitions/identifier" },
+    "status": { "enum": ["verified", "failed"] },
+    "code": {
+      "enum": [
+        "verified",
+        "invalid-record",
+        "unsupported-version",
+        "unsupported-algorithm",
+        "missing-key",
+        "missing-trust-root",
+        "rotation-invalid",
+        "revoked",
+        "expired",
+        "key-not-valid",
+        "invalid-signature"
+      ]
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}

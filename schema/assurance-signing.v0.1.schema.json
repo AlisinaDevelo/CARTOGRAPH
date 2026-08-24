@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/assurance-signing.v0.1.schema.json",
+  "title": "CARTOGRAPH assurance signing record v0.1",
+  "description": "A signed digest reference with algorithm and timestamp metadata; it contains no source or private key material.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "manifestDigest",
+    "signerKeyId",
+    "algorithm",
+    "algorithmVersion",
+    "signature",
+    "signedAt",
+    "expiresAt"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.assurance-signing" },
+    "manifestDigest": { "$ref": "#/definitions/digest" },
+    "signerKeyId": { "$ref": "#/definitions/identifier" },
+    "algorithm": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "algorithmVersion": { "type": "integer", "minimum": 1 },
+    "signature": { "$ref": "#/definitions/base64url" },
+    "signedAt": { "$ref": "#/definitions/dateTime" },
+    "expiresAt": { "$ref": "#/definitions/dateTime" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "dateTime": { "type": "string", "format": "date-time" },
+    "base64url": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    }
+  }
+}
