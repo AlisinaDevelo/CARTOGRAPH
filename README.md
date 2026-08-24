@@ -20,6 +20,8 @@ cd CARTOGRAPH
 npm ci --ignore-scripts
 npm run build
 node dist/cli.js --help
+node dist/cli.js --version
+npm pack --dry-run --ignore-scripts
 ```
 
 Scan a working tree into canonical JSON:
@@ -101,6 +103,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 ## Project documents
 
 - [Product charter](docs/PRODUCT.md)
+- [CLI runtime and exit policy](docs/CLI.md)
 - [Support matrix and review process](docs/SUPPORT_MATRIX.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Evaluation strategy](docs/EVALUATION.md)
