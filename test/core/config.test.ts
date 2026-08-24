@@ -46,6 +46,7 @@ describe("configuration contract", () => {
         maxFiles: 20_000,
         maxFileBytes: 2 * 1024 * 1024,
         maxSourceBytes: 64 * 1024 * 1024,
+        maxArchiveBytes: 128 * 1024 * 1024,
         maxWallClockMs: 30_000,
       },
       unknownFields: "error",

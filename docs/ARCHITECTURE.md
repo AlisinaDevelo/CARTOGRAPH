@@ -76,6 +76,13 @@ The initial stable key combines the node kind with normalized module and symbol 
 
 Revision analysis validates refs with Git, archives each tree into its own temporary directory, analyzes the extracted source, and removes the directory in a `finally` path. It does not checkout, reset, stash, or otherwise alter the caller's worktree.
 
+Revision refs are resolved locally; the command never fetches or implicitly
+contacts a remote. A dirty caller worktree is left untouched and is not mixed
+into a commit-backed revision. Materialization fails closed at the 128 MiB
+archive, 64 MiB extracted-tree, or 30 second subprocess ceilings and cleans
+partial trees on every failure path. Snapshot files can also be compared
+directly through `diff-snapshots` without Git.
+
 The CLI records the exact base and head commit. Future pull-request support will also record the merge base instead of hiding Git's three-dot semantics.
 
 ## TypeScript boundary

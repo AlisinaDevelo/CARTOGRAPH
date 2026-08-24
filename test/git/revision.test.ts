@@ -146,6 +146,23 @@ describe("Git revision materialization", () => {
     ).rejects.toThrow("revision archive exceeds the 1 byte archive ceiling");
   });
 
+  it("fails closed when extracted revision bytes exceed their ceiling", async () => {
+    const root = await createRepository();
+
+    await expect(
+      materializeRevision(root, "HEAD", {
+        resources: { maxExtractedBytes: 1 },
+      }),
+    ).rejects.toThrowError(ResourceLimitError);
+    await expect(
+      materializeRevision(root, "HEAD", {
+        resources: { maxExtractedBytes: 1 },
+      }),
+    ).rejects.toThrow(
+      "materialized revision exceeds the 1 byte extracted-source ceiling",
+    );
+  });
+
   it("cleans a materialized tree when cancellation aborts analysis", async () => {
     const root = await createRepository();
     const controller = new AbortController();

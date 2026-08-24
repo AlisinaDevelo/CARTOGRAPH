@@ -15,7 +15,7 @@ Pass it to `scan` or `diff` with `--config <path>`.
     "maxFiles": 20000,
     "maxFileBytes": 2097152,
     "maxSourceBytes": 67108864,
-    "maxArchiveBytes": 67108864,
+    "maxArchiveBytes": 134217728,
     "maxMemoryBytes": 1073741824,
     "maxWallClockMs": 30000,
     "maxReportItems": 10000
@@ -27,7 +27,8 @@ Pass it to `scan` or `diff` with `--config <path>`.
 
 Omitted fields use deterministic defaults: `include` is `["."]`, built-in
 safe exclusions remain active, both current extractors are selected, and the
-resource ceilings above apply. `tsconfigPath` is optional and remains
+resource ceilings above apply. Revision archives default to 128 MiB while
+extracted source defaults to 64 MiB; `tsconfigPath` is optional and remains
 repository-relative.
 
 Paths and glob patterns are normalized to POSIX separators and cannot be

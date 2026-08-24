@@ -16,6 +16,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   diffRepositoryRevisions,
+  diffSnapshotFiles,
   loadSnapshot,
   scanRepository,
   writeOutputFile,
@@ -125,6 +126,36 @@ describe("command orchestration", () => {
       to: "external_service:https://payments.example",
     });
     expect(request?.evidence.length).toBeGreaterThan(0);
+  });
+
+  it("diffs two snapshot paths without invoking Git", async () => {
+    const root = await mkdtemp(join(tmpdir(), "cartograph-snapshot-diff-"));
+    temporaryDirectories.push(root);
+    const beforePath = join(root, "before.json");
+    const afterPath = join(root, "after.json");
+    const snapshot = scanRepository({ root: fixtureRoot });
+    await writeFile(beforePath, JSON.stringify(snapshot), "utf8");
+    await writeFile(afterPath, JSON.stringify(snapshot), "utf8");
+
+    const report = await diffSnapshotFiles(beforePath, afterPath, "json");
+    const diff = parseGraphDiff(JSON.parse(report) as unknown);
+    expect(diff.fromRevision.commitSha).toBe("working-tree");
+    expect(diff.toRevision.commitSha).toBe("working-tree");
+    expect(diff.nodes.added).toHaveLength(0);
+    expect(diff.edges.added).toHaveLength(0);
+  });
+
+  it("fails closed when a local base ref is missing", async () => {
+    const root = await createDiffRepository();
+
+    await expect(
+      diffRepositoryRevisions({
+        base: "missing-local-ref",
+        format: "json",
+        head: "HEAD",
+        root,
+      }),
+    ).rejects.toThrow(/failed/u);
   });
 
   it("loads canonical snapshots and refuses to overwrite output by default", async () => {
