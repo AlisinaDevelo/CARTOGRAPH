@@ -93,6 +93,18 @@ the same serialized diff; ambiguous rewire candidates are left as ordinary
 added/removed edges. Golden mutation fixtures under
 `test/fixtures/snapshots/graph-diff/` exercise every classification.
 
+## Impact traversal
+
+`computeImpactSubgraph` provides a local, bounded reachability view for a set
+of node IDs or stable keys. Forward mode follows `from` to `to`; reverse mode
+follows the same edge records backwards while preserving their original
+confidence and evidence. Results include deterministic node depths, traversed
+edges, explicit unresolved edges, closed cycle paths, and edges withheld at a
+configured depth limit. Unresolved edges are traversed by default so potential
+impact is not hidden, with `includeUnresolved: false` available when a review
+needs only resolved relationships. Node and edge ceilings fail closed with an
+actionable resource diagnostic rather than truncating the result.
+
 ## Identity
 
 The initial stable key combines the node kind with normalized module and symbol identity. This is deterministic but is not yet refactor-stable. The Year 2 identity work adds Git rename evidence, AST fingerprints, signatures, and neighborhood similarity while surfacing ambiguous matches rather than guessing.
