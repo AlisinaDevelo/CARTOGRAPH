@@ -98,7 +98,10 @@ and unknown-semantics registry; unsupported registry versions fail closed.
 
 Local analysis performs no network request, hidden telemetry, build, package lifecycle script, or module import. Static HTML reports contain no remote asset or script. Repository input is untrusted; review the [threat model](docs/THREAT_MODEL.md) before processing sensitive code and report vulnerabilities through [SECURITY.md](SECURITY.md).
 
-The initial analyzer still trusts the installed TypeScript/ts-morph and npm dependency chain and does not yet enforce complete file-count, memory, or analysis-time ceilings. Those are release gates, not hidden assumptions.
+The analyzer enforces configurable file-count, byte, archive, memory, wall-clock,
+and report-cardinality ceilings. Library callers can pass an `AbortSignal` to
+cancel an analysis; revision materialization always removes its temporary tree,
+and no partial snapshot or report is returned as a successful result.
 
 ## Development
 

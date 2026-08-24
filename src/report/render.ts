@@ -4,6 +4,7 @@ import {
   type GraphDiff,
   type GraphEdge,
 } from "../core/index.js";
+import { assertReportItemLimit } from "../resources.js";
 
 export type ReportFormat = "html" | "json" | "markdown";
 
@@ -257,7 +258,23 @@ export function renderHtmlReport(diff: GraphDiff): string {
 `;
 }
 
-export function renderDiff(diff: GraphDiff, format: ReportFormat): string {
+export function renderDiff(
+  diff: GraphDiff,
+  format: ReportFormat,
+  maxReportItems?: number,
+): string {
+  assertReportItemLimit(
+    diff.nodes.added.length +
+      diff.nodes.removed.length +
+      diff.nodes.changed.length +
+      diff.edges.added.length +
+      diff.edges.removed.length +
+      diff.edges.changed.length +
+      diff.diagnostics.added.length +
+      diff.diagnostics.removed.length +
+      diff.diagnostics.changed.length,
+    maxReportItems,
+  );
   switch (format) {
     case "html":
       return renderHtmlReport(diff);

@@ -44,6 +44,7 @@ import {
   analyzeExpressRouteCall,
   isPotentialExpressReceiver,
 } from "./express.js";
+import { createResourceBudget, ResourceLimitError } from "../resources.js";
 
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts"]);
 const EXCLUDED_DIRECTORIES = new Set([
@@ -137,14 +138,10 @@ export interface TypeScriptAnalyzerOptions {
   extractors?: readonly ("typescript" | "express")[];
   resources?: Partial<ResourceLimits>;
   revision?: Partial<Revision>;
+  signal?: AbortSignal;
 }
 
-export class ResourceLimitError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ResourceLimitError";
-  }
-}
+export { ResourceLimitError } from "../resources.js";
 
 export type TypeScriptAnalyzerResult = GraphSnapshot;
 
@@ -172,6 +169,7 @@ interface AnalyzerContext {
   sourcePaths: Set<string>;
   sourceFiles: SourceFile[];
   extractors: ReadonlySet<"typescript" | "express">;
+  checkBudget: () => void;
 }
 
 const compareStrings = (left: string, right: string): number => {
@@ -282,21 +280,10 @@ const discoverSourcePaths = (
   include: readonly string[],
   exclude: readonly string[],
   resources: ResourceLimits,
+  checkBudget: () => void,
 ): string[] => {
   const discovered: string[] = [];
   let totalBytes = 0;
-  const startedAt = Date.now();
-
-  const checkBudget = (): void => {
-    if (Date.now() - startedAt > resources.maxWallClockMs)
-      throw new ResourceLimitError(
-        `analysis exceeded the ${resources.maxWallClockMs} ms wall-clock ceiling`,
-      );
-    if (process.memoryUsage().rss > resources.maxMemoryBytes)
-      throw new ResourceLimitError(
-        `analysis exceeded the ${resources.maxMemoryBytes} byte memory ceiling`,
-      );
-  };
 
   const visit = (directory: string): void => {
     checkBudget();
@@ -305,6 +292,7 @@ const discoverSourcePaths = (
     );
 
     for (const entry of entries) {
+      checkBudget();
       if (entry.isSymbolicLink()) continue;
       const entryPath = join(directory, entry.name);
       const relativePath = normalizePath(relative(rootDir, entryPath));
@@ -958,6 +946,7 @@ const addImportEdge = (
 
 const importSourceFiles = (context: AnalyzerContext): void => {
   for (const sourceFile of context.sourceFiles) {
+    context.checkBudget();
     for (const declaration of sourceFile.getImportDeclarations()) {
       addImportEdge(
         context,
@@ -983,6 +972,7 @@ const importSourceFiles = (context: AnalyzerContext): void => {
     for (const call of sourceFile.getDescendantsOfKind(
       SyntaxKind.CallExpression,
     )) {
+      context.checkBudget();
       if (call.getExpression().getKind() === SyntaxKind.ImportKeyword) {
         const argument = call.getArguments()[0];
         if (argument && Node.isStringLiteral(argument)) {
@@ -1029,8 +1019,10 @@ const importSourceFiles = (context: AnalyzerContext): void => {
 
 const registerCallables = (context: AnalyzerContext): void => {
   for (const sourceFile of context.sourceFiles) {
+    context.checkBudget();
     const declarations = sourceFile.getDescendants().filter(isCallableNode);
     for (const declaration of declarations) {
+      context.checkBudget();
       if (
         Node.isArrowFunction(declaration) ||
         Node.isFunctionExpression(declaration)
@@ -1619,9 +1611,11 @@ const addRouteEdges = (
 
 const analyzeCalls = (context: AnalyzerContext): void => {
   for (const sourceFile of context.sourceFiles) {
+    context.checkBudget();
     for (const call of sourceFile.getDescendantsOfKind(
       SyntaxKind.CallExpression,
     )) {
+      context.checkBudget();
       if (context.extractors.has("express") && addRouteEdges(context, call))
         continue;
       if (addHttpEdge(context, call)) continue;
@@ -1632,6 +1626,7 @@ const analyzeCalls = (context: AnalyzerContext): void => {
     for (const elementAccess of sourceFile.getDescendantsOfKind(
       SyntaxKind.ElementAccessExpression,
     )) {
+      context.checkBudget();
       const receiver = elementAccess.getExpression();
       const argument = elementAccess.getArgumentExpression();
       if (isVerifiedExpressReceiver(context, receiver)) {
@@ -1675,11 +1670,18 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
     ...DEFAULT_RESOURCE_LIMITS,
     ...options.resources,
   };
+  const checkBudget = createResourceBudget({
+    maxMemoryBytes: resources.maxMemoryBytes,
+    maxWallClockMs: resources.maxWallClockMs,
+    ...(options.signal === undefined ? {} : { signal: options.signal }),
+  });
+  checkBudget();
   const paths = discoverSourcePaths(
     rootDir,
     options.include ?? ["."],
     options.exclude ?? [],
     resources,
+    checkBudget,
   ).map((path) => resolve(path));
   const sourcePaths = new Set(paths);
   const project = projectFor(rootDir, options.tsconfigPath, sourcePaths);
@@ -1701,10 +1703,10 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
     ]),
   );
   const fileHashes = new Map(
-    paths.map((path) => [
-      sourceFilePath(rootDir, path),
-      hashBytes(readFileSync(path)),
-    ]),
+    paths.map((path) => {
+      checkBudget();
+      return [sourceFilePath(rootDir, path), hashBytes(readFileSync(path))];
+    }),
   );
 
   return {
@@ -1721,6 +1723,7 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
     sourcePaths,
     sourceFiles,
     extractors,
+    checkBudget,
   };
 };
 
@@ -1730,11 +1733,15 @@ export const analyzeTypeScriptRepository = (
   const options: TypeScriptAnalyzerOptions =
     typeof input === "string" ? { rootDir: input } : input;
   const context = createContext(options);
-  for (const sourceFile of context.sourceFiles)
+  context.checkBudget();
+  for (const sourceFile of context.sourceFiles) {
+    context.checkBudget();
     moduleForFile(context, sourceFile);
+  }
   registerCallables(context);
   importSourceFiles(context);
   analyzeCalls(context);
+  context.checkBudget();
 
   const revision: Revision = {
     commitSha: options.revision?.commitSha ?? "working-tree",

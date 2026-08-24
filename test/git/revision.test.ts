@@ -10,6 +10,7 @@ import {
   resolveCommit,
   withMaterializedRevision,
 } from "../../src/git/revision.js";
+import { CancellationError, ResourceLimitError } from "../../src/resources.js";
 
 const temporaryDirectories: string[] = [];
 
@@ -128,5 +129,43 @@ describe("Git revision materialization", () => {
     await expect(materializeRevision(root, "HEAD")).rejects.toThrow(
       "symbolic link",
     );
+  });
+
+  it("fails closed when the revision archive exceeds its ceiling", async () => {
+    const root = await createRepository();
+
+    await expect(
+      materializeRevision(root, "HEAD", {
+        resources: { maxArchiveBytes: 1 },
+      }),
+    ).rejects.toThrowError(ResourceLimitError);
+    await expect(
+      materializeRevision(root, "HEAD", {
+        resources: { maxArchiveBytes: 1 },
+      }),
+    ).rejects.toThrow("revision archive exceeds the 1 byte archive ceiling");
+  });
+
+  it("cleans a materialized tree when cancellation aborts analysis", async () => {
+    const root = await createRepository();
+    const controller = new AbortController();
+    let extractedRoot = "";
+
+    await expect(
+      withMaterializedRevision(
+        root,
+        "HEAD",
+        (revision) => {
+          extractedRoot = revision.root;
+          controller.abort();
+          throw new CancellationError("revision materialization cancelled");
+        },
+        { signal: controller.signal },
+      ),
+    ).rejects.toThrowError(CancellationError);
+
+    await expect(
+      readFile(join(extractedRoot, "service.ts"), "utf8"),
+    ).rejects.toMatchObject({ code: "ENOENT" });
   });
 });

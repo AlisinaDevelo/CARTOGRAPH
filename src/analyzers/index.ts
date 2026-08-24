@@ -5,6 +5,7 @@ export {
   type TypeScriptAnalyzerResult,
   ResourceLimitError,
 } from "./typescript.js";
+export { CancellationError } from "../resources.js";
 export {
   analyzeExpressRouteCall,
   isPotentialExpressReceiver,

@@ -229,4 +229,10 @@ describe("diff reports", () => {
     });
     expect(output.endsWith("\n")).toBe(true);
   });
+
+  it("fails closed before rendering an over-cardinality report", () => {
+    expect(() => renderDiff(diff, "json", 0)).toThrowError(
+      "report exceeds the 0 item report-cardinality ceiling",
+    );
+  });
 });

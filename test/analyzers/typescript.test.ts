@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { parseGraphSnapshot } from "../../src/core/index.js";
 import { analyzeTypeScriptRepository } from "../../src/analyzers/typescript.js";
+import { CancellationError } from "../../src/analyzers/index.js";
 
 const fixtureRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -75,6 +76,27 @@ describe("TypeScript analyzer", () => {
     const second = analyzeTypeScriptRepository({ rootDir: fixtureRoot });
 
     expect(JSON.stringify(first)).toBe(JSON.stringify(second));
+  });
+
+  it("fails closed before producing a snapshot when cancelled", () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    expect(() =>
+      analyzeTypeScriptRepository({
+        rootDir: fixtureRoot,
+        signal: controller.signal,
+      }),
+    ).toThrowError(CancellationError);
+  });
+
+  it("reports stable wall-clock ceiling diagnostics", () => {
+    expect(() =>
+      analyzeTypeScriptRepository({
+        rootDir: fixtureRoot,
+        resources: { maxWallClockMs: -1 },
+      }),
+    ).toThrowError("analysis exceeded the -1 ms wall-clock ceiling");
   });
 
   it("attaches portable, hashed evidence to every edge and diagnostic", () => {
