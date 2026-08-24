@@ -3,16 +3,21 @@
     [
       "calls",
       "endpoint:GET:/inline",
-      "function:src/entry.ts:route:GET:/inline:15:20"
+      "function:src/entry.ts:route:GET:/inline:16:20"
     ],
     ["calls", "endpoint:GET:/remote", "function:src/services.ts:remoteUser"],
     ["calls", "endpoint:GET:/route-chain", "function:src/services.ts:listOne"],
     ["calls", "endpoint:GET:/users", "function:src/modules.ts:loadUsers"],
     ["calls", "endpoint:GET:/users/:id", "function:src/services.ts:listOne"],
     ["calls", "endpoint:POST:/users", "function:src/services.ts:createUser"],
+    ["calls", "endpoint:USE:*", "function:src/middleware.ts:audit"],
+    ["calls", "endpoint:USE:*", "function:src/middleware.ts:authenticate"],
+    ["calls", "endpoint:USE:/api", "function:src/middleware.ts:audit"],
+    ["calls", "endpoint:USE:/api", "function:src/middleware.ts:authenticate"],
+    ["calls", "endpoint:USE:/users", "function:src/middleware.ts:authenticate"],
     [
       "calls",
-      "function:src/entry.ts:route:GET:/inline:15:20",
+      "function:src/entry.ts:route:GET:/inline:16:20",
       "function:src/services.ts:remoteUser"
     ],
     [
@@ -29,13 +34,16 @@
     ["imports", "module:src/dynamic-literals.ts", "module:src/modules.ts"],
     ["imports", "module:src/dynamic.ts", "module:external:express"],
     ["imports", "module:src/dynamic.ts", "module:src/db.ts"],
+    ["imports", "module:src/dynamic.ts", "module:src/middleware.ts"],
     ["imports", "module:src/entry.ts", "module:external:express"],
+    ["imports", "module:src/entry.ts", "module:src/middleware.ts"],
     ["imports", "module:src/entry.ts", "module:src/modules.ts"],
     ["imports", "module:src/entry.ts", "module:src/router.ts"],
     ["imports", "module:src/entry.ts", "module:src/services.ts"],
     ["imports", "module:src/reexports.ts", "module:src/modules.ts"],
     ["imports", "module:src/reexports.ts", "module:src/services.ts"],
     ["imports", "module:src/router.ts", "module:external:express"],
+    ["imports", "module:src/router.ts", "module:src/middleware.ts"],
     ["imports", "module:src/router.ts", "module:src/services.ts"],
     ["imports", "module:src/services.ts", "module:external:axios"],
     ["imports", "module:src/services.ts", "module:src/db.ts"],
@@ -62,6 +70,7 @@
     "UNSUPPORTED_DYNAMIC_IMPORT",
     "UNSUPPORTED_DYNAMIC_IMPORT",
     "UNSUPPORTED_DYNAMIC_PRISMA_MODEL",
+    "UNSUPPORTED_DYNAMIC_ROUTE",
     "UNSUPPORTED_DYNAMIC_ROUTE",
     "UNSUPPORTED_DYNAMIC_ROUTE"
   ]

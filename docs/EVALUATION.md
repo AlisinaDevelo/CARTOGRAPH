@@ -8,7 +8,7 @@ Each curated fixture contains source, an expected canonical graph, and an explan
 
 1. local imports and re-exports;
 2. named functions, class methods, and resolved calls;
-3. direct Express routes and handler references;
+3. direct Express routes, router registrations, middleware, and handler references;
 4. literal outbound HTTP calls;
 5. conventional Prisma reads and writes;
 6. dynamic or unresolved negative cases.

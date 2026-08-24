@@ -1835,6 +1835,8 @@ const addRouteEdges = (
   const routeResult = analyzeExpressRouteCall(call, {
     isExpressReceiver: (receiver) =>
       isVerifiedExpressReceiver(context, receiver),
+    isPotentialMiddlewareHandler: (handler) =>
+      resolveCallable(context, handler) !== undefined,
   });
   if (!routeResult) return false;
 

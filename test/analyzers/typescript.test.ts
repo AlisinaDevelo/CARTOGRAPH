@@ -58,7 +58,7 @@ describe("TypeScript analyzer", () => {
         ...new Set(snapshot.diagnostics.map((diagnostic) => diagnostic.code)),
       ].sort(),
     ).toEqual([...new Set(expected.diagnostics)].sort());
-    expect(snapshot.diagnostics).toHaveLength(7);
+    expect(snapshot.diagnostics).toHaveLength(8);
   });
 
   it("extracts a local import and a semantically resolved call", () => {
@@ -100,6 +100,36 @@ describe("TypeScript analyzer", () => {
     expect(
       snapshot.diagnostics.filter(
         (diagnostic) => diagnostic.code === "UNSUPPORTED_DYNAMIC_IMPORT",
+      ),
+    ).toHaveLength(3);
+  });
+
+  it("emits evidence-backed route and middleware registration edges", () => {
+    const snapshot = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: fixtureRoot }),
+    );
+    const expectedRegistrations = [
+      ["endpoint:USE:*", "function:src/middleware.ts:audit"],
+      ["endpoint:USE:*", "function:src/middleware.ts:authenticate"],
+      ["endpoint:USE:/api", "function:src/middleware.ts:authenticate"],
+      ["endpoint:USE:/api", "function:src/middleware.ts:audit"],
+      ["endpoint:USE:/users", "function:src/middleware.ts:authenticate"],
+    ];
+
+    for (const [from, to] of expectedRegistrations) {
+      const edge = snapshot.edges.find(
+        (candidate) =>
+          candidate.kind === "calls" &&
+          candidate.from === from &&
+          candidate.to === to,
+      );
+      expect(edge?.evidence.length).toBeGreaterThan(0);
+      expect(edge?.evidence[0]?.kind).toBe("source");
+    }
+
+    expect(
+      snapshot.diagnostics.filter(
+        (diagnostic) => diagnostic.code === "UNSUPPORTED_DYNAMIC_ROUTE",
       ),
     ).toHaveLength(3);
   });

@@ -1,5 +1,6 @@
 import { loadUsers } from "./modules.js";
 import { createUser, listOne, remoteUser, UserService } from "./services.js";
+import { audit, authenticate } from "./middleware.js";
 import router from "./router.js";
 import express from "express";
 
@@ -15,5 +16,8 @@ app.get("/remote", remoteUser);
 app.get("/inline", (_request, response) => {
   response.json(remoteUser());
 });
+app.use("/api", authenticate, audit);
+app.use(audit);
+app.use(authenticate, audit);
 
 export default app;

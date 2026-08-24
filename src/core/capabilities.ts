@@ -75,7 +75,7 @@ export const CAPABILITY_REGISTRY: CapabilityRegistry =
             ],
             confidence: ["inferred"],
             examples: [
-              "Literal app and router methods produce endpoint relationships.",
+              "Literal app and router methods plus bounded use middleware produce endpoint relationships.",
               "Computed route methods or handlers remain unsupported diagnostics.",
             ],
           },

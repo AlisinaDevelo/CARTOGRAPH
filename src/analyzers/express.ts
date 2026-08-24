@@ -2,6 +2,7 @@ import { Node, type CallExpression, type Expression } from "ts-morph";
 
 export interface ExpressAnalyzerContext {
   isExpressReceiver: (receiver: Expression) => boolean;
+  isPotentialMiddlewareHandler?: (handler: Expression) => boolean;
 }
 
 export interface ExpressRouteResult {
@@ -24,7 +25,10 @@ const ROUTE_METHODS = new Set([
   "patch",
   "post",
   "put",
+  "use",
 ]);
+
+const GLOBAL_MIDDLEWARE_PATH = "*";
 
 const literalPath = (node: Node | undefined): string | undefined => {
   if (!node) return undefined;
@@ -39,8 +43,10 @@ export const analyzeExpressRouteCall = (
 ): ExpressRouteResult | undefined => {
   const expression = call.getExpression();
   if (!Node.isPropertyAccessExpression(expression)) return undefined;
-  const method = expression.getName().toUpperCase();
-  if (!ROUTE_METHODS.has(expression.getName().toLowerCase())) return undefined;
+  const methodName = expression.getName().toLowerCase();
+  const method = methodName.toUpperCase();
+  if (!ROUTE_METHODS.has(methodName)) return undefined;
+  const isMiddleware = methodName === "use";
 
   const receiver = expression.getExpression();
   let routePathNode: Node | undefined;
@@ -58,7 +64,49 @@ export const analyzeExpressRouteCall = (
     return undefined;
   }
 
-  const pathNode = routePathNode ?? call.getArguments()[0];
+  const argumentsList = call.getArguments();
+  const expressionArguments = argumentsList.filter(
+    (argument): argument is Expression => Node.isExpression(argument),
+  );
+  let pathNode: Node | undefined;
+  let handlers: Expression[];
+  if (isMiddleware && !routePathNode) {
+    const firstArgument = argumentsList[0];
+    const allArgumentsAreHandlers =
+      argumentsList.length > 0 &&
+      argumentsList.every(
+        (argument) =>
+          Node.isExpression(argument) &&
+          (context.isPotentialMiddlewareHandler?.(argument) ?? false),
+      );
+    if (literalPath(firstArgument) !== undefined) {
+      pathNode = firstArgument;
+      handlers = expressionArguments.slice(1);
+    } else if (allArgumentsAreHandlers || argumentsList.length === 1) {
+      return {
+        handlers: expressionArguments,
+        method,
+        path: GLOBAL_MIDDLEWARE_PATH,
+      };
+    } else {
+      return {
+        diagnostic: {
+          code: "UNSUPPORTED_DYNAMIC_ROUTE",
+          message:
+            "Express middleware mount path must be a literal string when a path is provided.",
+          node: firstArgument ?? call,
+        },
+        handlers: [],
+        method,
+        path: "",
+      };
+    }
+  } else {
+    pathNode = routePathNode ?? argumentsList[0];
+    handlers = routePathNode
+      ? expressionArguments
+      : expressionArguments.slice(1);
+  }
   const path = literalPath(pathNode);
   if (path === undefined) {
     return {
@@ -74,10 +122,7 @@ export const analyzeExpressRouteCall = (
   }
 
   return {
-    handlers: (routePathNode
-      ? call.getArguments()
-      : call.getArguments().slice(1)
-    ).filter((argument): argument is Expression => Node.isExpression(argument)),
+    handlers,
     method,
     path,
   };
