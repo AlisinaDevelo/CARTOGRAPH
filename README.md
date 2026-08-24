@@ -66,7 +66,7 @@ cartograph diff [root] --base <ref> [--head <ref>]
 cartograph diff-snapshots <before.json> <after.json>
 ```
 
-`scan` emits canonical graph JSON. `diff` and `diff-snapshots` support `json`, `markdown`, and self-contained `html` reports. Use `--tsconfig <path>` to select a configuration inside the analyzed repository.
+`scan` emits canonical graph JSON. `diff` and `diff-snapshots` support `json`, `markdown`, and self-contained `html` reports. Use `--tsconfig <path>` to select a configuration inside the analyzed repository. Use `--config <path>` to apply the versioned, repository-relative [configuration contract](docs/CONFIGURATION.md); command-line flags override matching invocation settings.
 
 The Git revision flow validates refs, archives each commit into an isolated temporary directory, rejects archived symbolic links, analyzes without executing repository code, and cleans the temporary tree. It never checks out, resets, cleans, or stashes the caller's worktree.
 
@@ -118,6 +118,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Support matrix and review process](docs/SUPPORT_MATRIX.md)
 - [Maintenance and ownership](docs/MAINTENANCE.md)
 - [Compatibility and versioning](docs/COMPATIBILITY.md)
+- [Configuration contract](docs/CONFIGURATION.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Evaluation strategy](docs/EVALUATION.md)
 - [Landscape research](docs/RESEARCH.md)

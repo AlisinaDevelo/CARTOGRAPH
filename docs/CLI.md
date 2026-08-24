@@ -35,6 +35,11 @@ The published file set is limited to the built `dist` tree, package metadata,
 license, notice, and README. A release check installs the generated tarball in
 an isolated consumer before treating the `cartograph` bin as usable.
 
+`scan` and `diff` accept `--config <path>` for the versioned
+[repository-relative configuration contract](CONFIGURATION.md). The config
+controls deterministic source selection, extractor selection, and resource
+ceilings; `--tsconfig` and output flags remain invocation-level overrides.
+
 ## Exit codes
 
 - **Exit code 0** means the requested command completed successfully. `--help`,

@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/cartograph-config.v0.1.schema.json",
+  "title": "CARTOGRAPH configuration v0.1",
+  "description": "A deterministic, repository-relative configuration contract for local CARTOGRAPH scans and diffs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion"],
+  "properties": {
+    "schemaVersion": {
+      "const": 1,
+      "description": "CARTOGRAPH configuration schema version 0.1."
+    },
+    "include": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/portablePattern" },
+      "default": ["."],
+      "description": "Repository-relative source paths or glob patterns to include."
+    },
+    "exclude": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/portablePattern" },
+      "default": [],
+      "description": "Repository-relative source paths or glob patterns to exclude in addition to safe built-in exclusions."
+    },
+    "tsconfigPath": {
+      "$ref": "#/definitions/portablePattern",
+      "description": "Optional repository-relative TypeScript configuration path."
+    },
+    "extractors": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["typescript", "express"] },
+      "default": ["typescript", "express"]
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": { "enum": ["snapshot", "diff"], "default": "snapshot" },
+        "format": { "enum": ["json", "markdown", "html"], "default": "json" }
+      },
+      "default": { "mode": "snapshot", "format": "json" }
+    },
+    "resources": {
+      "$ref": "#/definitions/resources"
+    },
+    "policyRefs": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/portablePattern" },
+      "default": [],
+      "description": "Repository-relative policy or contract references used by the caller."
+    },
+    "unknownFields": {
+      "enum": ["error", "warn"],
+      "default": "error",
+      "description": "Unknown keys fail closed by default; warn mode ignores them and returns warnings."
+    }
+  },
+  "definitions": {
+    "portablePattern": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!~)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)(?!.*\\u0000).+$",
+      "description": "A repository-relative POSIX path or glob pattern; it cannot name an absolute path or escape the repository."
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxFiles": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000,
+          "default": 20000
+        },
+        "maxFileBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1073741824,
+          "default": 2097152
+        },
+        "maxSourceBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967296,
+          "default": 67108864
+        },
+        "maxArchiveBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967296,
+          "default": 67108864
+        },
+        "maxMemoryBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 17179869184,
+          "default": 536870912
+        },
+        "maxWallClockMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400000,
+          "default": 30000
+        },
+        "maxReportItems": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000,
+          "default": 10000
+        }
+      },
+      "default": {}
+    }
+  }
+}

@@ -2,11 +2,17 @@ import { constants, realpathSync } from "node:fs";
 import { lstat, open, readFile, stat } from "node:fs/promises";
 import { dirname, relative, resolve, sep } from "node:path";
 
-import { analyzeTypeScriptRepository } from "./analyzers/index.js";
+import {
+  analyzeTypeScriptRepository,
+  type TypeScriptAnalyzerOptions,
+} from "./analyzers/index.js";
 import {
   diffGraphSnapshots,
   parseGraphSnapshot,
+  defaultCartographConfig,
+  readCartographConfig,
   serializeGraphSnapshot,
+  type CartographConfig,
   type GraphSnapshot,
 } from "./core/index.js";
 import { withMaterializedRevision } from "./git/revision.js";
@@ -20,6 +26,8 @@ const MACOS_ROOT_SYMLINKS = new Set(["/tmp", "/var"]);
 export type ScanOptions = {
   root: string;
   tsconfigPath?: string;
+  config?: CartographConfig;
+  configPath?: string;
 };
 
 export type RevisionDiffOptions = {
@@ -27,6 +35,14 @@ export type RevisionDiffOptions = {
   format: ReportFormat;
   head: string;
   root: string;
+  tsconfigPath?: string;
+  config?: CartographConfig;
+  configPath?: string;
+};
+
+type ConfigOptions = {
+  config?: CartographConfig;
+  configPath?: string;
   tsconfigPath?: string;
 };
 
@@ -48,18 +64,45 @@ const containedPath = (
   return realCandidate;
 };
 
+const configurationFor = (
+  root: string,
+  options: ConfigOptions,
+): CartographConfig => {
+  if (options.config) return options.config;
+  if (options.configPath)
+    return readCartographConfig(root, options.configPath).config;
+  return defaultCartographConfig();
+};
+
+const analyzerOptions = (
+  root: string,
+  config: CartographConfig,
+  tsconfigPath: string | undefined,
+  revision: NonNullable<TypeScriptAnalyzerOptions["revision"]>,
+) => ({
+  rootDir: root,
+  include: config.include,
+  exclude: config.exclude,
+  extractors: config.extractors,
+  resources: config.resources,
+  revision,
+  ...(tsconfigPath === undefined
+    ? {}
+    : { tsconfigPath: containedPath(root, tsconfigPath, "tsconfig") }),
+});
+
 export function scanRepository(options: ScanOptions): GraphSnapshot {
   const root = realpathSync(resolve(options.root));
+  const config = configurationFor(root, options);
   return parseGraphSnapshot(
-    analyzeTypeScriptRepository({
-      rootDir: root,
-      ...(options.tsconfigPath === undefined
-        ? {}
-        : {
-            tsconfigPath: containedPath(root, options.tsconfigPath, "tsconfig"),
-          }),
-      revision: { branch: "working-tree", commitSha: "working-tree" },
-    }),
+    analyzeTypeScriptRepository(
+      analyzerOptions(
+        root,
+        config,
+        options.tsconfigPath ?? config.tsconfigPath,
+        { branch: "working-tree", commitSha: "working-tree" },
+      ),
+    ),
   );
 }
 
@@ -67,22 +110,18 @@ const scanMaterializedRevision = async (
   repositoryRoot: string,
   ref: string,
   tsconfigPath?: string,
+  config?: CartographConfig,
 ): Promise<GraphSnapshot> =>
   await withMaterializedRevision(repositoryRoot, ref, (revision) =>
     parseGraphSnapshot(
-      analyzeTypeScriptRepository({
-        rootDir: revision.root,
-        revision: { commitSha: revision.commit },
-        ...(tsconfigPath === undefined
-          ? {}
-          : {
-              tsconfigPath: containedPath(
-                revision.root,
-                tsconfigPath,
-                "tsconfig",
-              ),
-            }),
-      }),
+      analyzeTypeScriptRepository(
+        analyzerOptions(
+          revision.root,
+          config ?? defaultCartographConfig(),
+          tsconfigPath,
+          { commitSha: revision.commit },
+        ),
+      ),
     ),
   );
 
@@ -90,15 +129,18 @@ export async function diffRepositoryRevisions(
   options: RevisionDiffOptions,
 ): Promise<string> {
   const repositoryRoot = resolve(options.root);
+  const config = configurationFor(repositoryRoot, options);
   const before = await scanMaterializedRevision(
     repositoryRoot,
     options.base,
-    options.tsconfigPath,
+    options.tsconfigPath ?? config.tsconfigPath,
+    config,
   );
   const after = await scanMaterializedRevision(
     repositoryRoot,
     options.head,
-    options.tsconfigPath,
+    options.tsconfigPath ?? config.tsconfigPath,
+    config,
   );
   return renderDiff(diffGraphSnapshots(before, after), options.format);
 }

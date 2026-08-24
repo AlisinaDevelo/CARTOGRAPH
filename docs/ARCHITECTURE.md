@@ -27,12 +27,18 @@ repository or materialized Git revision
 
 ## Module boundaries
 
-- `src/core`: versioned graph and diff contracts, validation, canonicalization, and comparison.
+- `src/core`: versioned graph, diff, and configuration contracts, validation, canonicalization, and comparison.
 - `src/analyzers/typescript`: TypeScript program loading and language-level relationships.
 - `src/analyzers/express`: bounded Express route semantics.
 - `src/git`: read-only Git validation and revision materialization in narrow temporary directories.
 - `src/report`: deterministic JSON, Markdown, and standalone HTML rendering.
-- `src/cli.ts`: argument parsing, exit behavior, and orchestration only.
+- `src/cli.ts`: argument parsing, config warning reporting, exit behavior, and orchestration only.
+
+Configuration is loaded before analysis. Its schema and runtime parser apply
+deterministic defaults, reject unknown keys unless explicit warn mode is
+selected, and validate every path as repository-relative. The analyzer receives
+the resolved include/exclude selectors and resource ceilings; it fails closed
+before emitting a partial snapshot when a ceiling is exceeded.
 
 Adapters depend on the core contract. The core does not depend on a framework adapter.
 

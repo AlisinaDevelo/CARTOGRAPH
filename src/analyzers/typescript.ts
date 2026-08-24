@@ -36,6 +36,7 @@ import type {
   GraphSnapshot,
   Revision,
   SourceLocation,
+  ResourceLimits,
 } from "../core/index.js";
 
 import {
@@ -130,7 +131,18 @@ const DETECTOR_VERSION = "cartograph.typescript-express@1";
 export interface TypeScriptAnalyzerOptions {
   rootDir: string;
   tsconfigPath?: string;
+  include?: readonly string[];
+  exclude?: readonly string[];
+  extractors?: readonly ("typescript" | "express")[];
+  resources?: Partial<ResourceLimits>;
   revision?: Partial<Revision>;
+}
+
+export class ResourceLimitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ResourceLimitError";
+  }
 }
 
 export type TypeScriptAnalyzerResult = GraphSnapshot;
@@ -158,6 +170,7 @@ interface AnalyzerContext {
   rootDir: string;
   sourcePaths: Set<string>;
   sourceFiles: SourceFile[];
+  extractors: ReadonlySet<"typescript" | "express">;
 }
 
 const compareStrings = (left: string, right: string): number => {
@@ -220,10 +233,72 @@ const isInsideRoot = (rootDir: string, filePath: string): boolean => {
   );
 };
 
-const discoverSourcePaths = (rootDir: string): string[] => {
+const DEFAULT_RESOURCE_LIMITS: ResourceLimits = {
+  maxFiles: 20_000,
+  maxFileBytes: 2 * 1024 * 1024,
+  maxSourceBytes: 64 * 1024 * 1024,
+  maxArchiveBytes: 64 * 1024 * 1024,
+  maxMemoryBytes: 512 * 1024 * 1024,
+  maxWallClockMs: 30_000,
+  maxReportItems: 10_000,
+};
+
+const globRegExp = (pattern: string): RegExp => {
+  let expression = "^";
+  for (let index = 0; index < pattern.length; index += 1) {
+    const character = pattern[index];
+    if (character === "*" && pattern[index + 1] === "*") {
+      expression += ".*";
+      index += 1;
+    } else if (character === "*") {
+      expression += "[^/]*";
+    } else if (character === "?") {
+      expression += "[^/]";
+    } else {
+      expression += character?.replace(/[|\\{}()[\]^$+.*]/gu, "\\$&") ?? "";
+    }
+  }
+  return new RegExp(`${expression}$`, "u");
+};
+
+const matchesPathPattern = (pattern: string, path: string): boolean => {
+  const normalized = pattern.replaceAll("\\", "/");
+  if (normalized === ".") return true;
+  if (globRegExp(normalized).test(path)) return true;
+  return !/[?*]/u.test(normalized) && path.startsWith(`${normalized}/`);
+};
+
+const selectedByPatterns = (
+  relativePath: string,
+  include: readonly string[],
+  exclude: readonly string[],
+): boolean =>
+  include.some((pattern) => matchesPathPattern(pattern, relativePath)) &&
+  !exclude.some((pattern) => matchesPathPattern(pattern, relativePath));
+
+const discoverSourcePaths = (
+  rootDir: string,
+  include: readonly string[],
+  exclude: readonly string[],
+  resources: ResourceLimits,
+): string[] => {
   const discovered: string[] = [];
+  let totalBytes = 0;
+  const startedAt = Date.now();
+
+  const checkBudget = (): void => {
+    if (Date.now() - startedAt > resources.maxWallClockMs)
+      throw new ResourceLimitError(
+        `analysis exceeded the ${resources.maxWallClockMs} ms wall-clock ceiling`,
+      );
+    if (process.memoryUsage().rss > resources.maxMemoryBytes)
+      throw new ResourceLimitError(
+        `analysis exceeded the ${resources.maxMemoryBytes} byte memory ceiling`,
+      );
+  };
 
   const visit = (directory: string): void => {
+    checkBudget();
     const entries = readdirSync(directory, { withFileTypes: true }).sort(
       (left, right) => compareStrings(left.name, right.name),
     );
@@ -231,23 +306,44 @@ const discoverSourcePaths = (rootDir: string): string[] => {
     for (const entry of entries) {
       if (entry.isSymbolicLink()) continue;
       const entryPath = join(directory, entry.name);
+      const relativePath = normalizePath(relative(rootDir, entryPath));
 
       if (entry.isDirectory()) {
-        if (!EXCLUDED_DIRECTORIES.has(entry.name)) visit(entryPath);
+        if (
+          !EXCLUDED_DIRECTORIES.has(entry.name) &&
+          !exclude.some((pattern) => matchesPathPattern(pattern, relativePath))
+        )
+          visit(entryPath);
         continue;
       }
 
       if (
         entry.isFile() &&
         SOURCE_EXTENSIONS.has(extname(entry.name)) &&
-        !entry.name.endsWith(".d.ts")
+        !entry.name.endsWith(".d.ts") &&
+        selectedByPatterns(relativePath, include, exclude)
       ) {
+        const bytes = lstatSync(entryPath).size;
+        if (bytes > resources.maxFileBytes)
+          throw new ResourceLimitError(
+            `source file exceeds the ${resources.maxFileBytes} byte file ceiling: ${relativePath}`,
+          );
+        if (discovered.length >= resources.maxFiles)
+          throw new ResourceLimitError(
+            `analysis exceeds the ${resources.maxFiles} source-file ceiling`,
+          );
+        totalBytes += bytes;
+        if (totalBytes > resources.maxSourceBytes)
+          throw new ResourceLimitError(
+            `analysis exceeds the ${resources.maxSourceBytes} byte source ceiling`,
+          );
         discovered.push(entryPath);
       }
     }
   };
 
   visit(rootDir);
+  checkBudget();
   return discovered.sort(compareStrings);
 };
 
@@ -1525,7 +1621,8 @@ const analyzeCalls = (context: AnalyzerContext): void => {
     for (const call of sourceFile.getDescendantsOfKind(
       SyntaxKind.CallExpression,
     )) {
-      if (addRouteEdges(context, call)) continue;
+      if (context.extractors.has("express") && addRouteEdges(context, call))
+        continue;
       if (addHttpEdge(context, call)) continue;
       if (addPrismaEdge(context, call)) continue;
       addCallEdge(context, call);
@@ -1567,7 +1664,22 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
     );
   }
 
-  const paths = discoverSourcePaths(rootDir).map((path) => resolve(path));
+  const extractors = new Set<"typescript" | "express">(
+    options.extractors ?? ["typescript", "express"],
+  );
+  if (!extractors.has("typescript")) {
+    throw new Error('the "typescript" extractor is required for this analyzer');
+  }
+  const resources: ResourceLimits = {
+    ...DEFAULT_RESOURCE_LIMITS,
+    ...options.resources,
+  };
+  const paths = discoverSourcePaths(
+    rootDir,
+    options.include ?? ["."],
+    options.exclude ?? [],
+    resources,
+  ).map((path) => resolve(path));
   const sourcePaths = new Set(paths);
   const project = projectFor(rootDir, options.tsconfigPath, sourcePaths);
   for (const path of paths) project.addSourceFileAtPath(path);
@@ -1607,6 +1719,7 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
     rootDir,
     sourcePaths,
     sourceFiles,
+    extractors,
   };
 };
 
