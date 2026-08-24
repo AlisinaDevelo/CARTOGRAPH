@@ -101,6 +101,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "remediation-evaluation",
+      "path": "remediation-evaluation",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Offline quality and red-team cases exercise applicability, unsafe emission, stale evidence, reviewer decisions, time, reproducibility, cost, provider exposure, and automation boundaries without network, execution, or raw content.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "review-regressions",
       "path": "review-regressions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

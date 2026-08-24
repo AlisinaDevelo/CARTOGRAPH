@@ -71,6 +71,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/remediation-rules.ts" ||
       file === "src/core/patch-previews.ts" ||
       file === "src/core/remediation-review.ts" ||
+      file === "src/core/remediation-evaluation.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
       file === "schema/capability-registry.v0.1.schema.json" ||
       file === "schema/policy-bundle.v0.1.schema.json" ||
@@ -85,7 +86,8 @@ const checkHostedVersionChange = () => {
       file === "schema/remediation-rules.v0.1.schema.json" ||
       file === "schema/patch-preview.v0.1.schema.json" ||
       file === "schema/patch-preview-report.v0.1.schema.json" ||
-      file === "schema/remediation-review.v0.1.schema.json",
+      file === "schema/remediation-review.v0.1.schema.json" ||
+      file === "schema/remediation-evaluation.v0.1.schema.json",
   );
   const reviewRecorded = changed.some(
     (file) =>
@@ -115,6 +117,9 @@ const checkCompatibility = () => {
   const remediationRulesSource = readText("src/core/remediation-rules.ts");
   const patchPreviewSource = readText("src/core/patch-previews.ts");
   const remediationReviewSource = readText("src/core/remediation-review.ts");
+  const remediationEvaluationSource = readText(
+    "src/core/remediation-evaluation.ts",
+  );
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
   const capabilitySchema = readJson(
     "schema/capability-registry.v0.1.schema.json",
@@ -144,6 +149,9 @@ const checkCompatibility = () => {
   );
   const remediationReviewSchema = readJson(
     "schema/remediation-review.v0.1.schema.json",
+  );
+  const remediationEvaluationSchema = readJson(
+    "schema/remediation-evaluation.v0.1.schema.json",
   );
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
@@ -183,6 +191,10 @@ const checkCompatibility = () => {
     remediationReviewSource,
     "REMEDIATION_REVIEW_SCHEMA_VERSION",
   );
+  const remediationEvaluationVersion = sourceVersion(
+    remediationEvaluationSource,
+    "REMEDIATION_EVALUATION_SCHEMA_VERSION",
+  );
 
   if (
     snapshotVersion === undefined ||
@@ -194,7 +206,8 @@ const checkCompatibility = () => {
     remediationSuggestionVersion === undefined ||
     remediationRulesVersion === undefined ||
     patchPreviewVersion === undefined ||
-    remediationReviewVersion === undefined
+    remediationReviewVersion === undefined ||
+    remediationEvaluationVersion === undefined
   ) {
     throw new Error("runtime schema version constants are missing");
   }
@@ -304,6 +317,16 @@ const checkCompatibility = () => {
     remediationReviewSchema.properties.schemaVersion.const,
     remediationReviewVersion,
   );
+  requireEqual(
+    "remediation evaluation runtime/policy",
+    remediationEvaluationVersion,
+    contracts.remediationEvaluations.current,
+  );
+  requireEqual(
+    "remediation evaluation JSON Schema/runtime",
+    remediationEvaluationSchema.properties.schemaVersion.const,
+    remediationEvaluationVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -323,6 +346,7 @@ const checkCompatibility = () => {
     remediationRulesVersion,
     patchPreviewVersion,
     remediationReviewVersion,
+    remediationEvaluationVersion,
   };
 };
 

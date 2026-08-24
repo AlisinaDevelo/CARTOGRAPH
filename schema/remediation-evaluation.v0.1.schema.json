@@ -1,0 +1,254 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/remediation-evaluation.v0.1.schema.json",
+  "title": "CARTOGRAPH remediation evaluation report v0.1",
+  "description": "Offline quality, safety, reviewer, cost, reproducibility, and provider-exposure gate for remediation assistance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "evaluationId",
+    "evaluatedAt",
+    "fixtureDigest",
+    "decision",
+    "decisionReason",
+    "thresholds",
+    "overall",
+    "bySuggestionClass",
+    "safety",
+    "caseResults",
+    "reportDigest"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.remediation-evaluation" },
+    "evaluationId": { "$ref": "#/definitions/identifier" },
+    "evaluatedAt": { "$ref": "#/definitions/dateTime" },
+    "fixtureDigest": { "$ref": "#/definitions/digest" },
+    "decision": { "enum": ["graduate", "narrow", "rule-only", "stop"] },
+    "decisionReason": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "thresholds": { "$ref": "#/definitions/thresholds" },
+    "overall": { "$ref": "#/definitions/metrics" },
+    "bySuggestionClass": {
+      "type": "array",
+      "minItems": 7,
+      "items": { "$ref": "#/definitions/classMetrics" }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "redTeamCases",
+        "containedRedTeamCases",
+        "unsafeEmitted",
+        "rawProviderDataCases",
+        "networkCases",
+        "autoAppliedCases",
+        "pass"
+      ],
+      "properties": {
+        "redTeamCases": { "type": "integer", "minimum": 0 },
+        "containedRedTeamCases": { "type": "integer", "minimum": 0 },
+        "unsafeEmitted": { "type": "integer", "minimum": 0 },
+        "rawProviderDataCases": { "type": "integer", "minimum": 0 },
+        "networkCases": { "type": "integer", "minimum": 0 },
+        "autoAppliedCases": { "type": "integer", "minimum": 0 },
+        "pass": { "type": "boolean" }
+      }
+    },
+    "caseResults": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "suggestionClass",
+          "threat",
+          "expectedOutcome",
+          "actualOutcome",
+          "emitted",
+          "reviewerDisposition"
+        ],
+        "properties": {
+          "id": { "$ref": "#/definitions/identifier" },
+          "suggestionClass": { "type": "string", "minLength": 1 },
+          "threat": { "type": "string", "minLength": 1 },
+          "expectedOutcome": { "enum": ["blocked", "eligible"] },
+          "actualOutcome": { "enum": ["blocked", "eligible"] },
+          "emitted": { "type": "boolean" },
+          "reviewerDisposition": {
+            "enum": ["accepted", "overridden", "rejected", "unreviewed"]
+          }
+        }
+      }
+    },
+    "reportDigest": { "$ref": "#/definitions/digest" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "dateTime": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minApplicabilityPrecision",
+        "maxUnsafeSuggestionRate",
+        "minValidationSuccessRate",
+        "minStaleEvidenceDetectionRate",
+        "minReproducibilityRate",
+        "minReviewerAcceptanceRate",
+        "maxRawProviderDataCases"
+      ],
+      "properties": {
+        "minApplicabilityPrecision": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maxUnsafeSuggestionRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minValidationSuccessRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minStaleEvidenceDetectionRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minReproducibilityRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minReviewerAcceptanceRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maxRawProviderDataCases": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "exposure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["none", "digestOnly", "redactedSummary", "raw"],
+      "properties": {
+        "none": { "type": "integer", "minimum": 0 },
+        "digestOnly": { "type": "integer", "minimum": 0 },
+        "redactedSummary": { "type": "integer", "minimum": 0 },
+        "raw": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cases",
+        "emitted",
+        "applicable",
+        "truePositives",
+        "applicabilityPrecision",
+        "unsafeEmitted",
+        "unsafeSuggestionRate",
+        "validationAttempts",
+        "validationSuccesses",
+        "validationSuccessRate",
+        "staleEvidenceCases",
+        "staleEvidenceDetections",
+        "staleEvidenceDetectionRate",
+        "reviewed",
+        "accepted",
+        "overridden",
+        "rejected",
+        "reviewerAcceptanceRate",
+        "reviewerOverrideRate",
+        "baselineTimeMs",
+        "assistedTimeMs",
+        "timeSavedMs",
+        "reproducible",
+        "reproducibilityRate",
+        "costMicrounits",
+        "providerDataExposure"
+      ],
+      "properties": {
+        "suggestionClass": { "type": "string", "minLength": 1 },
+        "cases": { "type": "integer", "minimum": 0 },
+        "emitted": { "type": "integer", "minimum": 0 },
+        "applicable": { "type": "integer", "minimum": 0 },
+        "truePositives": { "type": "integer", "minimum": 0 },
+        "applicabilityPrecision": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "unsafeEmitted": { "type": "integer", "minimum": 0 },
+        "unsafeSuggestionRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "validationAttempts": { "type": "integer", "minimum": 0 },
+        "validationSuccesses": { "type": "integer", "minimum": 0 },
+        "validationSuccessRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "staleEvidenceCases": { "type": "integer", "minimum": 0 },
+        "staleEvidenceDetections": { "type": "integer", "minimum": 0 },
+        "staleEvidenceDetectionRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "reviewed": { "type": "integer", "minimum": 0 },
+        "accepted": { "type": "integer", "minimum": 0 },
+        "overridden": { "type": "integer", "minimum": 0 },
+        "rejected": { "type": "integer", "minimum": 0 },
+        "reviewerAcceptanceRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "reviewerOverrideRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "baselineTimeMs": { "type": "integer", "minimum": 0 },
+        "assistedTimeMs": { "type": "integer", "minimum": 0 },
+        "timeSavedMs": { "type": "integer" },
+        "reproducible": { "type": "integer", "minimum": 0 },
+        "reproducibilityRate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "costMicrounits": { "type": "integer", "minimum": 0 },
+        "providerDataExposure": { "$ref": "#/definitions/exposure" }
+      }
+    },
+    "classMetrics": {
+      "allOf": [
+        {
+          "type": "object",
+          "required": ["suggestionClass"],
+          "properties": {
+            "suggestionClass": { "type": "string", "minLength": 1 }
+          }
+        },
+        { "$ref": "#/definitions/metrics" }
+      ]
+    }
+  }
+}

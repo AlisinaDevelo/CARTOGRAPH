@@ -25,6 +25,8 @@ The deterministic rule catalog uses the reviewed `remediationRules` contract
 and [`schema/remediation-rules.v0.1.schema.json`](../schema/remediation-rules.v0.1.schema.json).
 Human remediation review records use the reviewed `remediationReviews`
 contract and [`schema/remediation-review.v0.1.schema.json`](../schema/remediation-review.v0.1.schema.json).
+Offline remediation evaluation reports use the reviewed `remediationEvaluations`
+contract and [`schema/remediation-evaluation.v0.1.schema.json`](../schema/remediation-evaluation.v0.1.schema.json).
 
 ## Change categories
 
