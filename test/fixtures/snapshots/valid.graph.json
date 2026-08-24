@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "revision": {
+    "commitSha": "0123456789abcdef0123456789abcdef01234567",
+    "branch": "main",
+    "authoredAt": "2026-08-24T08:00:00Z"
+  },
+  "nodes": [
+    {
+      "id": "module:src/entry.ts",
+      "stableKey": "module:src/entry.ts",
+      "kind": "module",
+      "name": "src/entry.ts",
+      "language": "typescript",
+      "location": {
+        "path": "src/entry.ts",
+        "line": 1,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:src/entry.ts:main",
+      "stableKey": "function:src/entry.ts:main",
+      "kind": "function",
+      "name": "main",
+      "language": "typescript",
+      "location": {
+        "path": "src/entry.ts",
+        "line": 3,
+        "endLine": 5
+      }
+    },
+    {
+      "id": "external_service:api.example.test",
+      "stableKey": "external_service:api.example.test",
+      "kind": "external_service",
+      "name": "api.example.test"
+    }
+  ],
+  "edges": [
+    {
+      "from": "module:src/entry.ts",
+      "to": "function:src/entry.ts:main",
+      "kind": "contains",
+      "confidence": "certain",
+      "evidence": [
+        {
+          "id": "source:entry-main",
+          "kind": "source",
+          "path": "src/entry.ts",
+          "line": 3,
+          "detector": "fixture@0.1",
+          "contentHash": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ]
+    },
+    {
+      "from": "function:src/entry.ts:main",
+      "to": "external_service:api.example.test",
+      "kind": "requests",
+      "confidence": "inferred",
+      "evidence": [],
+      "unresolvedReason": "the request destination is configuration-dependent"
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "diagnostic:dynamic-request",
+      "code": "UNSUPPORTED_DYNAMIC_HTTP_DESTINATION",
+      "severity": "warning",
+      "message": "The request destination is not a literal URL.",
+      "nodeId": "function:src/entry.ts:main",
+      "location": {
+        "path": "src/entry.ts",
+        "line": 4,
+        "column": 10
+      },
+      "evidence": [
+        {
+          "id": "source:dynamic-request",
+          "kind": "source",
+          "location": {
+            "path": "src/entry.ts",
+            "line": 4,
+            "column": 10
+          },
+          "detector": "fixture@0.1",
+          "contentHash": "1111111111111111111111111111111111111111111111111111111111111111"
+        }
+      ]
+    }
+  ]
+}

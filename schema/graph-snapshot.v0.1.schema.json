@@ -1,0 +1,382 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/graph-snapshot.v0.1.schema.json",
+  "title": "CARTOGRAPH GraphSnapshot v0.1",
+  "description": "Canonical, portable architecture graph snapshots emitted by CARTOGRAPH. Cross-record node references and duplicate identities are checked by the runtime validator.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "revision", "nodes", "edges", "diagnostics"],
+  "properties": {
+    "schemaVersion": {
+      "const": 1,
+      "description": "CARTOGRAPH GraphSnapshot schema version 0.1."
+    },
+    "revision": {
+      "$ref": "#/definitions/revision"
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/node"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/edge"
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/diagnostic"
+      }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "description": "A non-empty stable identifier. Runtime validation trims surrounding whitespace."
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "portablePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!~)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)(?!.*\\u0000).+$",
+      "description": "A normalized POSIX repository-relative path; it cannot escape the repository or name a local absolute path."
+    },
+    "portableReference": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!\\\\)(?!~)(?![A-Za-z]:)(?!file:)(?!.*\\u0000).+$",
+      "description": "A portable reference that does not disclose an absolute local path."
+    },
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "contentHash": {
+      "type": "string",
+      "pattern": "^(?:sha256:)?[0-9a-fA-F]{64}$"
+    },
+    "sourceLocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "line"],
+      "properties": {
+        "path": {
+          "$ref": "#/definitions/portablePath"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "endLine": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "endColumn": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "revision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commitSha"],
+      "properties": {
+        "commitSha": {
+          "$ref": "#/definitions/identifier"
+        },
+        "parentSha": {
+          "$ref": "#/definitions/identifier"
+        },
+        "branch": {
+          "$ref": "#/definitions/identifier"
+        },
+        "authoredAt": {
+          "$ref": "#/definitions/dateTime"
+        }
+      }
+    },
+    "sourceEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "detector", "contentHash"],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/identifier"
+        },
+        "kind": {
+          "const": "source"
+        },
+        "path": {
+          "$ref": "#/definitions/portablePath"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "endLine": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "endColumn": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "location": {
+          "$ref": "#/definitions/sourceLocation"
+        },
+        "revision": {
+          "$ref": "#/definitions/identifier"
+        },
+        "reference": {
+          "$ref": "#/definitions/portableReference"
+        },
+        "observedAt": {
+          "$ref": "#/definitions/dateTime"
+        },
+        "observedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "detector": {
+          "$ref": "#/definitions/text"
+        },
+        "contentHash": {
+          "$ref": "#/definitions/contentHash"
+        }
+      },
+      "anyOf": [{ "required": ["path"] }, { "required": ["location"] }]
+    },
+    "nonSourceEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind"],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/identifier"
+        },
+        "kind": {
+          "enum": ["runtime", "git", "user"]
+        },
+        "path": {
+          "$ref": "#/definitions/portablePath"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "endLine": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "endColumn": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "location": {
+          "$ref": "#/definitions/sourceLocation"
+        },
+        "revision": {
+          "$ref": "#/definitions/identifier"
+        },
+        "reference": {
+          "$ref": "#/definitions/portableReference"
+        },
+        "observedAt": {
+          "$ref": "#/definitions/dateTime"
+        },
+        "observedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "detector": {
+          "$ref": "#/definitions/text"
+        },
+        "contentHash": {
+          "$ref": "#/definitions/contentHash"
+        }
+      }
+    },
+    "evidence": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/sourceEvidence"
+        },
+        {
+          "$ref": "#/definitions/nonSourceEvidence"
+        }
+      ]
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "stableKey", "kind", "name"],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/identifier"
+        },
+        "stableKey": {
+          "$ref": "#/definitions/identifier"
+        },
+        "kind": {
+          "enum": [
+            "endpoint",
+            "module",
+            "service",
+            "function",
+            "database_table",
+            "queue",
+            "external_service",
+            "file",
+            "unknown"
+          ]
+        },
+        "name": {
+          "$ref": "#/definitions/text"
+        },
+        "language": {
+          "$ref": "#/definitions/identifier"
+        },
+        "location": {
+          "$ref": "#/definitions/sourceLocation"
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "kind", "confidence", "evidence"],
+      "properties": {
+        "from": {
+          "$ref": "#/definitions/identifier"
+        },
+        "to": {
+          "$ref": "#/definitions/identifier"
+        },
+        "kind": {
+          "enum": [
+            "calls",
+            "imports",
+            "reads",
+            "writes",
+            "publishes",
+            "subscribes",
+            "requests",
+            "contains",
+            "routes_to",
+            "depends_on",
+            "implements",
+            "unknown"
+          ]
+        },
+        "confidence": {
+          "enum": ["certain", "inferred", "observed", "user_confirmed"]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/evidence"
+          }
+        },
+        "unresolvedReason": {
+          "$ref": "#/definitions/text"
+        }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "evidence": {
+              "minItems": 1
+            }
+          }
+        },
+        {
+          "required": ["unresolvedReason"]
+        }
+      ]
+    },
+    "diagnosticEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "kind"],
+      "properties": {
+        "from": {
+          "$ref": "#/definitions/identifier"
+        },
+        "to": {
+          "$ref": "#/definitions/identifier"
+        },
+        "kind": {
+          "enum": [
+            "calls",
+            "imports",
+            "reads",
+            "writes",
+            "publishes",
+            "subscribes",
+            "requests",
+            "contains",
+            "routes_to",
+            "depends_on",
+            "implements",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "code", "severity", "message", "evidence"],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/identifier"
+        },
+        "code": {
+          "$ref": "#/definitions/identifier"
+        },
+        "severity": {
+          "enum": ["info", "warning", "error"]
+        },
+        "message": {
+          "$ref": "#/definitions/text"
+        },
+        "nodeId": {
+          "$ref": "#/definitions/identifier"
+        },
+        "edge": {
+          "$ref": "#/definitions/diagnosticEdge"
+        },
+        "location": {
+          "$ref": "#/definitions/sourceLocation"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/evidence"
+          }
+        }
+      }
+    }
+  }
+}
