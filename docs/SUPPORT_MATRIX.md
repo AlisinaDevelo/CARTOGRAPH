@@ -18,6 +18,11 @@ This matrix is the public boundary of the first analyzer. A construct is support
 | Literal `fetch` and Axios destinations                                                 | Supported | Literal URL argument and request call span               | Computed or runtime-only destinations remain unresolved                                                |
 | Conventional Prisma model reads and writes                                             | Supported | Prisma model operation and source span                   | Dynamic model names and unsupported client wrappers remain unresolved                                  |
 
+The X-002 golden fixture covers named re-exports, star re-exports, literal
+dynamic `import()`, literal `require()`, and non-literal dynamic module
+expressions. Every emitted module edge carries source evidence; non-literal
+expressions remain explicit `UNSUPPORTED_DYNAMIC_IMPORT` diagnostics.
+
 ## Unsupported or unresolved
 
 The analyzer does not claim complete runtime behavior, JavaScript support, generated routes, framework metaprogramming, arbitrary plugins, or universal language/framework coverage. Dynamic routes, imports, HTTP destinations, model names, handlers, and calls are represented as stable diagnostics when they cannot be resolved safely.
