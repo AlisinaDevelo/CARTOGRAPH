@@ -25,12 +25,16 @@
       "function:src/services.ts:invokeService",
       "function:src/services.ts:UserService.saveUser"
     ],
+    ["imports", "module:src/dynamic-literals.ts", "module:src/db.ts"],
+    ["imports", "module:src/dynamic-literals.ts", "module:src/modules.ts"],
     ["imports", "module:src/dynamic.ts", "module:external:express"],
     ["imports", "module:src/dynamic.ts", "module:src/db.ts"],
     ["imports", "module:src/entry.ts", "module:external:express"],
     ["imports", "module:src/entry.ts", "module:src/modules.ts"],
     ["imports", "module:src/entry.ts", "module:src/router.ts"],
     ["imports", "module:src/entry.ts", "module:src/services.ts"],
+    ["imports", "module:src/reexports.ts", "module:src/modules.ts"],
+    ["imports", "module:src/reexports.ts", "module:src/services.ts"],
     ["imports", "module:src/router.ts", "module:external:express"],
     ["imports", "module:src/router.ts", "module:src/services.ts"],
     ["imports", "module:src/services.ts", "module:external:axios"],
@@ -55,7 +59,10 @@
   "diagnostics": [
     "UNSUPPORTED_DYNAMIC_HTTP_DESTINATION",
     "UNSUPPORTED_DYNAMIC_IMPORT",
+    "UNSUPPORTED_DYNAMIC_IMPORT",
+    "UNSUPPORTED_DYNAMIC_IMPORT",
     "UNSUPPORTED_DYNAMIC_PRISMA_MODEL",
+    "UNSUPPORTED_DYNAMIC_ROUTE",
     "UNSUPPORTED_DYNAMIC_ROUTE"
   ]
 }

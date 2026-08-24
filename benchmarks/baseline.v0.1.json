@@ -1,7 +1,7 @@
 {
   "artifactVersion": 1,
   "protocolVersion": 1,
-  "generatedAt": "2026-08-24T10:35:14.557Z",
+  "generatedAt": "2026-08-24T14:02:40.729Z",
   "tool": {
     "packageVersion": "0.1.0",
     "nodeVersion": "v26.7.0",
@@ -12,8 +12,8 @@
   },
   "corpus": {
     "version": "0.1",
-    "digest": "8caf6fd723217d350543811a3243643a5e52a69731e014b9b08e215aa76765a7",
-    "fileCount": 19,
+    "digest": "5869b6bdaa5f7578a3dbec89624169adcc96f1dd1d9ffb2c0b113ba0f35e253f",
+    "fileCount": 21,
     "fixtures": 4
   },
   "runs": {
@@ -23,42 +23,42 @@
   "fixtures": [
     {
       "id": "typescript-express",
-      "digest": "6feec7ba3dbab32e9189976e14c14321c70ca5bcd41ce60781c0c880ffdcad07",
-      "fileCount": 10,
+      "digest": "b7307a0a0f272de53614753b43920315f9547b6e25cba5ea5cb0e79172021823",
+      "fileCount": 12,
       "cold": {
         "runs": 1,
-        "minMs": 449.195,
-        "medianMs": 449.195,
-        "p95Ms": 449.195,
-        "maxMs": 449.195,
-        "peakRssBytes": 348143616
+        "minMs": 470.496,
+        "medianMs": 470.496,
+        "p95Ms": 470.496,
+        "maxMs": 470.496,
+        "peakRssBytes": 329318400
       },
       "warm": {
         "runs": 3,
-        "minMs": 274.024,
-        "medianMs": 279.853,
-        "p95Ms": 318.178,
-        "maxMs": 318.178,
-        "peakRssBytes": 610942976
+        "minMs": 262.578,
+        "medianMs": 265.311,
+        "p95Ms": 306.466,
+        "maxMs": 306.466,
+        "peakRssBytes": 575258624
       },
       "graph": {
-        "nodes": 24,
-        "edges": 23,
-        "diagnostics": 5
+        "nodes": 29,
+        "edges": 27,
+        "diagnostics": 7
       },
       "accuracy": {
         "edge": {
-          "truePositives": 23,
-          "emitted": 23,
-          "expected": 23,
+          "truePositives": 27,
+          "emitted": 27,
+          "expected": 27,
           "precision": 1,
           "recall": 1
         },
         "diagnostic": {
-          "truePositives": 4,
-          "emitted": 5,
-          "expected": 4,
-          "precision": 0.8,
+          "truePositives": 7,
+          "emitted": 7,
+          "expected": 7,
+          "precision": 1,
           "recall": 1
         }
       }
@@ -69,19 +69,19 @@
       "fileCount": 3,
       "cold": {
         "runs": 1,
-        "minMs": 117.716,
-        "medianMs": 117.716,
-        "p95Ms": 117.716,
-        "maxMs": 117.716,
-        "peakRssBytes": 643481600
+        "minMs": 106.793,
+        "medianMs": 106.793,
+        "p95Ms": 106.793,
+        "maxMs": 106.793,
+        "peakRssBytes": 604553216
       },
       "warm": {
         "runs": 3,
-        "minMs": 111.988,
-        "medianMs": 113.774,
-        "p95Ms": 116.659,
-        "maxMs": 116.659,
-        "peakRssBytes": 768196608
+        "minMs": 108.345,
+        "medianMs": 111.091,
+        "p95Ms": 112.796,
+        "maxMs": 112.796,
+        "peakRssBytes": 693370880
       },
       "graph": {
         "nodes": 15,
@@ -96,19 +96,19 @@
       "fileCount": 1,
       "cold": {
         "runs": 1,
-        "minMs": 121,
-        "medianMs": 121,
-        "p95Ms": 121,
-        "maxMs": 121,
-        "peakRssBytes": 760709120
+        "minMs": 93.917,
+        "medianMs": 93.917,
+        "p95Ms": 93.917,
+        "maxMs": 93.917,
+        "peakRssBytes": 696860672
       },
       "warm": {
         "runs": 3,
-        "minMs": 97.274,
-        "medianMs": 97.51,
-        "p95Ms": 99.913,
-        "maxMs": 99.913,
-        "peakRssBytes": 761446400
+        "minMs": 92.454,
+        "medianMs": 93.126,
+        "p95Ms": 93.277,
+        "maxMs": 93.277,
+        "peakRssBytes": 705773568
       },
       "graph": {
         "nodes": 2,
@@ -123,19 +123,19 @@
       "fileCount": 5,
       "cold": {
         "runs": 1,
-        "minMs": 100.757,
-        "medianMs": 100.757,
-        "p95Ms": 100.757,
-        "maxMs": 100.757,
-        "peakRssBytes": 761692160
+        "minMs": 90.499,
+        "medianMs": 90.499,
+        "p95Ms": 90.499,
+        "maxMs": 90.499,
+        "peakRssBytes": 706035712
       },
       "warm": {
         "runs": 3,
-        "minMs": 100.61,
-        "medianMs": 102.809,
-        "p95Ms": 110.26,
-        "maxMs": 110.26,
-        "peakRssBytes": 762183680
+        "minMs": 91.047,
+        "medianMs": 95.452,
+        "p95Ms": 101.3,
+        "maxMs": 101.3,
+        "peakRssBytes": 714309632
       },
       "graph": {
         "nodes": 2,

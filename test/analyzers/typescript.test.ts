@@ -57,8 +57,8 @@ describe("TypeScript analyzer", () => {
       [
         ...new Set(snapshot.diagnostics.map((diagnostic) => diagnostic.code)),
       ].sort(),
-    ).toEqual(expected.diagnostics);
-    expect(snapshot.diagnostics).toHaveLength(5);
+    ).toEqual([...new Set(expected.diagnostics)].sort());
+    expect(snapshot.diagnostics).toHaveLength(7);
   });
 
   it("extracts a local import and a semantically resolved call", () => {
@@ -73,6 +73,35 @@ describe("TypeScript analyzer", () => {
     expect(edgeKeys).toContain(
       "calls:function:src/modules.ts:loadUsers->function:src/modules.ts:makeUsers",
     );
+  });
+
+  it("emits evidence-backed re-export and literal dynamic-module edges", () => {
+    const snapshot = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: fixtureRoot }),
+    );
+    const expectedImports = [
+      ["module:src/dynamic-literals.ts", "module:src/modules.ts"],
+      ["module:src/dynamic-literals.ts", "module:src/db.ts"],
+      ["module:src/reexports.ts", "module:src/modules.ts"],
+      ["module:src/reexports.ts", "module:src/services.ts"],
+    ];
+
+    for (const [from, to] of expectedImports) {
+      const edge = snapshot.edges.find(
+        (candidate) =>
+          candidate.kind === "imports" &&
+          candidate.from === from &&
+          candidate.to === to,
+      );
+      expect(edge?.evidence.length).toBeGreaterThan(0);
+      expect(edge?.evidence[0]?.kind).toBe("source");
+    }
+
+    expect(
+      snapshot.diagnostics.filter(
+        (diagnostic) => diagnostic.code === "UNSUPPORTED_DYNAMIC_IMPORT",
+      ),
+    ).toHaveLength(3);
   });
 
   it("keeps output deterministic", () => {
