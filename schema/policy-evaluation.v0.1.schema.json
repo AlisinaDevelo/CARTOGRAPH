@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/policy-evaluation.v0.1.schema.json",
+  "title": "CARTOGRAPH policy evaluation report v0.1",
+  "description": "Deterministic, local policy findings over a canonical GraphSnapshot or GraphDiff. Every violation carries stable rule, reason, and evidence references; unsupported input combinations are explicit.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "policyId",
+    "policyVersion",
+    "inputKind",
+    "mode",
+    "status",
+    "evaluatedRules",
+    "passedRules",
+    "unsupportedRules",
+    "violations",
+    "unsupported"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.policy-evaluation" },
+    "policyId": { "$ref": "#/definitions/identifier" },
+    "policyVersion": { "$ref": "#/definitions/semver" },
+    "inputKind": { "enum": ["snapshot", "diff"] },
+    "mode": { "enum": ["informational", "enforce"] },
+    "status": { "enum": ["passed", "violations", "unsupported"] },
+    "evaluatedRules": { "type": "integer", "minimum": 0 },
+    "passedRules": { "type": "integer", "minimum": 0 },
+    "unsupportedRules": { "type": "integer", "minimum": 0 },
+    "violations": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": { "$ref": "#/definitions/violation" }
+    },
+    "unsupported": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": { "$ref": "#/definitions/unsupported" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "target": { "enum": ["node", "edge", "diff"] },
+    "assertion": {
+      "enum": ["exists", "absent", "count-at-most", "count-at-least"]
+    },
+    "effect": { "enum": ["informational", "enforce"] },
+    "evidenceReference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "violation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "policyId",
+        "ruleId",
+        "target",
+        "assertion",
+        "effect",
+        "count",
+        "matches",
+        "reason",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "policyId": { "$ref": "#/definitions/identifier" },
+        "ruleId": { "$ref": "#/definitions/identifier" },
+        "target": { "$ref": "#/definitions/target" },
+        "assertion": { "$ref": "#/definitions/assertion" },
+        "effect": { "$ref": "#/definitions/effect" },
+        "count": { "type": "integer", "minimum": 0 },
+        "expected": { "type": "integer", "minimum": 0 },
+        "matches": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": { "$ref": "#/definitions/evidenceReference" }
+        }
+      }
+    },
+    "unsupported": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "policyId",
+        "ruleId",
+        "target",
+        "code",
+        "reason",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "policyId": { "$ref": "#/definitions/identifier" },
+        "ruleId": { "$ref": "#/definitions/identifier" },
+        "target": { "$ref": "#/definitions/target" },
+        "code": { "enum": ["unsupported-input", "unsupported-target"] },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/evidenceReference" }
+        }
+      }
+    }
+  }
+}

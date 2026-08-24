@@ -8,8 +8,9 @@ representative example in [`schema/policy.v0.1.json`](../schema/policy.v0.1.json
 ## Shape and selectors
 
 A policy has a lower-case `policyId`, semantic `version`, optional `mode`, and
-at least one rule. `mode` defaults to `informational`; this contract describes
-the intended decision mode but does not evaluate or enforce rules yet.
+at least one rule. `mode` defaults to `informational`; the evaluator reports
+violations with this effective mode, while CI exit behavior remains a separate
+P-005 contract.
 
 Rules are deliberately data-only. Each rule has an identifier, a target, a
 selector, and an assertion:
@@ -37,5 +38,14 @@ ceiling, parses JSON, and returns the same validated contract. It never reads
 the declared `policyId` or any remote source, opens a network connection, or
 executes a rule. `serializePolicyConfig` provides deterministic canonical JSON.
 
-Evaluation and exit-mode behavior are separate roadmap contracts (P-004 and
-P-005); a valid configuration is not evidence that a policy passed.
+`evaluatePolicyOnSnapshot` and `evaluatePolicyOnDiff` consume canonical local
+graphs and return the versioned
+[`policy-evaluation`](../schema/policy-evaluation.v0.1.schema.json) report.
+Snapshot input evaluates node and edge rules; diff input evaluates changed
+node/edge records and diff records. A diff-target rule on a snapshot is
+reported as explicit `unsupported-target` rather than silently ignored.
+Every violation has a stable rule-based ID, deterministic reason, matched IDs,
+and graph/evidence references. The evaluator never fetches a policy, opens a
+network connection, executes a selector, or changes a graph. CI exit-mode
+behavior remains the separate P-005 contract; a valid configuration or report
+is not by itself authorization to merge.
