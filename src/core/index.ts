@@ -7,10 +7,12 @@ export {
   assertSupportedSchemaVersion,
   createGraphSnapshot,
   GraphContractError,
+  GraphValidationError,
   GraphSchemaVersionError,
   parseGraphSnapshot,
   serializeGraphSnapshot,
   stableStringify,
+  type GraphValidationIssue,
 } from "./canonical.js";
 export {
   canonicalizeGraphDiff,

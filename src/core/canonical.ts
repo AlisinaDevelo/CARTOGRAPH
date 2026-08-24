@@ -1,5 +1,6 @@
 import {
   DiagnosticSchema,
+  EvidenceSchema,
   GraphEdgeSchema,
   GraphNodeSchema,
   GraphSnapshotSchema,
@@ -11,8 +12,33 @@ import {
   type GraphSnapshot,
 } from "./schemas.js";
 import { assertSupportedCapabilityRegistryVersion } from "./capabilities.js";
+import { ZodError } from "zod";
 
 export type ContractErrorCode = "duplicate" | "conflict";
+
+export interface GraphValidationIssue {
+  readonly path: readonly (string | number)[];
+  readonly message: string;
+}
+
+export class GraphValidationError extends Error {
+  readonly contract: string;
+  readonly code = "invalid" as const;
+  readonly issues: readonly GraphValidationIssue[];
+
+  constructor(contract: string, issues: readonly GraphValidationIssue[]) {
+    const details = issues
+      .map((issue) => {
+        const path = issue.path.length > 0 ? issue.path.join(".") : "snapshot";
+        return `${path}: ${issue.message}`;
+      })
+      .join("; ");
+    super(`${contract} validation failed: ${details}`);
+    this.name = "GraphValidationError";
+    this.contract = contract;
+    this.issues = issues;
+  }
+}
 
 export class GraphContractError extends Error {
   readonly code: ContractErrorCode;
@@ -89,27 +115,72 @@ const canonicalValue = (value: unknown): unknown => {
 export const stableStringify = (value: unknown): string =>
   JSON.stringify(canonicalValue(value)) ?? "null";
 
+const parseContract = <T>(
+  parse: (input: unknown) => T,
+  input: unknown,
+  contract: string,
+): T => {
+  try {
+    return parse(input);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new GraphValidationError(
+        contract,
+        error.issues.map((issue) => ({
+          path: issue.path.map((part) =>
+            typeof part === "symbol" ? part.toString() : part,
+          ),
+          message: issue.message,
+        })),
+      );
+    }
+    throw error;
+  }
+};
+
+const canonicalizeDateTime = (value: string): string =>
+  new Date(value).toISOString();
+
+const canonicalizeEvidenceRecord = (record: Evidence): Evidence => {
+  const parsed = parseContract(
+    (input) => EvidenceSchema.parse(input),
+    record,
+    "Evidence",
+  );
+  return parsed.observedAt
+    ? { ...parsed, observedAt: canonicalizeDateTime(parsed.observedAt) }
+    : parsed;
+};
+
 export const canonicalizeEvidence = (
   evidence: readonly Evidence[],
 ): Evidence[] =>
-  deduplicateRecords(evidence, (record) => record.id, "evidence").sort(
-    (left, right) => compareStrings(left.id, right.id),
-  );
+  deduplicateRecords(
+    evidence.map(canonicalizeEvidenceRecord),
+    (record) => record.id,
+    "evidence",
+  ).sort((left, right) => compareStrings(left.id, right.id));
 
 export const canonicalizeGraphNode = (node: GraphNode): GraphNode =>
-  GraphNodeSchema.parse(node);
+  parseContract((input) => GraphNodeSchema.parse(input), node, "GraphNode");
 
-export const canonicalizeGraphEdge = (edge: GraphEdge): GraphEdge =>
-  GraphEdgeSchema.parse({
-    ...edge,
-    evidence: canonicalizeEvidence(edge.evidence),
-  });
+export const canonicalizeGraphEdge = (edge: GraphEdge): GraphEdge => {
+  const parsed = parseContract(
+    (input) => GraphEdgeSchema.parse(input),
+    edge,
+    "GraphEdge",
+  );
+  return { ...parsed, evidence: canonicalizeEvidence(parsed.evidence) };
+};
 
-export const canonicalizeDiagnostic = (diagnostic: Diagnostic): Diagnostic =>
-  DiagnosticSchema.parse({
-    ...diagnostic,
-    evidence: canonicalizeEvidence(diagnostic.evidence),
-  });
+export const canonicalizeDiagnostic = (diagnostic: Diagnostic): Diagnostic => {
+  const parsed = parseContract(
+    (input) => DiagnosticSchema.parse(input),
+    diagnostic,
+    "Diagnostic",
+  );
+  return { ...parsed, evidence: canonicalizeEvidence(parsed.evidence) };
+};
 
 const deduplicateRecords = <T>(
   records: readonly T[],
@@ -211,7 +282,11 @@ export const canonicalizeGraphSnapshot = (input: unknown): GraphSnapshot => {
     GRAPH_SNAPSHOT_SCHEMA_VERSION,
   );
   assertSupportedCapabilityRegistryVersion(input);
-  const parsed = GraphSnapshotSchema.parse(input);
+  const parsed = parseContract(
+    (value) => GraphSnapshotSchema.parse(value),
+    input,
+    "GraphSnapshot",
+  );
   const nodes = canonicalNodes(parsed.nodes);
   const edges = canonicalEdges(parsed.edges);
   const diagnostics = canonicalDiagnostics(parsed.diagnostics);
@@ -219,6 +294,12 @@ export const canonicalizeGraphSnapshot = (input: unknown): GraphSnapshot => {
 
   return {
     ...parsed,
+    revision: {
+      ...parsed.revision,
+      ...(parsed.revision.authoredAt
+        ? { authoredAt: canonicalizeDateTime(parsed.revision.authoredAt) }
+        : {}),
+    },
     nodes,
     edges,
     diagnostics,

@@ -5,7 +5,11 @@ import { CAPABILITY_REGISTRY_VERSION } from "./capabilities.js";
 export const GRAPH_SNAPSHOT_SCHEMA_VERSION = 1 as const;
 export const GRAPH_DIFF_SCHEMA_VERSION = 1 as const;
 
-const IdentifierSchema = z.string().trim().min(1, "must not be empty");
+const IdentifierSchema = z
+  .string()
+  .trim()
+  .min(1, "must not be empty")
+  .transform((value) => value.replaceAll("\\", "/"));
 const TextSchema = z.string().trim().min(1, "must not be empty");
 
 const NodeKindSchema = z.enum([
