@@ -3,7 +3,16 @@
 
 import { execFile } from "node:child_process";
 import { Buffer } from "node:buffer";
-import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import {
+  access,
+  cp,
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  symlink,
+  writeFile,
+} from "node:fs/promises";
 import { promisify } from "node:util";
 import { dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -35,8 +44,29 @@ const run = async (binary, args, cwd) => {
 
 const git = async (args, cwd) => (await run("git", args, cwd)).stdout.trim();
 
+const expectFailure = async (label, callback, pattern) => {
+  try {
+    await callback();
+  } catch (error) {
+    const message = String(error?.message ?? error);
+    if (pattern !== undefined && !pattern.test(message))
+      throw new Error(
+        `${label} failed with an unexpected diagnostic: ${message}`,
+        { cause: error },
+      );
+    return message;
+  }
+  throw new Error(`${label} unexpectedly passed`);
+};
+
 const runFixture = async () => {
   const root = await mkdtemp(join(tmpdir(), "cartograph-action-fixture-"));
+  const temporaryRoots = [root];
+  const makeTemporaryRoot = async (prefix) => {
+    const temporaryRoot = await mkdtemp(join(tmpdir(), prefix));
+    temporaryRoots.push(temporaryRoot);
+    return temporaryRoot;
+  };
   try {
     await cp(fixtureRoot, root, { recursive: true });
     await git(["init", "--initial-branch=main"], root);
@@ -158,6 +188,136 @@ const runFixture = async () => {
     if ((await git(["status", "--porcelain"], root)) !== "")
       throw new Error("fixture analysis modified the repository");
 
+    const maliciousPackageRoot = await makeTemporaryRoot(
+      "cartograph-action-malicious-package-",
+    );
+    const maliciousMarker = join(
+      maliciousPackageRoot,
+      "CARTOGRAPH_MALICIOUS_SCRIPT_EXECUTED",
+    );
+    await writeFile(
+      join(maliciousPackageRoot, "package.json"),
+      JSON.stringify(
+        {
+          name: "cartograph-malicious-package-fixture",
+          version: "1.0.0",
+          scripts: {
+            preinstall: `node -e ${JSON.stringify(`require("node:fs").writeFileSync(${JSON.stringify(maliciousMarker)}, "executed")`)}`,
+          },
+        },
+        null,
+        2,
+      ),
+      "utf8",
+    );
+    await run(
+      "npm",
+      [
+        "install",
+        "--ignore-scripts",
+        "--no-package-lock",
+        "--no-audit",
+        "--no-fund",
+        "--offline",
+      ],
+      maliciousPackageRoot,
+    );
+    try {
+      await access(maliciousMarker);
+      throw new Error("malicious package script executed");
+    } catch (error) {
+      if (error?.message === "malicious package script executed") throw error;
+    }
+
+    const symlinkTarget = join(root, "symlink-target.json");
+    const symlinkOutput = join(outputDir, "symlink-report.json");
+    await writeFile(symlinkTarget, "do-not-overwrite\n", "utf8");
+    await symlink(symlinkTarget, symlinkOutput);
+    await expectFailure(
+      "symlinked output",
+      () =>
+        run(
+          process.execPath,
+          [
+            cliPath,
+            "diff",
+            root,
+            "--base",
+            baseSha,
+            "--head",
+            headSha,
+            "--comparison",
+            "merge-base",
+            "--format",
+            "json",
+            "--output",
+            symlinkOutput,
+            "--force",
+          ],
+          repositoryRoot,
+        ),
+      /symlink|symbolic|output/u,
+    );
+    if ((await readFile(symlinkTarget, "utf8")) !== "do-not-overwrite\n")
+      throw new Error("symlinked output target was modified");
+
+    const oversizedRoot = await makeTemporaryRoot(
+      "cartograph-action-oversized-input-",
+    );
+    await mkdir(join(oversizedRoot, "src"), { recursive: true });
+    await writeFile(
+      join(oversizedRoot, "src", "oversized.ts"),
+      `export const oversized = "${"x".repeat(2 * 1024 * 1024)}";\n`,
+      "utf8",
+    );
+    await expectFailure(
+      "oversized input",
+      () =>
+        run(process.execPath, [cliPath, "scan", oversizedRoot], repositoryRoot),
+      /exceed|ceiling|limit|size/u,
+    );
+
+    const { analyzeTypeScriptRepository } = await import(
+      resolve(repositoryRoot, "dist", "analyzers", "index.js")
+    );
+    const { CancellationError } = await import(
+      resolve(repositoryRoot, "dist", "resources.js")
+    );
+    const controller = new globalThis.AbortController();
+    controller.abort();
+    try {
+      analyzeTypeScriptRepository({
+        rootDir: fixtureRoot,
+        signal: controller.signal,
+      });
+      throw new Error("cancelled analysis unexpectedly passed");
+    } catch (error) {
+      if (!(error instanceof CancellationError)) throw error;
+    }
+
+    await expectFailure(
+      "missing revision ref",
+      () =>
+        run(
+          process.execPath,
+          [
+            cliPath,
+            "diff",
+            root,
+            "--base",
+            "missing-cartograph-fixture-ref",
+            "--head",
+            headSha,
+            "--comparison",
+            "merge-base",
+            "--format",
+            "json",
+          ],
+          repositoryRoot,
+        ),
+      /failed|ref|revision|unknown/u,
+    );
+
     console.log(
       JSON.stringify({
         ok: true,
@@ -167,10 +327,22 @@ const runFixture = async () => {
         reportBytes: htmlBytes,
         jsonBytes: reportBytes,
         summaryBytes: Buffer.byteLength(summary, "utf8"),
+        securityFixtures: [
+          "fork-pull-request",
+          "malicious-package-script",
+          "symlinked-output",
+          "oversized-input",
+          "cancellation",
+          "missing-ref",
+        ],
       }),
     );
   } finally {
-    await rm(root, { recursive: true, force: true });
+    await Promise.all(
+      temporaryRoots.map((temporaryRoot) =>
+        rm(temporaryRoot, { recursive: true, force: true }),
+      ),
+    );
   }
 };
 

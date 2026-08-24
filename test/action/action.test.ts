@@ -56,6 +56,8 @@ describe("read-only GitHub Action contract", () => {
   it("keeps the fixture workflow and documentation informational", () => {
     const docs = read("docs/ACTION.md");
     const fixtureReadme = read("examples/github-action-fixture/README.md");
+    const fixture = read("scripts/action-fixture.mjs");
+    const securityFixture = read("scripts/action-security-fixture.mjs");
 
     expect(docs).toContain("does not comment, label, merge, change issues");
     expect(docs).toContain("npm run action:validate");
@@ -67,5 +69,17 @@ describe("read-only GitHub Action contract", () => {
     expect(fixtureReadme).toContain("comment on the pull request");
     expect(fixtureReadme).toContain("no repository secrets");
     expect(fixtureReadme).toContain("upload-report: false");
+    for (const scenario of [
+      "malicious-package",
+      "symlinked-output",
+      "oversized-input",
+      "cancelled analysis",
+      "missing revision ref",
+    ])
+      expect(fixture).toContain(scenario);
+    expect(securityFixture).toContain("actionReferences");
+    expect(securityFixture).toContain("unpin");
+    expect(securityFixture).toContain("write permission");
+    expect(securityFixture).toContain("npm ci --ignore-scripts");
   });
 });

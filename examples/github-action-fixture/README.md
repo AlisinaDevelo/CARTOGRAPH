@@ -12,6 +12,9 @@ It deliberately uses `pull_request`, not `pull_request_target`, so fork runs
 receive only a read-only contents token and no repository secrets. It does not
 comment on the pull request, modify issues, or pass credentials to the analyzer.
 
+The local Action security harness additionally checks malicious package scripts,
+symlinked outputs, oversized input, cancellation, and missing revision refs.
+
 The artifact is retained for seven days by default and contains only the
 canonical JSON and escaped HTML reports. For a sensitive repository, add
 `upload-report: false` to the Action inputs to keep the summary while skipping
