@@ -43,6 +43,13 @@ the exact node and edge sets, confidence/evidence preservation, cycle paths,
 unresolved-edge visibility, depth-limit reporting, ordering stability, and a
 bounded local timing sample. No network or source execution is involved.
 
+Identity fixtures cover a source-line move, a unique same-name file move, a
+rename supported by an unchanged directed neighborhood, and duplicate-name
+ambiguity. They assert the match method and confidence, preserve explicit
+ambiguity instead of guessing, and serialize identically when node and edge
+input order changes. P-001 is a core primitive; D-010 is responsible for
+consuming its matches in the graph-diff pipeline.
+
 ## Practical compatibility
 
 Before v0.1, CARTOGRAPH will analyze at least three representative public TypeScript repositories or recorded snapshots. The report will publish supported, unresolved, and failed construct counts without copying third-party source into the repository.

@@ -37,6 +37,21 @@ export {
   type ImpactTraversalOptions,
 } from "./impact.js";
 export {
+  IdentityMatchConfidenceSchema,
+  IdentityMatchMethodSchema,
+  IdentitySignalSchema,
+  matchGraphNodeIdentities,
+  reconcileGraphNodeIdentities,
+  serializeIdentityReconciliation,
+  type IdentityAmbiguity,
+  type IdentityCandidate,
+  type IdentityMatch,
+  type IdentityMatchConfidence,
+  type IdentityMatchMethod,
+  type IdentityReconciliation,
+  type IdentitySignal,
+} from "./identity.js";
+export {
   assertCompatibleCapabilityRegistryVersion,
   assertSupportedCapabilityRegistryVersion,
   CAPABILITY_REGISTRY,
