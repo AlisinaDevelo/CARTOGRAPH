@@ -25,6 +25,11 @@ describe("CLI contract", () => {
     expect(policy).toContain("redacted");
     expect(policy).toContain("## No-op scan boundary");
     expect(policy).toContain("does not execute repository code");
+    expect(policy).toContain("## Revision comparison contract");
+    expect(policy).toContain("--comparison merge-base");
+    expect(policy).toContain("fetch-depth: 0");
+    expect(policy).toContain("shallow");
     expect(readme).toContain("[CLI runtime and exit policy](docs/CLI.md)");
+    expect(readme).toContain("--comparison merge-base");
   });
 });

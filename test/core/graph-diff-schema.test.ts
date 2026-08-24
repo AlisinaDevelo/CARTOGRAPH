@@ -67,6 +67,46 @@ describe("GraphDiff v0.1 JSON Schema", () => {
     });
   });
 
+  it("validates direct and merge-base comparison metadata", () => {
+    const fixture = readJson(resolve(fixtureRoot, "valid.graph-diff.json")) as {
+      fromRevision: { commitSha: string };
+      toRevision: { commitSha: string };
+    } & Record<string, unknown>;
+    const comparison = {
+      mode: "merge-base",
+      baseRef: "origin/main",
+      headRef: "refs/pull/7/head",
+      baseCommitSha: fixture.fromRevision.commitSha,
+      headCommitSha: fixture.toRevision.commitSha,
+      mergeBaseSha: fixture.fromRevision.commitSha,
+    };
+    const withComparison = { ...fixture, comparison };
+    expect(validateJsonSchema(withComparison)).toBe(true);
+    expect(parseGraphDiff(withComparison).comparison).toEqual(comparison);
+
+    const missingMergeBase = {
+      ...withComparison,
+      comparison: { ...comparison, mergeBaseSha: undefined },
+    };
+    expect(validateJsonSchema(missingMergeBase)).toBe(false);
+    expect(GraphDiffSchema.safeParse(missingMergeBase).success).toBe(false);
+
+    const absoluteRef = {
+      ...withComparison,
+      comparison: { ...comparison, baseRef: "/tmp/repository" },
+    };
+    expect(validateJsonSchema(absoluteRef)).toBe(false);
+    expect(GraphDiffSchema.safeParse(absoluteRef).success).toBe(false);
+
+    const mismatchedRevision = {
+      ...withComparison,
+      comparison: { ...comparison, headCommitSha: "d".repeat(40) },
+    };
+    expect(() => parseGraphDiff(mismatchedRevision)).toThrow(
+      /head commit does not match/u,
+    );
+  });
+
   it("rejects malformed and internally inconsistent diffs", () => {
     const malformed = readJson(
       resolve(fixtureRoot, "malformed.graph-diff.json"),

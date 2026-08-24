@@ -10,6 +10,7 @@ import {
   type GraphDiff,
   type GraphEdge,
   type GraphNode,
+  type DiffComparison,
   type RewiredEdge,
 } from "./schemas.js";
 import {
@@ -643,6 +644,22 @@ export const canonicalizeGraphDiff = (input: unknown): GraphDiff => {
   assertSupportedSchemaVersion(input, "GraphDiff", GRAPH_DIFF_SCHEMA_VERSION);
   assertSupportedCapabilityRegistryVersion(input);
   const parsed = GraphDiffSchema.parse(input);
+  if (parsed.comparison !== undefined) {
+    if (parsed.toRevision.commitSha !== parsed.comparison.headCommitSha)
+      throw new GraphContractError(
+        "conflict",
+        "graph diff comparison head commit does not match toRevision",
+      );
+    const expectedFromCommit =
+      parsed.comparison.mode === "merge-base"
+        ? parsed.comparison.mergeBaseSha
+        : parsed.comparison.baseCommitSha;
+    if (parsed.fromRevision.commitSha !== expectedFromCommit)
+      throw new GraphContractError(
+        "conflict",
+        "graph diff comparison base commit does not match fromRevision",
+      );
+  }
   const nodes = {
     added: sortNodes(parsed.nodes.added),
     removed: sortNodes(parsed.nodes.removed),
@@ -693,6 +710,7 @@ export const canonicalizeGraphDiff = (input: unknown): GraphDiff => {
  * treating a reordering as a graph change.
  */
 export type GraphDiffOptions = {
+  comparison?: DiffComparison;
   identity?: IdentityReconciliationOptions;
 };
 
@@ -730,6 +748,9 @@ export const diffGraphSnapshots = (
     schemaVersion: 1 as const,
     capabilityRegistryVersion: before.capabilityRegistryVersion,
     summary: summarizeDiff(nodes, edges, diagnostics),
+    ...(options.comparison === undefined
+      ? {}
+      : { comparison: options.comparison }),
     fromRevision: before.revision,
     toRevision: after.revision,
     nodes,

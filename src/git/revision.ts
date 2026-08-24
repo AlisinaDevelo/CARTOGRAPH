@@ -46,6 +46,18 @@ export type GitPathHistoryOptions = {
   signal?: AbortSignal;
 };
 
+export type RevisionComparisonMode = "direct" | "merge-base";
+
+export type RevisionComparison = {
+  mode: RevisionComparisonMode;
+  baseRef: string;
+  headRef: string;
+  baseCommitSha: string;
+  headCommitSha: string;
+  fromCommitSha: string;
+  mergeBaseSha?: string;
+};
+
 export type GitPathHistoryEntry = {
   beforePath: string;
   afterPath: string;
@@ -216,6 +228,15 @@ export async function resolveCommit(
 ): Promise<string> {
   assertSafeRef(ref);
   const root = await resolveRepositoryRoot(repositoryRoot, options);
+  return await resolveCommitAtRoot(root, ref, options);
+}
+
+const resolveCommitAtRoot = async (
+  root: string,
+  ref: string,
+  options: ProcessOptions = {},
+): Promise<string> => {
+  assertSafeRef(ref);
   const output = await runProcess(
     "git",
     [
@@ -236,6 +257,88 @@ export async function resolveCommit(
     );
   }
   return commit;
+};
+
+export async function resolveRevisionComparison(
+  repositoryRoot: string,
+  baseRef: string,
+  headRef: string,
+  mode: RevisionComparisonMode = "direct",
+  options: GitPathHistoryOptions = {},
+): Promise<RevisionComparison> {
+  if (mode !== "direct" && mode !== "merge-base")
+    throw new Error(`unsupported revision comparison mode: ${String(mode)}`);
+  const root = await resolveRepositoryRoot(repositoryRoot, options);
+  const baseCommitSha = await resolveCommitAtRoot(root, baseRef, options);
+  const headCommitSha = await resolveCommitAtRoot(root, headRef, options);
+  if (mode === "direct")
+    return {
+      mode,
+      baseRef,
+      headRef,
+      baseCommitSha,
+      headCommitSha,
+      fromCommitSha: baseCommitSha,
+    };
+
+  const shallowState = await runProcess(
+    "git",
+    ["-C", root, "rev-parse", "--is-shallow-repository"],
+    undefined,
+    options,
+  );
+  if (shallowState.trim() === "true")
+    throw new GitCommandError(
+      "git merge-base",
+      null,
+      "cannot resolve a merge base in a shallow repository; fetching is disabled",
+    );
+
+  let mergeBaseOutput: string;
+  try {
+    mergeBaseOutput = await runProcess(
+      "git",
+      ["-C", root, "merge-base", "--all", baseCommitSha, headCommitSha],
+      undefined,
+      options,
+    );
+  } catch (error) {
+    if (error instanceof GitCommandError && error.exitCode === 1)
+      throw new GitCommandError(
+        "git merge-base",
+        1,
+        "base and head have unrelated histories",
+      );
+    throw error;
+  }
+  const mergeBases = mergeBaseOutput
+    .trim()
+    .split(/\s+/u)
+    .filter((value) => value.length > 0);
+  if (mergeBases.length === 0)
+    throw new GitCommandError(
+      "git merge-base",
+      1,
+      "base and head have unrelated histories",
+    );
+  if (mergeBases.length > 1)
+    throw new GitCommandError(
+      "git merge-base",
+      null,
+      "base and head have multiple merge bases; resolve the history explicitly",
+    );
+  const mergeBaseSha = mergeBases[0];
+  if (mergeBaseSha === undefined || !/^[0-9a-f]{40,64}$/u.test(mergeBaseSha))
+    throw new Error("Git returned an invalid merge-base commit identifier");
+  return {
+    mode,
+    baseRef,
+    headRef,
+    baseCommitSha,
+    headCommitSha,
+    fromCommitSha: mergeBaseSha,
+    mergeBaseSha,
+  };
 }
 
 export async function readPathHistory(

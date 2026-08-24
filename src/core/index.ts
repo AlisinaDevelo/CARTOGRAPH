@@ -97,6 +97,8 @@ export {
 } from "./config.js";
 export {
   DiagnosticSchema,
+  DiffComparisonModeSchema,
+  DiffComparisonSchema,
   EdgeChangeClassificationSchema,
   EvidenceSchema,
   GraphDiffSchema,
@@ -480,6 +482,8 @@ export type {
   ChangedDiagnostic,
   ChangedEdge,
   ChangedNode,
+  DiffComparison,
+  DiffComparisonMode,
   Diagnostic,
   EdgeChangeClassification,
   Evidence,

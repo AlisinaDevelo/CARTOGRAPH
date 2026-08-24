@@ -40,6 +40,26 @@ an isolated consumer before treating the `cartograph` bin as usable.
 controls deterministic source selection, extractor selection, and resource
 ceilings; `--tsconfig` and output flags remain invocation-level overrides.
 
+## Revision comparison contract
+
+`diff --base <ref> --head <ref>` resolves both refs locally and defaults to
+`--comparison direct`, comparing the exact base commit tree with the exact head
+commit tree. `--comparison merge-base` resolves the unique local merge base and
+compares that commit with the exact head commit, matching pull-request
+three-dot semantics. JSON reports record the requested refs, resolved commits,
+mode, and merge-base commit when applicable; Markdown and HTML reports expose
+the same context. Direct mode permits unrelated histories because it compares
+two explicitly resolved trees; merge-base mode rejects them because no
+pull-request comparison base exists.
+
+Revision analysis never fetches. A merge-base comparison fails closed when the
+repository is shallow, the histories are unrelated, or Git reports multiple
+merge bases. A pull-request Action must use a full checkout (`fetch-depth: 0`)
+and pass the event's explicit base and head refs; it must not rely on a moving
+branch name or fetch implicitly. Rebases are represented by the exact head and
+new merge-base SHAs in the report, so reviewers can distinguish a rewritten
+head from a changed comparison base.
+
 Diff reports are self-contained and local. HTML includes semantic headings, a
 keyboard-focusable skip link, revision and schema/tool versions, per-edge
 evidence, and unsupported diagnostics. JSON, Markdown, and HTML fail closed

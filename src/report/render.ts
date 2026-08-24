@@ -82,6 +82,15 @@ const markdownCode = (value: string): string => {
   return `<code>${escapeHtml(normalized)}</code>`;
 };
 
+const comparisonSummary = (diff: GraphDiff): string | undefined => {
+  if (diff.comparison === undefined) return undefined;
+  const mergeBase =
+    diff.comparison.mergeBaseSha === undefined
+      ? ""
+      : `; merge base ${markdownCode(shortRevision(diff.comparison.mergeBaseSha))}`;
+  return `Comparison ${markdownCode(diff.comparison.mode)}: ${markdownCode(diff.comparison.baseRef)} (${markdownCode(shortRevision(diff.comparison.baseCommitSha))}) → ${markdownCode(diff.comparison.headRef)} (${markdownCode(shortRevision(diff.comparison.headCommitSha))})${mergeBase}.`;
+};
+
 const evidenceLabel = (evidence: Evidence): string => {
   const location = evidence.location;
   const path = location?.path ?? evidence.path;
@@ -142,6 +151,7 @@ export function renderMarkdownReport(diff: GraphDiff): string {
     "# Architecture diff",
     "",
     `From ${markdownCode(shortRevision(diff.fromRevision.commitSha))} to ${markdownCode(shortRevision(diff.toRevision.commitSha))}.`,
+    ...(comparisonSummary(diff) === undefined ? [] : [comparisonSummary(diff)]),
     `Tool ${markdownCode(REPORT_TOOL_VERSION)}; GraphDiff schema ${markdownCode(String(GRAPH_DIFF_SCHEMA_VERSION))}; capability registry ${markdownCode(String(diff.capabilityRegistryVersion))}.`,
     "",
     "## Summary",
@@ -347,6 +357,11 @@ export function renderHtmlReport(diff: GraphDiff): string {
   <main id="report" tabindex="-1">
     <h1>Architecture diff</h1>
     <p>From <code>${escapeHtml(shortRevision(diff.fromRevision.commitSha))}</code> to <code>${escapeHtml(shortRevision(diff.toRevision.commitSha))}</code>.</p>
+    ${
+      diff.comparison === undefined
+        ? ""
+        : `<p>Comparison <code>${escapeHtml(diff.comparison.mode)}</code>: <code>${escapeHtml(diff.comparison.baseRef)}</code> (${escapeHtml(shortRevision(diff.comparison.baseCommitSha))}) → <code>${escapeHtml(diff.comparison.headRef)}</code> (${escapeHtml(shortRevision(diff.comparison.headCommitSha))})${diff.comparison.mergeBaseSha === undefined ? "" : `; merge base <code>${escapeHtml(shortRevision(diff.comparison.mergeBaseSha))}</code>`}.</p>`
+    }
     <p>Tool <code>${escapeHtml(REPORT_TOOL_VERSION)}</code>; GraphDiff schema <code>${escapeHtml(String(GRAPH_DIFF_SCHEMA_VERSION))}</code>; capability registry <code>${escapeHtml(String(diff.capabilityRegistryVersion))}</code>.</p>
     <section aria-labelledby="summary-heading">
       <h2 id="summary-heading">Summary</h2>
