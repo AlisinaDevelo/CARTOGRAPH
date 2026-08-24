@@ -24,13 +24,14 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run roadmap:validate && npm run roadmap:test && npm run build",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run schema:compatibility && npm run test:coverage && npm run roadmap:validate && npm run roadmap:test && npm run build",
     "dev": "tsx src/cli.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "roadmap:test": "node --test roadmap/github-roadmap.test.mjs",
     "roadmap:validate": "node scripts/github-roadmap.mjs validate",
+    "schema:compatibility": "node scripts/schema-compatibility.mjs check",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit"

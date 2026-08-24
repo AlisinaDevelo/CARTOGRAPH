@@ -1,0 +1,36 @@
+{
+  "policyVersion": 1,
+  "categories": {
+    "additive": "An optional field, enum value, diagnostic, or report detail that old readers can ignore without changing existing meaning.",
+    "breaking": "A required field, removed field, changed identity, changed meaning, or incompatible output shape that requires a new major contract version.",
+    "deprecated": "A still-readable field or value retained for one documented compatibility window and excluded from new output.",
+    "migration-required": "A change that can be made deterministic only by rewriting an artifact or requiring an explicit reader migration before use."
+  },
+  "contracts": {
+    "snapshot": {
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
+    },
+    "diff": {
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
+    },
+    "reports": {
+      "current": null,
+      "supportedReaders": [],
+      "reviewed": true
+    },
+    "policies": {
+      "current": null,
+      "supportedReaders": [],
+      "reviewed": true
+    },
+    "adapters": {
+      "current": null,
+      "supportedReaders": [],
+      "reviewed": true
+    }
+  }
+}

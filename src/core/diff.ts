@@ -1,5 +1,6 @@
 import {
   GraphDiffSchema,
+  GRAPH_DIFF_SCHEMA_VERSION,
   type ChangedDiagnostic,
   type ChangedEdge,
   type ChangedNode,
@@ -14,6 +15,7 @@ import {
   canonicalizeGraphEdge,
   canonicalizeGraphNode,
   canonicalizeGraphSnapshot,
+  assertSupportedSchemaVersion,
   GraphContractError,
   stableStringify,
 } from "./canonical.js";
@@ -274,6 +276,7 @@ const canonicalizeChangedDiagnostics = (
   ).sort((left, right) => compareStrings(left.id, right.id));
 
 export const canonicalizeGraphDiff = (input: unknown): GraphDiff => {
+  assertSupportedSchemaVersion(input, "GraphDiff", GRAPH_DIFF_SCHEMA_VERSION);
   const parsed = GraphDiffSchema.parse(input);
   const canonical = {
     ...parsed,

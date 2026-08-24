@@ -88,6 +88,9 @@ The surrounding snapshot records the exact analyzed commit for revision-backed s
 The canonical [GraphSnapshot v0.1 JSON Schema](schema/graph-snapshot.v0.1.schema.json)
 defines the portable interchange shape. The runtime validator additionally checks
 cross-record node references, duplicate identities, and canonical normalization.
+Schema compatibility and migration rules are documented in
+[`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) and checked by
+`npm run schema:compatibility`.
 
 ## Privacy and security
 
@@ -114,6 +117,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [CLI runtime and exit policy](docs/CLI.md)
 - [Support matrix and review process](docs/SUPPORT_MATRIX.md)
 - [Maintenance and ownership](docs/MAINTENANCE.md)
+- [Compatibility and versioning](docs/COMPATIBILITY.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Evaluation strategy](docs/EVALUATION.md)
 - [Landscape research](docs/RESEARCH.md)

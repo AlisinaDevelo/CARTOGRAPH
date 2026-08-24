@@ -33,6 +33,10 @@ The local replacement for the same gate is `npm run check`, followed by package
 and installed-CLI smoke tests. A local run is retained as evidence when hosted
 checks are unavailable; it is not a claim that hosted checks ran.
 
+The schema compatibility check is part of `npm run check`; it rejects drift
+between runtime constants, the published schema, and the reviewed compatibility
+manifest.
+
 ## Dependency-update ownership
 
 Dependabot owns update proposals, not automatic merging. The configuration in
