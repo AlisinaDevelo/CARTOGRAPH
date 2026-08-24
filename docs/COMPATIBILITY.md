@@ -70,3 +70,12 @@ published JSON Schema. It also rejects an unreviewed current-version entry.
 schema version changes without the manifest and review/migration record being
 updated. Hosted checks are a separate environment; the same command is the
 local replacement when they are unavailable.
+
+## X-008 additive review
+
+X-008 adds the `AMBIGUOUS_PACKAGE_CONDITION` diagnostic and documents package
+`exports`/`imports` condition evidence in the capability and diagnostic
+registries. This is an additive registry entry: version `1` remains current,
+existing readers can ignore the new diagnostic code, and no snapshot shape or
+migration is required. The merged implementation and its Node16/NodeNext
+fixtures were re-run through the full local compatibility and test gates.
