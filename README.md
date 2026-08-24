@@ -113,6 +113,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Product charter](docs/PRODUCT.md)
 - [CLI runtime and exit policy](docs/CLI.md)
 - [Support matrix and review process](docs/SUPPORT_MATRIX.md)
+- [Maintenance and ownership](docs/MAINTENANCE.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Evaluation strategy](docs/EVALUATION.md)
 - [Landscape research](docs/RESEARCH.md)

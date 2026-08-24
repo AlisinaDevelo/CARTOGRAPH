@@ -7,3 +7,6 @@ Use GitHub issues for reproducible bugs, feature proposals, compatibility report
 Use the process in [SECURITY.md](SECURITY.md) for vulnerabilities. Do not report a security issue in a public ticket.
 
 The supported analyzer boundary is documented in the README and fixture corpus. Output outside that boundary is experimental even if it appears plausible.
+
+Current ownership, dependency-update responsibility, and security-disclosure
+routing are documented in [`docs/MAINTENANCE.md`](docs/MAINTENANCE.md).

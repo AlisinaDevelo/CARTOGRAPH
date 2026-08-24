@@ -4,6 +4,10 @@ CARTOGRAPH is an early, TypeScript-first open-source project for evidence-backed
 
 Please read the product and architecture documents in [`docs/`](docs/) before proposing a broad change. The project is intentionally narrower than a general repository chatbot, security scanner, or universal language analyzer.
 
+Read [`docs/MAINTENANCE.md`](docs/MAINTENANCE.md) for current maintainer ownership,
+required merge checks, dependency-update responsibility, and security disclosure
+routing.
+
 ## Development setup
 
 Use Node.js 22 or 24 (Node.js 22 must be at least 22.13.0) and npm.
