@@ -121,6 +121,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Maintenance and ownership](docs/MAINTENANCE.md)
 - [Compatibility and versioning](docs/COMPATIBILITY.md)
 - [Configuration contract](docs/CONFIGURATION.md)
+- [Fixture provenance](docs/FIXTURES.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Evaluation strategy](docs/EVALUATION.md)
 - [Landscape research](docs/RESEARCH.md)
