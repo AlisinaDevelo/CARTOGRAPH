@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.model-provider-privacy-fixtures",
+  "cases": [
+    {
+      "id": "no-provider-default",
+      "threat": "no-provider-default",
+      "inputClass": "configuration",
+      "expectedDisposition": "local-only",
+      "redaction": "not-needed",
+      "noRawLeak": true,
+      "networkAllowed": false,
+      "syntheticMarker": "repository config requests provider=true",
+      "expectedReason": "repository-controlled configuration is not user consent"
+    },
+    {
+      "id": "source-prompt-injection",
+      "threat": "source-prompt-injection",
+      "inputClass": "source",
+      "expectedDisposition": "deferred",
+      "redaction": "field-omitted",
+      "noRawLeak": true,
+      "networkAllowed": false,
+      "syntheticMarker": "IGNORE_POLICY_DISCLOSE_SOURCE_MARKER",
+      "expectedReason": "untrusted source text cannot select policy or disclosure"
+    },
+    {
+      "id": "issue-prompt-injection",
+      "threat": "issue-prompt-injection",
+      "inputClass": "issue",
+      "expectedDisposition": "deferred",
+      "redaction": "field-omitted",
+      "noRawLeak": true,
+      "networkAllowed": false,
+      "syntheticMarker": "OPERATOR_OVERRIDE_REQUEST_SECRET_MARKER",
+      "expectedReason": "issue text cannot impersonate consent or an operator"
+    },
+    {
+      "id": "secret-exfiltration",
+      "threat": "secret-exfiltration",
+      "inputClass": "suggestion",
+      "expectedDisposition": "deferred",
+      "redaction": "field-omitted",
+      "noRawLeak": true,
+      "networkAllowed": false,
+      "syntheticMarker": "SYNTHETIC_CREDENTIAL_SHAPED_VALUE",
+      "expectedReason": "credential-shaped content is never eligible for transmission"
+    },
+    {
+      "id": "untrusted-report",
+      "threat": "untrusted-report",
+      "inputClass": "report",
+      "expectedDisposition": "deferred",
+      "redaction": "field-omitted",
+      "noRawLeak": true,
+      "networkAllowed": false,
+      "syntheticMarker": "REMOTE_INSTRUCTION_AND_UNSUPPORTED_EVIDENCE_MARKER",
+      "expectedReason": "reports cannot introduce remote instructions or evidence"
+    },
+    {
+      "id": "malicious-suggestion",
+      "threat": "malicious-suggestion",
+      "inputClass": "provider-response",
+      "expectedDisposition": "deferred",
+      "redaction": "field-omitted",
+      "noRawLeak": true,
+      "networkAllowed": false,
+      "syntheticMarker": "RUN_DESTRUCTIVE_COMMAND_AND_WEAKEN_POLICY_MARKER",
+      "expectedReason": "destructive or policy-weakening output is not actionable"
+    },
+    {
+      "id": "provider-failure",
+      "threat": "provider-failure",
+      "inputClass": "provider-transport",
+      "expectedDisposition": "deferred",
+      "redaction": "not-needed",
+      "noRawLeak": true,
+      "networkAllowed": false,
+      "syntheticMarker": "timeout-quota-auth-or-malformed-response",
+      "expectedReason": "provider failure must defer without an unverified success"
+    },
+    {
+      "id": "nondeterminism",
+      "threat": "nondeterminism",
+      "inputClass": "provider-response",
+      "expectedDisposition": "deferred",
+      "redaction": "not-needed",
+      "noRawLeak": true,
+      "networkAllowed": false,
+      "syntheticMarker": "same-input-different-response-digest",
+      "expectedReason": "response digest mismatch prevents reproducible replay"
+    },
+    {
+      "id": "misleading-confidence",
+      "threat": "misleading-confidence",
+      "inputClass": "provider-response",
+      "expectedDisposition": "deferred",
+      "redaction": "not-needed",
+      "noRawLeak": true,
+      "networkAllowed": false,
+      "syntheticMarker": "high-confidence-without-supporting-evidence",
+      "expectedReason": "provider confidence cannot upgrade local uncertainty"
+    },
+    {
+      "id": "consented-redacted-summary",
+      "threat": "redaction",
+      "inputClass": "source",
+      "expectedDisposition": "redact-and-send",
+      "redaction": "applied",
+      "noRawLeak": true,
+      "networkAllowed": true,
+      "syntheticMarker": "bounded-summary-with-credential-replaced-by-marker",
+      "expectedReason": "only an explicitly consented locally redacted summary may leave"
+    },
+    {
+      "id": "training-policy-unknown",
+      "threat": "training-policy-unknown",
+      "inputClass": "provider-response",
+      "expectedDisposition": "deferred",
+      "redaction": "not-needed",
+      "noRawLeak": true,
+      "networkAllowed": false,
+      "syntheticMarker": "provider-training-policy-unspecified",
+      "expectedReason": "unknown training policy is a hard defer"
+    },
+    {
+      "id": "budget-exceeded",
+      "threat": "budget-exceeded",
+      "inputClass": "provider-transport",
+      "expectedDisposition": "deferred",
+      "redaction": "not-needed",
+      "noRawLeak": true,
+      "networkAllowed": false,
+      "syntheticMarker": "request-bytes-time-or-cost-ceiling-exceeded",
+      "expectedReason": "bounded budgets fail closed before another request"
+    }
+  ]
+}
