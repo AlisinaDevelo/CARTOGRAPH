@@ -28,6 +28,7 @@ describe("schema compatibility policy", () => {
       policyVersion: 1,
       snapshotVersion: 1,
       diffVersion: 1,
+      diagnosticVersion: 1,
     });
   });
 

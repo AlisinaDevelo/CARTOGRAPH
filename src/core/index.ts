@@ -32,6 +32,15 @@ export {
   type ExtractorCapability,
 } from "./capabilities.js";
 export {
+  DIAGNOSTIC_REGISTRY,
+  DIAGNOSTIC_REGISTRY_VERSION,
+  DiagnosticRegistrySchema,
+  getDiagnosticDefinition,
+  type DiagnosticDefinition,
+  type DiagnosticRegistry,
+  type DiagnosticSeverity,
+} from "./diagnostics.js";
+export {
   CARTOGRAPH_CONFIG_SCHEMA_VERSION,
   CartographConfigSchema,
   ConfigValidationError,

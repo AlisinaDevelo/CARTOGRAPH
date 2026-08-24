@@ -332,6 +332,7 @@ const DiagnosticInputSchema = z
     code: IdentifierSchema,
     severity: DiagnosticSeveritySchema,
     message: TextSchema,
+    remediation: TextSchema.optional(),
     nodeId: IdentifierSchema.optional(),
     edge: z
       .object({

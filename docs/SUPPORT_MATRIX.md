@@ -29,6 +29,11 @@ bound global middleware. Middleware registrations are represented as `USE`
 endpoint nodes with handler call edges and source evidence; computed mount paths
 remain explicit `UNSUPPORTED_DYNAMIC_ROUTE` diagnostics.
 
+The X-004 diagnostic registry gives every supported unknown case a unique code,
+warning severity, source-span evidence contract, and actionable remediation.
+Analyzer diagnostics are resolved through that registry before they enter a
+snapshot; reports carry the remediation alongside the diagnostic message.
+
 ## Unsupported or unresolved
 
 The analyzer does not claim complete runtime behavior, JavaScript support, generated routes, framework metaprogramming, arbitrary plugins, or universal language/framework coverage. Dynamic routes, imports, HTTP destinations, model names, handlers, and calls are represented as stable diagnostics when they cannot be resolved safely.

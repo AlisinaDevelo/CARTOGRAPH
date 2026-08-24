@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/diagnostic-registry.v0.1.schema.json",
+  "title": "CARTOGRAPH diagnostic registry v0.1",
+  "description": "Versioned unsupported-construct diagnostics with source evidence and actionable remediation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["registryVersion", "diagnostics"],
+  "properties": {
+    "registryVersion": { "const": 1 },
+    "diagnostics": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/diagnostic" }
+    }
+  },
+  "definitions": {
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "severity", "message", "evidence", "remediation"],
+      "properties": {
+        "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "message": { "type": "string", "minLength": 1 },
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "location"],
+          "properties": {
+            "kind": { "const": "source" },
+            "location": { "const": "source-span" }
+          }
+        },
+        "remediation": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

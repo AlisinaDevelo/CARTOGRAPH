@@ -170,6 +170,7 @@ const categoryAfter = createGraphSnapshot({
       code: "ADDED",
       severity: "warning",
       message: "bad &ast; `code`\n\n# injected <img src=x onerror=alert(1)>",
+      remediation: "Use a literal value before accepting this edge.",
     },
   ],
 });
@@ -218,6 +219,12 @@ describe("diff reports", () => {
     expect(markdown).not.toContain("<img src=x");
     expect(markdown).not.toContain("<img src=remote");
     expect(markdown).toContain("&lt;img src=x onerror=alert(1)&gt;");
+    expect(markdown).toContain(
+      "remediation: <code>Use a literal value before accepting this edge.</code>",
+    );
+    expect(html).toContain(
+      "Remediation: Use a literal value before accepting this edge.",
+    );
   });
 
   it("uses canonical JSON as the machine-readable report", () => {

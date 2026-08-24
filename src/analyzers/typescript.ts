@@ -38,7 +38,10 @@ import type {
   SourceLocation,
   ResourceLimits,
 } from "../core/index.js";
-import { CAPABILITY_REGISTRY_VERSION } from "../core/index.js";
+import {
+  CAPABILITY_REGISTRY_VERSION,
+  getDiagnosticDefinition,
+} from "../core/index.js";
 
 import {
   analyzeExpressRouteCall,
@@ -943,17 +946,21 @@ const evidenceFor = (
 const addDiagnostic = (
   context: AnalyzerContext,
   code: string,
-  message: string,
+  _message: string,
   node: Node,
-  severity: Diagnostic["severity"] = "warning",
 ): void => {
+  const definition = getDiagnosticDefinition(code);
+  if (!definition) {
+    throw new Error(`unregistered diagnostic code: ${code}`);
+  }
   const location = sourcePosition(context.rootDir, node);
   const evidence = evidenceFor(context, node, `${DETECTOR_VERSION}/diagnostic`);
   const diagnostic: Diagnostic = {
-    id: diagnosticKey(code, location, message),
+    id: diagnosticKey(code, location, definition.message),
     code,
-    severity,
-    message,
+    severity: definition.severity,
+    message: definition.message,
+    remediation: definition.remediation,
     location,
     evidence: [evidence],
   };

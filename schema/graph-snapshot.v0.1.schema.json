@@ -376,6 +376,9 @@
         "message": {
           "$ref": "#/definitions/text"
         },
+        "remediation": {
+          "$ref": "#/definitions/text"
+        },
         "nodeId": {
           "$ref": "#/definitions/identifier"
         },
