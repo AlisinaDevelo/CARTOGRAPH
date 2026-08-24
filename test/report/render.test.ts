@@ -8,7 +8,10 @@ import {
   renderDiff,
   renderHtmlReport,
   renderMarkdownReport,
+  REPORT_LIMITS,
+  REPORT_TOOL_VERSION,
 } from "../../src/report/render.js";
+import { ResourceLimitError } from "../../src/resources.js";
 
 const hash = `sha256:${"a".repeat(64)}`;
 
@@ -192,6 +195,13 @@ describe("diff reports", () => {
     const report = renderHtmlReport(diff);
 
     expect(report).toContain("Content-Security-Policy");
+    expect(report).toContain(`Tool <code>${REPORT_TOOL_VERSION}</code>`);
+    expect(report).toContain("GraphDiff schema <code>1</code>");
+    expect(report).toContain(
+      '<a class="skip-link" href="#summary-heading">Skip to summary</a>',
+    );
+    expect(report).toContain('<main id="report" tabindex="-1">');
+    expect(report).toContain('<section aria-label="Changed edges">');
     expect(report).toContain(
       "&lt;script&gt;alert(&#39;report&#39;)&lt;/script&gt;",
     );
@@ -240,6 +250,88 @@ describe("diff reports", () => {
   it("fails closed before rendering an over-cardinality report", () => {
     expect(() => renderDiff(diff, "json", 0)).toThrowError(
       "report exceeds the 0 item report-cardinality ceiling",
+    );
+  });
+
+  it("fails closed at per-category and output-byte ceilings", () => {
+    const overNodes = {
+      ...diff,
+      nodes: {
+        ...diff.nodes,
+        added: Array.from(
+          { length: REPORT_LIMITS.maxNodes + 1 },
+          (_, index) => ({
+            id: `node-${index}`,
+            stableKey: `node-${index}`,
+            kind: "function" as const,
+            name: `node-${index}`,
+          }),
+        ),
+      },
+    } as unknown as typeof diff;
+    const overEdges = {
+      ...diff,
+      edges: {
+        ...diff.edges,
+        added: Array.from(
+          { length: REPORT_LIMITS.maxEdges + 1 },
+          (_, index) => ({
+            from: `node-${index}`,
+            to: `node-${index + 1}`,
+            kind: "calls" as const,
+            confidence: "certain" as const,
+            evidence: [],
+            unresolvedReason: "fixture ceiling test",
+          }),
+        ),
+      },
+    } as unknown as typeof diff;
+    const overDiagnostics = {
+      ...diff,
+      diagnostics: {
+        ...diff.diagnostics,
+        added: Array.from(
+          { length: REPORT_LIMITS.maxDiagnostics + 1 },
+          (_, index) => ({
+            id: `diagnostic-${index}`,
+            code: "TEST_LIMIT",
+            severity: "warning" as const,
+            message: "fixture ceiling test",
+            evidence: [],
+          }),
+        ),
+      },
+    } as unknown as typeof diff;
+    const overBytes = {
+      ...diff,
+      diagnostics: {
+        ...diff.diagnostics,
+        added: [
+          {
+            id: "large-diagnostic",
+            code: "TEST_LIMIT",
+            severity: "warning" as const,
+            message: "x".repeat(REPORT_LIMITS.maxBytes),
+            evidence: [],
+          },
+        ],
+      },
+    } as unknown as typeof diff;
+
+    expect(() => renderDiff(overNodes, "html")).toThrowError(
+      ResourceLimitError,
+    );
+    expect(() => renderDiff(overNodes, "html")).toThrow(
+      /10,000 node report-cardinality ceiling/u,
+    );
+    expect(() => renderDiff(overEdges, "html")).toThrow(
+      /20,000 edge report-cardinality ceiling/u,
+    );
+    expect(() => renderDiff(overDiagnostics, "html")).toThrow(
+      /5,000 diagnostic report-cardinality ceiling/u,
+    );
+    expect(() => renderDiff(overBytes, "html")).toThrow(
+      /16 MiB output ceiling/u,
     );
   });
 });

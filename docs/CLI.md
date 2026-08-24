@@ -40,6 +40,13 @@ an isolated consumer before treating the `cartograph` bin as usable.
 controls deterministic source selection, extractor selection, and resource
 ceilings; `--tsconfig` and output flags remain invocation-level overrides.
 
+Diff reports are self-contained and local. HTML includes semantic headings, a
+keyboard-focusable skip link, revision and schema/tool versions, per-edge
+evidence, and unsupported diagnostics. JSON, Markdown, and HTML fail closed
+with an actionable resource diagnostic instead of truncating when a report
+contains more than 10,000 nodes, 20,000 edges, 5,000 diagnostics, or 16 MiB
+of UTF-8 output.
+
 `migrate-snapshot <input>` reads only legacy GraphSnapshot v0 artifacts. It
 emits the migrated v1 snapshot with `--output` and writes a deterministic
 identity migration report with `--report`. The report must be reviewed before

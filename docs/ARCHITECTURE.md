@@ -111,7 +111,7 @@ The first adapter pins the TypeScript 6-era compiler surface through ts-morph. T
 
 ## Reports
 
-JSON is the canonical machine contract. Markdown is optimized for review summaries. HTML is a self-contained local artifact with no remote scripts, styles, fonts, or requests. Report rendering escapes all repository-controlled text.
+JSON is the canonical machine contract. Markdown is optimized for review summaries. HTML is a self-contained local artifact with no remote scripts, styles, fonts, or requests. Reports include the tool, GraphDiff schema, capability-registry, revision, evidence, and diagnostic context; rendering escapes all repository-controlled text. Report generation fails closed before truncation at 10,000 nodes, 20,000 edges, 5,000 diagnostics, or 16 MiB of UTF-8 output.
 
 ## Deferred components
 
