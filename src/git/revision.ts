@@ -41,6 +41,16 @@ export type MaterializationOptions = {
   signal?: AbortSignal;
 };
 
+export type GitPathHistoryOptions = {
+  maxWallClockMs?: number;
+  signal?: AbortSignal;
+};
+
+export type GitPathHistoryEntry = {
+  beforePath: string;
+  afterPath: string;
+};
+
 type ProcessOptions = {
   maxWallClockMs?: number;
   signal?: AbortSignal;
@@ -76,6 +86,25 @@ function assertSafeRef(ref: string): void {
     throw new Error(`unsafe Git ref: ${JSON.stringify(ref)}`);
   }
 }
+
+const portableGitPath = (value: string): string | undefined => {
+  const path = value.replaceAll("\\", "/");
+  if (
+    path.length === 0 ||
+    path.includes("\0") ||
+    path.startsWith("/") ||
+    path.startsWith("~") ||
+    /^[A-Za-z][A-Za-z\d+.-]*:/.test(path)
+  ) {
+    return undefined;
+  }
+  const parts = path.split("/");
+  if (parts.some((part) => part === "..")) return undefined;
+  const normalized = parts
+    .filter((part) => part.length > 0 && part !== ".")
+    .join("/");
+  return normalized.length > 0 ? normalized : undefined;
+};
 
 async function runProcess(
   command: string,
@@ -207,6 +236,75 @@ export async function resolveCommit(
     );
   }
   return commit;
+}
+
+export async function readPathHistory(
+  repositoryRoot: string,
+  baseRef: string,
+  headRef: string,
+  options: GitPathHistoryOptions = {},
+): Promise<GitPathHistoryEntry[]> {
+  assertSafeRef(baseRef);
+  assertSafeRef(headRef);
+  const root = await resolveRepositoryRoot(repositoryRoot, options);
+  const output = await runProcess(
+    "git",
+    [
+      "-C",
+      root,
+      "diff",
+      "--name-status",
+      "--find-renames",
+      "--diff-filter=R",
+      "--no-ext-diff",
+      "--no-color",
+      "-z",
+      baseRef,
+      headRef,
+      "--",
+    ],
+    undefined,
+    options,
+  );
+  const fields = output.split("\0");
+  const history: GitPathHistoryEntry[] = [];
+  for (let index = 0; index + 2 < fields.length; index += 3) {
+    const status = fields[index];
+    const beforePath = fields[index + 1];
+    const afterPath = fields[index + 2];
+    if (
+      status === undefined ||
+      beforePath === undefined ||
+      afterPath === undefined ||
+      !status.startsWith("R")
+    ) {
+      continue;
+    }
+    const normalizedBefore = portableGitPath(beforePath);
+    const normalizedAfter = portableGitPath(afterPath);
+    if (normalizedBefore === undefined || normalizedAfter === undefined) {
+      throw new Error("Git returned a non-portable path history entry");
+    }
+    history.push({
+      beforePath: normalizedBefore,
+      afterPath: normalizedAfter,
+    });
+  }
+  return history.sort((left, right) => {
+    const beforeOrder =
+      left.beforePath < right.beforePath
+        ? -1
+        : left.beforePath > right.beforePath
+          ? 1
+          : 0;
+    return beforeOrder !== 0
+      ? beforeOrder
+      : left.afterPath < right.afterPath
+        ? -1
+        : left.afterPath > right.afterPath
+          ? 1
+          : 0;
+  });
 }
 
 async function assertTreeContainsNoSymbolicLinks(

@@ -21,7 +21,7 @@ import {
   type GraphSnapshot,
   type SnapshotMigrationResult,
 } from "./core/index.js";
-import { withMaterializedRevision } from "./git/revision.js";
+import { readPathHistory, withMaterializedRevision } from "./git/revision.js";
 import { renderDiff, type ReportFormat } from "./report/render.js";
 
 const MAX_SNAPSHOT_BYTES = 64 * 1024 * 1024;
@@ -179,8 +179,14 @@ export async function diffRepositoryRevisions(
     config,
     options.signal,
   );
+  const pathHistory = await readPathHistory(
+    repositoryRoot,
+    options.base,
+    options.head,
+    options.signal === undefined ? {} : { signal: options.signal },
+  );
   return renderDiff(
-    diffGraphSnapshots(before, after),
+    diffGraphSnapshots(before, after, { identity: { pathHistory } }),
     options.format,
     config.resources.maxReportItems,
   );

@@ -13,6 +13,11 @@ import {
   type RewiredEdge,
 } from "./schemas.js";
 import {
+  reconcileGraphNodeIdentities,
+  type IdentityReconciliation,
+  type IdentityReconciliationOptions,
+} from "./identity.js";
+import {
   assertCompatibleCapabilityRegistryVersion,
   assertSupportedCapabilityRegistryVersion,
 } from "./capabilities.js";
@@ -205,11 +210,11 @@ const inferRewiredEdges = (
 const nodeDiff = (
   before: readonly GraphNode[],
   after: readonly GraphNode[],
+  identity: IdentityReconciliation,
 ): GraphDiff["nodes"] => {
   const beforeByKey = new Map(before.map((node) => [node.stableKey, node]));
-  const afterByKey = new Map(after.map((node) => [node.stableKey, node]));
-  const added = after.filter((node) => !beforeByKey.has(node.stableKey));
-  const removed = before.filter((node) => !afterByKey.has(node.stableKey));
+  const added = identity.added;
+  const removed = identity.removed;
   const changed = after
     .filter((node) => {
       const previous = beforeByKey.get(node.stableKey);
@@ -223,6 +228,32 @@ const nodeDiff = (
     );
 
   return { added, removed, changed };
+};
+
+const identityDiagnostic = (
+  ambiguity: IdentityReconciliation["ambiguous"][number],
+): Diagnostic => {
+  const key = encodeURIComponent(ambiguity.before.stableKey);
+  const candidateKeys = ambiguity.candidates
+    .map((candidate) => candidate.afterStableKey)
+    .sort(compareStrings)
+    .join(", ");
+  return {
+    id: `diagnostic:identity-ambiguity:${key}`,
+    code: "AMBIGUOUS_IDENTITY_MATCH",
+    severity: "warning",
+    message: `Could not safely match ${ambiguity.before.stableKey}; candidates: ${candidateKeys}.`,
+    remediation:
+      "Review the candidate identities and add stable source or path evidence before accepting the refactor match.",
+    nodeId: ambiguity.before.id,
+    evidence: [
+      {
+        id: `identity-evidence:${key}`,
+        kind: "user",
+        reference: `graph://identity/ambiguity/${key}`,
+      },
+    ],
+  };
 };
 
 const edgeDiff = (
@@ -453,6 +484,92 @@ const canonicalizeRewiredEdges = (
       : compareStrings(edgeKey(left.after), edgeKey(right.after));
   });
 
+const identityMatchKey = (
+  match: GraphDiff["identity"]["matches"][number],
+): string => `${match.beforeStableKey}\u0000${match.afterStableKey}`;
+
+type IdentityCandidateRecord =
+  GraphDiff["identity"]["ambiguous"][number]["candidates"][number];
+
+const sortIdentityCandidates = (
+  candidates: readonly IdentityCandidateRecord[],
+): IdentityCandidateRecord[] =>
+  [...candidates].sort((left, right) => {
+    if (left.score !== right.score) return right.score - left.score;
+    const beforeOrder = compareStrings(
+      left.beforeStableKey,
+      right.beforeStableKey,
+    );
+    return beforeOrder !== 0
+      ? beforeOrder
+      : compareStrings(left.afterStableKey, right.afterStableKey);
+  });
+
+const canonicalizeIdentity = (
+  identity: GraphDiff["identity"],
+): GraphDiff["identity"] => {
+  const matches = deduplicateDiffRecords(
+    identity.matches.map((match) => {
+      const before = canonicalizeGraphNode(match.before);
+      const after = canonicalizeGraphNode(match.after);
+      if (
+        before.stableKey !== match.beforeStableKey ||
+        after.stableKey !== match.afterStableKey
+      ) {
+        throw new GraphContractError(
+          "conflict",
+          `identity match does not match stable keys ${match.beforeStableKey}=>${match.afterStableKey}`,
+        );
+      }
+      return {
+        ...match,
+        before,
+        after,
+        signals: [...match.signals].sort(compareStrings),
+      };
+    }),
+    identityMatchKey,
+    "identity match",
+  ).sort((left, right) => {
+    const beforeOrder = compareStrings(
+      left.beforeStableKey,
+      right.beforeStableKey,
+    );
+    return beforeOrder !== 0
+      ? beforeOrder
+      : compareStrings(left.afterStableKey, right.afterStableKey);
+  });
+
+  const ambiguous = deduplicateDiffRecords(
+    identity.ambiguous.map((ambiguity) => {
+      const before = canonicalizeGraphNode(ambiguity.before);
+      const candidates = sortIdentityCandidates(
+        ambiguity.candidates.map((candidate) => ({
+          ...candidate,
+          signals: [...candidate.signals].sort(compareStrings),
+        })),
+      );
+      if (
+        candidates.some(
+          (candidate) => candidate.beforeStableKey !== before.stableKey,
+        )
+      ) {
+        throw new GraphContractError(
+          "conflict",
+          `identity ambiguity candidates do not match ${before.stableKey}`,
+        );
+      }
+      return { ...ambiguity, before, candidates };
+    }),
+    (ambiguity) => ambiguity.before.stableKey,
+    "identity ambiguity",
+  ).sort((left, right) =>
+    compareStrings(left.before.stableKey, right.before.stableKey),
+  );
+
+  return { matches, ambiguous };
+};
+
 export const canonicalizeGraphDiff = (input: unknown): GraphDiff => {
   assertSupportedSchemaVersion(input, "GraphDiff", GRAPH_DIFF_SCHEMA_VERSION);
   assertSupportedCapabilityRegistryVersion(input);
@@ -462,6 +579,7 @@ export const canonicalizeGraphDiff = (input: unknown): GraphDiff => {
     removed: sortNodes(parsed.nodes.removed),
     changed: canonicalizeChangedNodes(parsed.nodes.changed),
   };
+  const identity = canonicalizeIdentity(parsed.identity);
   const edgesAdded = sortEdges(parsed.edges.added);
   const edgesRemoved = sortEdges(parsed.edges.removed);
   const edges = {
@@ -489,6 +607,7 @@ export const canonicalizeGraphDiff = (input: unknown): GraphDiff => {
     ...parsed,
     summary,
     nodes,
+    identity,
     edges,
     diagnostics,
   };
@@ -504,9 +623,14 @@ export const canonicalizeGraphDiff = (input: unknown): GraphDiff => {
  * evidence, unresolved reasons, and diagnostic context reviewable without
  * treating a reordering as a graph change.
  */
+export type GraphDiffOptions = {
+  identity?: IdentityReconciliationOptions;
+};
+
 export const diffGraphSnapshots = (
   beforeInput: unknown,
   afterInput: unknown,
+  options: GraphDiffOptions = {},
 ): GraphDiff => {
   const before = canonicalizeGraphSnapshot(beforeInput);
   const after = canonicalizeGraphSnapshot(afterInput);
@@ -514,9 +638,21 @@ export const diffGraphSnapshots = (
     before.capabilityRegistryVersion,
     after.capabilityRegistryVersion,
   );
-  const nodes = nodeDiff(before.nodes, after.nodes);
+  const identity = reconcileGraphNodeIdentities(
+    before,
+    after,
+    options.identity,
+  );
+  const nodes = nodeDiff(before.nodes, after.nodes, identity);
   const edges = edgeDiff(before.edges, after.edges);
-  const diagnostics = diagnosticDiff(before.diagnostics, after.diagnostics);
+  const baseDiagnostics = diagnosticDiff(before.diagnostics, after.diagnostics);
+  const diagnostics = {
+    ...baseDiagnostics,
+    added: [
+      ...baseDiagnostics.added,
+      ...identity.ambiguous.map(identityDiagnostic),
+    ],
+  };
   const diff = {
     schemaVersion: 1 as const,
     capabilityRegistryVersion: before.capabilityRegistryVersion,
@@ -524,6 +660,10 @@ export const diffGraphSnapshots = (
     fromRevision: before.revision,
     toRevision: after.revision,
     nodes,
+    identity: {
+      matches: identity.matches,
+      ambiguous: identity.ambiguous,
+    },
     edges,
     diagnostics,
   };

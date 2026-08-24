@@ -201,8 +201,14 @@ describe("graph node identity reconciliation", () => {
       "equal-score",
     ]);
     expect(result.ambiguous[0]?.candidates).toHaveLength(2);
-    expect(result.added).toEqual([]);
-    expect(result.removed).toEqual([]);
+    expect(result.added.map((item) => item.stableKey)).toEqual([
+      "function:src/c.ts:load",
+      "function:src/d.ts:load",
+    ]);
+    expect(result.removed.map((item) => item.stableKey)).toEqual([
+      "function:src/a.ts:load",
+      "function:src/b.ts:load",
+    ]);
   });
 
   it("serializes the same reconciliation regardless of graph ordering", () => {

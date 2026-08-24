@@ -308,6 +308,57 @@ export const GraphNodeSchema = z
     stableKey: node.stableKey ?? node.id,
   }));
 
+export const IdentityMatchMethodSchema = z.enum([
+  "stable-key",
+  "same-name",
+  "path-history",
+  "neighborhood",
+]);
+export const IdentityMatchConfidenceSchema = z.enum(["exact", "strong"]);
+export const IdentitySignalSchema = z.enum([
+  "stable-key",
+  "path-history",
+  "same-kind",
+  "same-language",
+  "same-name",
+  "same-neighborhood",
+  "neighborhood-overlap",
+]);
+
+export const IdentityCandidateSchema = z
+  .object({
+    beforeStableKey: IdentifierSchema,
+    afterStableKey: IdentifierSchema,
+    score: z.number().finite(),
+    signals: z.array(IdentitySignalSchema).min(1),
+  })
+  .strict();
+
+export const IdentityMatchSchema = z
+  .object({
+    ...IdentityCandidateSchema.shape,
+    before: GraphNodeSchema,
+    after: GraphNodeSchema,
+    method: IdentityMatchMethodSchema,
+    confidence: IdentityMatchConfidenceSchema,
+  })
+  .strict();
+
+export const IdentityAmbiguitySchema = z
+  .object({
+    before: GraphNodeSchema,
+    candidates: z.array(IdentityCandidateSchema),
+    reason: z.enum(["equal-score", "non-mutual-best"]),
+  })
+  .strict();
+
+export const GraphDiffIdentitySchema = z
+  .object({
+    matches: z.array(IdentityMatchSchema).default([]),
+    ambiguous: z.array(IdentityAmbiguitySchema).default([]),
+  })
+  .strict();
+
 const GraphEdgeInputSchema = z
   .object({
     from: IdentifierSchema,
@@ -502,6 +553,7 @@ export const GraphDiffSchema = z
         changed: z.array(ChangedNodeSchema),
       })
       .strict(),
+    identity: GraphDiffIdentitySchema.default({ matches: [], ambiguous: [] }),
     edges: z
       .object({
         added: z.array(GraphEdgeSchema),
@@ -524,6 +576,15 @@ export type SourceLocation = z.infer<typeof SourceLocationSchema>;
 export type Evidence = z.infer<typeof EvidenceSchema>;
 export type Revision = z.infer<typeof RevisionSchema>;
 export type GraphNode = z.infer<typeof GraphNodeSchema>;
+export type IdentityMatchMethod = z.infer<typeof IdentityMatchMethodSchema>;
+export type IdentityMatchConfidence = z.infer<
+  typeof IdentityMatchConfidenceSchema
+>;
+export type IdentitySignal = z.infer<typeof IdentitySignalSchema>;
+export type IdentityCandidate = z.infer<typeof IdentityCandidateSchema>;
+export type IdentityMatch = z.infer<typeof IdentityMatchSchema>;
+export type IdentityAmbiguity = z.infer<typeof IdentityAmbiguitySchema>;
+export type GraphDiffIdentity = z.infer<typeof GraphDiffIdentitySchema>;
 export type GraphEdge = z.infer<typeof GraphEdgeSchema>;
 export type Diagnostic = z.infer<typeof DiagnosticSchema>;
 export type GraphSnapshot = z.infer<typeof GraphSnapshotSchema>;

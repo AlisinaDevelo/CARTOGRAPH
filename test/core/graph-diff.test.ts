@@ -685,4 +685,153 @@ describe("graph diffs", () => {
       )?.after,
     ).toMatchObject({ severity: "warning" });
   });
+
+  it("suppresses a path-history rename from node add/remove sets", () => {
+    const before = parseGraphSnapshot(
+      snapshot({
+        revision: { commitSha: "before", branch: "main" },
+        nodes: [
+          {
+            id: "old-node",
+            stableKey: "function:src/old.ts:load",
+            kind: "function",
+            name: "load",
+            language: "typescript",
+            location: { path: "src/old.ts", line: 4 },
+          },
+        ],
+        edges: [],
+      }),
+    );
+    const after = parseGraphSnapshot(
+      snapshot({
+        revision: { commitSha: "after", branch: "main" },
+        nodes: [
+          {
+            id: "new-node",
+            stableKey: "function:src/new.ts:loadAll",
+            kind: "function",
+            name: "loadAll",
+            language: "typescript",
+            location: { path: "src/new.ts", line: 7 },
+          },
+        ],
+        edges: [],
+      }),
+    );
+
+    const diff = diffGraphSnapshots(before, after, {
+      identity: {
+        pathHistory: [{ beforePath: "src/old.ts", afterPath: "src/new.ts" }],
+      },
+    });
+
+    expect(diff.nodes.added).toEqual([]);
+    expect(diff.nodes.removed).toEqual([]);
+    expect(diff.identity.matches).toHaveLength(1);
+    expect(diff.identity.matches[0]).toMatchObject({
+      beforeStableKey: "function:src/old.ts:load",
+      afterStableKey: "function:src/new.ts:loadAll",
+      method: "path-history",
+      confidence: "strong",
+    });
+    expect(diff.identity.matches[0]?.signals).toContain("path-history");
+  });
+
+  it("keeps ambiguous nodes conservative and emits a stable diagnostic", () => {
+    const nodes = (prefix: string) => [
+      {
+        id: `${prefix}-a`,
+        stableKey: `function:src/${prefix}-a.ts:load`,
+        kind: "function",
+        name: "load",
+        language: "typescript",
+      },
+      {
+        id: `${prefix}-b`,
+        stableKey: `function:src/${prefix}-b.ts:load`,
+        kind: "function",
+        name: "load",
+        language: "typescript",
+      },
+    ];
+    const before = parseGraphSnapshot(
+      snapshot({
+        revision: { commitSha: "before", branch: "main" },
+        nodes: nodes("before"),
+        edges: [],
+      }),
+    );
+    const after = parseGraphSnapshot(
+      snapshot({
+        revision: { commitSha: "after", branch: "main" },
+        nodes: nodes("after"),
+        edges: [],
+      }),
+    );
+
+    const diff = diffGraphSnapshots(before, after);
+
+    expect(diff.identity.matches).toEqual([]);
+    expect(diff.identity.ambiguous).toHaveLength(2);
+    expect(diff.nodes.added.map((node) => node.stableKey)).toEqual([
+      "function:src/after-a.ts:load",
+      "function:src/after-b.ts:load",
+    ]);
+    expect(diff.nodes.removed.map((node) => node.stableKey)).toEqual([
+      "function:src/before-a.ts:load",
+      "function:src/before-b.ts:load",
+    ]);
+    expect(diff.diagnostics.added.map((diagnostic) => diagnostic.code)).toEqual(
+      ["AMBIGUOUS_IDENTITY_MATCH", "AMBIGUOUS_IDENTITY_MATCH"],
+    );
+    expect(diff.diagnostics.added[0]?.message).toContain("candidates:");
+  });
+
+  it("fails closed when bounded identity candidate search is exceeded", () => {
+    const before = parseGraphSnapshot(
+      snapshot({
+        nodes: [
+          {
+            id: "before-a",
+            stableKey: "function:src/a.ts:a",
+            kind: "function",
+            name: "a",
+          },
+          {
+            id: "before-b",
+            stableKey: "function:src/b.ts:b",
+            kind: "function",
+            name: "b",
+          },
+        ],
+        edges: [],
+      }),
+    );
+    const after = parseGraphSnapshot(
+      snapshot({
+        nodes: [
+          {
+            id: "after-a",
+            stableKey: "function:src/c.ts:c",
+            kind: "function",
+            name: "c",
+          },
+          {
+            id: "after-b",
+            stableKey: "function:src/d.ts:d",
+            kind: "function",
+            name: "d",
+          },
+        ],
+        edges: [],
+      }),
+    );
+
+    expect(() =>
+      diffGraphSnapshots(before, after, {
+        identity: { maxCandidates: 1 },
+      }),
+    ).toThrow(/identity candidate search exceeds the 1 candidate ceiling/u);
+  });
 });

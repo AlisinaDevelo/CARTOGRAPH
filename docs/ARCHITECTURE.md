@@ -93,6 +93,16 @@ the same serialized diff; ambiguous rewire candidates are left as ordinary
 added/removed edges. Golden mutation fixtures under
 `test/fixtures/snapshots/graph-diff/` exercise every classification.
 
+The D-010 diff pipeline runs the P-001 identity reconciliation before deriving
+node sets. Unique refactor matches are emitted under `identity.matches` with
+the selected method, confidence, score, and contributing signals; their nodes
+are removed from false added/removed pairs. Optional Git path-history pairs can
+add a bounded `path-history` signal, and `maxCandidates` fails closed when the
+similarity search would exceed its local budget. Ambiguous or non-mutual
+candidates remain in the conservative added/removed sets and also appear under
+`identity.ambiguous` with an `AMBIGUOUS_IDENTITY_MATCH` diagnostic, so distinct
+nodes are not silently collapsed.
+
 ## Impact traversal
 
 `computeImpactSubgraph` provides a local, bounded reachability view for a set
@@ -118,13 +128,16 @@ identity primitive used to compare two canonical snapshots:
 3. A supported rename may match a unique reciprocal candidate with the same kind
    and an identical directed neighborhood profile (edge kind plus neighboring
    stable keys), even when the name changes (`neighborhood`/`strong`).
+4. An optional Git path-history pair can provide a bounded `path-history` signal
+   for a file move or rename (`path-history`/`strong`).
 
 Candidates are canonicalized and sorted before matching. Equal-score or
 non-mutual candidates are returned as explicit ambiguity records; they are
-never selected as a best effort. Ambiguous nodes are not silently counted as
-added or removed. The matcher does not rewrite stable keys or mutate snapshots.
-The later diff-pipeline integration is intentionally tracked as D-010 so this
-contract can be reviewed independently.
+never selected as a best effort. Ambiguous nodes remain in the conservative
+added/removed sets alongside their diagnostic, so a genuinely distinct object
+is not hidden. The matcher does not rewrite stable keys or mutate snapshots.
+The diff pipeline consumes this contract without rewriting canonical stable
+keys.
 
 ## Git revisions
 
@@ -153,7 +166,7 @@ The following are roadmap items, not current implementation claims:
 
 - architecture policy and ADR evaluation;
 - a reusable GitHub Action and Check annotations;
-- refactor-stable identity;
+- the remaining identity quality, portability, and history work;
 - additional framework or language adapters;
 - OpenTelemetry reconciliation;
 - hosted collaboration or organizational history.

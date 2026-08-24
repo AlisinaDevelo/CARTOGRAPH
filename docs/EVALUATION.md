@@ -46,9 +46,11 @@ bounded local timing sample. No network or source execution is involved.
 Identity fixtures cover a source-line move, a unique same-name file move, a
 rename supported by an unchanged directed neighborhood, and duplicate-name
 ambiguity. They assert the match method and confidence, preserve explicit
-ambiguity instead of guessing, and serialize identically when node and edge
-input order changes. P-001 is a core primitive; D-010 is responsible for
-consuming its matches in the graph-diff pipeline.
+ambiguity instead of guessing, retain ambiguous nodes conservatively in the
+added/removed sets, and serialize identically when node and edge input order
+changes. D-010 adds a path-history rename diff, stable ambiguity diagnostics,
+and a candidate-ceiling failure fixture. P-001 is the core primitive; D-010
+consumes its matches in the graph-diff pipeline.
 
 ## Practical compatibility
 

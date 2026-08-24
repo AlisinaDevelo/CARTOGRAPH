@@ -1,47 +1,47 @@
 import { z } from "zod";
 
 import { canonicalizeGraphSnapshot, stableStringify } from "./canonical.js";
-import type { GraphNode, GraphSnapshot } from "./schemas.js";
+import { ResourceLimitError } from "../resources.js";
+import {
+  type GraphNode,
+  type GraphSnapshot,
+  type IdentityAmbiguity,
+  type IdentityCandidate,
+  type IdentityMatch,
+  type IdentityMatchMethod,
+  type IdentitySignal,
+} from "./schemas.js";
 
-export const IdentityMatchMethodSchema = z.enum([
-  "stable-key",
-  "same-name",
-  "neighborhood",
-]);
-export const IdentityMatchConfidenceSchema = z.enum(["exact", "strong"]);
-export const IdentitySignalSchema = z.enum([
-  "stable-key",
-  "same-kind",
-  "same-language",
-  "same-name",
-  "same-neighborhood",
-  "neighborhood-overlap",
-]);
+export {
+  IdentityAmbiguitySchema,
+  IdentityCandidateSchema,
+  IdentityMatchConfidenceSchema,
+  IdentityMatchMethodSchema,
+  IdentityMatchSchema,
+  IdentitySignalSchema,
+  GraphDiffIdentitySchema,
+} from "./schemas.js";
+export type {
+  IdentityAmbiguity,
+  IdentityCandidate,
+  IdentityMatch,
+  IdentityMatchConfidence,
+  IdentityMatchMethod,
+  IdentitySignal,
+  GraphDiffIdentity,
+} from "./schemas.js";
 
-export type IdentityMatchMethod = z.infer<typeof IdentityMatchMethodSchema>;
-export type IdentityMatchConfidence = z.infer<
-  typeof IdentityMatchConfidenceSchema
->;
-export type IdentitySignal = z.infer<typeof IdentitySignalSchema>;
+export const IdentityPathHistorySchema = z
+  .object({
+    beforePath: z.string().trim().min(1),
+    afterPath: z.string().trim().min(1),
+  })
+  .strict();
 
-export type IdentityCandidate = {
-  beforeStableKey: string;
-  afterStableKey: string;
-  score: number;
-  signals: IdentitySignal[];
-};
-
-export type IdentityMatch = IdentityCandidate & {
-  before: GraphNode;
-  after: GraphNode;
-  method: IdentityMatchMethod;
-  confidence: IdentityMatchConfidence;
-};
-
-export type IdentityAmbiguity = {
-  before: GraphNode;
-  candidates: IdentityCandidate[];
-  reason: "equal-score" | "non-mutual-best";
+export type IdentityPathHistory = z.infer<typeof IdentityPathHistorySchema>;
+export type IdentityReconciliationOptions = {
+  pathHistory?: readonly IdentityPathHistory[];
+  maxCandidates?: number;
 };
 
 export type IdentityReconciliation = {
@@ -51,6 +51,9 @@ export type IdentityReconciliation = {
   ambiguous: IdentityAmbiguity[];
 };
 
+const EXACT_MATCH_SCORE = 1_000;
+const DEFAULT_MAX_CANDIDATES = 50_000;
+
 const compareStrings = (left: string, right: string): number => {
   if (left < right) return -1;
   if (left > right) return 1;
@@ -59,6 +62,16 @@ const compareStrings = (left: string, right: string): number => {
 
 const nodeIdentity = (node: Pick<GraphNode, "stableKey" | "id">): string =>
   `${node.stableKey}\u0000${node.id}`;
+
+const normalizePath = (value: string): string => value.replaceAll("\\", "/");
+
+const nodePath = (node: GraphNode): string | undefined =>
+  node.location?.path === undefined
+    ? undefined
+    : normalizePath(node.location.path);
+
+const pathHistoryKey = (beforePath: string, afterPath: string): string =>
+  `${normalizePath(beforePath)}\u0000${normalizePath(afterPath)}`;
 
 const profileFor = (snapshot: GraphSnapshot, node: GraphNode): string[] => {
   const byId = new Map(
@@ -104,6 +117,7 @@ const candidateFor = (
   afterSnapshot: GraphSnapshot,
   before: GraphNode,
   after: GraphNode,
+  pathHistory: ReadonlySet<string>,
 ): IdentityCandidate | undefined => {
   if (before.stableKey === after.stableKey) return undefined;
 
@@ -118,6 +132,16 @@ const candidateFor = (
   if (before.language !== undefined && before.language === after.language) {
     score += 10;
     signals.push("same-language");
+  }
+  const beforePath = nodePath(before);
+  const afterPath = nodePath(after);
+  if (
+    beforePath !== undefined &&
+    afterPath !== undefined &&
+    pathHistory.has(pathHistoryKey(beforePath, afterPath))
+  ) {
+    score += 45;
+    signals.push("path-history");
   }
   if (before.name === after.name) {
     score += 35;
@@ -178,7 +202,11 @@ const uniqueBest = (
 const matchMethod = (
   signals: readonly IdentitySignal[],
 ): IdentityMatchMethod =>
-  signals.includes("same-name") ? "same-name" : "neighborhood";
+  signals.includes("same-name")
+    ? "same-name"
+    : signals.includes("path-history")
+      ? "path-history"
+      : "neighborhood";
 
 /**
  * Reconcile nodes between two canonical snapshots without changing either
@@ -190,9 +218,22 @@ const matchMethod = (
 export const reconcileGraphNodeIdentities = (
   beforeInput: unknown,
   afterInput: unknown,
+  options: IdentityReconciliationOptions = {},
 ): IdentityReconciliation => {
   const beforeSnapshot = canonicalizeGraphSnapshot(beforeInput);
   const afterSnapshot = canonicalizeGraphSnapshot(afterInput);
+  const maxCandidates = options.maxCandidates ?? DEFAULT_MAX_CANDIDATES;
+  if (!Number.isSafeInteger(maxCandidates) || maxCandidates < 1) {
+    throw new RangeError(
+      "identity maxCandidates must be a positive safe integer",
+    );
+  }
+  const pathHistory = new Set(
+    (options.pathHistory ?? []).map((entry) => {
+      const parsed = IdentityPathHistorySchema.parse(entry);
+      return pathHistoryKey(parsed.beforePath, parsed.afterPath);
+    }),
+  );
   const beforeByKey = new Map(
     beforeSnapshot.nodes.map((node) => [node.stableKey, node]),
   );
@@ -209,7 +250,7 @@ export const reconcileGraphNodeIdentities = (
     matches.push({
       beforeStableKey: stableKey,
       afterStableKey: stableKey,
-      score: Number.POSITIVE_INFINITY,
+      score: EXACT_MATCH_SCORE,
       signals: (["stable-key", "same-kind"] as IdentitySignal[]).sort(
         compareStrings,
       ),
@@ -224,15 +265,23 @@ export const reconcileGraphNodeIdentities = (
 
   const beforeCandidates = new Map<string, IdentityCandidate[]>();
   const afterCandidates = new Map<string, IdentityCandidate[]>();
+  let candidateEvaluations = 0;
   for (const before of beforeSnapshot.nodes) {
     if (matchedBefore.has(before.stableKey)) continue;
     for (const after of afterSnapshot.nodes) {
       if (matchedAfter.has(after.stableKey)) continue;
+      candidateEvaluations += 1;
+      if (candidateEvaluations > maxCandidates) {
+        throw new ResourceLimitError(
+          `identity candidate search exceeds the ${maxCandidates} candidate ceiling`,
+        );
+      }
       const candidate = candidateFor(
         beforeSnapshot,
         afterSnapshot,
         before,
         after,
+        pathHistory,
       );
       if (candidate === undefined) continue;
       const beforeList = beforeCandidates.get(before.stableKey) ?? [];
@@ -285,23 +334,12 @@ export const reconcileGraphNodeIdentities = (
   }
 
   const added = afterSnapshot.nodes
-    .filter(
-      (node) =>
-        !matchedAfter.has(node.stableKey) &&
-        ![...ambiguous.values()].some((item) =>
-          item.candidates.some(
-            (candidate) => candidate.afterStableKey === node.stableKey,
-          ),
-        ),
-    )
+    .filter((node) => !matchedAfter.has(node.stableKey))
     .sort((left, right) =>
       compareStrings(nodeIdentity(left), nodeIdentity(right)),
     );
   const removed = beforeSnapshot.nodes
-    .filter(
-      (node) =>
-        !matchedBefore.has(node.stableKey) && !ambiguous.has(node.stableKey),
-    )
+    .filter((node) => !matchedBefore.has(node.stableKey))
     .sort((left, right) =>
       compareStrings(nodeIdentity(left), nodeIdentity(right)),
     );
