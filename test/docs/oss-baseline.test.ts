@@ -63,10 +63,12 @@ describe("public OSS and security baseline", () => {
       "Node 24.x",
       "Analyze (javascript-typescript)",
       "Review dependency changes",
-      "Benchmark correctness, determinism, and performance gate",
     ]) {
       expect(maintenance).toContain(`\`${context}\``);
     }
+    expect(maintenance).toContain(
+      "benchmark gate runs inside both Node matrix jobs",
+    );
   });
 
   it("documents dependency ownership and private disclosure routing", () => {

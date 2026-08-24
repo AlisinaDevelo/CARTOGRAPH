@@ -27,12 +27,13 @@ are available:
 - `Node 24.x`
 - `Analyze (javascript-typescript)`
 - `Review dependency changes`
-- `Benchmark correctness, determinism, and performance gate`
 
 The workflows are intentionally read-only with respect to repository contents.
 The local replacement for the same gate is `npm run check`, including
-`npm run benchmark:ci`, followed by package and installed-CLI smoke tests. A local run is retained as evidence when hosted
-checks are unavailable; it is not a claim that hosted checks ran.
+`npm run benchmark:ci`, followed by package and installed-CLI smoke tests. The
+benchmark gate runs inside both Node matrix jobs, so those job contexts include
+its result. A local run is retained as evidence when hosted checks are
+unavailable; it is not a claim that hosted checks ran.
 
 The schema compatibility check is part of `npm run check`; it rejects drift
 between runtime constants, the published schema, and the reviewed compatibility
