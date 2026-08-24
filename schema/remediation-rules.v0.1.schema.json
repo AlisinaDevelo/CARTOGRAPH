@@ -1,0 +1,216 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/remediation-rules.v0.1.schema.json",
+  "title": "CARTOGRAPH reviewed remediation rule catalog v0.1",
+  "description": "A deterministic, reviewed, read-only catalog of bounded remediation suggestion rules.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "contract", "catalogId", "rules"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.remediation-rules" },
+    "catalogId": { "const": "cartograph.default-remediation-rules" },
+    "rules": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 32,
+      "items": { "$ref": "#/definitions/entry" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "catalogText": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "reference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "not": {
+        "anyOf": [
+          { "pattern": "^/" },
+          { "pattern": "^\\\\" },
+          { "pattern": "^~" },
+          { "pattern": "^[A-Za-z]:" },
+          { "pattern": "^file:" },
+          { "pattern": "(^|[/\\\\])\\.\\.([/\\\\]|$)" },
+          { "pattern": "\\u0000" }
+        ]
+      }
+    },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "kind": {
+      "enum": [
+        "explanation",
+        "investigation-step",
+        "configuration-change",
+        "policy-action",
+        "waiver-action",
+        "documentation-action",
+        "code-change-suggestion"
+      ]
+    },
+    "risk": { "enum": ["low", "medium", "high", "critical"] },
+    "operation": {
+      "enum": [
+        "explain",
+        "investigate",
+        "configure",
+        "policy",
+        "waiver",
+        "document",
+        "code"
+      ]
+    },
+    "edit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "change", "reversible"],
+      "properties": {
+        "target": { "$ref": "#/definitions/reference" },
+        "change": { "$ref": "#/definitions/text" },
+        "reversible": { "const": true }
+      }
+    },
+    "proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "description", "targets", "edits"],
+      "properties": {
+        "operation": { "$ref": "#/definitions/operation" },
+        "description": { "$ref": "#/definitions/text" },
+        "targets": {
+          "type": "array",
+          "maxItems": 16,
+          "items": { "$ref": "#/definitions/reference" }
+        },
+        "edits": {
+          "type": "array",
+          "maxItems": 16,
+          "items": { "$ref": "#/definitions/edit" }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action", "expected"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "action": { "$ref": "#/definitions/text" },
+        "expected": { "$ref": "#/definitions/text" }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ruleId",
+        "findingCode",
+        "kind",
+        "title",
+        "rationale",
+        "proposal",
+        "confidence",
+        "assumptions",
+        "risk",
+        "validationPlan"
+      ],
+      "properties": {
+        "ruleId": { "$ref": "#/definitions/identifier" },
+        "findingCode": { "$ref": "#/definitions/identifier" },
+        "kind": { "$ref": "#/definitions/kind" },
+        "title": { "$ref": "#/definitions/text" },
+        "rationale": { "$ref": "#/definitions/text" },
+        "proposal": { "$ref": "#/definitions/proposal" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "assumptions": {
+          "type": "array",
+          "maxItems": 16,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "risk": { "$ref": "#/definitions/risk" },
+        "validationPlan": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": { "$ref": "#/definitions/validation" }
+        }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rule",
+        "applicability",
+        "preconditions",
+        "nonGoals",
+        "validationCommands",
+        "fixtureIds",
+        "reviewStatus",
+        "readOnly"
+      ],
+      "properties": {
+        "rule": { "$ref": "#/definitions/rule" },
+        "applicability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["findingCodes", "summary"],
+          "properties": {
+            "findingCodes": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "items": { "$ref": "#/definitions/identifier" }
+            },
+            "summary": { "$ref": "#/definitions/catalogText" }
+          }
+        },
+        "preconditions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "$ref": "#/definitions/catalogText" }
+        },
+        "nonGoals": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "$ref": "#/definitions/catalogText" }
+        },
+        "validationCommands": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "$ref": "#/definitions/catalogText" }
+        },
+        "fixtureIds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["positive", "negative"],
+          "properties": {
+            "positive": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "items": { "$ref": "#/definitions/identifier" }
+            },
+            "negative": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "items": { "$ref": "#/definitions/identifier" }
+            }
+          }
+        },
+        "reviewStatus": { "const": "reviewed" },
+        "readOnly": { "const": true }
+      }
+    }
+  }
+}

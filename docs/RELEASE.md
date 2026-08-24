@@ -12,8 +12,9 @@ Before the first tagged release:
 6. Run `npm run policy-bundle:migrations:validate`; expiry, revocation, owner, selector, or compatibility migration failures must remain blocked until reviewed or repaired.
 7. Run `npm run assurance-signing:validate`; old keys, missing roots, tampered manifests, revoked keys, and no-fallback failures must remain explicit.
 8. Run `npm run remediation-suggestions:validate`; default-off, stale, ambiguous, ownerless, security-sensitive, unsupported, and resource-bound cases must remain explicit.
-9. Review dependencies, pinned workflows, threat-model gates, and open security findings.
-10. Update `CHANGELOG.md`, version, migration notes, and checksums or provenance metadata.
-11. Create a signed or otherwise provenance-backed release only after publishing credentials use trusted publishing or an equally scoped mechanism.
+9. Run `npm run remediation-rules:validate`; every reviewed rule must retain applicability, preconditions, non-goals, validation descriptions, and golden positive/negative fixtures.
+10. Review dependencies, pinned workflows, threat-model gates, and open security findings.
+11. Update `CHANGELOG.md`, version, migration notes, and checksums or provenance metadata.
+12. Create a signed or otherwise provenance-backed release only after publishing credentials use trusted publishing or an equally scoped mechanism.
 
 Generated `dist`, coverage, temporary repositories, reports, and package tarballs stay out of source commits.

@@ -68,6 +68,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/policy-bundle-migrations.ts" ||
       file === "src/core/assurance-signing.ts" ||
       file === "src/core/remediation-suggestions.ts" ||
+      file === "src/core/remediation-rules.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
       file === "schema/capability-registry.v0.1.schema.json" ||
       file === "schema/policy-bundle.v0.1.schema.json" ||
@@ -78,7 +79,8 @@ const checkHostedVersionChange = () => {
       file === "schema/assurance-signing-keyring.v0.1.schema.json" ||
       file === "schema/assurance-signing-verification.v0.1.schema.json" ||
       file === "schema/remediation-suggestion.v0.1.schema.json" ||
-      file === "schema/remediation-suggestion-report.v0.1.schema.json",
+      file === "schema/remediation-suggestion-report.v0.1.schema.json" ||
+      file === "schema/remediation-rules.v0.1.schema.json",
   );
   const reviewRecorded = changed.some(
     (file) =>
@@ -105,6 +107,7 @@ const checkCompatibility = () => {
   const remediationSuggestionSource = readText(
     "src/core/remediation-suggestions.ts",
   );
+  const remediationRulesSource = readText("src/core/remediation-rules.ts");
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
   const capabilitySchema = readJson(
     "schema/capability-registry.v0.1.schema.json",
@@ -124,6 +127,9 @@ const checkCompatibility = () => {
   );
   const remediationSuggestionReportSchema = readJson(
     "schema/remediation-suggestion-report.v0.1.schema.json",
+  );
+  const remediationRulesSchema = readJson(
+    "schema/remediation-rules.v0.1.schema.json",
   );
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
@@ -151,6 +157,10 @@ const checkCompatibility = () => {
     remediationSuggestionSource,
     "REMEDIATION_SUGGESTION_SCHEMA_VERSION",
   );
+  const remediationRulesVersion = sourceVersion(
+    remediationRulesSource,
+    "REMEDIATION_RULESET_SCHEMA_VERSION",
+  );
 
   if (
     snapshotVersion === undefined ||
@@ -159,7 +169,8 @@ const checkCompatibility = () => {
     policyBundleVersion === undefined ||
     policyBundleMigrationVersion === undefined ||
     assuranceSigningVersion === undefined ||
-    remediationSuggestionVersion === undefined
+    remediationSuggestionVersion === undefined ||
+    remediationRulesVersion === undefined
   ) {
     throw new Error("runtime schema version constants are missing");
   }
@@ -234,6 +245,16 @@ const checkCompatibility = () => {
     remediationSuggestionReportSchema.properties.schemaVersion.const,
     remediationSuggestionVersion,
   );
+  requireEqual(
+    "remediation rules runtime/policy",
+    remediationRulesVersion,
+    contracts.remediationRules.current,
+  );
+  requireEqual(
+    "remediation rules JSON Schema/runtime",
+    remediationRulesSchema.properties.schemaVersion.const,
+    remediationRulesVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -250,6 +271,7 @@ const checkCompatibility = () => {
     policyBundleMigrationVersion,
     assuranceSigningVersion,
     remediationSuggestionVersion,
+    remediationRulesVersion,
   };
 };
 

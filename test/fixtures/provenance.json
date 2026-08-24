@@ -65,6 +65,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "remediation-rules",
+      "path": "remediation-rules",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Golden positive and stale-baseline scenarios exercise each reviewed deterministic rule without editing files or executing validation commands.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "review-regressions",
       "path": "review-regressions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

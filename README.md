@@ -139,6 +139,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Policy-bundle migration and revocation](docs/POLICY_BUNDLE_MIGRATIONS.md)
 - [Assurance signing metadata](docs/ASSURANCE_SIGNING.md)
 - [Governed remediation suggestions](docs/REMEDIATION_SUGGESTIONS.md)
+- [Deterministic remediation rules](docs/REMEDIATION_RULES.md)
 - [Deprecation and change-control register](docs/CHANGE_CONTROL.md)
 - [Landscape research](docs/RESEARCH.md)
 - [Five-year roadmap](docs/ROADMAP.md)

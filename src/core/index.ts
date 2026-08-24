@@ -170,6 +170,20 @@ export {
   type RemediationSuggestionSkip,
   type RemediationValidationStep,
 } from "./remediation-suggestions.js";
+export {
+  defaultRemediationRuleCatalog,
+  generateDeterministicRemediationSuggestions,
+  remediationRuleCatalogDigest,
+  REMEDIATION_RULESET_CONTRACT,
+  REMEDIATION_RULESET_ID,
+  REMEDIATION_RULESET_SCHEMA_VERSION,
+  RemediationRuleCatalogEntrySchema,
+  RemediationRuleCatalogSchema,
+  serializeRemediationRuleCatalog,
+  type GenerateDeterministicRemediationSuggestionsOptions,
+  type RemediationRuleCatalog,
+  type RemediationRuleCatalogEntry,
+} from "./remediation-rules.js";
 export type {
   ChangedDiagnostic,
   ChangedEdge,
