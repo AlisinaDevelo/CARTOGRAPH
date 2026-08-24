@@ -33,6 +33,36 @@ The current design has no authentication, server, cloud storage, or telemetry bo
 | GitHub Action exposes tokens on fork changes                | Credential theft                            | Use `pull_request`, read-only permissions, no secrets, pinned actions, and no `pull_request_target` execution                                                                                                                                                                                                                                                                                                                                | Workflow policy test and fork smoke test                             |
 | Dependency or release compromise                            | Tampering                                   | Lockfile, dependency review, CodeQL, pinned Actions, provenance, package dry-run, and scoped publishing identity                                                                                                                                                                                                                                                                                                                             | CI and release checklist                                             |
 
+## Optional runtime traces
+
+Runtime trace ingestion is not part of the current CLI or report surface. No trace
+collector, OTLP listener, hosted receiver, or background telemetry process is enabled by
+default. The following controls become mandatory before a local trace input is accepted:
+
+| Trace risk                                                    | Required control                                                                                                                      | Evidence                                                                           |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Span attributes contain source, credentials, or personal data | Require an explicit local input path, schema validation, configurable redaction, and a documented sensitive-field denylist            | Redaction fixtures and a report scan proving raw attributes are absent             |
+| Trace history grows without a bound                           | Require user-selected retention and an explicit deletion/compaction operation; never retain traces implicitly                         | Retention and deletion tests with measured output size                             |
+| Dynamic edges are mistaken for static facts                   | Classify observations as runtime evidence, preserve trace identifiers only as references, and keep confidence separate from certainty | Reconciliation fixtures covering observed-only, static-only, and conflicting edges |
+| Trace input triggers network or code execution                | Parse trace data as inert records; do not load plugins, call URLs, or execute repository code                                         | Offline boundary test and a hostile-record fixture                                 |
+
+Until those controls and tests exist, runtime behavior remains an explicit non-goal and
+unsupported input rather than an implied capability.
+
+## Default offline behavior
+
+The `scan`, `diff`, and `diff-snapshots` commands make no network requests, use no hidden
+telemetry, and perform no source execution. They read local source or materialized Git
+trees, invoke only fixed Git arguments for revision analysis, and render local output. A
+repository can contain imports, `fetch` calls, lifecycle scripts, or hostile text without
+causing those operations to run during analysis.
+
+The offline boundary is verified by the repository-code execution test in
+`test/security/offline.test.ts`, static report tests, Git argument tests, and the exact
+device reproduction recorded in `docs/evidence/f-001-product-charter.md`. A future trace
+adapter must add a separate opt-in test and update this threat model before it is included
+in the support matrix.
+
 ## Accepted residual risks
 
 Static analysis is incomplete for dynamic JavaScript. CARTOGRAPH mitigates this with diagnostics and confidence labels; it does not claim completeness. The TypeScript compiler and npm dependency chain remain trusted dependencies and require ongoing patching and release review.

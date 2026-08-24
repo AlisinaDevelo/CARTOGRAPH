@@ -1,5 +1,12 @@
 import { spawn } from "node:child_process";
-import { mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import {
+  mkdtemp,
+  readFile,
+  rm,
+  symlink,
+  truncate,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { dirname } from "node:path";
@@ -136,6 +143,21 @@ describe("command orchestration", () => {
     });
     await writeOutputFile(snapshotPath, "replacement", true);
     await expect(readFile(snapshotPath, "utf8")).resolves.toBe("replacement");
+  });
+
+  it("rejects snapshots larger than the input resource limit", async () => {
+    const root = await mkdtemp(
+      join(tmpdir(), "cartograph-snapshot-limit-test-"),
+    );
+    temporaryDirectories.push(root);
+    const snapshotPath = join(root, "oversized.json");
+
+    await writeFile(snapshotPath, "{}", "utf8");
+    await truncate(snapshotPath, 64 * 1024 * 1024 + 1);
+
+    await expect(loadSnapshot(snapshotPath)).rejects.toThrow(
+      "snapshot exceeds the 64 MiB input limit",
+    );
   });
 
   it("never follows an output symlink when force is enabled", async () => {
