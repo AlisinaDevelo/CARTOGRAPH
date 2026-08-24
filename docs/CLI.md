@@ -32,7 +32,7 @@ node dist/cli.js --version
 ```
 
 The published file set is limited to the built `dist` tree, package metadata,
-license, notice, and README. A release check installs the generated tarball in
+changelog, license, notice, and README. A release check installs the generated tarball in
 an isolated consumer before treating the `cartograph` bin as usable.
 
 `scan` and `diff` accept `--config <path>` for the versioned
