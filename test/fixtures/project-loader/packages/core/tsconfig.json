@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      "@core/*": ["src/*"]
+    },
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "target": "ES2023"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/excluded/**"]
+}

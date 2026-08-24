@@ -119,6 +119,33 @@
       "redistribution": "allowed"
     },
     {
+      "id": "project-loader",
+      "path": "project-loader",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A small solution-style TypeScript workspace exercises recursive project references, per-project path aliases, tsconfig exclusions, dependency/build-directory exclusions, and inert source that would fail if executed.",
+      "redistribution": "allowed",
+      "generated": [
+        {
+          "path": "build",
+          "reason": "Intentionally generated-directory lookalike; the safe loader must exclude it."
+        },
+        {
+          "path": "dist",
+          "reason": "Intentionally generated-directory lookalike; the safe loader must exclude it."
+        },
+        {
+          "path": "node_modules",
+          "reason": "Intentionally dependency-directory lookalike; the safe loader must exclude it."
+        },
+        {
+          "path": "packages/app/src/generated",
+          "reason": "Intentionally generated source subtree excluded by the app tsconfig."
+        }
+      ]
+    },
+    {
       "id": "secrets",
       "path": "secrets",
       "source": "CARTOGRAPH repository-authored synthetic fixture",
