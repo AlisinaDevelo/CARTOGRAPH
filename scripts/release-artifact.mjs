@@ -19,6 +19,7 @@ import { gunzipSync } from "node:zlib";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const packagePath = join(repositoryRoot, "package.json");
+const packageLockPath = join(repositoryRoot, "package-lock.json");
 const changelogPath = join(repositoryRoot, "CHANGELOG.md");
 const fixturePath = join(
   repositoryRoot,
@@ -30,6 +31,56 @@ const fixturePath = join(
 const fail = (message) => {
   throw new Error(message);
 };
+
+const sha256Digest = (value) =>
+  createHash("sha256").update(value).digest("hex");
+
+const normalizeSbom = (value, { lockfileSha256, sourceCommit }) => {
+  if (
+    value?.bomFormat !== "CycloneDX" ||
+    value?.specVersion !== "1.5" ||
+    !Array.isArray(value.components) ||
+    !Array.isArray(value.dependencies)
+  )
+    fail("npm sbom did not produce a CycloneDX 1.5 dependency inventory");
+
+  const metadata = { ...value.metadata };
+  delete metadata.timestamp;
+  delete metadata.serialNumber;
+  metadata.tools = [
+    {
+      vendor: "CARTOGRAPH",
+      name: "release-artifact",
+      version: "1",
+    },
+  ];
+  metadata.properties = [
+    { name: "cartograph:lockfile-sha256", value: lockfileSha256 },
+    { name: "cartograph:source-commit", value: sourceCommit },
+  ];
+
+  const components = [...value.components].sort((left, right) =>
+    String(left["bom-ref"]).localeCompare(String(right["bom-ref"])),
+  );
+  const dependencies = [...value.dependencies]
+    .map((dependency) => ({
+      ...dependency,
+      ...(Array.isArray(dependency.dependsOn)
+        ? { dependsOn: [...dependency.dependsOn].sort() }
+        : {}),
+    }))
+    .sort((left, right) => String(left.ref).localeCompare(String(right.ref)));
+
+  return {
+    ...value,
+    serialNumber: undefined,
+    metadata,
+    components,
+    dependencies,
+  };
+};
+
+const serializeJson = (value) => `${JSON.stringify(value, null, 2)}\n`;
 
 const readJson = async (path) => JSON.parse(await readFile(path, "utf8"));
 
@@ -76,6 +127,17 @@ if (!releaseNotes.includes("\n"))
   fail(`CHANGELOG.md [${version}] release section is empty`);
 
 await access(fixturePath);
+const sourceCommit =
+  process.env.GITHUB_SHA ??
+  execFileSync("git", ["rev-parse", "HEAD"], {
+    cwd: repositoryRoot,
+    encoding: "utf8",
+  }).trim();
+const lockfileSha256 = sha256Digest(await readFile(packageLockPath));
+const npmVersion = execFileSync("npm", ["--version"], {
+  cwd: repositoryRoot,
+  encoding: "utf8",
+}).trim();
 const outputRoot = requestedOutput
   ? resolve(requestedOutput)
   : await mkdtemp(join(tmpdir(), "cartograph-release-"));
@@ -114,32 +176,141 @@ try {
     fail("npm pack returned a tarball outside the release output directory");
 
   const tarballBytes = await readFile(tarballPath);
-  const sha256 = createHash("sha256").update(tarballBytes).digest("hex");
-  const contentSha256 = createHash("sha256")
-    .update(gunzipSync(tarballBytes))
-    .digest("hex");
+  const sha256 = sha256Digest(tarballBytes);
+  const contentSha256 = sha256Digest(gunzipSync(tarballBytes));
   const integrity =
     typeof packResult.integrity === "string" ? packResult.integrity : undefined;
+  const packedFiles = Array.isArray(packResult.files)
+    ? packResult.files.map((file) => file.path)
+    : [];
+  if (packedFiles.length === 0)
+    fail("npm pack did not report the package file set");
+  const forbiddenPackagePath =
+    /^(?:\.github|benchmarks|coverage|examples|scripts|test|tests|\.forge)\//u;
+  const forbiddenFiles = packedFiles.filter((file) =>
+    forbiddenPackagePath.test(file),
+  );
+  if (forbiddenFiles.length > 0)
+    fail(
+      `package includes source or fixture files: ${forbiddenFiles.join(", ")}`,
+    );
+
+  const sbomName = `${tarballName}.sbom.cdx.json`;
+  const provenanceName = `${tarballName}.provenance.json`;
+  const sbom = normalizeSbom(
+    JSON.parse(
+      execFileSync(
+        "npm",
+        [
+          "sbom",
+          "--package-lock-only",
+          "--sbom-format",
+          "cyclonedx",
+          "--sbom-type",
+          "library",
+        ],
+        {
+          cwd: repositoryRoot,
+          encoding: "utf8",
+          stdio: ["ignore", "pipe", "inherit"],
+        },
+      ),
+    ),
+    { lockfileSha256, sourceCommit },
+  );
+  const sbomText = serializeJson(sbom);
+  const provenance = {
+    _type: "https://in-toto.io/Statement/v1",
+    subject: [{ name: tarballName, digest: { sha256 } }],
+    predicateType: "https://slsa.dev/provenance/v1",
+    predicate: {
+      buildDefinition: {
+        buildType:
+          "https://github.com/AlisinaDevelo/CARTOGRAPH/.github/workflows/release.yml",
+        externalParameters: {
+          repository:
+            process.env.GITHUB_REPOSITORY ?? "AlisinaDevelo/CARTOGRAPH",
+          ref: process.env.GITHUB_REF ?? `refs/tags/${tag}`,
+          tag,
+        },
+        internalParameters: {
+          nodeVersion: process.version,
+          npmVersion,
+          lockfileSha256,
+        },
+        resolvedDependencies: [
+          {
+            uri: `git+https://github.com/AlisinaDevelo/CARTOGRAPH.git@${sourceCommit}`,
+            digest: { sha1: sourceCommit },
+          },
+        ],
+      },
+      runDetails: {
+        builder: {
+          id:
+            process.env.GITHUB_ACTIONS === "true"
+              ? "https://github.com/actions/runner"
+              : "https://github.com/AlisinaDevelo/CARTOGRAPH/local-release-builder",
+        },
+        metadata: {
+          invocationId:
+            process.env.GITHUB_RUN_ID ?? `local-${sourceCommit.slice(0, 12)}`,
+          reproducible: true,
+        },
+      },
+    },
+  };
+  if (
+    provenance.subject[0].name !== tarballName ||
+    provenance.subject[0].digest.sha256 !== sha256 ||
+    provenance.predicate.buildDefinition.resolvedDependencies[0].digest.sha1 !==
+      sourceCommit
+  )
+    fail("provenance statement does not bind the release subject");
+  const provenanceText = serializeJson(provenance);
+  const sbomSha256 = sha256Digest(sbomText);
+  const provenanceSha256 = sha256Digest(provenanceText);
+  await writeFile(join(outputRoot, sbomName), sbomText);
+  await writeFile(join(outputRoot, provenanceName), provenanceText);
   await writeFile(
     join(outputRoot, "SHA256SUMS"),
-    `${sha256}  ${tarballName}\n`,
+    [
+      [sha256, tarballName],
+      [sbomSha256, sbomName],
+      [provenanceSha256, provenanceName],
+    ]
+      .sort((left, right) => left[1].localeCompare(right[1]))
+      .map(([digest, file]) => `${digest}  ${file}`)
+      .join("\n") + "\n",
   );
   await writeFile(join(outputRoot, "release-notes.md"), `${releaseNotes}\n`);
-
-  const commit = execFileSync("git", ["rev-parse", "HEAD"], {
-    cwd: repositoryRoot,
-    encoding: "utf8",
-  }).trim();
   const metadata = {
     schemaVersion: 1,
     package: { name: packageJson.name, version },
     tag,
-    sourceCommit: process.env.GITHUB_SHA ?? commit,
+    sourceCommit,
     tarball: {
       file: tarballName,
       sha256,
       contentSha256,
       ...(integrity === undefined ? {} : { integrity }),
+    },
+    sbom: {
+      file: sbomName,
+      format: "CycloneDX 1.5",
+      sha256: sbomSha256,
+      lockfileSha256,
+      components: sbom.components.length,
+    },
+    provenance: {
+      file: provenanceName,
+      sha256: provenanceSha256,
+      predicateType: provenance.predicateType,
+      subjectSha256: sha256,
+    },
+    checksums: {
+      file: "SHA256SUMS",
+      files: [tarballName, sbomName, provenanceName],
     },
     changelog: {
       source: "CHANGELOG.md",
@@ -204,6 +375,9 @@ try {
         tarball: tarballName,
         sha256,
         contentSha256,
+        sbom: sbomName,
+        provenance: provenanceName,
+        sbomComponents: sbom.components.length,
         smokeTest: "passed",
         output: keepOutput ? outputRoot : "temporary output cleaned",
       },

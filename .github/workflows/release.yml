@@ -19,6 +19,8 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write # Needed only for the final GitHub release creation step.
+      id-token: write # Required for the Sigstore-backed provenance attestation.
+      attestations: write # Required to publish the signed provenance statement.
     steps:
       - name: Check out the tagged commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -55,18 +57,53 @@ jobs:
           CARTOGRAPH_RELEASE_TAG: ${{ github.ref_name }}
         run: node scripts/release-artifact.mjs --output "$RUNNER_TEMP/cartograph-release"
 
+      - name: Attest release subjects
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: |
+            ${{ runner.temp }}/cartograph-release/*.tgz
+            ${{ runner.temp }}/cartograph-release/*.sbom.cdx.json
+            ${{ runner.temp }}/cartograph-release/*.provenance.json
+          push-to-registry: false
+
+      - name: Verify release attestations
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_REPOSITORY: ${{ github.repository }}
+          RELEASE_SIGNER_WORKFLOW: ${{ github.repository }}/.github/workflows/release.yml
+          RELEASE_SOURCE_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          for subject in \
+            "$RUNNER_TEMP"/cartograph-release/*.tgz \
+            "$RUNNER_TEMP"/cartograph-release/*.sbom.cdx.json \
+            "$RUNNER_TEMP"/cartograph-release/*.provenance.json; do
+            test -f "$subject"
+            gh attestation verify "$subject" \
+              --repo "$RELEASE_REPOSITORY" \
+              --signer-workflow "$RELEASE_SIGNER_WORKFLOW" \
+              --source-ref "$RELEASE_SOURCE_REF" \
+              --format json >/dev/null
+          done
+
       - name: Create the GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           tarball="$(find "$RUNNER_TEMP/cartograph-release" -maxdepth 1 -name '*.tgz' -print -quit)"
+          sbom="$(find "$RUNNER_TEMP/cartograph-release" -maxdepth 1 -name '*.sbom.cdx.json' -print -quit)"
+          provenance="$(find "$RUNNER_TEMP/cartograph-release" -maxdepth 1 -name '*.provenance.json' -print -quit)"
           test -n "$tarball"
+          test -n "$sbom"
+          test -n "$provenance"
           gh release create "$RELEASE_TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --verify-tag \
             --title "CARTOGRAPH $RELEASE_TAG" \
             --notes-file "$RUNNER_TEMP/cartograph-release/release-notes.md" \
             "$tarball" \
+            "$sbom" \
+            "$provenance" \
             "$RUNNER_TEMP/cartograph-release/SHA256SUMS" \
             "$RUNNER_TEMP/cartograph-release/release-metadata.json"
