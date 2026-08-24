@@ -1,6 +1,8 @@
 name: CARTOGRAPH architecture diff
 
 on:
+  # Deliberately use pull_request: fork runs receive a read-only token and no
+  # repository secrets; do not elevate this trigger to a target-context event.
   pull_request:
     branches:
       - main
@@ -17,6 +19,8 @@ jobs:
     name: Architecture diff
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
     steps:
       - name: Check out pull-request head
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

@@ -35,12 +35,17 @@ describe("read-only GitHub Action contract", () => {
     expect(action).not.toContain("github.token");
 
     expect(workflow).toContain("permissions:\n  contents: read");
+    expect(workflow).toContain("permissions:\n      contents: read");
+    expect(workflow).toContain("pull_request");
     expect(workflow).toContain("fetch-depth: 0");
+    expect(workflow).toContain("persist-credentials: false");
     expect(workflow).toContain("github.event.pull_request.head.sha");
     expect(workflow).toContain(
       "AlisinaDevelo/CARTOGRAPH@629ee26cc179f08848b09f8c5caeaaf48f6e134c",
     );
     expect(workflow).not.toContain("pull_request_target");
+    expect(workflow).not.toContain("secrets.");
+    expect(workflow).not.toContain("github.token");
   });
 
   it("keeps the fixture workflow and documentation informational", () => {
@@ -49,7 +54,10 @@ describe("read-only GitHub Action contract", () => {
 
     expect(docs).toContain("does not\ncomment, label, merge, change issues");
     expect(docs).toContain("npm run action:validate");
+    expect(docs).toContain("Fork pull requests and permissions");
+    expect(docs).toContain("npm run action:security:validate");
     expect(fixtureReadme).toContain("read-only");
-    expect(fixtureReadme).toContain("does not comment on the pull request");
+    expect(fixtureReadme).toContain("comment on the pull request");
+    expect(fixtureReadme).toContain("no repository secrets");
   });
 });

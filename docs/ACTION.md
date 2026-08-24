@@ -6,6 +6,31 @@ concise job summary, and uploads a static HTML/JSON report artifact. It does not
 comment, label, merge, change issues, execute repository code, use secrets, or
 require write permissions.
 
+## Fork pull requests and permissions
+
+The copy-ready workflow uses `pull_request`, never `pull_request_target`. A
+pull request from a public fork therefore runs with GitHub's read-only token
+boundary and does not receive repository secrets. The workflow and job both
+declare only `contents: read`; they do not grant `actions`, `issues`,
+`pull-requests`, or other write permissions.
+
+The checkout disables credential persistence and checks out the event's exact
+head SHA. The analyzer receives only explicit repository-relative inputs and
+the two event SHAs; no token or secret is placed in its environment. The
+Action itself is referenced by an immutable commit SHA, and its checkout and
+artifact-upload dependencies are pinned to commit SHAs as well. A workflow
+file changed by a fork is still untrusted code, so maintainers should treat
+its job output and uploaded report as review material, not as an authorization
+or merge decision.
+
+## Pin and update policy
+
+Consumer workflows should pin CARTOGRAPH and every third-party Action to a
+full commit SHA with a human-readable version comment. Dependabot checks npm
+updates weekly and GitHub Actions monthly, waits seven days before proposing
+updates, and never merges them automatically. Maintainers review the pinned
+diff, security impact, and the fork security harness before merging an update.
+
 ## Copy-ready workflow
 
 The complete minimal fixture is in
@@ -56,4 +81,7 @@ repository; the caller's source is parsed but never imported or executed.
 `npm run action:validate` creates a temporary Git repository from the fixture,
 creates a base and pull-request head commit, runs the exact CLI comparison in
 both JSON and HTML modes, and verifies the comparison metadata and static
-report. It performs no network request, Action API call, or GitHub mutation.
+report. `npm run action:security:validate` checks the copy-ready workflow and a
+synthetic fork pull-request event for the read-only permission, exact-SHA,
+no-secret, and no-`pull_request_target` invariants. These checks perform no
+network request, Action API call, or GitHub mutation.

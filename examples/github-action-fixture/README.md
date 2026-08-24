@@ -8,5 +8,6 @@ request that changes a file under `src/`.
 The workflow checks out the pull-request head with complete history, resolves
 the event's exact base and head SHAs, and runs the Action in informational mode.
 It writes a concise job summary and uploads a static HTML/JSON report artifact.
-It does not comment on the pull request, modify issues, use secrets, or request
-write permissions.
+It deliberately uses `pull_request`, not `pull_request_target`, so fork runs
+receive only a read-only contents token and no repository secrets. It does not
+comment on the pull request, modify issues, or pass credentials to the analyzer.
