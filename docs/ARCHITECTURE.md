@@ -107,7 +107,24 @@ actionable resource diagnostic rather than truncating the result.
 
 ## Identity
 
-The initial stable key combines the node kind with normalized module and symbol identity. This is deterministic but is not yet refactor-stable. The Year 2 identity work adds Git rename evidence, AST fingerprints, signatures, and neighborhood similarity while surfacing ambiguous matches rather than guessing.
+The initial stable key combines the node kind with normalized module and symbol
+identity. `reconcileGraphNodeIdentities` is the separate, deterministic P-001
+identity primitive used to compare two canonical snapshots:
+
+1. An exact stable-key match is `stable-key`/`exact`; changing only a source
+   line therefore preserves identity.
+2. An unmatched node may match a unique reciprocal candidate with the same kind,
+   language, and name after a file move (`same-name`/`strong`).
+3. A supported rename may match a unique reciprocal candidate with the same kind
+   and an identical directed neighborhood profile (edge kind plus neighboring
+   stable keys), even when the name changes (`neighborhood`/`strong`).
+
+Candidates are canonicalized and sorted before matching. Equal-score or
+non-mutual candidates are returned as explicit ambiguity records; they are
+never selected as a best effort. Ambiguous nodes are not silently counted as
+added or removed. The matcher does not rewrite stable keys or mutate snapshots.
+The later diff-pipeline integration is intentionally tracked as D-010 so this
+contract can be reviewed independently.
 
 ## Git revisions
 
