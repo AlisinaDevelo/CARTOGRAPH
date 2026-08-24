@@ -187,6 +187,6 @@ The following are roadmap items, not current implementation claims:
 - the remaining identity quality, portability, and history work;
 - additional framework or language adapters and stronger runtime isolation
   enforcement beyond the v0.1 data-only adapter policy;
-- runtime redaction/retention policy, automatic binding, and CLI/report
-  integration beyond the v0.1 local reconciliation contract;
+- automatic binding and CLI/report integration beyond the v0.1 local
+  reconciliation and trace-safety contracts;
 - hosted collaboration or organizational history.

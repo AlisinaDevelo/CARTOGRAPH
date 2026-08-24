@@ -306,6 +306,27 @@ export {
   type RuntimeSpanBinding,
 } from "./runtime-reconciliation.js";
 export {
+  DEFAULT_RUNTIME_TRACE_SAFETY_POLICY,
+  redactRuntimeTrace,
+  RUNTIME_TRACE_SAFETY_CONTRACT,
+  RUNTIME_TRACE_SAFETY_MEDIA_TYPE,
+  RUNTIME_TRACE_SAFETY_SCHEMA_VERSION,
+  RuntimeTraceRedactionFieldSchema,
+  RuntimeTraceRedactionOptionsSchema,
+  RuntimeTraceRetentionModeSchema,
+  RuntimeTraceRetentionPolicySchema,
+  RuntimeTraceRetentionStore,
+  RuntimeTraceSafetyError,
+  RuntimeTraceSafetyPolicySchema,
+  serializeRuntimeTraceSafetyPolicy,
+  type RuntimeTraceRedactionField,
+  type RuntimeTraceRedactionOptions,
+  type RuntimeTraceRetentionMode,
+  type RuntimeTraceRetentionPolicy,
+  type RuntimeTraceSafetyErrorCode,
+  type RuntimeTraceSafetyPolicy,
+} from "./runtime-trace-safety.js";
+export {
   assuranceSigningPayload,
   AssuranceSigningKeySchema,
   AssuranceSigningKeyringSchema,

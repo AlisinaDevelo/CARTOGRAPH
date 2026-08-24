@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.runtime-trace-safety",
+  "mediaType": "application/vnd.cartograph.runtime-trace-safety+json",
+  "redaction": {
+    "fields": [
+      "span.name",
+      "span.serviceName",
+      "span.scopeName",
+      "span.scopeVersion"
+    ],
+    "replacement": "[REDACTED]"
+  },
+  "retention": {
+    "mode": "discard-after-read",
+    "maxTraces": 2,
+    "maxBytes": 65536,
+    "ttlMs": 1000
+  }
+}

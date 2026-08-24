@@ -46,6 +46,9 @@ Normalized local OTLP JSON traces use the reviewed `runtimeTraces` contract and
 Static/runtime edge classifications use the reviewed `runtimeReconciliation`
 contract and
 [`schema/runtime-reconciliation.v0.1.schema.json`](../schema/runtime-reconciliation.v0.1.schema.json).
+Redaction and bounded local retention use the reviewed `runtimeTraceSafety`
+contract and
+[`schema/runtime-trace-safety.v0.1.schema.json`](../schema/runtime-trace-safety.v0.1.schema.json).
 
 ## Change categories
 
@@ -192,6 +195,22 @@ attribute is used to guess a static node.
 O-002 is a local, inert contract layered on the O-001 normalized input. It adds
 no collector, upload, network access, retention, redaction, CLI, report, or
 automatic binding behavior.
+
+## O-003 runtime trace safety
+
+O-003 publishes runtime trace safety schema version `1` in
+`src/core/runtime-trace-safety.ts`. The default policy redacts every retained
+free-text field after O-001 has discarded arbitrary attributes, events, links,
+payloads, and status messages. A caller may choose a bounded subset of the
+enumerated fields and replacement string, but cannot provide executable or
+regular-expression policy logic.
+
+`RuntimeTraceRetentionStore` retains only redacted normalized traces in memory,
+with explicit `maxTraces`, `maxBytes`, and `ttlMs` bounds. It supports
+`memory-only` and `discard-after-read` modes, deterministic oldest-entry
+eviction, and explicit clearing. It never writes files, starts a collector, or
+implicitly invokes reconciliation. O-003 is additive; the O-001 and O-002
+artifact contracts remain version `1`.
 
 ## E-001 adapter API and capability manifest
 

@@ -51,5 +51,7 @@ Validate them offline with:
 npm run runtime-reconciliation:validate
 ```
 
-Runtime redaction/retention policy, a CLI/report surface, automatic span
-binding, and hosted collection remain separate follow-on decisions.
+The O-003 redaction/retention policy is documented in
+[`RUNTIME_TRACE_SAFETY.md`](RUNTIME_TRACE_SAFETY.md). A CLI/report surface,
+automatic span binding, and hosted collection remain separate follow-on
+decisions.

@@ -138,6 +138,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Local adapter contract](docs/ADAPTERS.md)
 - [Local runtime trace import](docs/RUNTIME_TRACES.md)
 - [Local static/runtime reconciliation](docs/RUNTIME_RECONCILIATION.md)
+- [Runtime trace safety policy](docs/RUNTIME_TRACE_SAFETY.md)
 - [Fixture provenance](docs/FIXTURES.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Evaluation strategy](docs/EVALUATION.md)
