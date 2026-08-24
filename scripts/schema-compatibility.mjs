@@ -70,6 +70,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/adr.ts" ||
       file === "src/core/adapters.ts" ||
       file === "src/core/runtime-traces.ts" ||
+      file === "src/core/runtime-reconciliation.ts" ||
       file === "src/core/policy-evaluation.ts" ||
       file === "src/core/policy-bundle-migrations.ts" ||
       file === "src/core/assurance-signing.ts" ||
@@ -87,6 +88,7 @@ const checkHostedVersionChange = () => {
       file === "schema/adr-reference.v0.1.schema.json" ||
       file === "schema/adapter.v0.1.schema.json" ||
       file === "schema/runtime-traces.v0.1.schema.json" ||
+      file === "schema/runtime-reconciliation.v0.1.schema.json" ||
       file === "schema/policy-evaluation.v0.1.schema.json" ||
       file === "schema/policy-bundle-migration.v0.1.schema.json" ||
       file === "schema/policy-bundle-revocation.v0.1.schema.json" ||
@@ -125,6 +127,9 @@ const checkCompatibility = () => {
   const adrReferenceSource = readText("src/core/adr.ts");
   const adapterSource = readText("src/core/adapters.ts");
   const runtimeTraceSource = readText("src/core/runtime-traces.ts");
+  const runtimeReconciliationSource = readText(
+    "src/core/runtime-reconciliation.ts",
+  );
   const policyEvaluationSource = readText("src/core/policy-evaluation.ts");
   const policyBundleMigrationSource = readText(
     "src/core/policy-bundle-migrations.ts",
@@ -152,6 +157,9 @@ const checkCompatibility = () => {
   const adrReferenceSchema = readJson("schema/adr-reference.v0.1.schema.json");
   const adapterSchema = readJson("schema/adapter.v0.1.schema.json");
   const runtimeTraceSchema = readJson("schema/runtime-traces.v0.1.schema.json");
+  const runtimeReconciliationSchema = readJson(
+    "schema/runtime-reconciliation.v0.1.schema.json",
+  );
   const policyEvaluationSchema = readJson(
     "schema/policy-evaluation.v0.1.schema.json",
   );
@@ -214,6 +222,10 @@ const checkCompatibility = () => {
     runtimeTraceSource,
     "RUNTIME_TRACE_SCHEMA_VERSION",
   );
+  const runtimeReconciliationVersion = sourceVersion(
+    runtimeReconciliationSource,
+    "RUNTIME_RECONCILIATION_SCHEMA_VERSION",
+  );
   const policyEvaluationVersion = sourceVersion(
     policyEvaluationSource,
     "POLICY_EVALUATION_SCHEMA_VERSION",
@@ -257,6 +269,7 @@ const checkCompatibility = () => {
     adrReferenceVersion === undefined ||
     adapterVersion === undefined ||
     runtimeTraceVersion === undefined ||
+    runtimeReconciliationVersion === undefined ||
     policyEvaluationVersion === undefined ||
     policyBundleMigrationVersion === undefined ||
     assuranceSigningVersion === undefined ||
@@ -353,6 +366,16 @@ const checkCompatibility = () => {
     "runtime trace JSON Schema/runtime",
     runtimeTraceSchema.properties.schemaVersion.const,
     runtimeTraceVersion,
+  );
+  requireEqual(
+    "runtime reconciliation runtime/policy",
+    runtimeReconciliationVersion,
+    contracts.runtimeReconciliation.current,
+  );
+  requireEqual(
+    "runtime reconciliation JSON Schema/runtime",
+    runtimeReconciliationSchema.properties.schemaVersion.const,
+    runtimeReconciliationVersion,
   );
   requireEqual(
     "policy evaluation runtime/policy",
@@ -467,6 +490,7 @@ const checkCompatibility = () => {
     adrReferenceVersion,
     adapterVersion,
     runtimeTraceVersion,
+    runtimeReconciliationVersion,
     policyEvaluationVersion,
     policyBundleMigrationVersion,
     assuranceSigningVersion,

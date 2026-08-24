@@ -8,7 +8,7 @@ Evidence-backed architecture change control for TypeScript codebases.
 
 CARTOGRAPH scans a supported repository into a deterministic architecture graph, compares two Git revisions, and shows which nodes and relationships changed. Every emitted relationship carries repository-relative source evidence or an explicit unresolved reason.
 
-The project is pre-alpha. The local TypeScript/Express slice works and is tested; enforcing policy exit behavior, a reusable GitHub Action, stable identity across refactors, additional framework adapters, runtime reconciliation, and local export/import remain roadmap work. The versioned local adapter and inert OTLP import boundaries are published, but neither executes repository code or contacts a network. Any hosted or account-based scope remains behind later traction, privacy, security, capacity, and funding decisions.
+The project is pre-alpha. The local TypeScript/Express slice works and is tested; enforcing policy exit behavior, a reusable GitHub Action, stable identity across refactors, additional framework adapters, runtime redaction/retention, and hosted export remain roadmap work. The versioned local adapter, inert OTLP import, and explicit local reconciliation boundaries are published, but none executes repository code or contacts a network. Any hosted or account-based scope remains behind later traction, privacy, security, capacity, and funding decisions.
 
 ## Quickstart
 
@@ -137,6 +137,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Local ADR references](docs/ADR_REFERENCES.md)
 - [Local adapter contract](docs/ADAPTERS.md)
 - [Local runtime trace import](docs/RUNTIME_TRACES.md)
+- [Local static/runtime reconciliation](docs/RUNTIME_RECONCILIATION.md)
 - [Fixture provenance](docs/FIXTURES.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Evaluation strategy](docs/EVALUATION.md)

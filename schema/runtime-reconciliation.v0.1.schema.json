@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/runtime-reconciliation.v0.1.schema.json",
+  "title": "CARTOGRAPH static/runtime reconciliation v0.1",
+  "description": "Deterministic, evidence-linked classifications of mapped runtime parent/child spans against static graph edges. Runtime observations are not treated as architectural facts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "runtimeTraceSchemaVersion",
+    "staticRevision",
+    "records",
+    "summary"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.runtime-reconciliation" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.runtime-reconciliation+json"
+    },
+    "runtimeTraceSchemaVersion": { "const": 1 },
+    "staticRevision": { "$ref": "#/definitions/revision" },
+    "records": {
+      "type": "array",
+      "maxItems": 200000,
+      "items": { "$ref": "#/definitions/record" }
+    },
+    "summary": { "$ref": "#/definitions/summary" }
+  },
+  "definitions": {
+    "reference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "revision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commitSha"],
+      "properties": {
+        "commitSha": { "$ref": "#/definitions/reference" },
+        "parentSha": { "$ref": "#/definitions/reference" },
+        "branch": { "$ref": "#/definitions/reference" },
+        "authoredAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "classification": {
+      "enum": [
+        "observed-and-modeled",
+        "modeled-not-observed",
+        "observed-but-unmodeled",
+        "ambiguous"
+      ]
+    },
+    "uncertainty": {
+      "enum": ["none", "unobserved", "unmapped", "ambiguous"]
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "classification",
+        "staticEdgeIds",
+        "staticEvidenceRefs",
+        "traceRefs",
+        "evidenceRefs",
+        "observedCount",
+        "uncertainty",
+        "reason"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/reference" },
+        "classification": { "$ref": "#/definitions/classification" },
+        "staticEdgeIds": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/reference" }
+        },
+        "staticEvidenceRefs": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/reference" }
+        },
+        "traceRefs": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/reference" }
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 200000,
+          "items": { "$ref": "#/definitions/reference" }
+        },
+        "observedCount": { "type": "integer", "minimum": 0 },
+        "uncertainty": { "$ref": "#/definitions/uncertainty" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2048 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "staticEdges",
+        "runtimeSpanEdges",
+        "mappedSpans",
+        "observedAndModeled",
+        "modeledNotObserved",
+        "observedButUnmodeled",
+        "ambiguous"
+      ],
+      "properties": {
+        "staticEdges": { "type": "integer", "minimum": 0 },
+        "runtimeSpanEdges": { "type": "integer", "minimum": 0 },
+        "mappedSpans": { "type": "integer", "minimum": 0 },
+        "observedAndModeled": { "type": "integer", "minimum": 0 },
+        "modeledNotObserved": { "type": "integer", "minimum": 0 },
+        "observedButUnmodeled": { "type": "integer", "minimum": 0 },
+        "ambiguous": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

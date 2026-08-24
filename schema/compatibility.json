@@ -57,6 +57,11 @@
       "supportedReaders": [1],
       "reviewedVersions": [1]
     },
+    "runtimeReconciliation": {
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
+    },
     "policyBundles": {
       "current": 1,
       "supportedReaders": [1],

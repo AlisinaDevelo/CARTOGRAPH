@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "staticSnapshot": {
+    "schemaVersion": 1,
+    "revision": { "commitSha": "static-fixture" },
+    "nodes": [
+      { "id": "module:a", "kind": "module", "name": "a" },
+      { "id": "module:b", "kind": "module", "name": "b" },
+      { "id": "module:c", "kind": "module", "name": "c" },
+      { "id": "module:d", "kind": "module", "name": "d" }
+    ],
+    "edges": [
+      {
+        "from": "module:a",
+        "to": "module:b",
+        "kind": "calls",
+        "confidence": "certain",
+        "evidence": [{ "id": "edge-a-b-calls", "kind": "user" }]
+      },
+      {
+        "from": "module:a",
+        "to": "module:b",
+        "kind": "imports",
+        "confidence": "certain",
+        "evidence": [{ "id": "edge-a-b-imports", "kind": "user" }]
+      },
+      {
+        "from": "module:b",
+        "to": "module:c",
+        "kind": "calls",
+        "confidence": "certain",
+        "evidence": [{ "id": "edge-b-c", "kind": "user" }]
+      },
+      {
+        "from": "module:d",
+        "to": "module:a",
+        "kind": "calls",
+        "confidence": "certain",
+        "evidence": [{ "id": "edge-d-a", "kind": "user" }]
+      }
+    ],
+    "diagnostics": []
+  },
+  "runtimeTrace": {
+    "schemaVersion": 1,
+    "contract": "cartograph.runtime-traces",
+    "mediaType": "application/vnd.cartograph.runtime-traces+json",
+    "format": "otlp-json",
+    "spans": [
+      {
+        "traceId": "0123456789abcdef0123456789abcdef",
+        "spanId": "aaaaaaaaaaaaaaaa",
+        "name": "root-a",
+        "kind": "server",
+        "startTimeUnixNano": "100",
+        "endTimeUnixNano": "110",
+        "status": "ok"
+      },
+      {
+        "traceId": "0123456789abcdef0123456789abcdef",
+        "spanId": "bbbbbbbbbbbbbbbb",
+        "parentSpanId": "aaaaaaaaaaaaaaaa",
+        "name": "child-b",
+        "kind": "internal",
+        "startTimeUnixNano": "111",
+        "endTimeUnixNano": "120",
+        "status": "ok"
+      },
+      {
+        "traceId": "0123456789abcdef0123456789abcdef",
+        "spanId": "cccccccccccccccc",
+        "name": "root-c",
+        "kind": "server",
+        "startTimeUnixNano": "200",
+        "endTimeUnixNano": "210",
+        "status": "ok"
+      },
+      {
+        "traceId": "0123456789abcdef0123456789abcdef",
+        "spanId": "dddddddddddddddd",
+        "parentSpanId": "cccccccccccccccc",
+        "name": "child-d",
+        "kind": "internal",
+        "startTimeUnixNano": "211",
+        "endTimeUnixNano": "220",
+        "status": "ok"
+      },
+      {
+        "traceId": "0123456789abcdef0123456789abcdef",
+        "spanId": "eeeeeeeeeeeeeeee",
+        "parentSpanId": "dddddddddddddddd",
+        "name": "child-a",
+        "kind": "internal",
+        "startTimeUnixNano": "221",
+        "endTimeUnixNano": "230",
+        "status": "ok"
+      }
+    ],
+    "summary": {
+      "resourceSpans": 1,
+      "scopeSpans": 1,
+      "inputSpans": 5,
+      "normalizedSpans": 5,
+      "discardedAttributes": 0
+    }
+  },
+  "bindings": [
+    {
+      "traceId": "0123456789abcdef0123456789abcdef",
+      "spanId": "aaaaaaaaaaaaaaaa",
+      "nodeId": "module:a",
+      "confidence": "certain"
+    },
+    {
+      "traceId": "0123456789abcdef0123456789abcdef",
+      "spanId": "bbbbbbbbbbbbbbbb",
+      "nodeId": "module:b",
+      "confidence": "certain"
+    },
+    {
+      "traceId": "0123456789abcdef0123456789abcdef",
+      "spanId": "cccccccccccccccc",
+      "nodeId": "module:c",
+      "confidence": "certain"
+    },
+    {
+      "traceId": "0123456789abcdef0123456789abcdef",
+      "spanId": "dddddddddddddddd",
+      "nodeId": "module:d",
+      "confidence": "inferred"
+    },
+    {
+      "traceId": "0123456789abcdef0123456789abcdef",
+      "spanId": "eeeeeeeeeeeeeeee",
+      "nodeId": "module:a",
+      "confidence": "certain"
+    }
+  ]
+}

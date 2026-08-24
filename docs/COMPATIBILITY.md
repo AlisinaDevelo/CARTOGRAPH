@@ -43,6 +43,9 @@ Local adapter requests, capability manifests, and graph results use the reviewed
 `adapters` contract and [`schema/adapter.v0.1.schema.json`](../schema/adapter.v0.1.schema.json).
 Normalized local OTLP JSON traces use the reviewed `runtimeTraces` contract and
 [`schema/runtime-traces.v0.1.schema.json`](../schema/runtime-traces.v0.1.schema.json).
+Static/runtime edge classifications use the reviewed `runtimeReconciliation`
+contract and
+[`schema/runtime-reconciliation.v0.1.schema.json`](../schema/runtime-reconciliation.v0.1.schema.json).
 
 ## Change categories
 
@@ -174,6 +177,21 @@ time ranges, malformed JSON, and limit violations fail closed.
 This is an additive input contract, not runtime reconciliation. There is no
 collector, upload, network access, module loading, repository-code execution,
 retention policy, or report integration in O-001.
+
+## O-002 static/runtime edge reconciliation
+
+O-002 publishes runtime reconciliation schema version `1` in
+`src/core/runtime-reconciliation.ts`. It compares explicit trace/span-to-node
+bindings with static parent/child graph endpoints and emits deterministic
+`observed-and-modeled`, `modeled-not-observed`, `observed-but-unmodeled`, and
+`ambiguous` records. Every record links static evidence and/or trace
+provenance, preserves an explicit uncertainty value, and is sorted by a stable
+ID. Missing or duplicate bindings fail closed; no span name or arbitrary trace
+attribute is used to guess a static node.
+
+O-002 is a local, inert contract layered on the O-001 normalized input. It adds
+no collector, upload, network access, retention, redaction, CLI, report, or
+automatic binding behavior.
 
 ## E-001 adapter API and capability manifest
 
