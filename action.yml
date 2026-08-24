@@ -1,0 +1,99 @@
+name: CARTOGRAPH architecture diff
+description: Read-only pull-request architecture diff with a static report artifact
+author: Alisina Karimi
+branding:
+  icon: git-pull-request
+  color: blue
+
+inputs:
+  root:
+    description: Repository-relative root to analyze
+    required: false
+    default: .
+  base:
+    description: Explicit base Git ref or SHA; defaults to the pull-request base SHA
+    required: false
+    default: ""
+  head:
+    description: Explicit head Git ref or SHA; defaults to the pull-request head SHA
+    required: false
+    default: ""
+  comparison:
+    description: Revision comparison mode (merge-base is the pull-request default)
+    required: false
+    default: merge-base
+  artifact-name:
+    description: Name of the uploaded static report artifact
+    required: false
+    default: cartograph-architecture-diff
+  retention-days:
+    description: Number of days to retain the report artifact
+    required: false
+    default: "7"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: 24.x
+
+    - name: Build CARTOGRAPH
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        npm ci --ignore-scripts
+        npm run build
+
+    - name: Analyze pull-request revisions
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      env:
+        CARTOGRAPH_ACTION_PATH: ${{ github.action_path }}
+        CARTOGRAPH_ROOT: ${{ inputs.root }}
+        CARTOGRAPH_BASE_INPUT: ${{ inputs.base }}
+        CARTOGRAPH_HEAD_INPUT: ${{ inputs.head }}
+        CARTOGRAPH_PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        CARTOGRAPH_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        CARTOGRAPH_COMPARISON: ${{ inputs.comparison }}
+        CARTOGRAPH_ARTIFACT_NAME: ${{ inputs.artifact-name }}
+      run: |
+        set -euo pipefail
+        base_ref="${CARTOGRAPH_BASE_INPUT:-${CARTOGRAPH_PR_BASE_SHA:-}}"
+        head_ref="${CARTOGRAPH_HEAD_INPUT:-${CARTOGRAPH_PR_HEAD_SHA:-}}"
+        if [[ -z "$base_ref" || -z "$head_ref" ]]; then
+          echo "CARTOGRAPH requires a pull_request event or explicit base and head inputs" >&2
+          exit 1
+        fi
+        case "$CARTOGRAPH_COMPARISON" in
+          direct|merge-base) ;;
+          *)
+            echo "CARTOGRAPH comparison must be direct or merge-base" >&2
+            exit 1
+            ;;
+        esac
+
+        report_dir="$RUNNER_TEMP/cartograph-report"
+        mkdir -p "$report_dir"
+        node "$CARTOGRAPH_ACTION_PATH/dist/cli.js" diff "$CARTOGRAPH_ROOT" \
+          --base "$base_ref" \
+          --head "$head_ref" \
+          --comparison "$CARTOGRAPH_COMPARISON" \
+          --format json \
+          --output "$report_dir/architecture-diff.json" \
+          --force
+        node "$CARTOGRAPH_ACTION_PATH/scripts/action-report.mjs" \
+          "$report_dir/architecture-diff.json" \
+          "$report_dir/architecture-diff.html" \
+          "${GITHUB_STEP_SUMMARY:-}" \
+          "$CARTOGRAPH_ARTIFACT_NAME"
+
+    - name: Upload architecture diff report
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ runner.temp }}/cartograph-report
+        if-no-files-found: error
+        retention-days: ${{ inputs.retention-days }}
