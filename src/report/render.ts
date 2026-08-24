@@ -1,12 +1,65 @@
+import { Buffer } from "node:buffer";
+
 import {
+  GRAPH_DIFF_SCHEMA_VERSION,
   serializeGraphDiff,
   type Evidence,
   type GraphDiff,
   type GraphEdge,
 } from "../core/index.js";
-import { assertReportItemLimit } from "../resources.js";
+import { assertReportItemLimit, ResourceLimitError } from "../resources.js";
 
 export type ReportFormat = "html" | "json" | "markdown";
+
+export const REPORT_TOOL_VERSION = "0.1.0";
+export const REPORT_LIMITS = {
+  maxNodes: 10_000,
+  maxEdges: 20_000,
+  maxDiagnostics: 5_000,
+  maxBytes: 16 * 1024 * 1024,
+} as const;
+
+const assertReportCardinality = (
+  diff: GraphDiff,
+  maximum: number | undefined,
+): void => {
+  const nodeCount =
+    diff.nodes.added.length +
+    diff.nodes.removed.length +
+    diff.nodes.changed.length;
+  const edgeCount =
+    diff.edges.added.length +
+    diff.edges.removed.length +
+    diff.edges.changed.length;
+  const diagnosticCount =
+    diff.diagnostics.added.length +
+    diff.diagnostics.removed.length +
+    diff.diagnostics.changed.length;
+
+  const limits = [
+    [nodeCount, REPORT_LIMITS.maxNodes, "node"],
+    [edgeCount, REPORT_LIMITS.maxEdges, "edge"],
+    [diagnosticCount, REPORT_LIMITS.maxDiagnostics, "diagnostic"],
+  ] as const;
+  for (const [count, limit, label] of limits) {
+    if (count > limit) {
+      throw new ResourceLimitError(
+        `report exceeds the ${limit.toLocaleString("en-US")} ${label} report-cardinality ceiling; reduce the compared change set before rendering`,
+      );
+    }
+  }
+
+  assertReportItemLimit(nodeCount + edgeCount + diagnosticCount, maximum);
+};
+
+const assertReportByteLimit = (report: string): void => {
+  const bytes = Buffer.byteLength(report, "utf8");
+  if (bytes > REPORT_LIMITS.maxBytes) {
+    throw new ResourceLimitError(
+      `report exceeds the ${(REPORT_LIMITS.maxBytes / (1024 * 1024)).toLocaleString("en-US")} MiB output ceiling (${bytes.toLocaleString("en-US")} bytes); narrow the compared change set before rendering`,
+    );
+  }
+};
 
 const plural = (count: number, singular: string): string =>
   `${count} ${singular}${count === 1 ? "" : "s"}`;
@@ -65,12 +118,13 @@ const markdownDiagnostic = (
 };
 
 export function renderMarkdownReport(diff: GraphDiff): string {
+  assertReportCardinality(diff, undefined);
   const summary = diff.summary;
   const lines = [
     "# Architecture diff",
     "",
     `From ${markdownCode(shortRevision(diff.fromRevision.commitSha))} to ${markdownCode(shortRevision(diff.toRevision.commitSha))}.`,
-    `Capability registry ${markdownCode(String(diff.capabilityRegistryVersion))}.`,
+    `Tool ${markdownCode(REPORT_TOOL_VERSION)}; GraphDiff schema ${markdownCode(String(GRAPH_DIFF_SCHEMA_VERSION))}; capability registry ${markdownCode(String(diff.capabilityRegistryVersion))}.`,
     "",
     "## Summary",
     "",
@@ -142,7 +196,9 @@ export function renderMarkdownReport(diff: GraphDiff): string {
     );
   }
 
-  return `${lines.join("\n")}\n`;
+  const report = `${lines.join("\n")}\n`;
+  assertReportByteLimit(report);
+  return report;
 }
 
 const htmlList = (items: readonly string[]): string =>
@@ -178,6 +234,7 @@ const htmlChanges = (changes: readonly { readonly path: string }[]): string =>
   changes.map((change) => `<code>${escapeHtml(change.path)}</code>`).join(", ");
 
 export function renderHtmlReport(diff: GraphDiff): string {
+  assertReportCardinality(diff, undefined);
   const summary = diff.summary;
   const addedNodes = diff.nodes.added.map(htmlNode);
   const removedNodes = diff.nodes.removed.map(htmlNode);
@@ -196,7 +253,7 @@ export function renderHtmlReport(diff: GraphDiff): string {
       `<code>${escapeHtml(diagnostic.id)}</code><div class="evidence">${htmlChanges(diagnostic.changes)}</div>`,
   );
 
-  return `<!doctype html>
+  const report = `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -212,13 +269,16 @@ export function renderHtmlReport(diff: GraphDiff): string {
     code { overflow-wrap: anywhere; }
     .evidence, .kind, .empty { color: #777; font-size: .9rem; }
     .unknown { color: #a45b00; }
+    .skip-link { position: absolute; left: -10000px; top: auto; }
+    .skip-link:focus { left: 1rem; top: 1rem; background: Canvas; color: CanvasText; padding: .5rem .75rem; z-index: 1; }
   </style>
 </head>
 <body>
-  <main>
+  <a class="skip-link" href="#summary-heading">Skip to summary</a>
+  <main id="report" tabindex="-1">
     <h1>Architecture diff</h1>
     <p>From <code>${escapeHtml(shortRevision(diff.fromRevision.commitSha))}</code> to <code>${escapeHtml(shortRevision(diff.toRevision.commitSha))}</code>.</p>
-    <p>Capability registry <code>${escapeHtml(String(diff.capabilityRegistryVersion))}</code>.</p>
+    <p>Tool <code>${escapeHtml(REPORT_TOOL_VERSION)}</code>; GraphDiff schema <code>${escapeHtml(String(GRAPH_DIFF_SCHEMA_VERSION))}</code>; capability registry <code>${escapeHtml(String(diff.capabilityRegistryVersion))}</code>.</p>
     <section aria-labelledby="summary-heading">
       <h2 id="summary-heading">Summary</h2>
       <div class="summary">
@@ -227,19 +287,21 @@ export function renderHtmlReport(diff: GraphDiff): string {
         <div class="card">${plural(summary.diagnosticsAdded, "diagnostic")} added<br>${plural(summary.diagnosticsRemoved, "diagnostic")} removed<br>${plural(summary.diagnosticsChanged, "diagnostic")} changed</div>
       </div>
     </section>
-    <section><h2>Added nodes</h2>${htmlList(addedNodes)}</section>
-    <section><h2>Removed nodes</h2>${htmlList(removedNodes)}</section>
-    <section><h2>Changed nodes</h2>${htmlList(changedNodes)}</section>
-    <section><h2>Added edges</h2>${htmlList(diff.edges.added.map(htmlEdge))}</section>
-    <section><h2>Removed edges</h2>${htmlList(diff.edges.removed.map(htmlEdge))}</section>
-    <section><h2>Changed edges</h2>${htmlList(changedEdges)}</section>
-    <section><h2>Added diagnostics</h2>${htmlList(addedDiagnostics)}</section>
-    <section><h2>Removed diagnostics</h2>${htmlList(removedDiagnostics)}</section>
-    <section><h2>Changed diagnostics</h2>${htmlList(changedDiagnostics)}</section>
+    <section aria-label="Added nodes"><h2>Added nodes</h2>${htmlList(addedNodes)}</section>
+    <section aria-label="Removed nodes"><h2>Removed nodes</h2>${htmlList(removedNodes)}</section>
+    <section aria-label="Changed nodes"><h2>Changed nodes</h2>${htmlList(changedNodes)}</section>
+    <section aria-label="Added edges"><h2>Added edges</h2>${htmlList(diff.edges.added.map(htmlEdge))}</section>
+    <section aria-label="Removed edges"><h2>Removed edges</h2>${htmlList(diff.edges.removed.map(htmlEdge))}</section>
+    <section aria-label="Changed edges"><h2>Changed edges</h2>${htmlList(changedEdges)}</section>
+    <section aria-label="Added diagnostics"><h2>Added diagnostics</h2>${htmlList(addedDiagnostics)}</section>
+    <section aria-label="Removed diagnostics"><h2>Removed diagnostics</h2>${htmlList(removedDiagnostics)}</section>
+    <section aria-label="Changed diagnostics"><h2>Changed diagnostics</h2>${htmlList(changedDiagnostics)}</section>
   </main>
 </body>
 </html>
 `;
+  assertReportByteLimit(report);
+  return report;
 }
 
 export function renderDiff(
@@ -247,23 +309,15 @@ export function renderDiff(
   format: ReportFormat,
   maxReportItems?: number,
 ): string {
-  assertReportItemLimit(
-    diff.nodes.added.length +
-      diff.nodes.removed.length +
-      diff.nodes.changed.length +
-      diff.edges.added.length +
-      diff.edges.removed.length +
-      diff.edges.changed.length +
-      diff.diagnostics.added.length +
-      diff.diagnostics.removed.length +
-      diff.diagnostics.changed.length,
-    maxReportItems,
-  );
+  assertReportCardinality(diff, maxReportItems);
   switch (format) {
     case "html":
       return renderHtmlReport(diff);
-    case "json":
-      return `${serializeGraphDiff(diff)}\n`;
+    case "json": {
+      const report = `${serializeGraphDiff(diff)}\n`;
+      assertReportByteLimit(report);
+      return report;
+    }
     case "markdown":
       return renderMarkdownReport(diff);
   }
