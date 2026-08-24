@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.foundation.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["shared/src/*"]
+    }
+  },
+  "exclude": ["**/excluded-source/**"]
+}

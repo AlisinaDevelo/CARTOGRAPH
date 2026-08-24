@@ -1,0 +1,4 @@
+{
+  "extends": "./does-not-exist.json",
+  "files": []
+}
