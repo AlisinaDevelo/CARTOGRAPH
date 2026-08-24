@@ -82,10 +82,15 @@ array position:
 Each identity is reported as added, removed, or changed. Changed records retain
 the complete before/after values plus a deterministic list of changed field
 paths. An evidence-only relationship update therefore remains a changed edge
-with an `evidence` field change, while a new unresolved diagnostic is reported
-under `diagnostics.added` with its source evidence. Canonicalization sorts
+with an `evidence-only` classification; a confidence-only update is marked
+`confidence-changed`. Removed and added edges are also paired into a derived
+`edges.rewired` view when a deterministic shared-evidence, source, or target
+match proves an endpoint rewire. The original added/removed arrays remain
+unchanged for v0.1 consumers. Node and diagnostic changes carry explicit
+`node-changed` and `diagnostic-changed` classifications. Canonicalization sorts
 records and evidence before comparison, so equivalent input ordering produces
-the same serialized diff. Golden mutation fixtures under
+the same serialized diff; ambiguous rewire candidates are left as ordinary
+added/removed edges. Golden mutation fixtures under
 `test/fixtures/snapshots/graph-diff/` exercise every classification.
 
 ## Identity

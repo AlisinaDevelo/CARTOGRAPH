@@ -427,8 +427,15 @@ const ChangedNodeSchema = z
     before: GraphNodeSchema,
     after: GraphNodeSchema,
     changes: z.array(FieldChangeSchema),
+    classification: z.literal("node-changed").default("node-changed"),
   })
   .strict();
+
+export const EdgeChangeClassificationSchema = z.enum([
+  "edge-changed",
+  "evidence-only",
+  "confidence-changed",
+]);
 
 const ChangedEdgeSchema = z
   .object({
@@ -438,6 +445,16 @@ const ChangedEdgeSchema = z
     before: GraphEdgeSchema,
     after: GraphEdgeSchema,
     changes: z.array(FieldChangeSchema),
+    classification: EdgeChangeClassificationSchema.default("edge-changed"),
+  })
+  .strict();
+
+export const RewiredEdgeSchema = z
+  .object({
+    before: GraphEdgeSchema,
+    after: GraphEdgeSchema,
+    changes: z.array(FieldChangeSchema),
+    classification: z.literal("endpoint-rewired").default("endpoint-rewired"),
   })
   .strict();
 
@@ -447,6 +464,9 @@ const ChangedDiagnosticSchema = z
     before: DiagnosticSchema,
     after: DiagnosticSchema,
     changes: z.array(FieldChangeSchema),
+    classification: z
+      .literal("diagnostic-changed")
+      .default("diagnostic-changed"),
   })
   .strict();
 
@@ -487,6 +507,7 @@ export const GraphDiffSchema = z
         added: z.array(GraphEdgeSchema),
         removed: z.array(GraphEdgeSchema),
         changed: z.array(ChangedEdgeSchema),
+        rewired: z.array(RewiredEdgeSchema).default([]),
       })
       .strict(),
     diagnostics: z
@@ -508,7 +529,11 @@ export type Diagnostic = z.infer<typeof DiagnosticSchema>;
 export type GraphSnapshot = z.infer<typeof GraphSnapshotSchema>;
 export type FieldChange = z.infer<typeof FieldChangeSchema>;
 export type ChangedNode = z.infer<typeof ChangedNodeSchema>;
+export type EdgeChangeClassification = z.infer<
+  typeof EdgeChangeClassificationSchema
+>;
 export type ChangedEdge = z.infer<typeof ChangedEdgeSchema>;
+export type RewiredEdge = z.infer<typeof RewiredEdgeSchema>;
 export type ChangedDiagnostic = z.infer<typeof ChangedDiagnosticSchema>;
 export type GraphDiffSummary = z.infer<typeof GraphDiffSummarySchema>;
 export type GraphDiff = z.infer<typeof GraphDiffSchema>;

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/graph-diff.v0.1.schema.json",
   "title": "CARTOGRAPH GraphDiff v0.1",
-  "description": "Canonical, portable machine-readable architecture changes between two GraphSnapshot revisions. Runtime validation additionally checks summary counts, identities, and canonical ordering.",
+  "description": "Canonical, portable machine-readable architecture changes between two GraphSnapshot revisions. Runtime validation additionally checks summary counts, identities, canonical ordering, and deterministic endpoint-rewire classifications.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -297,6 +297,9 @@
         "after": {}
       }
     },
+    "edgeChangeClassification": {
+      "enum": ["edge-changed", "evidence-only", "confidence-changed"]
+    },
     "changedNode": {
       "type": "object",
       "additionalProperties": false,
@@ -314,6 +317,9 @@
         "changes": {
           "type": "array",
           "items": { "$ref": "#/definitions/fieldChange" }
+        },
+        "classification": {
+          "const": "node-changed"
         }
       }
     },
@@ -340,6 +346,29 @@
         "changes": {
           "type": "array",
           "items": { "$ref": "#/definitions/fieldChange" }
+        },
+        "classification": {
+          "$ref": "#/definitions/edgeChangeClassification"
+        }
+      }
+    },
+    "rewiredEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["before", "after", "changes", "classification"],
+      "properties": {
+        "before": {
+          "$ref": "#/definitions/edge"
+        },
+        "after": {
+          "$ref": "#/definitions/edge"
+        },
+        "changes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/fieldChange" }
+        },
+        "classification": {
+          "const": "endpoint-rewired"
         }
       }
     },
@@ -360,6 +389,9 @@
         "changes": {
           "type": "array",
           "items": { "$ref": "#/definitions/fieldChange" }
+        },
+        "classification": {
+          "const": "diagnostic-changed"
         }
       }
     },
@@ -406,6 +438,10 @@
         "changed": {
           "type": "array",
           "items": { "$ref": "#/definitions/changedEdge" }
+        },
+        "rewired": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/rewiredEdge" }
         }
       }
     },

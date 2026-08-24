@@ -61,6 +61,22 @@
       ]
     },
     {
+      "from": "service:billing",
+      "to": "node-a",
+      "kind": "publishes",
+      "confidence": "inferred",
+      "evidence": [
+        {
+          "id": "evidence-confidence",
+          "kind": "source",
+          "path": "src/billing.ts",
+          "line": 4,
+          "detector": "cartograph.test@1",
+          "contentHash": "9999999999999999999999999999999999999999999999999999999999999999"
+        }
+      ]
+    },
+    {
       "from": "node-b",
       "to": "service:billing",
       "kind": "writes",

@@ -56,12 +56,14 @@ export {
 } from "./config.js";
 export {
   DiagnosticSchema,
+  EdgeChangeClassificationSchema,
   EvidenceSchema,
   GraphDiffSchema,
   GraphDiffSummarySchema,
   GraphEdgeSchema,
   GraphNodeSchema,
   GraphSnapshotSchema,
+  RewiredEdgeSchema,
   RevisionSchema,
   SourceLocationSchema,
   GRAPH_DIFF_SCHEMA_VERSION,
@@ -253,6 +255,7 @@ export type {
   ChangedEdge,
   ChangedNode,
   Diagnostic,
+  EdgeChangeClassification,
   Evidence,
   FieldChange,
   GraphDiff,
@@ -260,6 +263,7 @@ export type {
   GraphEdge,
   GraphNode,
   GraphSnapshot,
+  RewiredEdge,
   Revision,
   SourceLocation,
 } from "./schemas.js";

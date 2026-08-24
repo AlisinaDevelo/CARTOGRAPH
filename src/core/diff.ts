@@ -5,10 +5,12 @@ import {
   type ChangedEdge,
   type ChangedNode,
   type Diagnostic,
+  type EdgeChangeClassification,
   type FieldChange,
   type GraphDiff,
   type GraphEdge,
   type GraphNode,
+  type RewiredEdge,
 } from "./schemas.js";
 import {
   assertCompatibleCapabilityRegistryVersion,
@@ -53,31 +55,152 @@ const fieldChanges = (before: object, after: object): FieldChange[] => {
 const edgeKey = (edge: Pick<GraphEdge, "from" | "to" | "kind">): string =>
   stableStringify([edge.from, edge.to, edge.kind]);
 
-const nodeChanged = (before: GraphNode, after: GraphNode): ChangedNode => ({
-  stableKey: before.stableKey,
-  before,
-  after,
-  changes: fieldChanges(before, after),
-});
+const classifyEdgeChange = (
+  changes: readonly FieldChange[],
+): EdgeChangeClassification => {
+  const paths = changes.map((change) => change.path);
+  if (paths.length === 1 && paths[0] === "evidence") return "evidence-only";
+  if (paths.length === 1 && paths[0] === "confidence") {
+    return "confidence-changed";
+  }
+  return "edge-changed";
+};
 
-const edgeChanged = (before: GraphEdge, after: GraphEdge): ChangedEdge => ({
-  from: before.from,
-  to: before.to,
-  kind: before.kind,
-  before,
-  after,
-  changes: fieldChanges(before, after),
-});
+const nodeChanged = (before: GraphNode, after: GraphNode): ChangedNode => {
+  const changes = fieldChanges(before, after);
+  return {
+    stableKey: before.stableKey,
+    before,
+    after,
+    changes,
+    classification: "node-changed",
+  };
+};
+
+const edgeChanged = (before: GraphEdge, after: GraphEdge): ChangedEdge => {
+  const changes = fieldChanges(before, after);
+  return {
+    from: before.from,
+    to: before.to,
+    kind: before.kind,
+    before,
+    after,
+    changes,
+    classification: classifyEdgeChange(changes),
+  };
+};
 
 const diagnosticChanged = (
   before: Diagnostic,
   after: Diagnostic,
-): ChangedDiagnostic => ({
-  id: before.id,
+): ChangedDiagnostic => {
+  const changes = fieldChanges(before, after);
+  return {
+    id: before.id,
+    before,
+    after,
+    changes,
+    classification: "diagnostic-changed",
+  };
+};
+
+const evidenceIds = (edge: GraphEdge): Set<string> =>
+  new Set(edge.evidence.map((evidence) => evidence.id));
+
+const rewireScore = (before: GraphEdge, after: GraphEdge): number => {
+  if (before.kind !== after.kind || edgeKey(before) === edgeKey(after)) {
+    return -1;
+  }
+
+  const beforeEvidence = evidenceIds(before);
+  const sharedEvidence = after.evidence.reduce(
+    (count, evidence) => count + (beforeEvidence.has(evidence.id) ? 1 : 0),
+    0,
+  );
+  if (sharedEvidence > 0) return 100 + sharedEvidence;
+
+  const sameFrom = before.from === after.from;
+  const sameTo = before.to === after.to;
+  if (sameFrom === sameTo) return -1;
+  return 10;
+};
+
+const rewireIdentity = (
+  change: Pick<RewiredEdge, "before" | "after">,
+): string => `${edgeKey(change.before)}=>${edgeKey(change.after)}`;
+
+const makeRewiredEdge = (before: GraphEdge, after: GraphEdge): RewiredEdge => ({
   before,
   after,
   changes: fieldChanges(before, after),
+  classification: "endpoint-rewired",
 });
+
+/**
+ * Pair an edge removal with an edge addition only when the pairing is
+ * unambiguous. Shared evidence is the strongest identity signal; otherwise
+ * a shared source or target plus edge kind is sufficient for a one-to-one
+ * endpoint rewire. The original added/removed sets are intentionally kept so
+ * consumers that only understand the v0.1 set-difference shape remain valid.
+ */
+const inferRewiredEdges = (
+  removed: readonly GraphEdge[],
+  added: readonly GraphEdge[],
+): RewiredEdge[] => {
+  type Candidate = {
+    before: GraphEdge;
+    after: GraphEdge;
+    score: number;
+  };
+  const candidates: Candidate[] = [];
+  for (const before of removed) {
+    for (const after of added) {
+      const score = rewireScore(before, after);
+      if (score >= 0) candidates.push({ before, after, score });
+    }
+  }
+
+  const bestForBefore = new Map<string, Candidate[]>();
+  const bestForAfter = new Map<string, Candidate[]>();
+  for (const candidate of candidates) {
+    const beforeKey = edgeKey(candidate.before);
+    const afterKey = edgeKey(candidate.after);
+    const beforeCandidates = bestForBefore.get(beforeKey) ?? [];
+    beforeCandidates.push(candidate);
+    bestForBefore.set(beforeKey, beforeCandidates);
+    const afterCandidates = bestForAfter.get(afterKey) ?? [];
+    afterCandidates.push(candidate);
+    bestForAfter.set(afterKey, afterCandidates);
+  }
+
+  const uniqueBest = (items: readonly Candidate[]): Candidate | undefined => {
+    const maxScore = Math.max(...items.map((item) => item.score));
+    const best = items.filter((item) => item.score === maxScore);
+    return best.length === 1 ? best[0] : undefined;
+  };
+
+  const paired = candidates.filter((candidate) => {
+    const beforeBest = uniqueBest(
+      bestForBefore.get(edgeKey(candidate.before)) ?? [],
+    );
+    const afterBest = uniqueBest(
+      bestForAfter.get(edgeKey(candidate.after)) ?? [],
+    );
+    return beforeBest === candidate && afterBest === candidate;
+  });
+
+  return paired
+    .map((candidate) => makeRewiredEdge(candidate.before, candidate.after))
+    .sort((left, right) => {
+      const beforeOrder = compareStrings(
+        edgeKey(left.before),
+        edgeKey(right.before),
+      );
+      return beforeOrder !== 0
+        ? beforeOrder
+        : compareStrings(edgeKey(left.after), edgeKey(right.after));
+    });
+};
 
 const nodeDiff = (
   before: readonly GraphNode[],
@@ -122,7 +245,12 @@ const edgeDiff = (
       edgeChanged(beforeByKey.get(edgeKey(edge)) as GraphEdge, edge),
     );
 
-  return { added, removed, changed };
+  return {
+    added,
+    removed,
+    changed,
+    rewired: inferRewiredEdges(removed, added),
+  };
 };
 
 const diagnosticDiff = (
@@ -236,6 +364,7 @@ const canonicalizeChangedNodes = (
         before,
         after,
         changes: fieldChanges(before, after),
+        classification: "node-changed" as const,
       };
     }),
     (change) => change.stableKey,
@@ -265,6 +394,7 @@ const canonicalizeChangedEdges = (
         before,
         after,
         changes: fieldChanges(before, after),
+        classification: classifyEdgeChange(fieldChanges(before, after)),
       };
     }),
     edgeKey,
@@ -289,11 +419,39 @@ const canonicalizeChangedDiagnostics = (
         before,
         after,
         changes: fieldChanges(before, after),
+        classification: "diagnostic-changed" as const,
       };
     }),
     (change) => change.id,
     "changed diagnostic",
   ).sort((left, right) => compareStrings(left.id, right.id));
+
+const canonicalizeRewiredEdges = (
+  changes: readonly RewiredEdge[],
+): RewiredEdge[] =>
+  deduplicateDiffRecords(
+    changes.map((change) => {
+      const before = canonicalizeGraphEdge(change.before);
+      const after = canonicalizeGraphEdge(change.after);
+      if (before.kind !== after.kind || edgeKey(before) === edgeKey(after)) {
+        throw new GraphContractError(
+          "conflict",
+          "rewired edge must preserve kind and change at least one endpoint",
+        );
+      }
+      return makeRewiredEdge(before, after);
+    }),
+    rewireIdentity,
+    "rewired edge",
+  ).sort((left, right) => {
+    const beforeOrder = compareStrings(
+      edgeKey(left.before),
+      edgeKey(right.before),
+    );
+    return beforeOrder !== 0
+      ? beforeOrder
+      : compareStrings(edgeKey(left.after), edgeKey(right.after));
+  });
 
 export const canonicalizeGraphDiff = (input: unknown): GraphDiff => {
   assertSupportedSchemaVersion(input, "GraphDiff", GRAPH_DIFF_SCHEMA_VERSION);
@@ -304,10 +462,16 @@ export const canonicalizeGraphDiff = (input: unknown): GraphDiff => {
     removed: sortNodes(parsed.nodes.removed),
     changed: canonicalizeChangedNodes(parsed.nodes.changed),
   };
+  const edgesAdded = sortEdges(parsed.edges.added);
+  const edgesRemoved = sortEdges(parsed.edges.removed);
   const edges = {
-    added: sortEdges(parsed.edges.added),
-    removed: sortEdges(parsed.edges.removed),
+    added: edgesAdded,
+    removed: edgesRemoved,
     changed: canonicalizeChangedEdges(parsed.edges.changed),
+    rewired: canonicalizeRewiredEdges([
+      ...parsed.edges.rewired,
+      ...inferRewiredEdges(edgesRemoved, edgesAdded),
+    ]),
   };
   const diagnostics = {
     added: sortDiagnostics(parsed.diagnostics.added),

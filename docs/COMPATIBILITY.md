@@ -94,3 +94,13 @@ registries. This is an additive registry entry: version `1` remains current,
 existing readers can ignore the new diagnostic code, and no snapshot shape or
 migration is required. The merged implementation and its Node16/NodeNext
 fixtures were re-run through the full local compatibility and test gates.
+
+## D-007 additive review
+
+D-007 extends GraphDiff v0.1 with optional classification fields on changed
+nodes, edges, and diagnostics plus an optional `edges.rewired` derived view.
+Existing added/removed/changed arrays and summary counts retain their v0.1
+meaning, so readers that ignore the new fields remain compatible. Writers emit
+deterministic classifications and pair only unambiguous endpoint rewires;
+ambiguous candidates remain ordinary set differences. The published JSON
+Schema, runtime validator, and golden fixtures are checked together.
