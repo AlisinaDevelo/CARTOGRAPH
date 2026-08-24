@@ -23,6 +23,11 @@ describe("read-only GitHub Action contract", () => {
     expect(action).toContain("github.event.pull_request.head.sha");
     expect(action).toContain("--comparison");
     expect(action).toContain("default: merge-base");
+    expect(action).toContain('default: "7"');
+    expect(action).toContain('default: "true"');
+    expect(action).toContain("if: inputs.upload-report == 'true'");
+    expect(action).toContain("architecture-diff.json");
+    expect(action).toContain("architecture-diff.html");
     expect(action).toContain("npm ci --ignore-scripts");
     expect(action).toContain(
       "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
@@ -52,12 +57,15 @@ describe("read-only GitHub Action contract", () => {
     const docs = read("docs/ACTION.md");
     const fixtureReadme = read("examples/github-action-fixture/README.md");
 
-    expect(docs).toContain("does not\ncomment, label, merge, change issues");
+    expect(docs).toContain("does not comment, label, merge, change issues");
     expect(docs).toContain("npm run action:validate");
     expect(docs).toContain("Fork pull requests and permissions");
     expect(docs).toContain("npm run action:security:validate");
+    expect(docs).toContain("Sensitive repositories");
+    expect(docs).toContain("source snippet");
     expect(fixtureReadme).toContain("read-only");
     expect(fixtureReadme).toContain("comment on the pull request");
     expect(fixtureReadme).toContain("no repository secrets");
+    expect(fixtureReadme).toContain("upload-report: false");
   });
 });

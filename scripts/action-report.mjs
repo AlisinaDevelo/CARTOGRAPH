@@ -7,14 +7,21 @@ import { resolve } from "node:path";
 import { parseGraphDiff } from "../dist/core/index.js";
 import { renderHtmlReport } from "../dist/report/render.js";
 
-const [jsonPath, htmlPath, summaryPath = "", artifactName = "report"] =
-  process.argv.slice(2);
+const [
+  jsonPath,
+  htmlPath,
+  summaryPath = "",
+  artifactName = "report",
+  uploadReport = "true",
+] = process.argv.slice(2);
 
 if (jsonPath === undefined || htmlPath === undefined) {
   throw new Error(
-    "usage: action-report.mjs <graph-diff.json> <report.html> [summary-file] [artifact-name]",
+    "usage: action-report.mjs <graph-diff.json> <report.html> [summary-file] [artifact-name] [upload-report]",
   );
 }
+if (uploadReport !== "true" && uploadReport !== "false")
+  throw new Error("upload-report must be true or false");
 
 const escapeSummary = (value) =>
   value.replace(/[\\`*_{}[\]()#+.!|<>-]/gu, "\\$&").replace(/[\r\n]/gu, " ");
@@ -43,7 +50,9 @@ const summary = [
   `- Nodes: +${diff.summary.nodesAdded} / -${diff.summary.nodesRemoved} / ${diff.summary.nodesChanged} changed`,
   `- Edges: +${diff.summary.edgesAdded} / -${diff.summary.edgesRemoved} / ${diff.summary.edgesChanged} changed`,
   `- Diagnostics: +${diff.summary.diagnosticsAdded} / -${diff.summary.diagnosticsRemoved} / ${diff.summary.diagnosticsChanged} changed`,
-  `- Static report: artifact \`${escapeSummary(artifactName)}\``,
+  uploadReport === "true"
+    ? `- Static report: artifact \`${escapeSummary(artifactName)}\``
+    : "- Static report upload: disabled by policy",
   "",
 ].join("\n");
 
