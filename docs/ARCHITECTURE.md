@@ -40,6 +40,13 @@ selected, and validate every path as repository-relative. The analyzer receives
 the resolved include/exclude selectors and resource ceilings; it fails closed
 before emitting a partial snapshot when a ceiling is exceeded.
 
+The TypeScript loader reads JSON/JSONC configuration through the compiler parser
+without executing configuration or repository code. It recursively follows
+in-repository project references, applies each referenced project’s include and
+exclude selectors, and uses the owning project’s compiler options for path
+aliases. Source and dependency/build paths are selected in canonical order;
+symlinked or out-of-root files are never loaded.
+
 Adapters depend on the core contract. The core does not depend on a framework adapter.
 
 ## Canonical graph

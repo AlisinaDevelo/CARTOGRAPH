@@ -24,6 +24,10 @@ const outsideImportRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
   "../fixtures/outside-import/project",
 );
+const projectLoaderRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../fixtures/project-loader",
+);
 
 describe("TypeScript analyzer", () => {
   it("matches the manually asserted fixture relationships", () => {
@@ -155,6 +159,54 @@ describe("TypeScript analyzer", () => {
     expect(
       keys.some((key) => /(?:dist|build|coverage|node_modules)/u.test(key)),
     ).toBe(false);
+  });
+
+  it("loads project references and path aliases without executing source", () => {
+    const snapshot = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: projectLoaderRoot }),
+    );
+    const moduleKeys = snapshot.nodes
+      .filter((node) => node.kind === "module")
+      .map((node) => node.stableKey);
+
+    expect(moduleKeys).toContain("module:packages/app/src/main.ts");
+    expect(moduleKeys).toContain(
+      "module:packages/app/src/throws-if-executed.ts",
+    );
+    expect(moduleKeys).toContain("module:packages/core/src/index.ts");
+    expect(
+      moduleKeys.some((key) =>
+        /(?:excluded|generated|build|dist|node_modules)/u.test(key),
+      ),
+    ).toBe(false);
+    expect(snapshot.edges).toContainEqual(
+      expect.objectContaining({
+        kind: "imports",
+        from: "module:packages/app/src/main.ts",
+        to: "module:packages/core/src/index.ts",
+      }),
+    );
+  });
+
+  it("fails closed when selected source ceilings are exceeded", () => {
+    expect(() =>
+      analyzeTypeScriptRepository({
+        rootDir: projectLoaderRoot,
+        resources: { maxFiles: 2 },
+      }),
+    ).toThrowError("analysis exceeds the 2 source-file ceiling");
+    expect(() =>
+      analyzeTypeScriptRepository({
+        rootDir: projectLoaderRoot,
+        resources: { maxFileBytes: 1 },
+      }),
+    ).toThrowError("source file exceeds the 1 byte file ceiling");
+    expect(() =>
+      analyzeTypeScriptRepository({
+        rootDir: projectLoaderRoot,
+        resources: { maxSourceBytes: 1 },
+      }),
+    ).toThrowError("analysis exceeds the 1 byte source ceiling");
   });
 
   it("preserves ordinary local calls despite framework-like method names", () => {

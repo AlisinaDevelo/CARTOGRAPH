@@ -242,6 +242,103 @@ const DEFAULT_RESOURCE_LIMITS: ResourceLimits = {
   maxReportItems: 10_000,
 };
 
+type LoadedProjectConfig = {
+  configPath: string;
+  configDirectory: string;
+  options: ts.CompilerOptions;
+};
+
+type LoadedProjectSources = {
+  projectPaths: string[];
+  sourcePaths: string[];
+  configs: LoadedProjectConfig[];
+  compilerOptions: ts.CompilerOptions;
+};
+
+const tsConfigDiagnosticText = (
+  diagnostics: readonly ts.Diagnostic[],
+): string =>
+  diagnostics
+    .map((diagnostic) =>
+      ts.flattenDiagnosticMessageText(diagnostic.messageText, " "),
+    )
+    .sort(compareStrings)
+    .join("; ");
+
+const configPathInsideRoot = (
+  rootDir: string,
+  candidatePath: string,
+  label: string,
+): string | undefined => {
+  const absolutePath = resolve(candidatePath);
+  if (!isInsideRoot(rootDir, absolutePath))
+    throw new Error(`${label} must stay inside the analyzed repository`);
+  if (!existsSync(absolutePath)) return undefined;
+  const metadata = lstatSync(absolutePath);
+  if (metadata.isSymbolicLink())
+    throw new Error(`${label} must not be a symbolic link: ${candidatePath}`);
+  if (!metadata.isFile())
+    throw new Error(`${label} is not a regular file: ${candidatePath}`);
+  const physicalPath = realpathSync(absolutePath);
+  if (!isInsideRoot(rootDir, physicalPath))
+    throw new Error(`${label} must stay inside the analyzed repository`);
+  return absolutePath;
+};
+
+const safeConfigHost = (
+  rootDir: string,
+  checkBudget: () => void,
+): ts.ParseConfigHost => {
+  const safePath = (candidatePath: string): string | undefined => {
+    const absolutePath = resolve(candidatePath);
+    if (!isInsideRoot(rootDir, absolutePath)) return undefined;
+    if (!existsSync(absolutePath)) return undefined;
+    const metadata = lstatSync(absolutePath);
+    if (metadata.isSymbolicLink() || !metadata.isFile()) return undefined;
+    const physicalPath = realpathSync(absolutePath);
+    return isInsideRoot(rootDir, physicalPath) ? absolutePath : undefined;
+  };
+
+  return {
+    useCaseSensitiveFileNames: ts.sys.useCaseSensitiveFileNames,
+    fileExists: (candidatePath) => {
+      checkBudget();
+      return safePath(candidatePath) !== undefined;
+    },
+    readFile: (candidatePath) => {
+      checkBudget();
+      const path = safePath(candidatePath);
+      return path === undefined ? undefined : readFileSync(path, "utf8");
+    },
+    readDirectory: (directory, extensions, excludes, includes, depth) => {
+      checkBudget();
+      if (!isInsideRoot(rootDir, directory)) return [];
+      return ts.sys
+        .readDirectory(directory, extensions, excludes, includes, depth)
+        .map((candidatePath) => safePath(candidatePath))
+        .filter(
+          (candidatePath): candidatePath is string =>
+            candidatePath !== undefined,
+        )
+        .sort(compareStrings);
+    },
+    directoryExists: (directory) => {
+      checkBudget();
+      const absolutePath = resolve(directory);
+      if (!isInsideRoot(rootDir, absolutePath) || !existsSync(absolutePath))
+        return false;
+      const metadata = lstatSync(absolutePath);
+      if (metadata.isSymbolicLink() || !metadata.isDirectory()) return false;
+      return isInsideRoot(rootDir, realpathSync(absolutePath));
+    },
+    realpath: (candidatePath) => {
+      checkBudget();
+      const path = safePath(candidatePath);
+      return path === undefined ? candidatePath : realpathSync(path);
+    },
+  };
+};
+
 const globRegExp = (pattern: string): RegExp => {
   let expression = "^";
   for (let index = 0; index < pattern.length; index += 1) {
@@ -274,6 +371,202 @@ const selectedByPatterns = (
 ): boolean =>
   include.some((pattern) => matchesPathPattern(pattern, relativePath)) &&
   !exclude.some((pattern) => matchesPathPattern(pattern, relativePath));
+
+const isProjectSourcePath = (filePath: string): boolean =>
+  SOURCE_EXTENSIONS.has(extname(filePath)) && !filePath.endsWith(".d.ts");
+
+const isExcludedProjectPath = (rootDir: string, filePath: string): boolean => {
+  const relativePath = relative(rootDir, filePath);
+  return relativePath.split(sep).some((part) => EXCLUDED_DIRECTORIES.has(part));
+};
+
+const safeProjectFilePath = (
+  rootDir: string,
+  filePath: string,
+): string | undefined => {
+  const absolutePath = resolve(filePath);
+  if (!isInsideRoot(rootDir, absolutePath))
+    throw new Error(
+      `tsconfig selected a file outside the analyzed repository: ${filePath}`,
+    );
+  if (!existsSync(absolutePath)) return undefined;
+  const metadata = lstatSync(absolutePath);
+  if (metadata.isSymbolicLink()) return undefined;
+  if (!metadata.isFile()) return undefined;
+  const physicalPath = realpathSync(absolutePath);
+  if (!isInsideRoot(rootDir, physicalPath)) return undefined;
+  return absolutePath;
+};
+
+const projectReferenceConfigPath = (
+  rootDir: string,
+  referencePath: string,
+): string => {
+  const absoluteReference = resolve(referencePath);
+  const candidate =
+    extname(absoluteReference) === ".json"
+      ? absoluteReference
+      : join(absoluteReference, "tsconfig.json");
+  const configPath = configPathInsideRoot(
+    rootDir,
+    candidate,
+    "project reference",
+  );
+  if (configPath === undefined)
+    throw new Error(
+      `project reference tsconfig does not exist: ${referencePath}`,
+    );
+  return configPath;
+};
+
+const loadedProjectSources = (
+  rootDir: string,
+  tsconfigPath: string | undefined,
+  include: readonly string[],
+  exclude: readonly string[],
+  resources: ResourceLimits,
+  checkBudget: () => void,
+): LoadedProjectSources => {
+  const requestedConfigPath = tsconfigPath
+    ? resolve(rootDir, tsconfigPath)
+    : join(rootDir, "tsconfig.json");
+  const rootConfigPath = configPathInsideRoot(
+    rootDir,
+    requestedConfigPath,
+    "tsconfig",
+  );
+
+  if (tsconfigPath !== undefined && rootConfigPath === undefined)
+    throw new Error(`tsconfig does not exist: ${tsconfigPath}`);
+
+  if (rootConfigPath === undefined) {
+    const paths = discoverSourcePaths(
+      rootDir,
+      include,
+      exclude,
+      resources,
+      checkBudget,
+    );
+    return {
+      projectPaths: paths,
+      sourcePaths: paths,
+      configs: [],
+      compilerOptions: {
+        allowJs: false,
+        module: ts.ModuleKind.NodeNext,
+        moduleResolution: ts.ModuleResolutionKind.NodeNext,
+        noEmit: true,
+        skipLibCheck: true,
+        strict: true,
+        target: ts.ScriptTarget.ES2023,
+      },
+    };
+  }
+
+  const configHost = safeConfigHost(rootDir, checkBudget);
+  const readConfigFile = (path: string): string | undefined =>
+    configHost.readFile(path);
+  const configs: LoadedProjectConfig[] = [];
+  const pending = [rootConfigPath];
+  const visited = new Set<string>();
+  const projectPaths = new Set<string>();
+  const sourcePaths = new Set<string>();
+
+  while (pending.length > 0) {
+    checkBudget();
+    const configPath = pending.shift();
+    if (!configPath || visited.has(configPath)) continue;
+    visited.add(configPath);
+
+    const loaded = ts.readConfigFile(configPath, readConfigFile);
+    if (loaded.error)
+      throw new Error(
+        `could not parse ${relative(rootDir, configPath)}: ${tsConfigDiagnosticText(
+          [loaded.error],
+        )}`,
+      );
+    const parsed = ts.parseJsonConfigFileContent(
+      loaded.config,
+      configHost,
+      dirname(configPath),
+      {},
+      configPath,
+    );
+    if (parsed.errors.length > 0)
+      throw new Error(
+        `could not parse ${relative(rootDir, configPath)}: ${tsConfigDiagnosticText(
+          parsed.errors,
+        )}`,
+      );
+    configs.push({
+      configPath,
+      configDirectory: dirname(configPath),
+      options: parsed.options,
+    });
+
+    for (const fileName of [...parsed.fileNames].sort(compareStrings)) {
+      checkBudget();
+      const safePath = safeProjectFilePath(rootDir, fileName);
+      if (
+        safePath === undefined ||
+        isExcludedProjectPath(rootDir, safePath) ||
+        !selectedByPatterns(
+          normalizePath(relative(rootDir, safePath)),
+          include,
+          exclude,
+        )
+      )
+        continue;
+      projectPaths.add(safePath);
+      if (isProjectSourcePath(safePath)) sourcePaths.add(safePath);
+    }
+
+    for (const reference of parsed.projectReferences ?? []) {
+      checkBudget();
+      pending.push(projectReferenceConfigPath(rootDir, reference.path));
+    }
+  }
+
+  const sortedProjectPaths = [...projectPaths].sort(compareStrings);
+  const sortedSourcePaths = [...sourcePaths].sort(compareStrings);
+  let totalSourceBytes = 0;
+  for (const filePath of sortedSourcePaths) {
+    checkBudget();
+    const bytes = lstatSync(filePath).size;
+    if (bytes > resources.maxFileBytes)
+      throw new ResourceLimitError(
+        `source file exceeds the ${resources.maxFileBytes} byte file ceiling: ${normalizePath(relative(rootDir, filePath))}`,
+      );
+    totalSourceBytes += bytes;
+    if (totalSourceBytes > resources.maxSourceBytes)
+      throw new ResourceLimitError(
+        `analysis exceeds the ${resources.maxSourceBytes} byte source ceiling`,
+      );
+  }
+
+  if (sortedSourcePaths.length > resources.maxFiles)
+    throw new ResourceLimitError(
+      `analysis exceeds the ${resources.maxFiles} source-file ceiling`,
+    );
+
+  checkBudget();
+  return {
+    projectPaths: sortedProjectPaths,
+    sourcePaths: sortedSourcePaths,
+    configs: configs.sort((left, right) =>
+      compareStrings(left.configPath, right.configPath),
+    ),
+    compilerOptions: configs[0]?.options ?? {
+      allowJs: false,
+      module: ts.ModuleKind.NodeNext,
+      moduleResolution: ts.ModuleResolutionKind.NodeNext,
+      noEmit: true,
+      skipLibCheck: true,
+      strict: true,
+      target: ts.ScriptTarget.ES2023,
+    },
+  };
+};
 
 const discoverSourcePaths = (
   rootDir: string,
@@ -419,15 +712,21 @@ const moduleExtension = (filePath: string): string => {
 
 const projectFor = (
   rootDir: string,
-  tsconfigPath: string | undefined,
+  loaded: LoadedProjectSources,
   sourcePaths: ReadonlySet<string>,
 ): Project => {
-  const configPath = tsconfigPath
-    ? resolve(rootDir, tsconfigPath)
-    : join(rootDir, "tsconfig.json");
+  const compilerOptionsForFile = (filePath: string): ts.CompilerOptions => {
+    const candidate = loaded.configs
+      .filter((config) => isInsideRoot(config.configDirectory, filePath))
+      .sort(
+        (left, right) =>
+          right.configDirectory.length - left.configDirectory.length,
+      )[0];
+    return candidate?.options ?? loaded.compilerOptions;
+  };
   const resolutionHost = (
     moduleResolutionHost: ts.ModuleResolutionHost,
-    getCompilerOptions: () => ts.CompilerOptions,
+    _getCompilerOptions: () => ts.CompilerOptions,
   ) => ({
     resolveModuleNames: (moduleNames: string[], containingFile: string) =>
       moduleNames.map((moduleName) => {
@@ -445,35 +744,28 @@ const projectFor = (
           } satisfies ts.ResolvedModuleFull;
         }
 
-        return ts.resolveModuleName(
+        const resolved = ts.resolveModuleName(
           moduleName,
           containingFile,
-          getCompilerOptions(),
+          compilerOptionsForFile(containingFile),
           moduleResolutionHost,
         ).resolvedModule;
+        if (
+          resolved === undefined ||
+          !isAllowedRelativeModulePath(
+            rootDir,
+            resolved.resolvedFileName,
+            sourcePaths,
+          )
+        )
+          return undefined;
+        return resolved;
       }),
   });
 
-  if (existsSync(configPath) && lstatSync(configPath).isFile()) {
-    return new Project({
-      skipAddingFilesFromTsConfig: true,
-      skipFileDependencyResolution: true,
-      tsConfigFilePath: configPath,
-      resolutionHost,
-    });
-  }
-
   return new Project({
     skipFileDependencyResolution: true,
-    compilerOptions: {
-      allowJs: false,
-      module: ts.ModuleKind.NodeNext,
-      moduleResolution: ts.ModuleResolutionKind.NodeNext,
-      noEmit: true,
-      skipLibCheck: true,
-      strict: true,
-      target: ts.ScriptTarget.ES2023,
-    },
+    compilerOptions: loaded.compilerOptions,
     resolutionHost,
   });
 };
@@ -1094,6 +1386,8 @@ const hasLocalImplementation = (
   expression: Expression,
 ): boolean =>
   declarationsFor(context, expression).some((declaration) => {
+    if (declaration.getSourceFile().getFilePath().endsWith(".d.ts"))
+      return false;
     if (
       !isInsideRoot(context.rootDir, declaration.getSourceFile().getFilePath())
     )
@@ -1653,12 +1947,16 @@ const analyzeCalls = (context: AnalyzerContext): void => {
 };
 
 const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
-  const rootDir = resolve(options.rootDir);
-  if (!existsSync(rootDir) || !lstatSync(rootDir).isDirectory()) {
+  const requestedRootDir = resolve(options.rootDir);
+  if (
+    !existsSync(requestedRootDir) ||
+    !lstatSync(requestedRootDir).isDirectory()
+  ) {
     throw new Error(
       `TypeScript analyzer root is not a directory: ${options.rootDir}`,
     );
   }
+  const rootDir = realpathSync(requestedRootDir);
 
   const extractors = new Set<"typescript" | "express">(
     options.extractors ?? ["typescript", "express"],
@@ -1676,16 +1974,18 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
     ...(options.signal === undefined ? {} : { signal: options.signal }),
   });
   checkBudget();
-  const paths = discoverSourcePaths(
+  const loaded = loadedProjectSources(
     rootDir,
+    options.tsconfigPath,
     options.include ?? ["."],
     options.exclude ?? [],
     resources,
     checkBudget,
-  ).map((path) => resolve(path));
+  );
+  const paths = loaded.sourcePaths.map((path) => resolve(path));
   const sourcePaths = new Set(paths);
-  const project = projectFor(rootDir, options.tsconfigPath, sourcePaths);
-  for (const path of paths) project.addSourceFileAtPath(path);
+  const project = projectFor(rootDir, loaded, sourcePaths);
+  for (const path of loaded.projectPaths) project.addSourceFileAtPath(path);
 
   const sourceFiles = paths
     .map((path) => project.getSourceFile(path))
