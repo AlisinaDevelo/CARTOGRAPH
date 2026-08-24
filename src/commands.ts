@@ -21,7 +21,12 @@ import {
   type GraphSnapshot,
   type SnapshotMigrationResult,
 } from "./core/index.js";
-import { readPathHistory, withMaterializedRevision } from "./git/revision.js";
+import {
+  readPathHistory,
+  resolveRevisionComparison,
+  withMaterializedRevision,
+  type RevisionComparisonMode,
+} from "./git/revision.js";
 import { renderDiff, type ReportFormat } from "./report/render.js";
 
 const MAX_SNAPSHOT_BYTES = 64 * 1024 * 1024;
@@ -40,6 +45,7 @@ export type ScanOptions = {
 
 export type RevisionDiffOptions = {
   base: string;
+  comparison?: RevisionComparisonMode;
   format: ReportFormat;
   head: string;
   root: string;
@@ -165,28 +171,47 @@ export async function diffRepositoryRevisions(
 ): Promise<string> {
   const repositoryRoot = resolve(options.root);
   const config = configurationFor(repositoryRoot, options);
-  const before = await scanMaterializedRevision(
+  const comparison = await resolveRevisionComparison(
     repositoryRoot,
     options.base,
+    options.head,
+    options.comparison ?? "direct",
+    options.signal === undefined ? {} : { signal: options.signal },
+  );
+  const before = await scanMaterializedRevision(
+    repositoryRoot,
+    comparison.fromCommitSha,
     options.tsconfigPath ?? config.tsconfigPath,
     config,
     options.signal,
   );
   const after = await scanMaterializedRevision(
     repositoryRoot,
-    options.head,
+    comparison.headCommitSha,
     options.tsconfigPath ?? config.tsconfigPath,
     config,
     options.signal,
   );
   const pathHistory = await readPathHistory(
     repositoryRoot,
-    options.base,
-    options.head,
+    comparison.fromCommitSha,
+    comparison.headCommitSha,
     options.signal === undefined ? {} : { signal: options.signal },
   );
   return renderDiff(
-    diffGraphSnapshots(before, after, { identity: { pathHistory } }),
+    diffGraphSnapshots(before, after, {
+      comparison: {
+        mode: comparison.mode,
+        baseRef: comparison.baseRef,
+        headRef: comparison.headRef,
+        baseCommitSha: comparison.baseCommitSha,
+        headCommitSha: comparison.headCommitSha,
+        ...(comparison.mergeBaseSha === undefined
+          ? {}
+          : { mergeBaseSha: comparison.mergeBaseSha }),
+      },
+      identity: { pathHistory },
+    }),
     options.format,
     config.resources.maxReportItems,
   );

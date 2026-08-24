@@ -158,13 +158,18 @@ canonical stable keys.
 Revision analysis validates refs with Git, archives each tree into its own temporary directory, analyzes the extracted source, and removes the directory in a `finally` path. It does not checkout, reset, stash, or otherwise alter the caller's worktree.
 
 Revision refs are resolved locally; the command never fetches or implicitly
-contacts a remote. A dirty caller worktree is left untouched and is not mixed
-into a commit-backed revision. Materialization fails closed at the 128 MiB
+contacts a remote. Direct comparisons use the exact resolved base and head
+commits. Pull-request comparisons use an explicitly requested unique merge base
+and the exact head commit, and fail closed for shallow, unrelated, or
+multi-merge-base histories. A dirty caller worktree is left untouched and is
+not mixed into a commit-backed revision. Materialization fails closed at the 128 MiB
 archive, 64 MiB extracted-tree, or 30 second subprocess ceilings and cleans
 partial trees on every failure path. Snapshot files can also be compared
 directly through `diff-snapshots` without Git.
 
-The CLI records the exact base and head commit. Future pull-request support will also record the merge base instead of hiding Git's three-dot semantics.
+The CLI records the requested refs, exact base and head commits, comparison
+mode, and merge-base commit when one is used. The same metadata is the contract
+an eventual pull-request Action must preserve.
 
 ## TypeScript boundary
 

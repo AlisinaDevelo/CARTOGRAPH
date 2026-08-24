@@ -57,4 +57,20 @@ describe("CLI", () => {
       ),
     ).rejects.toThrow("format must be one of");
   });
+
+  it("rejects unknown revision comparison modes before diffing", async () => {
+    const program = createCli();
+    const diffCommand = program.commands.find(
+      (command) => command.name() === "diff",
+    );
+    expect(diffCommand).toBeDefined();
+    diffCommand?.exitOverride().configureOutput({ writeErr: () => undefined });
+
+    await expect(
+      program.parseAsync(
+        ["diff", fixtureRoot, "--base", "HEAD", "--comparison", "three-dot"],
+        { from: "user" },
+      ),
+    ).rejects.toThrow("comparison must be one of");
+  });
 });

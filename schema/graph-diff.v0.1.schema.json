@@ -26,6 +26,9 @@
     "summary": {
       "$ref": "#/definitions/summary"
     },
+    "comparison": {
+      "$ref": "#/definitions/comparison"
+    },
     "fromRevision": {
       "$ref": "#/definitions/revision"
     },
@@ -97,6 +100,61 @@
         "branch": { "$ref": "#/definitions/identifier" },
         "authoredAt": { "$ref": "#/definitions/dateTime" }
       }
+    },
+    "comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "baseRef",
+        "headRef",
+        "baseCommitSha",
+        "headCommitSha"
+      ],
+      "properties": {
+        "mode": {
+          "enum": ["direct", "merge-base"]
+        },
+        "baseRef": {
+          "$ref": "#/definitions/portableReference"
+        },
+        "headRef": {
+          "$ref": "#/definitions/portableReference"
+        },
+        "baseCommitSha": {
+          "$ref": "#/definitions/identifier"
+        },
+        "headCommitSha": {
+          "$ref": "#/definitions/identifier"
+        },
+        "mergeBaseSha": {
+          "$ref": "#/definitions/identifier"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": { "const": "merge-base" }
+            }
+          },
+          "then": {
+            "required": ["mergeBaseSha"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": { "const": "direct" }
+            }
+          },
+          "then": {
+            "not": {
+              "required": ["mergeBaseSha"]
+            }
+          }
+        }
+      ]
     },
     "sourceEvidence": {
       "type": "object",

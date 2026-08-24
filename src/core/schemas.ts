@@ -548,6 +548,36 @@ export const GraphDiffSummarySchema = z
   })
   .strict();
 
+export const DiffComparisonModeSchema = z.enum(["direct", "merge-base"]);
+
+export const DiffComparisonSchema = z
+  .object({
+    mode: DiffComparisonModeSchema,
+    baseRef: PortableReferenceSchema,
+    headRef: PortableReferenceSchema,
+    baseCommitSha: IdentifierSchema,
+    headCommitSha: IdentifierSchema,
+    mergeBaseSha: IdentifierSchema.optional(),
+  })
+  .strict()
+  .superRefine((comparison, context) => {
+    if (
+      comparison.mode === "merge-base" &&
+      comparison.mergeBaseSha === undefined
+    )
+      context.addIssue({
+        code: "custom",
+        path: ["mergeBaseSha"],
+        message: "merge-base comparisons require the resolved merge base",
+      });
+    if (comparison.mode === "direct" && comparison.mergeBaseSha !== undefined)
+      context.addIssue({
+        code: "custom",
+        path: ["mergeBaseSha"],
+        message: "direct comparisons must not claim a merge base",
+      });
+  });
+
 export const GraphDiffSchema = z
   .object({
     schemaVersion: z.literal(GRAPH_DIFF_SCHEMA_VERSION),
@@ -555,6 +585,7 @@ export const GraphDiffSchema = z
       .literal(CAPABILITY_REGISTRY_VERSION)
       .default(CAPABILITY_REGISTRY_VERSION),
     summary: GraphDiffSummarySchema,
+    comparison: DiffComparisonSchema.optional(),
     fromRevision: RevisionSchema,
     toRevision: RevisionSchema,
     nodes: z
@@ -613,4 +644,6 @@ export type ChangedEdge = z.infer<typeof ChangedEdgeSchema>;
 export type RewiredEdge = z.infer<typeof RewiredEdgeSchema>;
 export type ChangedDiagnostic = z.infer<typeof ChangedDiagnosticSchema>;
 export type GraphDiffSummary = z.infer<typeof GraphDiffSummarySchema>;
+export type DiffComparisonMode = z.infer<typeof DiffComparisonModeSchema>;
+export type DiffComparison = z.infer<typeof DiffComparisonSchema>;
 export type GraphDiff = z.infer<typeof GraphDiffSchema>;

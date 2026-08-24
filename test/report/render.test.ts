@@ -68,6 +68,16 @@ const after = createGraphSnapshot({
 });
 
 const diff = diffGraphSnapshots(before, after);
+const comparisonDiff = diffGraphSnapshots(before, after, {
+  comparison: {
+    mode: "merge-base",
+    baseRef: "origin/main",
+    headRef: "refs/pull/7/head",
+    baseCommitSha: "1".repeat(40),
+    headCommitSha: "2".repeat(40),
+    mergeBaseSha: "1".repeat(40),
+  },
+});
 
 const categoryBefore = createGraphSnapshot({
   schemaVersion: 1,
@@ -189,6 +199,17 @@ describe("diff reports", () => {
     expect(report).toContain("1 edge added");
     expect(report).toContain("src/app.ts:7");
     expect(renderMarkdownReport(diff)).toBe(report);
+  });
+
+  it("renders comparison mode and exact ref context", () => {
+    const markdown = renderMarkdownReport(comparisonDiff);
+    const html = renderHtmlReport(comparisonDiff);
+
+    expect(markdown).toContain("Comparison <code>merge-base</code>");
+    expect(markdown).toContain("<code>origin/main</code>");
+    expect(markdown).toContain("merge base <code>111111111111</code>");
+    expect(html).toContain("Comparison <code>merge-base</code>");
+    expect(html).toContain("merge base <code>111111111111</code>");
   });
 
   it("renders self-contained HTML that escapes repository-controlled text", () => {

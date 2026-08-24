@@ -29,6 +29,7 @@ import {
   type CartographConfig,
 } from "./core/index.js";
 import type { ReportFormat } from "./report/render.js";
+import type { RevisionComparisonMode } from "./git/revision.js";
 
 const VERSION = "0.1.0";
 
@@ -71,6 +72,13 @@ const reportFormat = (value: string): ReportFormat => {
   if (value === "html" || value === "json" || value === "markdown")
     return value;
   throw new InvalidArgumentError("format must be one of: html, json, markdown");
+};
+
+const revisionComparison = (value: string): RevisionComparisonMode => {
+  if (value === "direct" || value === "merge-base") return value;
+  throw new InvalidArgumentError(
+    "comparison must be one of: direct, merge-base",
+  );
 };
 
 const emit = async (content: string, options: OutputOptions): Promise<void> => {
@@ -127,6 +135,12 @@ export function createCli(): Command {
     .requiredOption("--base <ref>", "base Git ref")
     .option("--head <ref>", "head Git ref", "HEAD")
     .option(
+      "--comparison <mode>",
+      "comparison mode: direct or merge-base",
+      revisionComparison,
+      "direct",
+    )
+    .option(
       "-f, --format <format>",
       "report format: json, markdown, or html",
       reportFormat,
@@ -144,6 +158,7 @@ export function createCli(): Command {
         root: string,
         options: OutputOptions & {
           base: string;
+          comparison: RevisionComparisonMode;
           format: ReportFormat;
           head: string;
           tsconfig?: string;
@@ -153,6 +168,7 @@ export function createCli(): Command {
         const config = readConfigOption(root, options.config);
         const report = await diffRepositoryRevisions({
           base: options.base,
+          comparison: options.comparison,
           format: options.format,
           head: options.head,
           root,

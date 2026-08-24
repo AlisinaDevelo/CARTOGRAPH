@@ -38,6 +38,7 @@ Compare two local Git revisions without checking either one out:
 node dist/cli.js diff /path/to/repository \
   --base origin/main \
   --head HEAD \
+  --comparison merge-base \
   --format html \
   --output .cartograph/architecture-diff.html
 ```
@@ -62,7 +63,7 @@ JavaScript files, generated routes, framework metaprogramming, and complete runt
 
 ```text
 cartograph scan [root]
-cartograph diff [root] --base <ref> [--head <ref>]
+cartograph diff [root] --base <ref> [--head <ref>] [--comparison direct|merge-base]
 cartograph diff-snapshots <before.json> <after.json>
 cartograph migrate-snapshot <input.json> --report <report.json>
 ```
@@ -74,7 +75,7 @@ records every changed node or edge identity. Migration output is deterministic
 and requires the documented manual review gate in
 [the migration matrix](docs/IDENTITY_MIGRATION.md).
 
-The Git revision flow validates refs, archives each commit into an isolated temporary directory, rejects archived symbolic links, analyzes without executing repository code, and cleans the temporary tree. It never checks out, resets, cleans, or stashes the caller's worktree.
+The Git revision flow validates refs, archives each commit into an isolated temporary directory, rejects archived symbolic links, analyzes without executing repository code, and cleans the temporary tree. It never checks out, resets, cleans, fetches, or stashes the caller's worktree. `direct` compares the resolved base tree to the resolved head tree. `merge-base` implements pull-request semantics by comparing the resolved merge base to the head; it fails closed for shallow repositories, unrelated histories, or multiple merge bases instead of fetching or guessing. Direct mode remains available for explicitly comparing unrelated trees.
 
 ## Evidence contract
 
@@ -89,7 +90,7 @@ Each edge also records explicit confidence and must carry evidence or an
 actionable unresolved reason. Unknown evidence fields are rejected by the
 runtime contract.
 
-The surrounding snapshot records the exact analyzed commit for revision-backed scans. Graphs and diffs are runtime-validated, referentially checked, deduplicated, and canonically sorted. Identical input produces byte-identical normalized JSON.
+The surrounding snapshot records the exact analyzed commit for revision-backed scans. Revision diffs also record the requested refs, resolved base/head commits, comparison mode, and merge base when applicable. Graphs and diffs are runtime-validated, referentially checked, deduplicated, and canonically sorted. Identical input produces byte-identical normalized JSON.
 
 The canonical [GraphSnapshot v0.1 JSON Schema](schema/graph-snapshot.v0.1.schema.json)
 defines the portable interchange shape. The runtime validator additionally checks

@@ -101,6 +101,39 @@ async function createRenameDiffRepository(): Promise<string> {
   return root;
 }
 
+async function createBranchComparisonRepository(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "cartograph-cli-branch-test-"));
+  temporaryDirectories.push(root);
+  await run("git", ["init", "-b", "main"], root);
+  await run("git", ["config", "user.name", "CARTOGRAPH Test"], root);
+  await run("git", ["config", "user.email", "test@example.invalid"], root);
+  await writeFile(
+    join(root, "app.ts"),
+    "export const value = 'base';\n",
+    "utf8",
+  );
+  await run("git", ["add", "app.ts"], root);
+  await run("git", ["commit", "-m", "base"], root);
+  await run("git", ["branch", "feature"], root);
+  await run("git", ["checkout", "feature"], root);
+  await writeFile(
+    join(root, "app.ts"),
+    "export const value = 'feature';\n",
+    "utf8",
+  );
+  await run("git", ["add", "app.ts"], root);
+  await run("git", ["commit", "-m", "feature change"], root);
+  await run("git", ["checkout", "main"], root);
+  await writeFile(
+    join(root, "app.ts"),
+    "export const value = 'main';\n",
+    "utf8",
+  );
+  await run("git", ["add", "app.ts"], root);
+  await run("git", ["commit", "-m", "main change"], root);
+  return root;
+}
+
 afterEach(async () => {
   await Promise.all(
     temporaryDirectories
@@ -136,6 +169,13 @@ describe("command orchestration", () => {
 
     expect(diff.fromRevision.commitSha).toMatch(/^[0-9a-f]{40,64}$/u);
     expect(diff.toRevision.commitSha).toMatch(/^[0-9a-f]{40,64}$/u);
+    expect(diff.comparison).toMatchObject({
+      mode: "direct",
+      baseRef: "HEAD~1",
+      headRef: "HEAD",
+      baseCommitSha: diff.fromRevision.commitSha,
+      headCommitSha: diff.toRevision.commitSha,
+    });
     const request = diff.edges.added.find((edge) => edge.kind === "requests");
     expect(request).toMatchObject({
       confidence: "certain",
@@ -144,6 +184,30 @@ describe("command orchestration", () => {
       to: "external_service:https://payments.example",
     });
     expect(request?.evidence.length).toBeGreaterThan(0);
+  });
+
+  it("records merge-base pull-request semantics and exact revisions", async () => {
+    const root = await createBranchComparisonRepository();
+    const report = await diffRepositoryRevisions({
+      base: "main",
+      comparison: "merge-base",
+      format: "json",
+      head: "feature",
+      root,
+    });
+    const diff = parseGraphDiff(JSON.parse(report) as unknown);
+
+    expect(diff.comparison).toMatchObject({
+      mode: "merge-base",
+      baseRef: "main",
+      headRef: "feature",
+      mergeBaseSha: diff.fromRevision.commitSha,
+      headCommitSha: diff.toRevision.commitSha,
+    });
+    expect(diff.comparison?.baseCommitSha).not.toBe(
+      diff.comparison?.mergeBaseSha,
+    );
+    expect(diff.fromRevision.commitSha).not.toBe(diff.toRevision.commitSha);
   });
 
   it("uses local Git rename history to explain moved snapshot identities", async () => {
