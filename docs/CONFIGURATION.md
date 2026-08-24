@@ -34,7 +34,8 @@ Paths and glob patterns are normalized to POSIX separators and cannot be
 absolute, contain a drive or URI prefix, contain NUL bytes, or include a `..`
 segment. The config file itself must also be inside the analyzed repository.
 The analyzer never follows source symlinks. Exceeding a selected-file, byte,
-memory, or wall-clock ceiling fails closed with a stable diagnostic.
+archive, memory, wall-clock, or report-cardinality ceiling fails closed with a
+stable diagnostic.
 
 Unknown keys fail closed by default. A config may set `unknownFields` to
 `"warn"`; unknown keys are ignored and each ignored key is reported on stderr
@@ -47,3 +48,8 @@ The `output` object describes the intended consumer format (`snapshot` or
 authoritative for the current invocation. `policyRefs` records repository-local
 policy inputs for callers and is validated for portability without executing
 or loading those files.
+
+Library callers may pass an `AbortSignal` to `scanRepository`,
+`diffRepositoryRevisions`, or the analyzer. Cancellation raises a stable
+`CancellationError`, removes any materialized revision tree, and never returns
+a partial artifact.

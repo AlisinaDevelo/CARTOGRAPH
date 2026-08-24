@@ -6,6 +6,7 @@ import {
   analyzeTypeScriptRepository,
   type TypeScriptAnalyzerOptions,
 } from "./analyzers/index.js";
+import { assertReportItemLimit } from "./resources.js";
 import {
   diffGraphSnapshots,
   parseGraphSnapshot,
@@ -28,6 +29,7 @@ export type ScanOptions = {
   tsconfigPath?: string;
   config?: CartographConfig;
   configPath?: string;
+  signal?: AbortSignal;
 };
 
 export type RevisionDiffOptions = {
@@ -38,6 +40,7 @@ export type RevisionDiffOptions = {
   tsconfigPath?: string;
   config?: CartographConfig;
   configPath?: string;
+  signal?: AbortSignal;
 };
 
 type ConfigOptions = {
@@ -79,6 +82,7 @@ const analyzerOptions = (
   config: CartographConfig,
   tsconfigPath: string | undefined,
   revision: NonNullable<TypeScriptAnalyzerOptions["revision"]>,
+  signal?: AbortSignal,
 ) => ({
   rootDir: root,
   include: config.include,
@@ -86,6 +90,7 @@ const analyzerOptions = (
   extractors: config.extractors,
   resources: config.resources,
   revision,
+  ...(signal === undefined ? {} : { signal }),
   ...(tsconfigPath === undefined
     ? {}
     : { tsconfigPath: containedPath(root, tsconfigPath, "tsconfig") }),
@@ -94,16 +99,22 @@ const analyzerOptions = (
 export function scanRepository(options: ScanOptions): GraphSnapshot {
   const root = realpathSync(resolve(options.root));
   const config = configurationFor(root, options);
-  return parseGraphSnapshot(
+  const snapshot = parseGraphSnapshot(
     analyzeTypeScriptRepository(
       analyzerOptions(
         root,
         config,
         options.tsconfigPath ?? config.tsconfigPath,
         { branch: "working-tree", commitSha: "working-tree" },
+        options.signal,
       ),
     ),
   );
+  assertReportItemLimit(
+    snapshot.nodes.length + snapshot.edges.length + snapshot.diagnostics.length,
+    config.resources.maxReportItems,
+  );
+  return snapshot;
 }
 
 const scanMaterializedRevision = async (
@@ -111,18 +122,29 @@ const scanMaterializedRevision = async (
   ref: string,
   tsconfigPath?: string,
   config?: CartographConfig,
+  signal?: AbortSignal,
 ): Promise<GraphSnapshot> =>
-  await withMaterializedRevision(repositoryRoot, ref, (revision) =>
-    parseGraphSnapshot(
-      analyzeTypeScriptRepository(
-        analyzerOptions(
-          revision.root,
-          config ?? defaultCartographConfig(),
-          tsconfigPath,
-          { commitSha: revision.commit },
+  await withMaterializedRevision(
+    repositoryRoot,
+    ref,
+    (revision) =>
+      parseGraphSnapshot(
+        analyzeTypeScriptRepository(
+          analyzerOptions(
+            revision.root,
+            config ?? defaultCartographConfig(),
+            tsconfigPath,
+            { commitSha: revision.commit },
+            signal,
+          ),
         ),
       ),
-    ),
+    {
+      ...(config?.resources === undefined
+        ? {}
+        : { resources: config.resources }),
+      ...(signal === undefined ? {} : { signal }),
+    },
   );
 
 export async function diffRepositoryRevisions(
@@ -135,14 +157,20 @@ export async function diffRepositoryRevisions(
     options.base,
     options.tsconfigPath ?? config.tsconfigPath,
     config,
+    options.signal,
   );
   const after = await scanMaterializedRevision(
     repositoryRoot,
     options.head,
     options.tsconfigPath ?? config.tsconfigPath,
     config,
+    options.signal,
   );
-  return renderDiff(diffGraphSnapshots(before, after), options.format);
+  return renderDiff(
+    diffGraphSnapshots(before, after),
+    options.format,
+    config.resources.maxReportItems,
+  );
 }
 
 export async function loadSnapshot(path: string): Promise<GraphSnapshot> {
@@ -174,12 +202,13 @@ export async function diffSnapshotFiles(
   beforePath: string,
   afterPath: string,
   format: ReportFormat,
+  maxReportItems?: number,
 ): Promise<string> {
   const [before, after] = await Promise.all([
     loadSnapshot(beforePath),
     loadSnapshot(afterPath),
   ]);
-  return renderDiff(diffGraphSnapshots(before, after), format);
+  return renderDiff(diffGraphSnapshots(before, after), format, maxReportItems);
 }
 
 export async function writeOutputFile(

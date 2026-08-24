@@ -1,11 +1,41 @@
 import { spawn } from "node:child_process";
-import { lstat, mkdir, mkdtemp, opendir, realpath, rm } from "node:fs/promises";
+import {
+  lstat,
+  mkdir,
+  mkdtemp,
+  opendir,
+  realpath,
+  rm,
+  stat,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
+import {
+  createResourceBudget,
+  CancellationError,
+  ResourceLimitError,
+} from "../resources.js";
 
 const MAX_COMMAND_OUTPUT_BYTES = 1024 * 1024;
 const COMMAND_TIMEOUT_MS = 30_000;
 const MAX_REF_LENGTH = 512;
+const DEFAULT_ARCHIVE_BYTES = 64 * 1024 * 1024;
+const DEFAULT_MEMORY_BYTES = 1024 * 1024 * 1024;
+
+export type MaterializationOptions = {
+  resources?: {
+    maxArchiveBytes?: number;
+    maxMemoryBytes?: number;
+    maxWallClockMs?: number;
+  };
+  signal?: AbortSignal;
+};
+
+type ProcessOptions = {
+  maxWallClockMs?: number;
+  signal?: AbortSignal;
+};
 
 export type MaterializedRevision = {
   readonly commit: string;
@@ -42,6 +72,7 @@ async function runProcess(
   command: string,
   args: readonly string[],
   cwd?: string,
+  options: ProcessOptions = {},
 ): Promise<string> {
   return await new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -53,11 +84,15 @@ async function runProcess(
     const stderr: Buffer[] = [];
     let outputBytes = 0;
     let settled = false;
+    let timeout: ReturnType<typeof setTimeout> | undefined = undefined;
+    let abortHandler: (() => void) | undefined = undefined;
 
     const finish = (callback: () => void): void => {
       if (settled) return;
       settled = true;
-      clearTimeout(timeout);
+      if (timeout !== undefined) clearTimeout(timeout);
+      if (abortHandler !== undefined)
+        options.signal?.removeEventListener("abort", abortHandler);
       callback();
     };
 
@@ -91,44 +126,71 @@ async function runProcess(
       });
     });
 
-    const timeout = setTimeout(() => {
+    abortHandler = (): void => {
+      child.kill("SIGKILL");
+      finish(() =>
+        reject(new CancellationError("revision materialization cancelled")),
+      );
+    };
+    if (options.signal?.aborted) {
+      abortHandler();
+      return;
+    }
+    options.signal?.addEventListener("abort", abortHandler, { once: true });
+    timeout = setTimeout(() => {
       child.kill("SIGKILL");
       finish(() =>
         reject(
-          new GitCommandError(command, null, "timed out after 30 seconds"),
+          new GitCommandError(
+            command,
+            null,
+            `timed out after ${options.maxWallClockMs ?? COMMAND_TIMEOUT_MS} ms`,
+          ),
         ),
       );
-    }, COMMAND_TIMEOUT_MS);
+    }, options.maxWallClockMs ?? COMMAND_TIMEOUT_MS);
   });
 }
 
+const processOptions = (options: MaterializationOptions): ProcessOptions => ({
+  maxWallClockMs: options.resources?.maxWallClockMs ?? COMMAND_TIMEOUT_MS,
+  ...(options.signal === undefined ? {} : { signal: options.signal }),
+});
+
 export async function resolveRepositoryRoot(
   inputPath: string,
+  options: ProcessOptions = {},
 ): Promise<string> {
   const candidate = await realpath(inputPath);
-  const output = await runProcess("git", [
-    "-C",
-    candidate,
-    "rev-parse",
-    "--show-toplevel",
-  ]);
+  const output = await runProcess(
+    "git",
+    ["-C", candidate, "rev-parse", "--show-toplevel"],
+    undefined,
+    options,
+  );
   return await realpath(output.trim());
 }
 
 export async function resolveCommit(
   repositoryRoot: string,
   ref: string,
+  options: ProcessOptions = {},
 ): Promise<string> {
   assertSafeRef(ref);
-  const root = await resolveRepositoryRoot(repositoryRoot);
-  const output = await runProcess("git", [
-    "-C",
-    root,
-    "rev-parse",
-    "--verify",
-    "--end-of-options",
-    `${ref}^{commit}`,
-  ]);
+  const root = await resolveRepositoryRoot(repositoryRoot, options);
+  const output = await runProcess(
+    "git",
+    [
+      "-C",
+      root,
+      "rev-parse",
+      "--verify",
+      "--end-of-options",
+      `${ref}^{commit}`,
+    ],
+    undefined,
+    options,
+  );
   const commit = output.trim();
   if (!/^[0-9a-f]{40,64}$/u.test(commit)) {
     throw new Error(
@@ -138,13 +200,18 @@ export async function resolveCommit(
   return commit;
 }
 
-async function assertTreeContainsNoSymbolicLinks(root: string): Promise<void> {
+async function assertTreeContainsNoSymbolicLinks(
+  root: string,
+  checkBudget: () => void,
+): Promise<void> {
   const directories = [root];
   while (directories.length > 0) {
+    checkBudget();
     const directory = directories.pop();
     if (directory === undefined) break;
     const entries = await opendir(directory);
     for await (const entry of entries) {
+      checkBudget();
       const path = join(directory, entry.name);
       const metadata = await lstat(path);
       if (metadata.isSymbolicLink()) {
@@ -158,9 +225,26 @@ async function assertTreeContainsNoSymbolicLinks(root: string): Promise<void> {
 export async function materializeRevision(
   repositoryRoot: string,
   ref: string,
+  options: MaterializationOptions = {},
 ): Promise<MaterializedRevision> {
-  const root = await resolveRepositoryRoot(repositoryRoot);
-  const commit = await resolveCommit(root, ref);
+  const maxArchiveBytes =
+    options.resources?.maxArchiveBytes ?? DEFAULT_ARCHIVE_BYTES;
+  const maxMemoryBytes =
+    options.resources?.maxMemoryBytes ?? DEFAULT_MEMORY_BYTES;
+  const maxWallClockMs =
+    options.resources?.maxWallClockMs ?? COMMAND_TIMEOUT_MS;
+  const checkBudget = createResourceBudget({
+    maxMemoryBytes,
+    maxWallClockMs,
+    subject: "revision materialization",
+    ...(options.signal === undefined ? {} : { signal: options.signal }),
+  });
+  checkBudget();
+  const processConfig = processOptions(options);
+  const root = await resolveRepositoryRoot(repositoryRoot, processConfig);
+  checkBudget();
+  const commit = await resolveCommit(root, ref, processConfig);
+  checkBudget();
   const temporaryRoot = await mkdtemp(join(tmpdir(), "cartograph-revision-"));
   const archivePath = join(temporaryRoot, "revision.tar");
   const treeRoot = join(temporaryRoot, "tree");
@@ -174,16 +258,34 @@ export async function materializeRevision(
 
   try {
     await mkdir(treeRoot, { mode: 0o700 });
-    await runProcess("git", [
-      "-C",
-      root,
-      "archive",
-      "--format=tar",
-      `--output=${archivePath}`,
-      commit,
-    ]);
-    await runProcess("tar", ["-xf", archivePath, "-C", treeRoot]);
-    await assertTreeContainsNoSymbolicLinks(treeRoot);
+    checkBudget();
+    await runProcess(
+      "git",
+      [
+        "-C",
+        root,
+        "archive",
+        "--format=tar",
+        `--output=${archivePath}`,
+        commit,
+      ],
+      undefined,
+      processConfig,
+    );
+    checkBudget();
+    const archiveMetadata = await stat(archivePath);
+    if (archiveMetadata.size > maxArchiveBytes)
+      throw new ResourceLimitError(
+        `revision archive exceeds the ${maxArchiveBytes} byte archive ceiling`,
+      );
+    await runProcess(
+      "tar",
+      ["-xf", archivePath, "-C", treeRoot],
+      undefined,
+      processConfig,
+    );
+    await assertTreeContainsNoSymbolicLinks(treeRoot, checkBudget);
+    checkBudget();
     return { cleanup, commit, root: treeRoot };
   } catch (error) {
     await cleanup();
@@ -195,8 +297,9 @@ export async function withMaterializedRevision<T>(
   repositoryRoot: string,
   ref: string,
   operation: (revision: MaterializedRevision) => Promise<T> | T,
+  options: MaterializationOptions = {},
 ): Promise<T> {
-  const revision = await materializeRevision(repositoryRoot, ref);
+  const revision = await materializeRevision(repositoryRoot, ref, options);
   try {
     return await operation(revision);
   } finally {

@@ -21,6 +21,7 @@ import {
   writeOutputFile,
 } from "../../src/commands.js";
 import { parseGraphDiff } from "../../src/core/index.js";
+import { parseCartographConfig } from "../../src/core/index.js";
 
 const fixtureRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -158,6 +159,18 @@ describe("command orchestration", () => {
     await expect(loadSnapshot(snapshotPath)).rejects.toThrow(
       "snapshot exceeds the 64 MiB input limit",
     );
+  });
+
+  it("fails closed when the report cardinality ceiling is exceeded", () => {
+    expect(() =>
+      scanRepository({
+        root: fixtureRoot,
+        config: parseCartographConfig({
+          schemaVersion: 1,
+          resources: { maxReportItems: 1 },
+        }).config,
+      }),
+    ).toThrowError("report exceeds the 1 item report-cardinality ceiling");
   });
 
   it("never follows an output symlink when force is enabled", async () => {
