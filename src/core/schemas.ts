@@ -450,12 +450,29 @@ const ChangedDiagnosticSchema = z
   })
   .strict();
 
+const DiffCountSchema = z.number().int().nonnegative();
+
+export const GraphDiffSummarySchema = z
+  .object({
+    nodesAdded: DiffCountSchema,
+    nodesRemoved: DiffCountSchema,
+    nodesChanged: DiffCountSchema,
+    edgesAdded: DiffCountSchema,
+    edgesRemoved: DiffCountSchema,
+    edgesChanged: DiffCountSchema,
+    diagnosticsAdded: DiffCountSchema,
+    diagnosticsRemoved: DiffCountSchema,
+    diagnosticsChanged: DiffCountSchema,
+  })
+  .strict();
+
 export const GraphDiffSchema = z
   .object({
     schemaVersion: z.literal(GRAPH_DIFF_SCHEMA_VERSION),
     capabilityRegistryVersion: z
       .literal(CAPABILITY_REGISTRY_VERSION)
       .default(CAPABILITY_REGISTRY_VERSION),
+    summary: GraphDiffSummarySchema,
     fromRevision: RevisionSchema,
     toRevision: RevisionSchema,
     nodes: z
@@ -493,4 +510,5 @@ export type FieldChange = z.infer<typeof FieldChangeSchema>;
 export type ChangedNode = z.infer<typeof ChangedNodeSchema>;
 export type ChangedEdge = z.infer<typeof ChangedEdgeSchema>;
 export type ChangedDiagnostic = z.infer<typeof ChangedDiagnosticSchema>;
+export type GraphDiffSummary = z.infer<typeof GraphDiffSummarySchema>;
 export type GraphDiff = z.infer<typeof GraphDiffSchema>;

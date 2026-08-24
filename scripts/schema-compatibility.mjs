@@ -74,6 +74,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/remediation-review.ts" ||
       file === "src/core/remediation-evaluation.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
+      file === "schema/graph-diff.v0.1.schema.json" ||
       file === "schema/capability-registry.v0.1.schema.json" ||
       file === "schema/diagnostic-registry.v0.1.schema.json" ||
       file === "schema/policy-bundle.v0.1.schema.json" ||
@@ -124,6 +125,7 @@ const checkCompatibility = () => {
     "src/core/remediation-evaluation.ts",
   );
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
+  const diffSchema = readJson("schema/graph-diff.v0.1.schema.json");
   const capabilitySchema = readJson(
     "schema/capability-registry.v0.1.schema.json",
   );
@@ -232,6 +234,11 @@ const checkCompatibility = () => {
     "GraphSnapshot JSON Schema/runtime",
     snapshotSchema.properties.schemaVersion.const,
     snapshotVersion,
+  );
+  requireEqual(
+    "GraphDiff JSON Schema/runtime",
+    diffSchema.properties.schemaVersion.const,
+    diffVersion,
   );
   requireEqual(
     "capability registry runtime/policy",

@@ -155,6 +155,22 @@ const diagnosticDiff = (
   return { added, removed, changed };
 };
 
+const summarizeDiff = (
+  nodes: GraphDiff["nodes"],
+  edges: GraphDiff["edges"],
+  diagnostics: GraphDiff["diagnostics"],
+): GraphDiff["summary"] => ({
+  nodesAdded: nodes.added.length,
+  nodesRemoved: nodes.removed.length,
+  nodesChanged: nodes.changed.length,
+  edgesAdded: edges.added.length,
+  edgesRemoved: edges.removed.length,
+  edgesChanged: edges.changed.length,
+  diagnosticsAdded: diagnostics.added.length,
+  diagnosticsRemoved: diagnostics.removed.length,
+  diagnosticsChanged: diagnostics.changed.length,
+});
+
 const deduplicateDiffRecords = <T>(
   records: readonly T[],
   identity: (record: T) => string,
@@ -283,23 +299,34 @@ export const canonicalizeGraphDiff = (input: unknown): GraphDiff => {
   assertSupportedSchemaVersion(input, "GraphDiff", GRAPH_DIFF_SCHEMA_VERSION);
   assertSupportedCapabilityRegistryVersion(input);
   const parsed = GraphDiffSchema.parse(input);
+  const nodes = {
+    added: sortNodes(parsed.nodes.added),
+    removed: sortNodes(parsed.nodes.removed),
+    changed: canonicalizeChangedNodes(parsed.nodes.changed),
+  };
+  const edges = {
+    added: sortEdges(parsed.edges.added),
+    removed: sortEdges(parsed.edges.removed),
+    changed: canonicalizeChangedEdges(parsed.edges.changed),
+  };
+  const diagnostics = {
+    added: sortDiagnostics(parsed.diagnostics.added),
+    removed: sortDiagnostics(parsed.diagnostics.removed),
+    changed: canonicalizeChangedDiagnostics(parsed.diagnostics.changed),
+  };
+  const summary = summarizeDiff(nodes, edges, diagnostics);
+  if (stableStringify(parsed.summary) !== stableStringify(summary)) {
+    throw new GraphContractError(
+      "conflict",
+      "graph diff summary does not match its change arrays",
+    );
+  }
   const canonical = {
     ...parsed,
-    nodes: {
-      added: sortNodes(parsed.nodes.added),
-      removed: sortNodes(parsed.nodes.removed),
-      changed: canonicalizeChangedNodes(parsed.nodes.changed),
-    },
-    edges: {
-      added: sortEdges(parsed.edges.added),
-      removed: sortEdges(parsed.edges.removed),
-      changed: canonicalizeChangedEdges(parsed.edges.changed),
-    },
-    diagnostics: {
-      added: sortDiagnostics(parsed.diagnostics.added),
-      removed: sortDiagnostics(parsed.diagnostics.removed),
-      changed: canonicalizeChangedDiagnostics(parsed.diagnostics.changed),
-    },
+    summary,
+    nodes,
+    edges,
+    diagnostics,
   };
 
   return GraphDiffSchema.parse(canonical);
@@ -323,14 +350,18 @@ export const diffGraphSnapshots = (
     before.capabilityRegistryVersion,
     after.capabilityRegistryVersion,
   );
+  const nodes = nodeDiff(before.nodes, after.nodes);
+  const edges = edgeDiff(before.edges, after.edges);
+  const diagnostics = diagnosticDiff(before.diagnostics, after.diagnostics);
   const diff = {
     schemaVersion: 1 as const,
     capabilityRegistryVersion: before.capabilityRegistryVersion,
+    summary: summarizeDiff(nodes, edges, diagnostics),
     fromRevision: before.revision,
     toRevision: after.revision,
-    nodes: nodeDiff(before.nodes, after.nodes),
-    edges: edgeDiff(before.edges, after.edges),
-    diagnostics: diagnosticDiff(before.diagnostics, after.diagnostics),
+    nodes,
+    edges,
+    diagnostics,
   };
 
   return canonicalizeGraphDiff(diff);

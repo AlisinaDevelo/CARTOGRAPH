@@ -8,30 +8,6 @@ import { assertReportItemLimit } from "../resources.js";
 
 export type ReportFormat = "html" | "json" | "markdown";
 
-type DiffSummary = {
-  nodesAdded: number;
-  nodesRemoved: number;
-  nodesChanged: number;
-  edgesAdded: number;
-  edgesRemoved: number;
-  edgesChanged: number;
-  diagnosticsAdded: number;
-  diagnosticsRemoved: number;
-  diagnosticsChanged: number;
-};
-
-const summarize = (diff: GraphDiff): DiffSummary => ({
-  nodesAdded: diff.nodes.added.length,
-  nodesRemoved: diff.nodes.removed.length,
-  nodesChanged: diff.nodes.changed.length,
-  edgesAdded: diff.edges.added.length,
-  edgesRemoved: diff.edges.removed.length,
-  edgesChanged: diff.edges.changed.length,
-  diagnosticsAdded: diff.diagnostics.added.length,
-  diagnosticsRemoved: diff.diagnostics.removed.length,
-  diagnosticsChanged: diff.diagnostics.changed.length,
-});
-
 const plural = (count: number, singular: string): string =>
   `${count} ${singular}${count === 1 ? "" : "s"}`;
 
@@ -89,7 +65,7 @@ const markdownDiagnostic = (
 };
 
 export function renderMarkdownReport(diff: GraphDiff): string {
-  const summary = summarize(diff);
+  const summary = diff.summary;
   const lines = [
     "# Architecture diff",
     "",
@@ -202,7 +178,7 @@ const htmlChanges = (changes: readonly { readonly path: string }[]): string =>
   changes.map((change) => `<code>${escapeHtml(change.path)}</code>`).join(", ");
 
 export function renderHtmlReport(diff: GraphDiff): string {
-  const summary = summarize(diff);
+  const summary = diff.summary;
   const addedNodes = diff.nodes.added.map(htmlNode);
   const removedNodes = diff.nodes.removed.map(htmlNode);
   const changedNodes = diff.nodes.changed.map(

@@ -8,6 +8,10 @@ The current contract inventory is in
 [`schema/compatibility.json`](../schema/compatibility.json), and the canonical
 GraphSnapshot shape is in
 [`schema/graph-snapshot.v0.1.schema.json`](../schema/graph-snapshot.v0.1.schema.json).
+The canonical GraphDiff shape is published in
+[`schema/graph-diff.v0.1.schema.json`](../schema/graph-diff.v0.1.schema.json);
+its summary counts are derived from the canonical change arrays and checked by
+the runtime validator.
 The extractor capability and unknown-semantics registry is versioned separately
 in [`schema/capability-registry.v0.1.json`](../schema/capability-registry.v0.1.json)
 and its JSON Schema.
@@ -61,6 +65,17 @@ also uses version `1`. Snapshots and diffs expose capability registry version
 `1`; a registry mismatch fails closed before a diff or report is produced. The
 JSON Schema and runtime validator must change together; the compatibility check
 rejects drift between them.
+
+## D-003 initial diff publication
+
+D-003 publishes the existing GraphDiff v0.1 contract as a standalone JSON
+Schema and makes its machine-readable summary explicit. Writers emit stable
+counts for added, removed, and changed nodes, edges, and diagnostics; the
+runtime rejects a summary that disagrees with the change arrays. The golden
+valid and malformed fixtures exercise both the JSON Schema and runtime
+validator, while repeated canonical serialization is required to be byte
+identical. This is the first published diff artifact contract; no prior
+standalone GraphDiff JSON Schema was shipped.
 
 ## Change control
 
