@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "references": [
+    {
+      "id": "ADR-0001",
+      "file": "docs/adr/0001-typescript-first-semantic-adapter.md",
+      "title": "Start with a TypeScript 6 semantic adapter",
+      "status": "accepted",
+      "graphIds": ["module:src/analyzers/typescript.ts"]
+    },
+    {
+      "id": "ADR-0002",
+      "file": "docs/adr/0002-open-local-core.md",
+      "title": "Keep the complete local loop open",
+      "status": "accepted",
+      "graphIds": ["module:src/core/index.ts"]
+    },
+    {
+      "id": "ADR-0003",
+      "file": "docs/adr/0003-remediation-assistance-gate.md",
+      "title": "Keep remediation assistance rule-only after the S-006 gate",
+      "status": "accepted",
+      "graphIds": ["module:src/core/remediation-suggestions.ts"]
+    }
+  ]
+}

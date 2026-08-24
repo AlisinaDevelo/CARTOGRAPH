@@ -35,6 +35,8 @@ Human remediation review records use the reviewed `remediationReviews`
 contract and [`schema/remediation-review.v0.1.schema.json`](../schema/remediation-review.v0.1.schema.json).
 Offline remediation evaluation reports use the reviewed `remediationEvaluations`
 contract and [`schema/remediation-evaluation.v0.1.schema.json`](../schema/remediation-evaluation.v0.1.schema.json).
+Local ADR reference indexes use the reviewed `adrReferences` contract and
+[`schema/adr-reference.v0.1.schema.json`](../schema/adr-reference.v0.1.schema.json).
 
 ## Change categories
 
@@ -130,3 +132,14 @@ informational-by-default mode. Unknown fields, executable expressions, URLs,
 and out-of-repository policy paths fail closed. The runtime parser and local
 reader are deterministic and offline; policy evaluation and enforcing exit
 behavior remain additive follow-on contracts.
+
+## P-007 local ADR references
+
+P-007 publishes a versioned local ADR reference index in
+`schema/adr-reference.v0.1.schema.json` and `src/core/adr.ts`. Each bounded
+record identifies an in-repository Markdown file, title, lifecycle status, and
+one or more graph IDs. The runtime checks file metadata and optional graph
+snapshot membership offline, reporting missing, malformed, stale, and
+uncovered references deterministically. This is an additive new contract; ADR
+lifecycle transitions, report rendering, and policy binding remain follow-on
+roadmap work.

@@ -178,7 +178,11 @@ JSON is the canonical machine contract. Markdown is optimized for review summari
 
 The following are roadmap items, not current implementation claims:
 
-- policy evaluation and enforcing exit behavior, plus ADR evaluation;
+- policy evaluation and enforcing exit behavior, plus ADR lifecycle, report,
+  and policy-binding evaluation;
+- local ADR reference parsing and stale/missing reference diagnostics remain
+  offline and data-only; lifecycle, report, and policy binding are separate
+  contracts;
 - a reusable GitHub Action and Check annotations;
 - the remaining identity quality, portability, and history work;
 - additional framework or language adapters;

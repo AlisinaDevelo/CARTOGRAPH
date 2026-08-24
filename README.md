@@ -134,6 +134,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Compatibility and versioning](docs/COMPATIBILITY.md)
 - [Snapshot and identity migration](docs/IDENTITY_MIGRATION.md)
 - [Configuration contract](docs/CONFIGURATION.md)
+- [Local ADR references](docs/ADR_REFERENCES.md)
 - [Fixture provenance](docs/FIXTURES.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Evaluation strategy](docs/EVALUATION.md)
