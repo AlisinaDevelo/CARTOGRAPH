@@ -25,6 +25,95 @@ const forbidText = (source, text, label) => {
   if (source.includes(text))
     fail(`${label} contains forbidden ${JSON.stringify(text)}`);
 };
+const actionReferences = (source) =>
+  [...source.matchAll(/^\s*uses:\s*([^\s#]+)/gmu)].map((match) => match[1]);
+
+const validatePolicy = (candidateWorkflow, candidateAction) => {
+  requireText(
+    candidateWorkflow,
+    "on:\n  # Deliberately use pull_request",
+    "fixture workflow",
+  );
+  requireText(
+    candidateWorkflow,
+    "permissions:\n  contents: read",
+    "fixture workflow",
+  );
+  requireText(
+    candidateWorkflow,
+    "permissions:\n      contents: read",
+    "job permissions",
+  );
+  requireText(
+    candidateWorkflow,
+    "ref: ${{ github.event.pull_request.head.sha }}",
+    "exact head checkout",
+  );
+  requireText(
+    candidateWorkflow,
+    "persist-credentials: false",
+    "credential persistence",
+  );
+  forbidText(candidateWorkflow, "pull_request_target", "fixture workflow");
+  forbidText(candidateWorkflow, "secrets.", "fixture workflow");
+  forbidText(candidateWorkflow, "github.token", "fixture workflow");
+  forbidText(candidateAction, "pull_request_target", "composite action");
+  forbidText(candidateAction, "secrets.", "composite action");
+  forbidText(candidateAction, "github.token", "composite action");
+  if (
+    /^[ \t]*permissions:[ \t]*(?:write|write-all)[ \t]*$/mu.test(
+      candidateWorkflow,
+    )
+  )
+    fail("fixture workflow grants broad write permissions");
+  if (
+    /^[ \t]*[A-Za-z-]+:[ \t]*(?:write|write-all)[ \t]*$/mu.test(
+      candidateWorkflow,
+    )
+  )
+    fail("fixture workflow grants a write permission");
+  for (const [label, source] of [
+    ["fixture workflow", candidateWorkflow],
+    ["composite action", candidateAction],
+  ]) {
+    for (const reference of actionReferences(source))
+      if (!/@[0-9a-f]{40}$/iu.test(reference))
+        fail(`${label} contains an unpinned Action reference: ${reference}`);
+  }
+  requireText(candidateAction, 'default: "7"', "retention default");
+  requireText(candidateAction, 'default: "true"', "report upload default");
+  requireText(
+    candidateAction,
+    "npm ci --ignore-scripts",
+    "dependency installation",
+  );
+  requireText(
+    candidateAction,
+    "CARTOGRAPH_RETENTION_DAYS",
+    "retention validation",
+  );
+  requireText(
+    candidateAction,
+    "CARTOGRAPH_UPLOAD_REPORT",
+    "report opt-out validation",
+  );
+  requireText(
+    candidateAction,
+    "if: inputs.upload-report == 'true'",
+    "report upload opt-out",
+  );
+  requireText(candidateAction, "architecture-diff.json", "JSON artifact scope");
+  requireText(candidateAction, "architecture-diff.html", "HTML artifact scope");
+};
+
+const expectPolicyRejection = (label, candidateWorkflow, candidateAction) => {
+  try {
+    validatePolicy(candidateWorkflow, candidateAction);
+  } catch {
+    return;
+  }
+  fail(`${label} policy mutation was accepted`);
+};
 
 const syntheticForkPullRequest = {
   eventName: "pull_request",
@@ -45,36 +134,33 @@ if (syntheticForkPullRequest.token.permissions.contents !== "read")
 if (Object.keys(syntheticForkPullRequest.secrets).length !== 0)
   fail("synthetic fork event unexpectedly contains secrets");
 
-requireText(
-  workflow,
-  "on:\n  # Deliberately use pull_request",
-  "fixture workflow",
-);
-requireText(workflow, "permissions:\n  contents: read", "fixture workflow");
-requireText(workflow, "permissions:\n      contents: read", "job permissions");
-requireText(
-  workflow,
-  "ref: ${{ github.event.pull_request.head.sha }}",
-  "exact head checkout",
-);
-requireText(workflow, "persist-credentials: false", "credential persistence");
-forbidText(workflow, "pull_request_target", "fixture workflow");
-forbidText(workflow, "secrets.", "fixture workflow");
-forbidText(workflow, "github.token", "fixture workflow");
-forbidText(action, "pull_request_target", "composite action");
-forbidText(action, "secrets.", "composite action");
-forbidText(action, "github.token", "composite action");
-requireText(action, 'default: "7"', "retention default");
-requireText(action, 'default: "true"', "report upload default");
-requireText(action, "CARTOGRAPH_RETENTION_DAYS", "retention validation");
-requireText(action, "CARTOGRAPH_UPLOAD_REPORT", "report opt-out validation");
-requireText(
+validatePolicy(workflow, action);
+expectPolicyRejection(
+  "write permission",
+  workflow.replace(
+    "permissions:\n      contents: read",
+    "permissions:\n      contents: read\n      actions: write",
+  ),
   action,
-  "if: inputs.upload-report == 'true'",
-  "report upload opt-out",
 );
-requireText(action, "architecture-diff.json", "JSON artifact scope");
-requireText(action, "architecture-diff.html", "HTML artifact scope");
+expectPolicyRejection(
+  "pull_request_target",
+  workflow.replace("pull_request:", "pull_request_target:"),
+  action,
+);
+expectPolicyRejection(
+  "unpinned Action",
+  workflow.replace(
+    "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "actions/checkout@main",
+  ),
+  action,
+);
+expectPolicyRejection(
+  "secret-dependent analysis",
+  `${workflow}\nenv:\n  CARTOGRAPH_TOKEN: \${{ secrets.BAD }}\n`,
+  action,
+);
 requireText(docs, "Fork pull requests and permissions", "Action docs");
 requireText(docs, "Pin and update policy", "Action docs");
 requireText(docs, "Sensitive repositories", "Action retention docs");

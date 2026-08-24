@@ -104,5 +104,10 @@ both JSON and HTML modes, and verifies the comparison metadata, static report,
 redaction boundary, and report-size ceiling. `npm run action:security:validate`
 checks the copy-ready workflow and a synthetic fork pull-request event for the
 read-only permission, exact-SHA, no-secret, no-`pull_request_target`, retention,
-and sensitive-repository opt-out invariants. These checks perform no network
-request, Action API call, or GitHub mutation.
+and sensitive-repository opt-out invariants. The offline fixture also exercises a
+malicious package `preinstall` script (with scripts disabled), symlinked output,
+an oversized source file, an already-cancelled analysis, and a missing revision
+ref; every case must fail closed without modifying the fixture. The policy test
+rejects workflow write permissions, unpinned `uses:` references, and
+secret-dependent analysis paths. These checks perform no network request, Action
+API call, or GitHub mutation.
