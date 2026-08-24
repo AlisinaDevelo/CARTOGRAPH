@@ -21,7 +21,8 @@ import {
 const MAX_COMMAND_OUTPUT_BYTES = 1024 * 1024;
 const COMMAND_TIMEOUT_MS = 30_000;
 const MAX_REF_LENGTH = 512;
-const DEFAULT_ARCHIVE_BYTES = 64 * 1024 * 1024;
+const DEFAULT_ARCHIVE_BYTES = 128 * 1024 * 1024;
+const DEFAULT_EXTRACTED_BYTES = 64 * 1024 * 1024;
 const DEFAULT_MEMORY_BYTES = 1024 * 1024 * 1024;
 
 export const revisionTemporaryPrefix = (repositoryRoot: string): string =>
@@ -33,6 +34,7 @@ export const revisionTemporaryPrefix = (repositoryRoot: string): string =>
 export type MaterializationOptions = {
   resources?: {
     maxArchiveBytes?: number;
+    maxExtractedBytes?: number;
     maxMemoryBytes?: number;
     maxWallClockMs?: number;
   };
@@ -210,8 +212,10 @@ export async function resolveCommit(
 async function assertTreeContainsNoSymbolicLinks(
   root: string,
   checkBudget: () => void,
+  maxExtractedBytes: number,
 ): Promise<void> {
   const directories = [root];
+  let extractedBytes = 0;
   while (directories.length > 0) {
     checkBudget();
     const directory = directories.pop();
@@ -225,6 +229,13 @@ async function assertTreeContainsNoSymbolicLinks(
         throw new Error(`archived symbolic link is not allowed: ${entry.name}`);
       }
       if (metadata.isDirectory()) directories.push(path);
+      else if (metadata.isFile()) {
+        extractedBytes += metadata.size;
+        if (extractedBytes > maxExtractedBytes)
+          throw new ResourceLimitError(
+            `materialized revision exceeds the ${maxExtractedBytes} byte extracted-source ceiling`,
+          );
+      }
     }
   }
 }
@@ -236,6 +247,8 @@ export async function materializeRevision(
 ): Promise<MaterializedRevision> {
   const maxArchiveBytes =
     options.resources?.maxArchiveBytes ?? DEFAULT_ARCHIVE_BYTES;
+  const maxExtractedBytes =
+    options.resources?.maxExtractedBytes ?? DEFAULT_EXTRACTED_BYTES;
   const maxMemoryBytes =
     options.resources?.maxMemoryBytes ?? DEFAULT_MEMORY_BYTES;
   const maxWallClockMs =
@@ -293,7 +306,11 @@ export async function materializeRevision(
       undefined,
       processConfig,
     );
-    await assertTreeContainsNoSymbolicLinks(treeRoot, checkBudget);
+    await assertTreeContainsNoSymbolicLinks(
+      treeRoot,
+      checkBudget,
+      maxExtractedBytes,
+    );
     checkBudget();
     return { cleanup, commit, root: treeRoot };
   } catch (error) {

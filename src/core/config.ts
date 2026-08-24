@@ -61,7 +61,7 @@ const ResourceLimitsSchema = z
       .int()
       .positive()
       .max(4 * 1024 * 1024 * 1024)
-      .default(64 * 1024 * 1024),
+      .default(128 * 1024 * 1024),
     maxMemoryBytes: z
       .number()
       .int()
@@ -76,7 +76,7 @@ const ResourceLimitsSchema = z
     maxFiles: 20_000,
     maxFileBytes: 2 * 1024 * 1024,
     maxSourceBytes: 64 * 1024 * 1024,
-    maxArchiveBytes: 64 * 1024 * 1024,
+    maxArchiveBytes: 128 * 1024 * 1024,
     maxMemoryBytes: 1024 * 1024 * 1024,
     maxWallClockMs: 30_000,
     maxReportItems: 10_000,

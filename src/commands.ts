@@ -148,7 +148,14 @@ const scanMaterializedRevision = async (
     {
       ...(config?.resources === undefined
         ? {}
-        : { resources: config.resources }),
+        : {
+            resources: {
+              maxArchiveBytes: config.resources.maxArchiveBytes,
+              maxExtractedBytes: config.resources.maxSourceBytes,
+              maxMemoryBytes: config.resources.maxMemoryBytes,
+              maxWallClockMs: config.resources.maxWallClockMs,
+            },
+          }),
       ...(signal === undefined ? {} : { signal }),
     },
   );
