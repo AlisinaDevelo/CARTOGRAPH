@@ -185,6 +185,7 @@ The following are roadmap items, not current implementation claims:
   contracts;
 - a reusable GitHub Action and Check annotations;
 - the remaining identity quality, portability, and history work;
-- additional framework or language adapters;
+- additional framework or language adapters and stronger runtime isolation
+  enforcement beyond the v0.1 data-only adapter policy;
 - OpenTelemetry reconciliation;
 - hosted collaboration or organizational history.

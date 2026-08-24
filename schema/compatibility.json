@@ -48,9 +48,9 @@
       "reviewedVersions": [1]
     },
     "adapters": {
-      "current": null,
-      "supportedReaders": [],
-      "reviewed": true
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
     },
     "policyBundles": {
       "current": 1,

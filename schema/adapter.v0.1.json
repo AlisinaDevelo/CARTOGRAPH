@@ -1,0 +1,25 @@
+{
+  "apiVersion": 1,
+  "contract": "cartograph.adapter",
+  "mediaType": "application/vnd.cartograph.adapter+json",
+  "id": "cartograph.sample",
+  "version": "0.1.0",
+  "compatibilityVersion": 1,
+  "capabilityRegistryVersion": 1,
+  "capabilities": [
+    {
+      "id": "sample.noop",
+      "description": "Produces an empty graph for an explicit local fixture.",
+      "diagnosticCodes": [],
+      "confidence": ["certain"],
+      "examples": ["An explicit fixture with no source extraction."]
+    }
+  ],
+  "execution": {
+    "filesystem": "source-read-only",
+    "network": false,
+    "childProcess": false,
+    "dynamicModuleLoading": false,
+    "repositoryCodeExecution": false
+  }
+}
