@@ -1,0 +1,72 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: Package and smoke-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # Needed only for the final GitHub release creation step.
+    steps:
+      - name: Check out the tagged commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        # zizmor: ignore[cache-poisoning] Release builds run only from protected, immutable version tags; setup-node caching is disabled below.
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.x
+          cache: ""
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Verify tag and package version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          case "$RELEASE_TAG" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "unsupported release tag: $RELEASE_TAG" >&2; exit 1 ;;
+          esac
+          package_version="$(node -p "require('./package.json').version")"
+          test "v$package_version" = "$RELEASE_TAG"
+
+      - name: Run the full release gate
+        run: npm run check
+
+      - name: Build package, checksums, release notes, and consumer smoke test
+        env:
+          CARTOGRAPH_RELEASE_TAG: ${{ github.ref_name }}
+        run: node scripts/release-artifact.mjs --output "$RUNNER_TEMP/cartograph-release"
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          tarball="$(find "$RUNNER_TEMP/cartograph-release" -maxdepth 1 -name '*.tgz' -print -quit)"
+          test -n "$tarball"
+          gh release create "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "CARTOGRAPH $RELEASE_TAG" \
+            --notes-file "$RUNNER_TEMP/cartograph-release/release-notes.md" \
+            "$tarball" \
+            "$RUNNER_TEMP/cartograph-release/SHA256SUMS" \
+            "$RUNNER_TEMP/cartograph-release/release-metadata.json"

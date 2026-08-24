@@ -31,6 +31,10 @@ node dist/cli.js --version
 npm pack --dry-run --ignore-scripts
 ```
 
+Tagged releases are produced by the read-only package gate in
+[`docs/RELEASE.md`](docs/RELEASE.md). Each GitHub release includes an installable
+tarball, release notes, a SHA-256 checksum, and package-install smoke-test metadata.
+
 Scan a working tree into canonical JSON:
 
 ```sh
@@ -182,6 +186,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Five-year roadmap](docs/ROADMAP.md)
 - [Design-partner outreach](docs/OUTREACH.md)
 - [Release gate](docs/RELEASE.md)
+- [Changelog](CHANGELOG.md)
 
 ## License
 
