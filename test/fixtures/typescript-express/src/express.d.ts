@@ -17,6 +17,7 @@ declare module "express" {
     put(path: string, ...handlers: Handler[]): ExpressApp;
     patch(path: string, ...handlers: Handler[]): ExpressApp;
     delete(path: string, ...handlers: Handler[]): ExpressApp;
+    use(...handlers: Handler[]): ExpressApp;
     use(path: string, ...handlers: Handler[]): ExpressApp;
     route(path: string): ExpressApp;
   }

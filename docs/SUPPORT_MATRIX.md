@@ -8,20 +8,26 @@ This matrix is the public boundary of the first analyzer. A construct is support
 
 ## Supported constructs
 
-| Construct                                                                              | Status    | Evidence source                                          | Unknown or excluded behavior                                                                           |
-| -------------------------------------------------------------------------------------- | --------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| TypeScript `.ts`, `.tsx`, `.mts`, and `.cts` files                                     | Supported | TypeScript compiler program and normalized source spans  | JavaScript files and declaration files are excluded; generated and dependency directories are excluded |
-| Local and external imports, re-exports, literal dynamic imports, and literal `require` | Supported | Import or export syntax at the source location           | Non-literal module expressions produce an unresolved diagnostic rather than a guessed edge             |
-| Named functions, class methods, and variable-bound arrow functions                     | Supported | Declaration and symbol spans from the TypeScript program | Anonymous or dynamically-created call targets remain unresolved                                        |
-| Statically resolvable calls                                                            | Supported | TypeScript symbol resolution at the call site            | Dynamic dispatch and unresolved symbols do not become confident call edges                             |
-| Direct Express `app` or `router` routes with literal paths                             | Supported | Express registration call and handler source spans       | Dynamic route registration, computed paths, and framework metaprogramming produce diagnostics          |
-| Literal `fetch` and Axios destinations                                                 | Supported | Literal URL argument and request call span               | Computed or runtime-only destinations remain unresolved                                                |
-| Conventional Prisma model reads and writes                                             | Supported | Prisma model operation and source span                   | Dynamic model names and unsupported client wrappers remain unresolved                                  |
+| Construct                                                                               | Status    | Evidence source                                          | Unknown or excluded behavior                                                                           |
+| --------------------------------------------------------------------------------------- | --------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| TypeScript `.ts`, `.tsx`, `.mts`, and `.cts` files                                      | Supported | TypeScript compiler program and normalized source spans  | JavaScript files and declaration files are excluded; generated and dependency directories are excluded |
+| Local and external imports, re-exports, literal dynamic imports, and literal `require`  | Supported | Import or export syntax at the source location           | Non-literal module expressions produce an unresolved diagnostic rather than a guessed edge             |
+| Named functions, class methods, and variable-bound arrow functions                      | Supported | Declaration and symbol spans from the TypeScript program | Anonymous or dynamically-created call targets remain unresolved                                        |
+| Statically resolvable calls                                                             | Supported | TypeScript symbol resolution at the call site            | Dynamic dispatch and unresolved symbols do not become confident call edges                             |
+| Direct Express `app` or `router` routes and bounded `use` middleware with literal paths | Supported | Express registration call and handler source spans       | Dynamic route registration, computed paths, and framework metaprogramming produce diagnostics          |
+| Literal `fetch` and Axios destinations                                                  | Supported | Literal URL argument and request call span               | Computed or runtime-only destinations remain unresolved                                                |
+| Conventional Prisma model reads and writes                                              | Supported | Prisma model operation and source span                   | Dynamic model names and unsupported client wrappers remain unresolved                                  |
 
 The X-002 golden fixture covers named re-exports, star re-exports, literal
 dynamic `import()`, literal `require()`, and non-literal dynamic module
 expressions. Every emitted module edge carries source evidence; non-literal
 expressions remain explicit `UNSUPPORTED_DYNAMIC_IMPORT` diagnostics.
+
+The X-003 golden fixture covers direct `app` and `router` route methods,
+`route(...).get(...)` chains, literal-prefix `use` middleware, and statically
+bound global middleware. Middleware registrations are represented as `USE`
+endpoint nodes with handler call edges and source evidence; computed mount paths
+remain explicit `UNSUPPORTED_DYNAMIC_ROUTE` diagnostics.
 
 ## Unsupported or unresolved
 
