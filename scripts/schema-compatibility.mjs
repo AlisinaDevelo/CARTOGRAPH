@@ -69,6 +69,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/policy.ts" ||
       file === "src/core/adr.ts" ||
       file === "src/core/adapters.ts" ||
+      file === "src/core/runtime-traces.ts" ||
       file === "src/core/policy-evaluation.ts" ||
       file === "src/core/policy-bundle-migrations.ts" ||
       file === "src/core/assurance-signing.ts" ||
@@ -85,6 +86,7 @@ const checkHostedVersionChange = () => {
       file === "schema/policy.v0.1.schema.json" ||
       file === "schema/adr-reference.v0.1.schema.json" ||
       file === "schema/adapter.v0.1.schema.json" ||
+      file === "schema/runtime-traces.v0.1.schema.json" ||
       file === "schema/policy-evaluation.v0.1.schema.json" ||
       file === "schema/policy-bundle-migration.v0.1.schema.json" ||
       file === "schema/policy-bundle-revocation.v0.1.schema.json" ||
@@ -122,6 +124,7 @@ const checkCompatibility = () => {
   const localPolicySource = readText("src/core/policy.ts");
   const adrReferenceSource = readText("src/core/adr.ts");
   const adapterSource = readText("src/core/adapters.ts");
+  const runtimeTraceSource = readText("src/core/runtime-traces.ts");
   const policyEvaluationSource = readText("src/core/policy-evaluation.ts");
   const policyBundleMigrationSource = readText(
     "src/core/policy-bundle-migrations.ts",
@@ -148,6 +151,7 @@ const checkCompatibility = () => {
   const localPolicySchema = readJson("schema/policy.v0.1.schema.json");
   const adrReferenceSchema = readJson("schema/adr-reference.v0.1.schema.json");
   const adapterSchema = readJson("schema/adapter.v0.1.schema.json");
+  const runtimeTraceSchema = readJson("schema/runtime-traces.v0.1.schema.json");
   const policyEvaluationSchema = readJson(
     "schema/policy-evaluation.v0.1.schema.json",
   );
@@ -206,6 +210,10 @@ const checkCompatibility = () => {
     "ADR_REFERENCE_SCHEMA_VERSION",
   );
   const adapterVersion = sourceVersion(adapterSource, "ADAPTER_API_VERSION");
+  const runtimeTraceVersion = sourceVersion(
+    runtimeTraceSource,
+    "RUNTIME_TRACE_SCHEMA_VERSION",
+  );
   const policyEvaluationVersion = sourceVersion(
     policyEvaluationSource,
     "POLICY_EVALUATION_SCHEMA_VERSION",
@@ -248,6 +256,7 @@ const checkCompatibility = () => {
     localPolicyVersion === undefined ||
     adrReferenceVersion === undefined ||
     adapterVersion === undefined ||
+    runtimeTraceVersion === undefined ||
     policyEvaluationVersion === undefined ||
     policyBundleMigrationVersion === undefined ||
     assuranceSigningVersion === undefined ||
@@ -334,6 +343,16 @@ const checkCompatibility = () => {
     "adapter JSON Schema/runtime",
     adapterSchema.properties.apiVersion.const,
     adapterVersion,
+  );
+  requireEqual(
+    "runtime trace runtime/policy",
+    runtimeTraceVersion,
+    contracts.runtimeTraces.current,
+  );
+  requireEqual(
+    "runtime trace JSON Schema/runtime",
+    runtimeTraceSchema.properties.schemaVersion.const,
+    runtimeTraceVersion,
   );
   requireEqual(
     "policy evaluation runtime/policy",
@@ -447,6 +466,7 @@ const checkCompatibility = () => {
     localPolicyVersion,
     adrReferenceVersion,
     adapterVersion,
+    runtimeTraceVersion,
     policyEvaluationVersion,
     policyBundleMigrationVersion,
     assuranceSigningVersion,

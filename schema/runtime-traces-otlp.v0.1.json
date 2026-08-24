@@ -1,0 +1,52 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": { "stringValue": "sample-service" }
+          },
+          {
+            "key": "deployment.environment",
+            "value": { "stringValue": "fixture" }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "sample.instrumentation",
+            "version": "1.0.0",
+            "attributes": [
+              {
+                "key": "instrumentation.secret",
+                "value": { "stringValue": "discard-me" }
+              }
+            ]
+          },
+          "spans": [
+            {
+              "traceId": "0123456789ABCDEF0123456789ABCDEF",
+              "spanId": "0123456789ABCDEF",
+              "name": " GET /health ",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": "01700000000000000000",
+              "endTimeUnixNano": "01700000000001000000",
+              "attributes": [
+                { "key": "http.route", "value": { "stringValue": "/health" } },
+                {
+                  "key": "http.request.body",
+                  "value": { "stringValue": "discard-me" }
+                }
+              ],
+              "status": { "code": "STATUS_CODE_OK", "message": "discard-me" },
+              "events": [],
+              "links": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
