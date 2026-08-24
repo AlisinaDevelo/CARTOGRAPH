@@ -44,3 +44,18 @@ The baseline records the same corpus digest and protocol version as every later
 run. A result more than 20% slower than the baseline requires an explanation
 before release; this is a review threshold, not a universal performance
 guarantee. Hardware and runtime differences must remain visible in the artifact.
+
+## CI gate
+
+`npm run benchmark:ci` runs a fresh cold/warm artifact in a temporary directory;
+it never rewrites the checked-in baseline. The gate validates the artifact
+schema and corpus, compares graph counts and expected-record accuracy, and
+fails if any fixture is no longer byte-deterministic across its scans. When the
+candidate and baseline disclose the same runtime and hardware environment, the
+gate also compares p95 time and peak RSS for every fixture and fails an
+unexplained regression above 20%. Use `--explain "..."` for a reviewed,
+documented performance exception. Hosted CI may report the performance check as
+skipped when its runner differs from the recorded device baseline; a release
+check on the baseline device uses
+`npm run benchmark:ci -- --require-compatible-environment` so that an
+environment mismatch itself fails closed.

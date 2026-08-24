@@ -13,6 +13,7 @@ import {
 } from "node:fs";
 import { dirname, relative, resolve, sep } from "node:path";
 import { performance } from "node:perf_hooks";
+import { pathToFileURL } from "node:url";
 
 const repositoryRoot = resolve(
   process.env.CARTOGRAPH_REPOSITORY_ROOT ?? process.cwd(),
@@ -371,12 +372,17 @@ const runBenchmark = async () => {
       : undefined;
     const samples = { cold: [], warm: [] };
     let snapshot;
+    let serializedSnapshot;
     const invoke = () => {
       const started = performance.now();
       snapshot = analyzeTypeScriptRepository({
         rootDir: root,
         ...(tsconfigPath ? { tsconfigPath: tsconfigPath } : {}),
       });
+      const serialized = JSON.stringify(snapshot);
+      if (serializedSnapshot === undefined) serializedSnapshot = serialized;
+      else if (serialized !== serializedSnapshot)
+        fail(`benchmark fixture is nondeterministic: ${fixture.id}`);
       const durationMs = performance.now() - started;
       return { durationMs, rssBytes: process.memoryUsage().rss };
     };
@@ -770,17 +776,25 @@ const validate = () => {
   );
 };
 
-const command = process.argv[2];
-if (command !== "run" && command !== "validate") {
-  console.error("usage: node scripts/benchmark.mjs <run|validate> [options]");
-  process.exit(2);
-}
+export { validateArtifact, validateManifest };
 
-try {
-  if (command === "run") await runBenchmark();
-  else validate();
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(`benchmark ${command} failed: ${message}`);
-  process.exit(1);
+const invokedDirectly =
+  process.argv[1] !== undefined &&
+  pathToFileURL(resolve(process.argv[1])).href === import.meta.url;
+
+if (invokedDirectly) {
+  const command = process.argv[2];
+  if (command !== "run" && command !== "validate") {
+    console.error("usage: node scripts/benchmark.mjs <run|validate> [options]");
+    process.exit(2);
+  }
+
+  try {
+    if (command === "run") await runBenchmark();
+    else validate();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`benchmark ${command} failed: ${message}`);
+    process.exit(1);
+  }
 }

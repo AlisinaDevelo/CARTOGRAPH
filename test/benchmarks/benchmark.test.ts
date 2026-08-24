@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 
 const repositoryRoot = resolve(import.meta.dirname, "../..");
 const scriptPath = resolve(repositoryRoot, "scripts/benchmark.mjs");
+const gateScriptPath = resolve(repositoryRoot, "scripts/benchmark-gate.mjs");
 
 describe("benchmark corpus and artifact governance", () => {
   it("validates the checked-in corpus and sanitized baseline", () => {
@@ -116,5 +117,98 @@ describe("benchmark corpus and artifact governance", () => {
     const validate = new Ajv({ allErrors: true }).compile(schema);
     expect(validate(artifact)).toBe(true);
     expect(validate.errors).toBeNull();
+  });
+
+  it("blocks correctness and unexplained performance regressions", () => {
+    const temporaryRoot = mkdtempSync(
+      join(tmpdir(), "cartograph-benchmark-gate-"),
+    );
+    const candidatePath = join(temporaryRoot, "candidate.json");
+    const baseline = JSON.parse(
+      readFileSync(
+        resolve(repositoryRoot, "benchmarks/baseline.v0.1.json"),
+        "utf8",
+      ),
+    ) as {
+      fixtures: Array<{
+        graph: { edges: number };
+        warm: { p95Ms: number };
+      }>;
+    };
+    const writeCandidate = (candidate: unknown): void => {
+      writeFileSync(candidatePath, `${JSON.stringify(candidate)}\n`, "utf8");
+    };
+    try {
+      const correctnessRegression = JSON.parse(JSON.stringify(baseline)) as {
+        fixtures: Array<{ graph: { edges: number } }>;
+      };
+      const correctnessFixture = correctnessRegression.fixtures[0];
+      if (correctnessFixture === undefined)
+        throw new Error("baseline fixture is missing");
+      correctnessFixture.graph.edges -= 1;
+      writeCandidate(correctnessRegression);
+      expect(() =>
+        execFileSync(
+          process.execPath,
+          [gateScriptPath, "--candidate", candidatePath],
+          { cwd: repositoryRoot, encoding: "utf8" },
+        ),
+      ).toThrow(/benchmark gate failed/u);
+
+      const performanceRegression = JSON.parse(JSON.stringify(baseline)) as {
+        fixtures: Array<{ warm: { p95Ms: number } }>;
+      };
+      const performanceFixture = performanceRegression.fixtures[0];
+      if (performanceFixture === undefined)
+        throw new Error("baseline fixture is missing");
+      performanceFixture.warm.p95Ms *= 1.5;
+      writeCandidate(performanceRegression);
+      expect(() =>
+        execFileSync(
+          process.execPath,
+          [gateScriptPath, "--candidate", candidatePath],
+          { cwd: repositoryRoot, encoding: "utf8" },
+        ),
+      ).toThrow(/benchmark gate failed/u);
+
+      const explained = execFileSync(
+        process.execPath,
+        [
+          gateScriptPath,
+          "--candidate",
+          candidatePath,
+          "--explain",
+          "approved fixture warm-up variance",
+        ],
+        { cwd: repositoryRoot, encoding: "utf8" },
+      );
+      expect(JSON.parse(explained)).toMatchObject({ ok: true, warnings: 1 });
+
+      const incompatibleEnvironment = JSON.parse(JSON.stringify(baseline)) as {
+        tool: { nodeVersion: string };
+      };
+      incompatibleEnvironment.tool.nodeVersion = "v24.16.0";
+      writeCandidate(incompatibleEnvironment);
+      const skipped = execFileSync(
+        process.execPath,
+        [gateScriptPath, "--candidate", candidatePath],
+        { cwd: repositoryRoot, encoding: "utf8" },
+      );
+      expect(JSON.parse(skipped)).toMatchObject({ ok: true, warnings: 1 });
+      expect(() =>
+        execFileSync(
+          process.execPath,
+          [
+            gateScriptPath,
+            "--candidate",
+            candidatePath,
+            "--require-compatible-environment",
+          ],
+          { cwd: repositoryRoot, encoding: "utf8" },
+        ),
+      ).toThrow(/benchmark gate failed/u);
+    } finally {
+      rmSync(temporaryRoot, { recursive: true, force: true });
+    }
   });
 });
