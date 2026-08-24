@@ -9,12 +9,15 @@ import {
 import { assertReportItemLimit } from "./resources.js";
 import {
   diffGraphSnapshots,
+  migrateGraphSnapshot,
   parseGraphSnapshot,
   defaultCartographConfig,
   readCartographConfig,
   serializeGraphSnapshot,
+  validateMigrationOutput,
   type CartographConfig,
   type GraphSnapshot,
+  type SnapshotMigrationResult,
 } from "./core/index.js";
 import { withMaterializedRevision } from "./git/revision.js";
 import { renderDiff, type ReportFormat } from "./report/render.js";
@@ -209,6 +212,30 @@ export async function diffSnapshotFiles(
     loadSnapshot(afterPath),
   ]);
   return renderDiff(diffGraphSnapshots(before, after), format, maxReportItems);
+}
+
+export async function migrateSnapshotFile(
+  inputPath: string,
+): Promise<SnapshotMigrationResult> {
+  const resolvedInput = resolve(inputPath);
+  const metadata = await stat(resolvedInput);
+  if (!metadata.isFile())
+    throw new Error(`snapshot is not a regular file: ${inputPath}`);
+  if (metadata.size > MAX_SNAPSHOT_BYTES)
+    throw new Error(`snapshot exceeds the 64 MiB input limit: ${inputPath}`);
+
+  let value: unknown;
+  try {
+    value = JSON.parse(await readFile(resolvedInput, "utf8")) as unknown;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "invalid JSON";
+    throw new Error(`could not parse snapshot ${inputPath}: ${detail}`, {
+      cause: error,
+    });
+  }
+  const result = migrateGraphSnapshot(value);
+  validateMigrationOutput(result);
+  return result;
 }
 
 export async function writeOutputFile(

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "contract": "GraphSnapshot",
+  "currentVersion": 1,
+  "supportedReaders": [1],
+  "transitions": [
+    {
+      "sourceVersion": 0,
+      "targetVersion": 1,
+      "mode": "automatic-with-review",
+      "command": "cartograph migrate-snapshot <input> --report <report.json>",
+      "library": "migrateGraphSnapshot",
+      "implementation": "src/core/migrations.ts",
+      "fixture": "test/fixtures/snapshots/legacy-v0.graph.json",
+      "report": "SnapshotMigrationReport",
+      "manualReviewGate": "required",
+      "expectedEvidenceLoss": [
+        "No source evidence is lost by the historical fixture migration.",
+        "The legacy artifact did not declare capabilityRegistryVersion; the migration synthesizes version 1 and requires compatibility review."
+      ],
+      "identityRules": [
+        "Legacy function identities using '#' are rewritten to the canonical ':' delimiter.",
+        "Every migrated node receives stableKey equal to its canonical identity.",
+        "Edge endpoint and edge-kind identities are rewritten through the complete node map."
+      ]
+    }
+  ]
+}

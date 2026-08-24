@@ -55,6 +55,15 @@ export {
   GRAPH_DIFF_SCHEMA_VERSION,
   GRAPH_SNAPSHOT_SCHEMA_VERSION,
 } from "./schemas.js";
+export {
+  migrateGraphSnapshot,
+  serializeMigrationReport,
+  SnapshotMigrationError,
+  validateMigrationOutput,
+  type IdentityMigrationRecord,
+  type SnapshotMigrationReport,
+  type SnapshotMigrationResult,
+} from "./migrations.js";
 export type {
   ChangedDiagnostic,
   ChangedEdge,

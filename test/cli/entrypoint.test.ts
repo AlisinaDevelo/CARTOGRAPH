@@ -11,6 +11,10 @@ const repositoryRoot = resolve(
   "../..",
 );
 const entrypoint = resolve(repositoryRoot, "src/cli.ts");
+const migrationFixture = resolve(
+  repositoryRoot,
+  "test/fixtures/snapshots/legacy-v0.graph.json",
+);
 const temporaryDirectories: string[] = [];
 
 type ProcessResult = {
@@ -101,5 +105,46 @@ describe("CLI entrypoint", () => {
       schemaVersion: 1,
     });
     await expect(access(marker)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("migrates a historical snapshot and writes its identity report", async () => {
+    const root = await mkdtemp(
+      join(tmpdir(), "cartograph-cli-migration-test-"),
+    );
+    temporaryDirectories.push(root);
+    const output = join(root, "migrated.json");
+    const report = join(root, "migration-report.json");
+
+    const result = await runEntrypoint([
+      "migrate-snapshot",
+      migrationFixture,
+      "--output",
+      output,
+      "--report",
+      report,
+    ]);
+    const snapshot = JSON.parse(await readFile(output, "utf8")) as {
+      schemaVersion?: number;
+      nodes?: { stableKey?: string }[];
+    };
+    const migration = JSON.parse(await readFile(report, "utf8")) as {
+      changedNodeIdentities?: { before?: string; after?: string }[];
+      changedEdgeIdentities?: unknown[];
+    };
+
+    expect(result.code).toBe(0);
+    expect(result.stderr).toBe("");
+    expect(snapshot.schemaVersion).toBe(1);
+    expect(snapshot.nodes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ stableKey: "function:src/entry.ts:main" }),
+      ]),
+    );
+    expect(migration.changedNodeIdentities).toContainEqual({
+      before: "function:src/entry.ts#main",
+      after: "function:src/entry.ts:main",
+      changed: true,
+    });
+    expect(migration.changedEdgeIdentities).toHaveLength(1);
   });
 });

@@ -1,9 +1,76 @@
 {
   "schemaVersion": 0,
   "revision": {
-    "commitSha": "legacy-v0-fixture"
+    "commit": "legacy-v0-fixture",
+    "branch": "main"
   },
-  "nodes": [],
-  "edges": [],
-  "diagnostics": []
+  "nodes": [
+    {
+      "id": "module:src/entry.ts",
+      "kind": "module",
+      "displayName": "src/entry.ts",
+      "language": "typescript",
+      "sourceLocation": {
+        "path": "src/entry.ts",
+        "line": 1,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:src/entry.ts#main",
+      "kind": "function",
+      "displayName": "main",
+      "language": "typescript",
+      "sourceLocation": {
+        "path": "src/entry.ts",
+        "line": 3,
+        "column": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "module:src/entry.ts",
+      "target": "function:src/entry.ts#main",
+      "relation": "contains",
+      "confidence": "certain",
+      "evidence": [
+        {
+          "id": "legacy-source:entry-main",
+          "sourceType": "source_location",
+          "path": "src/entry.ts",
+          "line": 3,
+          "extractor": "fixture@0.1",
+          "sourceHash": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "legacy-diagnostic:dynamic-call",
+      "code": "UNSUPPORTED_DYNAMIC_CALL",
+      "severity": "warning",
+      "message": "The call target was dynamic in the legacy analyzer.",
+      "nodeId": "function:src/entry.ts#main",
+      "sourceLocation": {
+        "path": "src/entry.ts",
+        "line": 4,
+        "column": 3
+      },
+      "evidence": [
+        {
+          "id": "legacy-source:dynamic-call",
+          "sourceType": "source_location",
+          "location": {
+            "path": "src/entry.ts",
+            "line": 4,
+            "column": 3
+          },
+          "extractor": "fixture@0.1",
+          "sourceHash": "1111111111111111111111111111111111111111111111111111111111111111"
+        }
+      ]
+    }
+  ]
 }

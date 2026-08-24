@@ -10,11 +10,17 @@ import { Command, InvalidArgumentError } from "commander";
 import {
   diffRepositoryRevisions,
   diffSnapshotFiles,
+  migrateSnapshotFile,
   scanRepository,
   serializeScan,
   writeOutputFile,
 } from "./commands.js";
-import { readCartographConfig, type CartographConfig } from "./core/index.js";
+import {
+  readCartographConfig,
+  serializeGraphSnapshot,
+  serializeMigrationReport,
+  type CartographConfig,
+} from "./core/index.js";
 import type { ReportFormat } from "./report/render.js";
 
 const VERSION = "0.1.0";
@@ -156,6 +162,31 @@ export function createCli(): Command {
         await emit(
           await diffSnapshotFiles(before, after, options.format),
           options,
+        );
+      },
+    );
+
+  program
+    .command("migrate-snapshot")
+    .description("migrate a legacy GraphSnapshot and report identity changes")
+    .argument("<input>", "legacy GraphSnapshot v0 JSON")
+    .requiredOption("--report <path>", "migration report output path")
+    .option(
+      "-o, --output <path>",
+      "migrated snapshot output; stdout when omitted",
+    )
+    .option("--force", "replace existing output files", false)
+    .action(
+      async (
+        input: string,
+        options: OutputOptions & { report: string },
+      ): Promise<void> => {
+        const result = await migrateSnapshotFile(input);
+        await emit(serializeGraphSnapshot(result.snapshot) + "\n", options);
+        await writeOutputFile(
+          options.report,
+          serializeMigrationReport(result.report),
+          options.force ?? false,
         );
       },
     );
