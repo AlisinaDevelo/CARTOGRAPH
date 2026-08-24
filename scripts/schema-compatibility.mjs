@@ -64,8 +64,10 @@ const checkHostedVersionChange = () => {
     (file) =>
       file === "src/core/schemas.ts" ||
       file === "src/core/capabilities.ts" ||
+      file === "src/core/policy-bundles.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
-      file === "schema/capability-registry.v0.1.schema.json",
+      file === "schema/capability-registry.v0.1.schema.json" ||
+      file === "schema/policy-bundle.v0.1.schema.json",
   );
   const reviewRecorded = changed.some(
     (file) =>
@@ -84,10 +86,12 @@ const checkCompatibility = () => {
   const policy = readJson("schema/compatibility.json");
   const source = readText("src/core/schemas.ts");
   const capabilitySource = readText("src/core/capabilities.ts");
+  const policyBundleSource = readText("src/core/policy-bundles.ts");
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
   const capabilitySchema = readJson(
     "schema/capability-registry.v0.1.schema.json",
   );
+  const policyBundleSchema = readJson("schema/policy-bundle.v0.1.schema.json");
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
     source,
@@ -98,11 +102,16 @@ const checkCompatibility = () => {
     capabilitySource,
     "CAPABILITY_REGISTRY_VERSION",
   );
+  const policyBundleVersion = sourceVersion(
+    policyBundleSource,
+    "POLICY_BUNDLE_SCHEMA_VERSION",
+  );
 
   if (
     snapshotVersion === undefined ||
     diffVersion === undefined ||
-    capabilityVersion === undefined
+    capabilityVersion === undefined ||
+    policyBundleVersion === undefined
   ) {
     throw new Error("runtime schema version constants are missing");
   }
@@ -127,6 +136,16 @@ const checkCompatibility = () => {
     capabilitySchema.properties.registryVersion.const,
     capabilityVersion,
   );
+  requireEqual(
+    "policy bundle runtime/policy",
+    policyBundleVersion,
+    contracts.policyBundles.current,
+  );
+  requireEqual(
+    "policy bundle JSON Schema/runtime",
+    policyBundleSchema.properties.schemaVersion.const,
+    policyBundleVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -139,6 +158,7 @@ const checkCompatibility = () => {
     snapshotVersion,
     diffVersion,
     capabilityVersion,
+    policyBundleVersion,
   };
 };
 
