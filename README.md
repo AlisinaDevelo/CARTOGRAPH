@@ -8,7 +8,14 @@ Evidence-backed architecture change control for TypeScript codebases.
 
 CARTOGRAPH scans a supported repository into a deterministic architecture graph, compares two Git revisions, and shows which nodes and relationships changed. Every emitted relationship carries repository-relative source evidence or an explicit unresolved reason.
 
-The project is pre-alpha. The local TypeScript/Express slice works and is tested; enforcing policy exit behavior, a reusable GitHub Action, stable identity across refactors, additional framework adapters, runtime redaction/retention, and hosted export remain roadmap work. The versioned local adapter, inert OTLP import, and explicit local reconciliation boundaries are published, but none executes repository code or contacts a network. Any hosted or account-based scope remains behind later traction, privacy, security, capacity, and funding decisions.
+The project is pre-alpha. The local TypeScript/Express slice and a read-only,
+informational GitHub Action work and are tested; enforcing policy exit behavior,
+stable identity across refactors, additional framework adapters, runtime
+redaction/retention, and hosted export remain roadmap work. The versioned local
+adapter, inert OTLP import, and explicit local reconciliation boundaries are
+published, but none executes repository code or contacts a network. Any
+hosted or account-based scope remains behind later traction, privacy, security,
+capacity, and funding decisions.
 
 ## Quickstart
 
@@ -41,6 +48,25 @@ node dist/cli.js diff /path/to/repository \
   --comparison merge-base \
   --format html \
   --output .cartograph/architecture-diff.html
+```
+
+Run the read-only [GitHub Action](docs/ACTION.md) on a pull request with a
+full-history checkout. It uses the event's exact base and head SHAs, emits an
+informational job summary, and uploads a self-contained HTML/JSON artifact:
+
+```yaml
+permissions:
+  contents: read
+
+steps:
+  - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    with:
+      persist-credentials: false
+      fetch-depth: 0
+      ref: ${{ github.event.pull_request.head.sha }}
+  - uses: AlisinaDevelo/CARTOGRAPH@629ee26cc179f08848b09f8c5caeaaf48f6e134c # D-013
+    with:
+      comparison: merge-base
 ```
 
 New output files are created with private permissions and are not overwritten unless you pass `--force`. Before opening an output path, CARTOGRAPH rejects a final symlink and any existing user-controlled symlinked parent component (apart from macOS's standard `/tmp` and `/var` root aliases); the final component is opened with no-follow semantics. These are preflight checks, not a race-free guarantee against concurrent filesystem changes. Omit `--output` to write to stdout.
@@ -130,6 +156,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 
 - [Product charter](docs/PRODUCT.md)
 - [CLI runtime and exit policy](docs/CLI.md)
+- [Read-only GitHub Action](docs/ACTION.md)
 - [Support matrix and review process](docs/SUPPORT_MATRIX.md)
 - [Maintenance and ownership](docs/MAINTENANCE.md)
 - [Compatibility and versioning](docs/COMPATIBILITY.md)
