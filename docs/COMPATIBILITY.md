@@ -120,3 +120,13 @@ for the candidates or signals a reviewer must inspect. The section, identity
 method/signal enums, and diagnostic registry entries are additive for readers
 that ignore them. Runtime canonicalization, the published JSON Schema, and
 golden diff fixtures are checked together.
+
+## P-003 local policy configuration
+
+P-003 publishes the versioned local policy contract in
+`schema/policy.v0.1.schema.json` and `src/core/policy.ts`. It is intentionally
+data-only: bounded node, edge, and diff selectors, four assertions, and an
+informational-by-default mode. Unknown fields, executable expressions, URLs,
+and out-of-repository policy paths fail closed. The runtime parser and local
+reader are deterministic and offline; policy evaluation and enforcing exit
+behavior remain additive follow-on contracts.

@@ -66,6 +66,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/capabilities.ts" ||
       file === "src/core/diagnostics.ts" ||
       file === "src/core/policy-bundles.ts" ||
+      file === "src/core/policy.ts" ||
       file === "src/core/policy-bundle-migrations.ts" ||
       file === "src/core/assurance-signing.ts" ||
       file === "src/core/remediation-suggestions.ts" ||
@@ -78,6 +79,7 @@ const checkHostedVersionChange = () => {
       file === "schema/capability-registry.v0.1.schema.json" ||
       file === "schema/diagnostic-registry.v0.1.schema.json" ||
       file === "schema/policy-bundle.v0.1.schema.json" ||
+      file === "schema/policy.v0.1.schema.json" ||
       file === "schema/policy-bundle-migration.v0.1.schema.json" ||
       file === "schema/policy-bundle-revocation.v0.1.schema.json" ||
       file === "schema/assurance-signing.v0.1.schema.json" ||
@@ -111,6 +113,7 @@ const checkCompatibility = () => {
   const capabilitySource = readText("src/core/capabilities.ts");
   const diagnosticSource = readText("src/core/diagnostics.ts");
   const policyBundleSource = readText("src/core/policy-bundles.ts");
+  const localPolicySource = readText("src/core/policy.ts");
   const policyBundleMigrationSource = readText(
     "src/core/policy-bundle-migrations.ts",
   );
@@ -133,6 +136,7 @@ const checkCompatibility = () => {
     "schema/diagnostic-registry.v0.1.schema.json",
   );
   const policyBundleSchema = readJson("schema/policy-bundle.v0.1.schema.json");
+  const localPolicySchema = readJson("schema/policy.v0.1.schema.json");
   const policyBundleMigrationSchema = readJson(
     "schema/policy-bundle-migration.v0.1.schema.json",
   );
@@ -179,6 +183,10 @@ const checkCompatibility = () => {
     policyBundleSource,
     "POLICY_BUNDLE_SCHEMA_VERSION",
   );
+  const localPolicyVersion = sourceVersion(
+    localPolicySource,
+    "LOCAL_POLICY_SCHEMA_VERSION",
+  );
   const policyBundleMigrationVersion = sourceVersion(
     policyBundleMigrationSource,
     "POLICY_BUNDLE_MIGRATION_SCHEMA_VERSION",
@@ -214,6 +222,7 @@ const checkCompatibility = () => {
     capabilityVersion === undefined ||
     diagnosticVersion === undefined ||
     policyBundleVersion === undefined ||
+    localPolicyVersion === undefined ||
     policyBundleMigrationVersion === undefined ||
     assuranceSigningVersion === undefined ||
     remediationSuggestionVersion === undefined ||
@@ -269,6 +278,16 @@ const checkCompatibility = () => {
     "policy bundle JSON Schema/runtime",
     policyBundleSchema.properties.schemaVersion.const,
     policyBundleVersion,
+  );
+  requireEqual(
+    "local policy runtime/policy",
+    localPolicyVersion,
+    contracts.policies.current,
+  );
+  requireEqual(
+    "local policy JSON Schema/runtime",
+    localPolicySchema.properties.schemaVersion.const,
+    localPolicyVersion,
   );
   requireEqual(
     "policy bundle migration runtime/policy",
@@ -369,6 +388,7 @@ const checkCompatibility = () => {
     capabilityVersion,
     diagnosticVersion,
     policyBundleVersion,
+    localPolicyVersion,
     policyBundleMigrationVersion,
     assuranceSigningVersion,
     remediationSuggestionVersion,

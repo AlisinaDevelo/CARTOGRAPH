@@ -165,6 +165,25 @@ export {
   type PolicyBundleRevocationList,
 } from "./policy-bundle-migrations.js";
 export {
+  LOCAL_POLICY_CONTRACT,
+  LOCAL_POLICY_SCHEMA_VERSION,
+  POLICY_CONFIG_MAX_BYTES,
+  PolicyConfigSchema,
+  PolicyConfigValidationError,
+  LocalPolicyDiffSelectorSchema,
+  LocalPolicyEdgeSelectorSchema,
+  LocalPolicyNodeSelectorSchema,
+  LocalPolicyRuleSchema,
+  parsePolicyConfig,
+  readPolicyConfig,
+  serializePolicyConfig,
+  type PolicyConfig,
+  type LocalPolicyDiffSelector,
+  type LocalPolicyEdgeSelector,
+  type LocalPolicyNodeSelector,
+  type LocalPolicyRule,
+} from "./policy.js";
+export {
   assuranceSigningPayload,
   AssuranceSigningKeySchema,
   AssuranceSigningKeyringSchema,

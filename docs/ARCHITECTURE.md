@@ -40,6 +40,13 @@ selected, and validate every path as repository-relative. The analyzer receives
 the resolved include/exclude selectors and resource ceilings; it fails closed
 before emitting a partial snapshot when a ceiling is exceeded.
 
+Local policy configuration is a separate, data-only v0.1 contract. Its bounded
+node, edge, and diff selectors are parsed by `src/core/policy.ts`; the local
+reader accepts only an in-repository regular JSON file and defaults to
+informational mode. It does not evaluate rules, fetch remote policy, execute
+commands, or grant authority. Evaluation and enforcing exit behavior remain
+separate roadmap boundaries.
+
 The TypeScript loader reads JSON/JSONC configuration through the compiler parser
 without executing configuration or repository code. It validates and follows
 in-repository `extends` chains and recursively follows solution-style project
@@ -171,7 +178,7 @@ JSON is the canonical machine contract. Markdown is optimized for review summari
 
 The following are roadmap items, not current implementation claims:
 
-- architecture policy and ADR evaluation;
+- policy evaluation and enforcing exit behavior, plus ADR evaluation;
 - a reusable GitHub Action and Check annotations;
 - the remaining identity quality, portability, and history work;
 - additional framework or language adapters;
