@@ -168,6 +168,10 @@ interface AnalyzerContext {
   filesByPath: Map<string, SourceFile>;
   nodes: Map<string, GraphNode>;
   project: Project;
+  resolveModule: (
+    moduleName: string,
+    containingFile: string,
+  ) => string | undefined;
   rootDir: string;
   sourcePaths: Set<string>;
   sourceFiles: SourceFile[];
@@ -251,6 +255,28 @@ type LoadedProjectConfig = {
   options: ts.CompilerOptions;
 };
 
+export type TypeScriptConfigErrorCode =
+  "invalid" | "unsupported" | "missing" | "outside-root" | "cycle";
+
+export class TypeScriptConfigError extends Error {
+  readonly code: TypeScriptConfigErrorCode;
+  readonly configPath: string;
+  readonly targetPath: string | undefined;
+
+  constructor(
+    code: TypeScriptConfigErrorCode,
+    configPath: string,
+    message: string,
+    targetPath?: string,
+  ) {
+    super(message);
+    this.name = "TypeScriptConfigError";
+    this.code = code;
+    this.configPath = configPath;
+    this.targetPath = targetPath;
+  }
+}
+
 type LoadedProjectSources = {
   projectPaths: string[];
   sourcePaths: string[];
@@ -267,6 +293,27 @@ const tsConfigDiagnosticText = (
     )
     .sort(compareStrings)
     .join("; ");
+
+const configDisplayPath = (rootDir: string, configPath: string): string => {
+  const path = normalizePath(relative(rootDir, configPath));
+  return path.length > 0 ? path : "tsconfig.json";
+};
+
+const configError = (
+  code: TypeScriptConfigErrorCode,
+  rootDir: string,
+  configPath: string,
+  message: string,
+  targetPath?: string,
+): TypeScriptConfigError =>
+  new TypeScriptConfigError(
+    code,
+    configDisplayPath(rootDir, configPath),
+    message,
+    targetPath === undefined
+      ? undefined
+      : configDisplayPath(rootDir, targetPath),
+  );
 
 const configPathInsideRoot = (
   rootDir: string,
@@ -401,25 +448,174 @@ const safeProjectFilePath = (
   return absolutePath;
 };
 
-const projectReferenceConfigPath = (
+type RawTypeScriptConfig = Record<string, unknown>;
+
+type ConfigReferenceKind = "extends" | "project reference";
+
+const readRawConfig = (
   rootDir: string,
-  referencePath: string,
+  configPath: string,
+  configHost: ts.ParseConfigHost,
+  cache: Map<string, RawTypeScriptConfig>,
+  checkBudget: () => void,
+): RawTypeScriptConfig => {
+  const cached = cache.get(configPath);
+  if (cached) return cached;
+
+  checkBudget();
+  const loaded = ts.readConfigFile(configPath, (path) =>
+    configHost.readFile(path),
+  );
+  if (loaded.error)
+    throw configError(
+      "invalid",
+      rootDir,
+      configPath,
+      `could not parse ${configDisplayPath(rootDir, configPath)}: ${tsConfigDiagnosticText([loaded.error])}`,
+    );
+  if (
+    !loaded.config ||
+    typeof loaded.config !== "object" ||
+    Array.isArray(loaded.config)
+  )
+    throw configError(
+      "invalid",
+      rootDir,
+      configPath,
+      `could not parse ${configDisplayPath(rootDir, configPath)}: expected a JSON object`,
+    );
+
+  const config = loaded.config as RawTypeScriptConfig;
+  cache.set(configPath, config);
+  return config;
+};
+
+const configReferencePath = (
+  rootDir: string,
+  configPath: string,
+  referencePath: unknown,
+  kind: ConfigReferenceKind,
 ): string => {
-  const absoluteReference = resolve(referencePath);
-  const candidate =
+  if (typeof referencePath !== "string" || referencePath.trim().length === 0)
+    throw configError(
+      "unsupported",
+      rootDir,
+      configPath,
+      `${kind} must use a non-empty string path`,
+    );
+
+  const normalizedReference = referencePath.trim().replaceAll("\\", "/");
+  if (
+    kind === "extends" &&
+    !normalizedReference.startsWith(".") &&
+    !normalizedReference.startsWith("/")
+  )
+    throw configError(
+      "unsupported",
+      rootDir,
+      configPath,
+      `unsupported tsconfig extends target ${JSON.stringify(referencePath)}; only in-repository paths are supported`,
+      resolve(dirname(configPath), normalizedReference),
+    );
+
+  const absoluteReference = resolve(dirname(configPath), normalizedReference);
+  const candidates =
     extname(absoluteReference) === ".json"
-      ? absoluteReference
-      : join(absoluteReference, "tsconfig.json");
-  const configPath = configPathInsideRoot(
+      ? [absoluteReference]
+      : [
+          absoluteReference,
+          `${absoluteReference}.json`,
+          join(absoluteReference, "tsconfig.json"),
+        ];
+  const existingFile = candidates.find((candidate) => {
+    if (!existsSync(candidate)) return false;
+    try {
+      return lstatSync(candidate).isFile();
+    } catch {
+      return false;
+    }
+  });
+  const candidate = existingFile ?? candidates[0];
+  if (!candidate) {
+    throw configError(
+      "missing",
+      rootDir,
+      configPath,
+      `${kind} target does not exist: ${referencePath}`,
+    );
+  }
+  if (!isInsideRoot(rootDir, candidate))
+    throw configError(
+      "outside-root",
+      rootDir,
+      configPath,
+      `${kind} must stay inside the analyzed repository: ${referencePath}`,
+      candidate,
+    );
+
+  const resolved = configPathInsideRoot(
     rootDir,
     candidate,
-    "project reference",
+    kind === "extends" ? "tsconfig extends" : "project reference",
   );
-  if (configPath === undefined)
-    throw new Error(
-      `project reference tsconfig does not exist: ${referencePath}`,
+  if (resolved === undefined)
+    throw configError(
+      "missing",
+      rootDir,
+      configPath,
+      `${kind} target does not exist: ${referencePath}`,
+      candidate,
     );
-  return configPath;
+  return resolved;
+};
+
+const extendsTarget = (
+  rootDir: string,
+  configPath: string,
+  config: RawTypeScriptConfig,
+): string | undefined => {
+  if (!("extends" in config)) return undefined;
+  if (Array.isArray(config.extends))
+    throw configError(
+      "unsupported",
+      rootDir,
+      configPath,
+      "tsconfig extends arrays are not supported; use a single in-repository base config",
+    );
+  return configReferencePath(rootDir, configPath, config.extends, "extends");
+};
+
+const projectReferenceTargets = (
+  rootDir: string,
+  configPath: string,
+  config: RawTypeScriptConfig,
+): string[] => {
+  if (!("references" in config)) return [];
+  if (!Array.isArray(config.references))
+    throw configError(
+      "unsupported",
+      rootDir,
+      configPath,
+      "tsconfig references must be an array of project reference objects",
+    );
+
+  return config.references
+    .map((reference, index) => {
+      if (!reference || typeof reference !== "object")
+        throw configError(
+          "unsupported",
+          rootDir,
+          configPath,
+          `tsconfig reference ${index} must be an object with a path`,
+        );
+      return configReferencePath(
+        rootDir,
+        configPath,
+        (reference as Record<string, unknown>).path,
+        "project reference",
+      );
+    })
+    .sort(compareStrings);
 };
 
 const loadedProjectSources = (
@@ -467,39 +663,78 @@ const loadedProjectSources = (
   }
 
   const configHost = safeConfigHost(rootDir, checkBudget);
-  const readConfigFile = (path: string): string | undefined =>
-    configHost.readFile(path);
   const configs: LoadedProjectConfig[] = [];
-  const pending = [rootConfigPath];
+  const configCache = new Map<string, RawTypeScriptConfig>();
   const visited = new Set<string>();
+  const extendsValidated = new Set<string>();
   const projectPaths = new Set<string>();
   const sourcePaths = new Set<string>();
 
-  while (pending.length > 0) {
-    checkBudget();
-    const configPath = pending.shift();
-    if (!configPath || visited.has(configPath)) continue;
-    visited.add(configPath);
-
-    const loaded = ts.readConfigFile(configPath, readConfigFile);
-    if (loaded.error)
-      throw new Error(
-        `could not parse ${relative(rootDir, configPath)}: ${tsConfigDiagnosticText(
-          [loaded.error],
-        )}`,
+  const validateExtends = (
+    configPath: string,
+    stack: readonly string[],
+  ): void => {
+    if (stack.includes(configPath)) {
+      const cycle = [...stack.slice(stack.indexOf(configPath)), configPath]
+        .map((path) => configDisplayPath(rootDir, path))
+        .join(" -> ");
+      throw configError(
+        "cycle",
+        rootDir,
+        configPath,
+        `tsconfig extends cycle: ${cycle}`,
+        configPath,
       );
+    }
+    if (extendsValidated.has(configPath)) return;
+    const config = readRawConfig(
+      rootDir,
+      configPath,
+      configHost,
+      configCache,
+      checkBudget,
+    );
+    const target = extendsTarget(rootDir, configPath, config);
+    if (target !== undefined) validateExtends(target, [...stack, configPath]);
+    extendsValidated.add(configPath);
+  };
+
+  const visitProject = (configPath: string, stack: readonly string[]): void => {
+    if (stack.includes(configPath)) {
+      const cycle = [...stack.slice(stack.indexOf(configPath)), configPath]
+        .map((path) => configDisplayPath(rootDir, path))
+        .join(" -> ");
+      throw configError(
+        "cycle",
+        rootDir,
+        configPath,
+        `project reference cycle: ${cycle}`,
+        configPath,
+      );
+    }
+    if (visited.has(configPath)) return;
+
+    const config = readRawConfig(
+      rootDir,
+      configPath,
+      configHost,
+      configCache,
+      checkBudget,
+    );
+    validateExtends(configPath, []);
     const parsed = ts.parseJsonConfigFileContent(
-      loaded.config,
+      config,
       configHost,
       dirname(configPath),
       {},
       configPath,
     );
     if (parsed.errors.length > 0)
-      throw new Error(
-        `could not parse ${relative(rootDir, configPath)}: ${tsConfigDiagnosticText(
-          parsed.errors,
-        )}`,
+      throw configError(
+        "invalid",
+        rootDir,
+        configPath,
+        `could not parse ${configDisplayPath(rootDir, configPath)}: ${tsConfigDiagnosticText(parsed.errors)}`,
       );
     configs.push({
       configPath,
@@ -524,11 +759,19 @@ const loadedProjectSources = (
       if (isProjectSourcePath(safePath)) sourcePaths.add(safePath);
     }
 
-    for (const reference of parsed.projectReferences ?? []) {
+    const nextStack = [...stack, configPath];
+    for (const referencePath of projectReferenceTargets(
+      rootDir,
+      configPath,
+      config,
+    )) {
       checkBudget();
-      pending.push(projectReferenceConfigPath(rootDir, reference.path));
+      visitProject(referencePath, nextStack);
     }
-  }
+    visited.add(configPath);
+  };
+
+  visitProject(rootConfigPath, []);
 
   const sortedProjectPaths = [...projectPaths].sort(compareStrings);
   const sortedSourcePaths = [...sourcePaths].sort(compareStrings);
@@ -713,11 +956,20 @@ const moduleExtension = (filePath: string): string => {
   }
 };
 
+type ProjectSetup = {
+  project: Project;
+  resolveModule: (
+    moduleName: string,
+    containingFile: string,
+  ) => string | undefined;
+};
+
 const projectFor = (
   rootDir: string,
   loaded: LoadedProjectSources,
   sourcePaths: ReadonlySet<string>,
-): Project => {
+  checkBudget: () => void,
+): ProjectSetup => {
   const compilerOptionsForFile = (filePath: string): ts.CompilerOptions => {
     const candidate = loaded.configs
       .filter((config) => isInsideRoot(config.configDirectory, filePath))
@@ -727,50 +979,65 @@ const projectFor = (
       )[0];
     return candidate?.options ?? loaded.compilerOptions;
   };
+  const safeResolutionHost = safeConfigHost(rootDir, checkBudget);
+  const resolveModule = (
+    moduleName: string,
+    containingFile: string,
+    moduleResolutionHost: ts.ModuleResolutionHost,
+  ): string | undefined => {
+    if (moduleName.startsWith("."))
+      return findAllowedLocalModule(
+        rootDir,
+        containingFile,
+        moduleName,
+        sourcePaths,
+      );
+
+    const resolved = ts.resolveModuleName(
+      moduleName,
+      containingFile,
+      compilerOptionsForFile(containingFile),
+      moduleResolutionHost,
+    ).resolvedModule;
+    if (
+      resolved === undefined ||
+      !isAllowedRelativeModulePath(
+        rootDir,
+        resolved.resolvedFileName,
+        sourcePaths,
+      )
+    )
+      return undefined;
+    return resolved.resolvedFileName;
+  };
   const resolutionHost = (
     moduleResolutionHost: ts.ModuleResolutionHost,
     _getCompilerOptions: () => ts.CompilerOptions,
   ) => ({
     resolveModuleNames: (moduleNames: string[], containingFile: string) =>
       moduleNames.map((moduleName) => {
-        if (moduleName.startsWith(".")) {
-          const candidate = findAllowedLocalModule(
-            rootDir,
-            containingFile,
-            moduleName,
-            sourcePaths,
-          );
-          if (!candidate) return undefined;
-          return {
-            resolvedFileName: candidate,
-            extension: moduleExtension(candidate),
-          } satisfies ts.ResolvedModuleFull;
-        }
-
-        const resolved = ts.resolveModuleName(
+        const candidate = resolveModule(
           moduleName,
           containingFile,
-          compilerOptionsForFile(containingFile),
           moduleResolutionHost,
-        ).resolvedModule;
-        if (
-          resolved === undefined ||
-          !isAllowedRelativeModulePath(
-            rootDir,
-            resolved.resolvedFileName,
-            sourcePaths,
-          )
-        )
-          return undefined;
-        return resolved;
+        );
+        if (!candidate) return undefined;
+        return {
+          resolvedFileName: candidate,
+          extension: moduleExtension(candidate),
+        } satisfies ts.ResolvedModuleFull;
       }),
   });
 
-  return new Project({
-    skipFileDependencyResolution: true,
-    compilerOptions: loaded.compilerOptions,
-    resolutionHost,
-  });
+  return {
+    project: new Project({
+      skipFileDependencyResolution: true,
+      compilerOptions: loaded.compilerOptions,
+      resolutionHost,
+    }),
+    resolveModule: (moduleName, containingFile) =>
+      resolveModule(moduleName, containingFile, safeResolutionHost),
+  };
 };
 
 const resolvedSymbol = (symbol: Symbol | undefined): Symbol | undefined => {
@@ -1191,7 +1458,14 @@ const resolveImportedModule = (
     (declarationTarget && Node.isExportDeclaration(declarationTarget))
       ? declarationTarget.getModuleSpecifierSourceFile()
       : undefined;
-  const target = moduleSpecifier ?? declaredTarget;
+  const resolvedPath = context.resolveModule(
+    specifier,
+    sourceFile.getFilePath(),
+  );
+  const resolvedTarget = resolvedPath
+    ? context.filesByPath.get(sourceFilePath(context.rootDir, resolvedPath))
+    : undefined;
+  const target = moduleSpecifier ?? declaredTarget ?? resolvedTarget;
 
   if (target && isInsideRoot(context.rootDir, target.getFilePath())) {
     const targetPath = sourceFilePath(context.rootDir, target.getFilePath());
@@ -1993,7 +2267,8 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
   );
   const paths = loaded.sourcePaths.map((path) => resolve(path));
   const sourcePaths = new Set(paths);
-  const project = projectFor(rootDir, loaded, sourcePaths);
+  const projectSetup = projectFor(rootDir, loaded, sourcePaths, checkBudget);
+  const project = projectSetup.project;
   for (const path of loaded.projectPaths) project.addSourceFileAtPath(path);
 
   const sourceFiles = paths
@@ -2028,6 +2303,7 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
     filesByPath,
     nodes: new Map(),
     project,
+    resolveModule: projectSetup.resolveModule,
     rootDir,
     sourcePaths,
     sourceFiles,

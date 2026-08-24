@@ -6,7 +6,10 @@ import { describe, expect, it } from "vitest";
 
 import { parseGraphSnapshot } from "../../src/core/index.js";
 import { analyzeTypeScriptRepository } from "../../src/analyzers/typescript.js";
-import { CancellationError } from "../../src/analyzers/index.js";
+import {
+  CancellationError,
+  TypeScriptConfigError,
+} from "../../src/analyzers/index.js";
 
 const fixtureRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -28,6 +31,17 @@ const projectLoaderRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
   "../fixtures/project-loader",
 );
+const projectLoaderConfigsRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../fixtures/project-loader-configs",
+);
+const inheritedProjectRoot = resolve(projectLoaderConfigsRoot, "inherited");
+const cycleProjectRoot = resolve(projectLoaderConfigsRoot, "cycle");
+const missingBaseProjectRoot = resolve(
+  projectLoaderConfigsRoot,
+  "missing-base",
+);
+const unsupportedProjectRoot = resolve(projectLoaderConfigsRoot, "unsupported");
 
 describe("TypeScript analyzer", () => {
   it("matches the manually asserted fixture relationships", () => {
@@ -243,6 +257,83 @@ describe("TypeScript analyzer", () => {
         kind: "imports",
         from: "module:packages/app/src/main.ts",
         to: "module:packages/core/src/index.ts",
+      }),
+    );
+  });
+
+  it("resolves chained extends, per-project roots, inherited exclusions, and mixed composite projects", () => {
+    const snapshot = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: inheritedProjectRoot }),
+    );
+    const moduleKeys = snapshot.nodes
+      .filter((node) => node.kind === "module")
+      .map((node) => node.stableKey);
+
+    expect(moduleKeys).toContain("module:app/src/main.ts");
+    expect(moduleKeys).toContain("module:shared/src/value.ts");
+    expect(moduleKeys).not.toContain(
+      "module:app/src/excluded-source/ignored.ts",
+    );
+    expect(snapshot.edges).toContainEqual(
+      expect.objectContaining({
+        kind: "imports",
+        from: "module:app/src/main.ts",
+        to: "module:shared/src/value.ts",
+      }),
+    );
+
+    const legacy = parseGraphSnapshot(
+      analyzeTypeScriptRepository({
+        rootDir: inheritedProjectRoot,
+        tsconfigPath: "legacy/tsconfig.json",
+      }),
+    );
+    expect(legacy.nodes.map((node) => node.stableKey)).toContain(
+      "module:legacy/src/legacy.ts",
+    );
+    expect(JSON.stringify(snapshot)).toBe(
+      JSON.stringify(
+        parseGraphSnapshot(
+          analyzeTypeScriptRepository({ rootDir: inheritedProjectRoot }),
+        ),
+      ),
+    );
+  });
+
+  it("rejects project-reference cycles with deterministic diagnostics", () => {
+    const readError = (): TypeScriptConfigError => {
+      try {
+        analyzeTypeScriptRepository({ rootDir: cycleProjectRoot });
+      } catch (error) {
+        if (error instanceof TypeScriptConfigError) return error;
+        throw error;
+      }
+      throw new Error("expected a project-reference cycle");
+    };
+
+    const first = readError();
+    const second = readError();
+    expect(first.code).toBe("cycle");
+    expect(first.message).toContain("project reference cycle:");
+    expect(first.message).toBe(second.message);
+    expect(first.configPath).toBe("a/tsconfig.json");
+  });
+
+  it("rejects missing and unsupported config inheritance explicitly", () => {
+    expect(() =>
+      analyzeTypeScriptRepository({ rootDir: missingBaseProjectRoot }),
+    ).toThrowError(
+      expect.objectContaining({
+        name: "TypeScriptConfigError",
+        code: "missing",
+      }),
+    );
+    expect(() =>
+      analyzeTypeScriptRepository({ rootDir: unsupportedProjectRoot }),
+    ).toThrowError(
+      expect.objectContaining({
+        name: "TypeScriptConfigError",
+        code: "unsupported",
       }),
     );
   });

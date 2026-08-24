@@ -124,7 +124,7 @@
       "source": "CARTOGRAPH repository-authored synthetic fixture",
       "license": "Apache-2.0",
       "reference": "CARTOGRAPH repository history; no external source",
-      "transformation": "A small solution-style TypeScript workspace exercises recursive project references, per-project path aliases, tsconfig exclusions, dependency/build-directory exclusions, and inert source that would fail if executed.",
+      "transformation": "A small solution-style TypeScript workspace exercises recursive project references, chained extends, inherited path/exclusion settings, mixed composite projects, deterministic cycle/missing-base/unsupported-config failures, dependency/build-directory exclusions, and inert source that would fail if executed.",
       "redistribution": "allowed",
       "generated": [
         {
@@ -144,6 +144,15 @@
           "reason": "Intentionally generated source subtree excluded by the app tsconfig."
         }
       ]
+    },
+    {
+      "id": "project-loader-configs",
+      "path": "project-loader-configs",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Small isolated tsconfig cases exercise chained extends, inherited path and exclusion settings, mixed composite projects, project-reference cycles, missing bases, and unsupported configuration shapes.",
+      "redistribution": "allowed"
     },
     {
       "id": "secrets",
