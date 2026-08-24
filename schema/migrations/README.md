@@ -11,3 +11,8 @@ Name a migration `<contract>-v<from>-to-v<to>.md` and record:
 
 An older artifact with no migration is rejected with an actionable error. Do
 not silently reinterpret an unknown schema version as the current version.
+
+The published transition matrix is
+[`migration-matrix.v0.1.json`](migration-matrix.v0.1.json); the historical
+GraphSnapshot v0-to-v1 review record is
+[`snapshot-v0-to-v1.md`](snapshot-v0-to-v1.md).

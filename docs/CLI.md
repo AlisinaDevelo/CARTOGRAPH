@@ -40,6 +40,11 @@ an isolated consumer before treating the `cartograph` bin as usable.
 controls deterministic source selection, extractor selection, and resource
 ceilings; `--tsconfig` and output flags remain invocation-level overrides.
 
+`migrate-snapshot <input>` reads only legacy GraphSnapshot v0 artifacts. It
+emits the migrated v1 snapshot with `--output` and writes a deterministic
+identity migration report with `--report`. The report must be reviewed before
+the migrated snapshot is used as a baseline.
+
 ## Exit codes
 
 - **Exit code 0** means the requested command completed successfully. `--help`,

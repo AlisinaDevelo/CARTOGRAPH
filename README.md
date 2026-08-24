@@ -64,9 +64,15 @@ JavaScript files, generated routes, framework metaprogramming, and complete runt
 cartograph scan [root]
 cartograph diff [root] --base <ref> [--head <ref>]
 cartograph diff-snapshots <before.json> <after.json>
+cartograph migrate-snapshot <input.json> --report <report.json>
 ```
 
 `scan` emits canonical graph JSON. `diff` and `diff-snapshots` support `json`, `markdown`, and self-contained `html` reports. Use `--tsconfig <path>` to select a configuration inside the analyzed repository. Use `--config <path>` to apply the versioned, repository-relative [configuration contract](docs/CONFIGURATION.md); command-line flags override matching invocation settings.
+
+`migrate-snapshot` rewrites the historical GraphSnapshot v0 fixture to v1 and
+records every changed node or edge identity. Migration output is deterministic
+and requires the documented manual review gate in
+[the migration matrix](docs/IDENTITY_MIGRATION.md).
 
 The Git revision flow validates refs, archives each commit into an isolated temporary directory, rejects archived symbolic links, analyzes without executing repository code, and cleans the temporary tree. It never checks out, resets, cleans, or stashes the caller's worktree.
 
@@ -123,6 +129,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Support matrix and review process](docs/SUPPORT_MATRIX.md)
 - [Maintenance and ownership](docs/MAINTENANCE.md)
 - [Compatibility and versioning](docs/COMPATIBILITY.md)
+- [Snapshot and identity migration](docs/IDENTITY_MIGRATION.md)
 - [Configuration contract](docs/CONFIGURATION.md)
 - [Fixture provenance](docs/FIXTURES.md)
 - [Architecture](docs/ARCHITECTURE.md)
