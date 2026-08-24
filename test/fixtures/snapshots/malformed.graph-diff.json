@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "summary": {
+    "nodesAdded": 0,
+    "nodesRemoved": 0,
+    "nodesChanged": 0,
+    "edgesAdded": 0,
+    "edgesRemoved": 0,
+    "edgesChanged": 0,
+    "diagnosticsAdded": 0,
+    "diagnosticsRemoved": 0,
+    "diagnosticsChanged": 0
+  },
+  "fromRevision": { "commitSha": "before" },
+  "toRevision": { "commitSha": "after" },
+  "nodes": { "added": [], "removed": [], "changed": [] },
+  "edges": { "added": [], "removed": [], "changed": [] },
+  "diagnostics": { "added": [], "removed": [], "changed": [] },
+  "unexpected": true
+}
