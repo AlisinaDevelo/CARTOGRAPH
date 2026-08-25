@@ -30,6 +30,7 @@
     "runtime": { "$ref": "#/definitions/runtimeProvenance" },
     "bindings": { "$ref": "#/definitions/bindingProvenance" },
     "reconciliation": { "$ref": "#/definitions/reconciliation" },
+    "coverage": { "$ref": "#/definitions/reportCoverage" },
     "uncertainty": { "$ref": "#/definitions/uncertainty" },
     "diagnostics": {
       "type": "array",
@@ -220,6 +221,83 @@
             "modeledNotObserved": { "type": "integer", "minimum": 0 },
             "observedButUnmodeled": { "type": "integer", "minimum": 0 },
             "ambiguous": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "classificationCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "staticallyKnownRuntimeObserved",
+        "staticallyKnownUnobserved",
+        "runtimeOnly",
+        "ambiguous"
+      ],
+      "properties": {
+        "staticallyKnownRuntimeObserved": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "staticallyKnownUnobserved": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runtimeOnly": { "type": "integer", "minimum": 0 },
+        "ambiguous": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "capabilityLimitation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "code", "count", "detail"],
+      "properties": {
+        "source": { "enum": ["static", "runtime", "binding"] },
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._:-]+$"
+        },
+        "count": { "type": "integer", "minimum": 1, "maximum": 200000 },
+        "detail": { "type": "string", "minLength": 1, "maxLength": 512 }
+      }
+    },
+    "reportCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "revision",
+        "sampling",
+        "classificationCounts",
+        "capability"
+      ],
+      "properties": {
+        "revision": { "$ref": "#/definitions/revision" },
+        "sampling": { "$ref": "#/definitions/coverage" },
+        "classificationCounts": {
+          "$ref": "#/definitions/classificationCounts"
+        },
+        "capability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "staticRegistryVersion",
+            "runtimeTraceSchemaVersion",
+            "limitations"
+          ],
+          "properties": {
+            "staticRegistryVersion": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "runtimeTraceSchemaVersion": { "const": 1 },
+            "limitations": {
+              "type": "array",
+              "maxItems": 16,
+              "items": { "$ref": "#/definitions/capabilityLimitation" }
+            }
           }
         }
       }

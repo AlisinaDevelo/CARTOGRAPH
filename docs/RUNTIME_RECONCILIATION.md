@@ -119,3 +119,18 @@ report-cardinality limit. Runtime free text is redacted before the report is
 serialized; uncertainty, budget diagnostics, and reconciliation reasons remain
 as bounded structured metadata. Validate the report schema at
 [`schema/runtime-reconciliation-report.v0.1.schema.json`](../schema/runtime-reconciliation-report.v0.1.schema.json).
+
+## O-007 coverage and disagreement projection
+
+The CLI report adds an additive `coverage` projection without changing the
+underlying O-002 record contract. `classificationCounts` names the four
+mutually exclusive categories for reviewers: `staticallyKnownRuntimeObserved`,
+`staticallyKnownUnobserved`, `runtimeOnly`, and `ambiguous`. The projection also
+repeats the static revision and bounded runtime sampling coverage so a
+classification cannot be read without its observation context.
+
+`coverage.capability` records the static capability-registry version, runtime
+trace schema version, and bounded capability limitations. Static diagnostics,
+incomplete sampling, and the explicit-only span-binding policy remain visible
+as stable limitation codes. Fixed inputs produce stable records and coverage
+counts; processing-time measurements may vary independently.

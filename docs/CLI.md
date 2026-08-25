@@ -106,7 +106,10 @@ diagnostics, and reports bounded input, processing, output, and
 `discard-after-read` retention metadata. `--max-input-bytes`, `--max-spans`, `--max-traces`,
 `--max-analysis-ms`, `--max-report-bytes`, and `--max-report-items` only lower
 the documented ceilings; every overflow fails closed before a partial report
-is emitted. The JSON report contract is
+is emitted. The report's coverage projection names the four mutually exclusive
+relationship classes, carries the static revision and runtime sampling
+coverage, and records capability limitations from static diagnostics, sampling,
+and the explicit binding policy. The JSON report contract is
 [`runtime-reconciliation-report.v0.1.schema.json`](../schema/runtime-reconciliation-report.v0.1.schema.json).
 
 `policy [root] --policy <path> --snapshot <path>` or
