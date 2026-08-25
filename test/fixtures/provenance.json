@@ -306,6 +306,15 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "Non-TypeScript graph snapshots exercise opaque language metadata, portable source coordinates, evidence-backed and unresolved edges, and registered unknown diagnostics without source execution or remote authority.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "adapter-compatibility",
+      "path": "adapter-compatibility",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Negotiation scenarios cover current sample and Fastify adapters, a bounded legacy compatibility migration, experimental opt-in, and a rejected future capability registry without executing adapter code.",
+      "redistribution": "allowed"
     }
   ]
 }

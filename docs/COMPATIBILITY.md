@@ -373,3 +373,21 @@ metadata. The `languageNeutralSemantics` entry in
 This is an additive documentation and fixture contract. Existing GraphSnapshot,
 GraphDiff, capability, diagnostic, Express, and Fastify reader boundaries stay
 at version `1`; no migration or runtime schema bump is required.
+
+## E-008 adapter compatibility negotiation
+
+E-008 adds the reviewed `adapterCompatibilityNegotiation` v1 contract and
+performs negotiation before adapter analysis. The report compares adapter API,
+adapter compatibility, capability registry, and GraphSnapshot versions and
+classifies the result as `compatible`, `migratable`, `experimental`, or
+`rejected`. A rejected result includes deterministic failure guidance; an
+experimental result requires explicit opt-in; and the only migratable path is a
+bounded adapter compatibility `0 → 1` rewrite with a 2027-06-30 retirement
+window. Current sample and Fastify manifests declare the stable v1 dimensions.
+
+The registry, fixture schema, and five-case corpus are published in
+[`schema/adapter-compatibility.v0.1.json`](../schema/adapter-compatibility.v0.1.json),
+[`schema/adapter-compatibility-fixtures.v0.1.schema.json`](../schema/adapter-compatibility-fixtures.v0.1.schema.json),
+and [`test/fixtures/adapter-compatibility/scenarios.v0.1.json`](../test/fixtures/adapter-compatibility/scenarios.v0.1.json).
+The adapter result's optional negotiation record is additive; existing v0.1
+manifest and graph readers retain their meaning.

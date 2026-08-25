@@ -24,6 +24,8 @@
     "version": { "$ref": "#/definitions/semver" },
     "compatibilityVersion": { "const": 1 },
     "capabilityRegistryVersion": { "const": 1 },
+    "graphSchemaVersion": { "const": 1 },
+    "stability": { "enum": ["stable", "experimental"] },
     "capabilities": {
       "type": "array",
       "minItems": 1,

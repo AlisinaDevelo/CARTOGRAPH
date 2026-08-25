@@ -30,6 +30,8 @@ export const FASTIFY_ADAPTER_MANIFEST = parseAdapterManifest({
   version: "0.1.0",
   compatibilityVersion: ADAPTER_API_VERSION,
   capabilityRegistryVersion: CAPABILITY_REGISTRY_VERSION,
+  graphSchemaVersion: 1,
+  stability: "stable",
   capabilities: [
     {
       id: "fastify.routes",

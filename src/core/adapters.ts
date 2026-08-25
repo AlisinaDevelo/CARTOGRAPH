@@ -1,11 +1,21 @@
 import { z } from "zod";
 
 import { CAPABILITY_REGISTRY_VERSION } from "./capabilities.js";
+import {
+  AdapterCompatibilityContextSchema,
+  AdapterCompatibilityResultSchema,
+  migrateAdapterManifest,
+  migrateAdapterOutput,
+  negotiateAdapterCompatibility,
+  type AdapterCompatibilityContext,
+  type AdapterCompatibilityResult,
+} from "./adapter-compatibility.js";
 import { canonicalizeGraphSnapshot, stableStringify } from "./canonical.js";
 import {
   DiagnosticSchema,
   EvidenceSchema,
   GraphSnapshotSchema,
+  GRAPH_SNAPSHOT_SCHEMA_VERSION,
   RevisionSchema,
   type Diagnostic,
   type Evidence,
@@ -113,6 +123,10 @@ export const AdapterCapabilityManifestSchema = z
     version: SemverSchema,
     compatibilityVersion: z.literal(ADAPTER_API_VERSION),
     capabilityRegistryVersion: z.literal(CAPABILITY_REGISTRY_VERSION),
+    graphSchemaVersion: z
+      .literal(GRAPH_SNAPSHOT_SCHEMA_VERSION)
+      .default(GRAPH_SNAPSHOT_SCHEMA_VERSION),
+    stability: z.enum(["stable", "experimental"]).default("stable"),
     capabilities: z.array(AdapterCapabilityDeclarationSchema).min(1).max(256),
     execution: AdapterExecutionPolicySchema,
   })
@@ -240,6 +254,7 @@ export const AdapterInputSchema = z
     source: AdapterSourceInputSchema,
     config: AdapterConfigSchema.default({}),
     resources: AdapterResourceLimitsSchema,
+    compatibility: AdapterCompatibilityContextSchema,
   })
   .strict();
 
@@ -250,6 +265,7 @@ export const AdapterOutputSchema = z
     evidence: z.array(EvidenceSchema).max(100_000),
     diagnostics: z.array(DiagnosticSchema).max(100_000),
     capability: AdapterCapabilityManifestSchema,
+    compatibility: AdapterCompatibilityResultSchema.optional(),
   })
   .strict();
 
@@ -274,6 +290,7 @@ export class AdapterValidationError extends Error {
     | "invalid-manifest"
     | "invalid-output"
     | "manifest-mismatch"
+    | "incompatible"
     | "resource-limit";
 
   constructor(
@@ -282,6 +299,7 @@ export class AdapterValidationError extends Error {
       | "invalid-manifest"
       | "invalid-output"
       | "manifest-mismatch"
+      | "incompatible"
       | "resource-limit",
     message: string,
   ) {
@@ -440,15 +458,38 @@ export interface CartographAdapter {
   analyze(input: AdapterInput): AdapterOutput;
 }
 
+export type { AdapterCompatibilityContext, AdapterCompatibilityResult };
+
 export const runAdapter = (
   adapter: CartographAdapter,
   input: unknown,
 ): AdapterOutput => {
-  const manifest = parseAdapterManifest(adapter.manifest);
   const parsedInput = parseAdapterInput(input);
+  const negotiation = negotiateAdapterCompatibility(
+    adapter.manifest,
+    parsedInput.compatibility,
+  );
+  if (negotiation.state === "rejected") {
+    throw new AdapterValidationError(
+      "incompatible",
+      `adapter compatibility rejected: ${negotiation.reasons.join("; ")} Guidance: ${negotiation.guidance.join(" ")}`,
+    );
+  }
+  if (negotiation.requiresOptIn) {
+    throw new AdapterValidationError(
+      "incompatible",
+      `experimental adapter requires explicit compatibility opt-in: ${negotiation.guidance.join(" ")}`,
+    );
+  }
+  const manifest = parseAdapterManifest(
+    migrateAdapterManifest(adapter.manifest, negotiation),
+  );
   assertAdapterInputBudget(parsedInput);
   const startedAt = Date.now();
-  const rawOutput = adapter.analyze(parsedInput);
+  const rawOutput = migrateAdapterOutput(
+    adapter.analyze(parsedInput),
+    negotiation,
+  );
   const elapsedMs = Date.now() - startedAt;
   if (elapsedMs > parsedInput.resources.maxWallClockMs) {
     throw new AdapterValidationError(
@@ -457,7 +498,10 @@ export const runAdapter = (
     );
   }
   assertAdapterOutputBudget(rawOutput, parsedInput);
-  const output = parseAdapterOutput(rawOutput);
+  const output = parseAdapterOutput({
+    ...(rawOutput as Record<string, unknown>),
+    compatibility: negotiation,
+  });
   const outputCapability = parseAdapterManifest(output.capability);
   if (
     outputCapability.id !== manifest.id ||

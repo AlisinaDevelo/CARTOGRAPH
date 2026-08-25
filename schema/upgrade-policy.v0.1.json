@@ -18,7 +18,8 @@
     "diagnostics": 1,
     "adapters": 1,
     "adapterApi": 1,
-    "adapterCompatibility": 1
+    "adapterCompatibility": 1,
+    "adapterCompatibilityNegotiation": 1
   },
   "semver": {
     "patch": "Bug fixes, documentation, and internal changes that preserve public behavior and artifact meaning.",

@@ -29,8 +29,10 @@ not expand the support claim.
 Snapshot, diff, capability, diagnostic, and adapter compatibility versions are
 published in the [compatibility manifest](../schema/compatibility.json) and
 must match the upgrade policy. Adapter API and adapter compatibility are both
-currently version 1. Readers accept only versions listed as supported; unknown
-or retired versions fail closed.
+currently version 1, and the adapter negotiation contract is version 1. Readers
+accept only versions listed as supported; unknown or retired versions fail
+closed. The negotiation migration window and experimental opt-in rules are
+documented in the [adapter contract](ADAPTERS.md).
 
 Deprecation requires a changelog and compatibility-policy notice naming affected
 readers and the replacement. A deprecated field or value remains readable for

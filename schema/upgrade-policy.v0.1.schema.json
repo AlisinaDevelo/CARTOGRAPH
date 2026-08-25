@@ -83,7 +83,8 @@
         "diagnostics",
         "adapters",
         "adapterApi",
-        "adapterCompatibility"
+        "adapterCompatibility",
+        "adapterCompatibilityNegotiation"
       ],
       "properties": {
         "snapshot": { "type": "integer", "minimum": 1 },
@@ -92,7 +93,11 @@
         "diagnostics": { "type": "integer", "minimum": 1 },
         "adapters": { "type": "integer", "minimum": 1 },
         "adapterApi": { "type": "integer", "minimum": 1 },
-        "adapterCompatibility": { "type": "integer", "minimum": 1 }
+        "adapterCompatibility": { "type": "integer", "minimum": 1 },
+        "adapterCompatibilityNegotiation": {
+          "type": "integer",
+          "minimum": 1
+        }
       }
     },
     "semverPolicy": {

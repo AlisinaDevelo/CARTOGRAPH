@@ -107,6 +107,28 @@ capabilities only with new fixtures and a reviewed compatibility decision.
 Framework and language-specific adapters remain separate implementations behind
 this boundary.
 
+### Compatibility negotiation
+
+Before `analyze` is called, `runAdapter` evaluates the adapter manifest against
+the requested core dimensions in the optional `input.compatibility` object:
+adapter API, adapter compatibility, capability registry, and GraphSnapshot
+schema. The report is a versioned
+[`cartograph.adapter-compatibility`](../schema/adapter-compatibility.v0.1.json)
+record with one of four states:
+
+- `compatible`: all dimensions match and the adapter is stable;
+- `migratable`: a reviewed, bounded manifest/output migration is available;
+- `experimental`: dimensions match but the adapter requires explicit opt-in;
+- `rejected`: no safe compatibility path exists, with failure guidance.
+
+The only v0.1 migration is the deprecated adapter compatibility `0 → 1` window,
+which expires on 2027-06-30. It rewrites only the version declaration; it does
+not grant execution authority or reinterpret graph evidence. Experimental
+adapters are rejected unless `allowExperimental` is explicitly true. The
+fixture corpus at
+[`test/fixtures/adapter-compatibility/scenarios.v0.1.json`](../test/fixtures/adapter-compatibility/scenarios.v0.1.json)
+covers both shipped adapters and every negotiation state.
+
 ### Fastify adapter
 
 The bounded Fastify adapter is exported as `createFastifyAdapter()` from

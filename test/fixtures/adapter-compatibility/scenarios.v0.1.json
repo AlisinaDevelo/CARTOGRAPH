@@ -1,0 +1,88 @@
+{
+  "$schema": "../../../schema/adapter-compatibility-fixtures.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.adapter-compatibility-fixtures",
+  "target": {
+    "apiVersion": 1,
+    "compatibilityVersion": 1,
+    "capabilityRegistryVersion": 1,
+    "graphSchemaVersion": 1
+  },
+  "cases": [
+    {
+      "id": "sample-current",
+      "adapterId": "cartograph.sample",
+      "adapterVersion": "0.1.0",
+      "stability": "stable",
+      "offered": {
+        "apiVersion": 1,
+        "compatibilityVersion": 1,
+        "capabilityRegistryVersion": 1,
+        "graphSchemaVersion": 1
+      },
+      "allowExperimental": false,
+      "expectedState": "compatible",
+      "expectedGuidance": "may be analyzed"
+    },
+    {
+      "id": "fastify-current",
+      "adapterId": "cartograph.fastify",
+      "adapterVersion": "0.1.0",
+      "stability": "stable",
+      "offered": {
+        "apiVersion": 1,
+        "compatibilityVersion": 1,
+        "capabilityRegistryVersion": 1,
+        "graphSchemaVersion": 1
+      },
+      "allowExperimental": false,
+      "expectedState": "compatible",
+      "expectedGuidance": "may be analyzed"
+    },
+    {
+      "id": "sample-legacy-compatibility",
+      "adapterId": "cartograph.sample",
+      "adapterVersion": "0.1.0",
+      "stability": "stable",
+      "offered": {
+        "apiVersion": 1,
+        "compatibilityVersion": 0,
+        "capabilityRegistryVersion": 1,
+        "graphSchemaVersion": 1
+      },
+      "allowExperimental": false,
+      "expectedState": "migratable",
+      "expectedGuidance": "migration window"
+    },
+    {
+      "id": "fastify-experimental",
+      "adapterId": "cartograph.fastify",
+      "adapterVersion": "0.2.0-alpha.1",
+      "stability": "experimental",
+      "offered": {
+        "apiVersion": 1,
+        "compatibilityVersion": 1,
+        "capabilityRegistryVersion": 1,
+        "graphSchemaVersion": 1
+      },
+      "allowExperimental": true,
+      "expectedState": "experimental",
+      "expectedGuidance": "allowExperimental"
+    },
+    {
+      "id": "sample-future-capability",
+      "adapterId": "cartograph.sample",
+      "adapterVersion": "0.2.0",
+      "stability": "stable",
+      "offered": {
+        "apiVersion": 1,
+        "compatibilityVersion": 1,
+        "capabilityRegistryVersion": 2,
+        "graphSchemaVersion": 1
+      },
+      "allowExperimental": false,
+      "expectedState": "rejected",
+      "expectedGuidance": "supported adapter API"
+    }
+  ]
+}
