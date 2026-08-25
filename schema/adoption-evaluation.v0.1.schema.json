@@ -1,0 +1,321 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/adoption-evaluation.v0.1.schema.json",
+  "title": "CARTOGRAPH repository adoption evaluation v0.1",
+  "description": "Aggregate-only, offline-replayable evaluation records for pinned public repositories; it is not certification, a support guarantee, or an adoption claim.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "evaluationId",
+    "reviewedAt",
+    "tool",
+    "method",
+    "runs",
+    "summary",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.repository-adoption-evaluation" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.repository-adoption-evaluation+json"
+    },
+    "evaluationId": { "$ref": "#/definitions/identifier" },
+    "reviewedAt": { "$ref": "#/definitions/dateTime" },
+    "tool": { "$ref": "#/definitions/tool" },
+    "method": { "$ref": "#/definitions/method" },
+    "runs": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/run" }
+    },
+    "summary": { "$ref": "#/definitions/summary" },
+    "provenance": { "$ref": "#/definitions/provenance" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "dateTime": { "type": "string", "format": "date-time" },
+    "commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "repositoryUrl": {
+      "type": "string",
+      "pattern": "^https://github\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+    },
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "commit", "runtime", "platform", "architecture"],
+      "properties": {
+        "version": { "$ref": "#/definitions/text" },
+        "commit": { "$ref": "#/definitions/commit" },
+        "runtime": { "$ref": "#/definitions/text" },
+        "platform": { "$ref": "#/definitions/text" },
+        "architecture": { "$ref": "#/definitions/text" }
+      }
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "replayMode",
+        "rerunnable",
+        "command",
+        "network",
+        "sourceBodiesIncluded",
+        "credentialsUsed",
+        "hiddenTelemetry",
+        "userDataIncluded",
+        "sourceAcquisition",
+        "limitations"
+      ],
+      "properties": {
+        "replayMode": { "const": "aggregate-fixture" },
+        "rerunnable": { "const": true },
+        "command": { "$ref": "#/definitions/text" },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "credentialsUsed": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "userDataIncluded": { "const": false },
+        "sourceAcquisition": { "const": "not-run" },
+        "limitations": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        }
+      }
+    },
+    "statusValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason"],
+      "properties": {
+        "status": { "const": "not-observed" },
+        "reason": { "$ref": "#/definitions/text" }
+      }
+    },
+    "repositorySize": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "files", "sourceLines", "sourceBytes", "reason"],
+      "properties": {
+        "status": { "enum": ["not-observed", "aggregate-observed"] },
+        "files": { "type": ["integer", "null"], "minimum": 0 },
+        "sourceLines": { "type": ["integer", "null"], "minimum": 0 },
+        "sourceBytes": { "type": ["integer", "null"], "minimum": 0 },
+        "reason": { "$ref": "#/definitions/text" }
+      }
+    },
+    "languageSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "values", "reason"],
+      "properties": {
+        "status": { "enum": ["observed", "not-observed"] },
+        "values": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "reason": { "$ref": "#/definitions/text" }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "graphNodes",
+        "graphEdges",
+        "supportedEdges",
+        "diagnostics",
+        "unknownDiagnostics",
+        "reason"
+      ],
+      "properties": {
+        "status": { "const": "aggregate-observed" },
+        "graphNodes": { "type": "integer", "minimum": 0 },
+        "graphEdges": { "type": "integer", "minimum": 0 },
+        "supportedEdges": { "type": "integer", "minimum": 0 },
+        "diagnostics": { "type": "integer", "minimum": 0 },
+        "unknownDiagnostics": { "type": "integer", "minimum": 0 },
+        "reason": { "$ref": "#/definitions/text" }
+      }
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "durationMs", "reason"],
+      "properties": {
+        "status": { "enum": ["not-observed", "aggregate-observed"] },
+        "durationMs": { "type": ["number", "null"], "minimum": 0 },
+        "reason": { "$ref": "#/definitions/text" }
+      }
+    },
+    "reviewerUsefulness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reviewerCount", "rating", "reason"],
+      "properties": {
+        "status": { "const": "not-observed" },
+        "reviewerCount": { "const": 0 },
+        "rating": { "type": "null" },
+        "reason": { "$ref": "#/definitions/text" }
+      }
+    },
+    "scanRevision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "toolCommit",
+        "runtime",
+        "platform",
+        "architecture",
+        "tsconfig"
+      ],
+      "properties": {
+        "toolCommit": { "$ref": "#/definitions/commit" },
+        "runtime": { "$ref": "#/definitions/text" },
+        "platform": { "$ref": "#/definitions/text" },
+        "architecture": { "$ref": "#/definitions/text" },
+        "tsconfig": { "$ref": "#/definitions/text" }
+      }
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "repository",
+        "url",
+        "license",
+        "commit",
+        "languages",
+        "frameworks",
+        "scanRevision",
+        "repositorySize",
+        "coverage",
+        "unknowns",
+        "timing",
+        "reviewerUsefulness",
+        "snapshotSha256",
+        "feedback",
+        "limitations",
+        "replayFixture",
+        "replayCommand"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "repository": { "$ref": "#/definitions/text" },
+        "url": { "$ref": "#/definitions/repositoryUrl" },
+        "license": { "$ref": "#/definitions/text" },
+        "commit": { "$ref": "#/definitions/commit" },
+        "languages": { "$ref": "#/definitions/languageSet" },
+        "frameworks": { "$ref": "#/definitions/languageSet" },
+        "scanRevision": { "$ref": "#/definitions/scanRevision" },
+        "repositorySize": { "$ref": "#/definitions/repositorySize" },
+        "coverage": { "$ref": "#/definitions/coverage" },
+        "unknowns": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "timing": { "$ref": "#/definitions/timing" },
+        "reviewerUsefulness": { "$ref": "#/definitions/reviewerUsefulness" },
+        "snapshotSha256": {
+          "anyOf": [{ "$ref": "#/definitions/digest" }, { "type": "null" }]
+        },
+        "feedback": { "$ref": "#/definitions/text" },
+        "limitations": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "replayFixture": { "$ref": "#/definitions/text" },
+        "replayCommand": { "$ref": "#/definitions/text" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runCount",
+        "pinnedRevisionCount",
+        "rerunnableRunCount",
+        "aggregateObservedCount",
+        "notObservedSizeCount",
+        "notObservedTimingCount",
+        "notObservedReviewerUsefulnessCount",
+        "network",
+        "sourceBodiesIncluded",
+        "credentialsUsed",
+        "hiddenTelemetry",
+        "userDataIncluded",
+        "certificationClaim",
+        "supportGuaranteeClaim",
+        "adoptionClaim"
+      ],
+      "properties": {
+        "runCount": { "type": "integer", "minimum": 0 },
+        "pinnedRevisionCount": { "type": "integer", "minimum": 0 },
+        "rerunnableRunCount": { "type": "integer", "minimum": 0 },
+        "aggregateObservedCount": { "type": "integer", "minimum": 0 },
+        "notObservedSizeCount": { "type": "integer", "minimum": 0 },
+        "notObservedTimingCount": { "type": "integer", "minimum": 0 },
+        "notObservedReviewerUsefulnessCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "credentialsUsed": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "userDataIncluded": { "const": false },
+        "certificationClaim": { "const": "deferred" },
+        "supportGuaranteeClaim": { "const": "deferred" },
+        "adoptionClaim": { "const": "deferred" }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "license",
+        "reference",
+        "transformation",
+        "redistribution"
+      ],
+      "properties": {
+        "source": { "$ref": "#/definitions/text" },
+        "license": { "const": "Apache-2.0" },
+        "reference": { "$ref": "#/definitions/text" },
+        "transformation": { "$ref": "#/definitions/text" },
+        "redistribution": { "const": "allowed" }
+      }
+    }
+  }
+}
