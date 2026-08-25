@@ -213,6 +213,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Design-partner outreach](docs/OUTREACH.md)
 - [Public community feedback and RFC process](docs/COMMUNITY_FEEDBACK.md)
 - [Adopter feedback template](docs/ADOPTER_FEEDBACK_TEMPLATE.md)
+- [OSS health and traction scorecard](docs/OSS_HEALTH_SCORECARD.md)
 - [Release gate](docs/RELEASE.md)
 - [Release acceptance and rollback rehearsal](docs/RELEASE_REHEARSAL.md)
 - [Changelog](CHANGELOG.md)

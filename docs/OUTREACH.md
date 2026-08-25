@@ -51,9 +51,9 @@ GitHub Marketplace and a hosted GitHub App come after the local Action is stable
 
 ## Feedback loop
 
-Use the versioned [public community feedback contract](COMMUNITY_FEEDBACK.md)
-and [adopter template](ADOPTER_FEEDBACK_TEMPLATE.md). Track only anonymized,
-consented signals with public or digest-only evidence:
+Use the versioned [public community feedback contract](COMMUNITY_FEEDBACK.md),
+[adopter template](ADOPTER_FEEDBACK_TEMPLATE.md), and [OSS health scorecard](OSS_HEALTH_SCORECARD.md).
+Track only anonymized, consented signals with public or digest-only evidence:
 
 - reported edges confirmed or rejected by maintainers;
 - unresolved constructs that block usefulness;

@@ -100,7 +100,7 @@ Exit gate: performance budgets; bounded fuzz/property suites; automated compatib
 
 The project chooses its next investment from evidence instead of assuming a hosted or team product is warranted.
 
-Exit gate: OSS health scorecard, branch-specific privacy/security review, sustainability and cost model, claims audit, public decision ADR, and a capacity-backed Year 4 charter. Without these, expansion is deferred.
+Exit gate: the [OSS health scorecard](OSS_HEALTH_SCORECARD.md), branch-specific privacy/security review, sustainability and cost model, claims audit, public decision ADR, and a capacity-backed Year 4 charter. Without these, expansion is deferred.
 
 ## Year 4 — Conditional team-scale assurance
 

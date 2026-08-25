@@ -1,0 +1,296 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/oss-health-scorecard.v0.1.schema.json",
+  "title": "CARTOGRAPH OSS health and traction scorecard v0.1",
+  "description": "A transparent, aggregate-only scorecard for external evidence without hidden telemetry, source upload, or hosted collection.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "scorecardId",
+    "asOf",
+    "window",
+    "scope",
+    "dimensions",
+    "observations",
+    "strategyGate",
+    "summary",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.oss-health-scorecard" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.oss-health-scorecard+json"
+    },
+    "scorecardId": { "$ref": "#/definitions/identifier" },
+    "asOf": { "$ref": "#/definitions/dateTime" },
+    "window": { "$ref": "#/definitions/window" },
+    "scope": { "$ref": "#/definitions/scope" },
+    "dimensions": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": { "$ref": "#/definitions/dimension" }
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": { "$ref": "#/definitions/observation" }
+    },
+    "strategyGate": { "$ref": "#/definitions/strategyGate" },
+    "summary": { "$ref": "#/definitions/summary" },
+    "provenance": { "$ref": "#/definitions/provenance" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "dateTime": { "type": "string", "format": "date-time" },
+    "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "portablePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!/)(?!~)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)(?!.*\\u0000).+$"
+    },
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "start", "end", "timezone"],
+      "properties": {
+        "kind": { "const": "snapshot" },
+        "start": { "$ref": "#/definitions/dateTime" },
+        "end": { "$ref": "#/definitions/dateTime" },
+        "timezone": { "const": "UTC" }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "publicOnly",
+        "network",
+        "hiddenTelemetry",
+        "sourcePayloads",
+        "personalData",
+        "collectionMode",
+        "retention",
+        "allowedSources"
+      ],
+      "properties": {
+        "publicOnly": { "const": true },
+        "network": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "sourcePayloads": { "const": false },
+        "personalData": { "const": false },
+        "collectionMode": { "const": "manual-public-evidence" },
+        "retention": { "const": "summary-only" },
+        "allowedSources": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "public-report",
+              "public-issue",
+              "public-pr",
+              "public-discussion",
+              "release-artifact",
+              "security-advisory",
+              "maintainer-review"
+            ]
+          }
+        }
+      }
+    },
+    "dimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "description", "unit", "collectionRule"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "label": { "$ref": "#/definitions/text" },
+        "description": { "$ref": "#/definitions/text" },
+        "unit": {
+          "enum": [
+            "repositories",
+            "contributors",
+            "releases",
+            "issues",
+            "maintainer-hours",
+            "incidents",
+            "feedback-records"
+          ]
+        },
+        "collectionRule": { "$ref": "#/definitions/text" }
+      }
+    },
+    "externalRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repositoryId",
+        "repositoryUrl",
+        "revision",
+        "outcome",
+        "evidenceRef",
+        "authorization",
+        "sourceBodiesCopied",
+        "graphSnapshotsRetained"
+      ],
+      "properties": {
+        "repositoryId": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+        },
+        "repositoryUrl": { "type": "string", "format": "uri" },
+        "revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{7,40}$"
+        },
+        "outcome": { "enum": ["successful", "bounded-failure"] },
+        "evidenceRef": { "$ref": "#/definitions/portablePath" },
+        "authorization": { "enum": ["public", "explicit"] },
+        "sourceBodiesCopied": { "const": false },
+        "graphSnapshotsRetained": { "const": false }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "dimensionId",
+        "status",
+        "unit",
+        "value",
+        "denominator",
+        "evidenceRefs",
+        "limitations",
+        "records",
+        "claim"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "dimensionId": { "$ref": "#/definitions/identifier" },
+        "status": { "enum": ["observed", "not-observed"] },
+        "unit": {
+          "enum": [
+            "repositories",
+            "contributors",
+            "releases",
+            "issues",
+            "maintainer-hours",
+            "incidents",
+            "feedback-records"
+          ]
+        },
+        "value": { "type": ["number", "null"], "minimum": 0 },
+        "denominator": { "type": ["integer", "null"], "minimum": 0 },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "records": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/externalRun" }
+        },
+        "claim": { "enum": ["descriptive-only", "not-a-claim"] }
+      }
+    },
+    "strategyGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tractionClaim",
+        "hostedInvestment",
+        "reason",
+        "requiredEvidence"
+      ],
+      "properties": {
+        "tractionClaim": { "const": "deferred" },
+        "hostedInvestment": { "const": "deferred" },
+        "reason": { "$ref": "#/definitions/text" },
+        "requiredEvidence": {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observedDimensionCount",
+        "notObservedDimensionCount",
+        "externalRepositoryCount",
+        "successfulExternalRepositoryCount",
+        "boundedFailureExternalRepositoryCount",
+        "claimsPermitted",
+        "network",
+        "hiddenTelemetry",
+        "sourcePayloads"
+      ],
+      "properties": {
+        "observedDimensionCount": { "type": "integer", "minimum": 0 },
+        "notObservedDimensionCount": { "type": "integer", "minimum": 0 },
+        "externalRepositoryCount": { "type": "integer", "minimum": 0 },
+        "successfulExternalRepositoryCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "boundedFailureExternalRepositoryCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "claimsPermitted": { "const": false },
+        "network": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "sourcePayloads": { "const": false }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "license",
+        "reference",
+        "transformation",
+        "redistribution"
+      ],
+      "properties": {
+        "source": { "$ref": "#/definitions/text" },
+        "license": { "const": "Apache-2.0" },
+        "reference": { "$ref": "#/definitions/text" },
+        "transformation": { "$ref": "#/definitions/text" },
+        "redistribution": { "const": "allowed" }
+      }
+    }
+  }
+}
