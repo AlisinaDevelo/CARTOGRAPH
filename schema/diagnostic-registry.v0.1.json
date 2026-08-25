@@ -128,6 +128,41 @@
       "remediation": "Declare a literal route path and method or review the runtime router composition alongside the API schema."
     },
     {
+      "code": "MULTIPLE_PRISMA_SCHEMA_FILES",
+      "severity": "warning",
+      "message": "Multiple Prisma schema files were discovered and analyzed as separate declarations.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Declare one authoritative Prisma schema set or review duplicate declarations before accepting the merged graph."
+    },
+    {
+      "code": "AMBIGUOUS_PRISMA_SCHEMA",
+      "severity": "warning",
+      "message": "A Prisma schema declaration is duplicated or ambiguous across the bounded schema set.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Keep datasource, model, and generator names unique across analyzed Prisma schema files."
+    },
+    {
+      "code": "UNSUPPORTED_PRISMA_PROVIDER",
+      "severity": "warning",
+      "message": "A Prisma datasource provider is unsupported or dynamically configured.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Use a supported literal Prisma provider or review the datasource boundary manually; no connection is attempted."
+    },
+    {
+      "code": "UNSUPPORTED_PRISMA_GENERATOR",
+      "severity": "warning",
+      "message": "A Prisma generator provider is unsupported or dynamically configured.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Use a supported Prisma client generator or review generated-client provenance manually; generation is never executed."
+    },
+    {
+      "code": "UNSUPPORTED_PRISMA_GENERATED_OUTPUT",
+      "severity": "warning",
+      "message": "A Prisma generated-client output path is outside the analyzed repository or dynamically configured.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Use a literal output path inside the repository or document the generated artifact provenance manually."
+    },
+    {
       "code": "UNRESOLVED_FASTIFY_HANDLER",
       "severity": "warning",
       "message": "Could not resolve a Fastify route handler in the supported adapter subset.",

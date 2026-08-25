@@ -61,6 +61,7 @@ This matrix is the public boundary of the first analyzer. A construct is support
 | Literal EventEmitter events, bounded Bull/BullMQ queues, timers, and local callbacks    | Supported | Registration, publication, queue, and handler source spans  | Dynamic event or queue names, reflective handlers, unsupported clients, and unresolved callbacks remain diagnostics              |
 | Direct Express `app` or `router` routes and bounded `use` middleware with literal paths | Supported | Express registration call and handler source spans          | Dynamic route registration, computed paths, and framework metaprogramming produce diagnostics                                    |
 | Literal `fetch` and Axios destinations                                                  | Supported | Literal URL argument and request call span                  | Computed or runtime-only destinations remain unresolved                                                                          |
+| Prisma datasources, models, relations, and bounded generated-client references          | Supported | Prisma schema spans and generated-client import evidence    | Multiple files, unsupported providers, duplicate declarations, and unsafe output paths remain diagnostics                        |
 | Conventional Prisma model reads and writes                                              | Supported | Prisma model operation and source span                      | Dynamic model names and unsupported client wrappers remain unresolved                                                            |
 | Rust `.rs` modules, functions, local `mod`/`use`, and unique local calls                | Pilot     | Declaration or call source span                             | Macros, traits, generics, compiler resolution, and ambiguous names remain outside the claim                                      |
 | Literal Rust `reqwest`/client HTTP origins                                              | Pilot     | Literal URL argument and request call span                  | Runtime-selected destinations remain `UNSUPPORTED_RUST_DYNAMIC_HTTP_DESTINATION`                                                 |
@@ -91,6 +92,13 @@ generated schema inputs, aliased path references, and runtime-composed routes.
 The analyzer emits `endpoint` nodes with `routes_to` evidence only for static
 links; `PARTIAL_API_SCHEMA_GENERATION`, `PARTIAL_API_SCHEMA_ALIAS`, and
 `PARTIAL_RUNTIME_COMPOSED_ROUTE` preserve the remaining coverage boundary.
+
+The X-013 Prisma fixture covers datasource containment, model relations,
+generated-client output and imports, multiple schema files, dynamic providers,
+and unsafe output paths. `MULTIPLE_PRISMA_SCHEMA_FILES`,
+`AMBIGUOUS_PRISMA_SCHEMA`, `UNSUPPORTED_PRISMA_PROVIDER`,
+`UNSUPPORTED_PRISMA_GENERATOR`, and `UNSUPPORTED_PRISMA_GENERATED_OUTPUT`
+preserve the static-analysis boundary without database access or generation.
 
 The E-005 Rust pilot fixture covers two `.rs` modules, local module imports and
 calls, a literal `reqwest` request, a literal `sqlx` read, and dynamic HTTP and

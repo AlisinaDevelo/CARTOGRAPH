@@ -58,6 +58,16 @@ import {
   type ApiSource,
 } from "./api-boundaries.js";
 import {
+  PRISMA_SCHEMA_DETECTOR,
+  discoverPrismaSchema,
+  type PrismaDatasource,
+  type PrismaGeneratedClient,
+  type PrismaModel,
+  type PrismaPartialDiagnostic,
+  type PrismaSchemaDiscovery,
+  type PrismaSchemaSource,
+} from "./prisma-schema.js";
+import {
   discoverWorkspacePackages,
   workspacePackageForPath,
   type WorkspaceDiscovery,
@@ -223,6 +233,10 @@ interface AnalyzerContext {
   fileHashes: Map<string, string>;
   filesByPath: Map<string, SourceFile>;
   nodes: Map<string, GraphNode>;
+  prismaDatasources: readonly PrismaDatasource[];
+  prismaDiagnostics: readonly PrismaPartialDiagnostic[];
+  prismaGeneratedClients: readonly PrismaGeneratedClient[];
+  prismaModels: ReadonlyMap<string, PrismaModel>;
   project: Project;
   resolveModule: (
     moduleName: string,
@@ -1809,6 +1823,240 @@ const addApiBoundaryEdges = (context: AnalyzerContext): void => {
   }
 };
 
+const evidenceForPrismaSource = (
+  source: PrismaSchemaSource,
+  suffix: string,
+): Evidence => ({
+  id: evidenceKey(
+    source.path,
+    source.line,
+    source.column,
+    `${PRISMA_SCHEMA_DETECTOR}/${suffix}`,
+  ),
+  kind: "source",
+  path: source.path,
+  line: source.line,
+  column: source.column,
+  detector: `${PRISMA_SCHEMA_DETECTOR}/${suffix}`,
+  contentHash: source.contentHash,
+});
+
+const addPrismaDiagnostic = (
+  context: AnalyzerContext,
+  diagnostic: PrismaPartialDiagnostic,
+): void => {
+  const definition = getDiagnosticDefinition(diagnostic.code);
+  if (!definition)
+    throw new Error(`unregistered diagnostic code: ${diagnostic.code}`);
+  const message = diagnostic.detail
+    ? `${definition.message} ${diagnostic.detail}`
+    : definition.message;
+  const location: SourceLocation = {
+    path: diagnostic.source.path,
+    line: diagnostic.source.line,
+    column: diagnostic.source.column,
+  };
+  const evidence = evidenceForPrismaSource(diagnostic.source, "diagnostic");
+  const record: Diagnostic = {
+    id: diagnosticKey(diagnostic.code, location, message),
+    code: diagnostic.code,
+    severity: definition.severity,
+    message,
+    remediation: definition.remediation,
+    location,
+    evidence: [evidence],
+  };
+  context.diagnostics.set(record.id, record);
+};
+
+const prismaDatasourceNode = (
+  context: AnalyzerContext,
+  datasource: PrismaDatasource,
+): GraphNode =>
+  addNode(
+    context,
+    `service:prisma:datasource:${datasource.name}`,
+    "service",
+    `Prisma datasource ${datasource.name}${datasource.provider ? ` (${datasource.provider})` : ""}`,
+    {
+      path: datasource.source.path,
+      line: datasource.source.line,
+      column: datasource.source.column,
+    },
+    "prisma",
+  );
+
+const prismaGeneratorNode = (
+  context: AnalyzerContext,
+  client: PrismaGeneratedClient,
+): GraphNode =>
+  addNode(
+    context,
+    `service:prisma:generator:${client.name}`,
+    "service",
+    `Prisma generator ${client.name}${client.provider ? ` (${client.provider})` : ""}`,
+    {
+      path: client.source.path,
+      line: client.source.line,
+      column: client.source.column,
+    },
+    "prisma",
+  );
+
+const prismaModelNode = (
+  context: AnalyzerContext,
+  model: PrismaModel,
+): GraphNode =>
+  addNode(
+    context,
+    `database_table:prisma:${model.name}`,
+    "database_table",
+    model.name,
+    {
+      path: model.source.path,
+      line: model.source.line,
+      column: model.source.column,
+    },
+    "prisma",
+  );
+
+const prismaGeneratedClientNode = (
+  context: AnalyzerContext,
+  client: PrismaGeneratedClient,
+): GraphNode | undefined => {
+  if (
+    !client.provider ||
+    !SUPPORTED_PRISMA_GENERATORS.has(client.provider) ||
+    (!client.defaultOutput && !client.outputPath)
+  )
+    return undefined;
+  const stableKey = client.defaultOutput
+    ? "module:external:@prisma/client"
+    : `module:prisma-generated:${client.outputPath}`;
+  const name = client.defaultOutput
+    ? "@prisma/client"
+    : `Prisma generated client ${client.outputPath}`;
+  return addNode(
+    context,
+    stableKey,
+    "module",
+    name,
+    {
+      path: client.source.path,
+      line: client.source.line,
+      column: client.source.column,
+    },
+    "prisma",
+  );
+};
+
+const SUPPORTED_PRISMA_GENERATORS = new Set([
+  "prisma-client",
+  "prisma-client-js",
+]);
+
+const outputPathMatchesImport = (
+  context: AnalyzerContext,
+  sourceFile: SourceFile,
+  specifier: string,
+  outputPath: string,
+): boolean => {
+  if (!specifier.startsWith(".")) return false;
+  const candidate = resolve(dirname(sourceFile.getFilePath()), specifier);
+  const expected = resolve(context.rootDir, outputPath);
+  return candidate === expected || candidate.startsWith(`${expected}${sep}`);
+};
+
+const addPrismaSchemaEdges = (context: AnalyzerContext): void => {
+  for (const diagnostic of context.prismaDiagnostics)
+    addPrismaDiagnostic(context, diagnostic);
+
+  const modelNodes = new Map(
+    [...context.prismaModels.values()].map((model) => [
+      model.name,
+      prismaModelNode(context, model),
+    ]),
+  );
+
+  for (const datasource of context.prismaDatasources) {
+    const datasourceNode = prismaDatasourceNode(context, datasource);
+    for (const model of context.prismaModels.values()) {
+      if (
+        context.prismaDatasources.length > 1 &&
+        model.source.path !== datasource.source.path
+      )
+        continue;
+      const modelNode = modelNodes.get(model.name);
+      if (!modelNode) continue;
+      addEdge(
+        context,
+        datasourceNode,
+        modelNode,
+        "contains",
+        evidenceForPrismaSource(datasource.source, "datasource-model"),
+        "inferred",
+      );
+    }
+  }
+
+  for (const model of context.prismaModels.values()) {
+    const from = modelNodes.get(model.name);
+    if (!from) continue;
+    for (const relation of model.relations) {
+      const to = modelNodes.get(relation.targetModel);
+      if (!to) continue;
+      addEdge(
+        context,
+        from,
+        to,
+        "depends_on",
+        evidenceForPrismaSource(relation.source, "relation"),
+        "inferred",
+      );
+    }
+  }
+
+  for (const client of context.prismaGeneratedClients) {
+    const generator = prismaGeneratorNode(context, client);
+    const generated = prismaGeneratedClientNode(context, client);
+    if (!generated) continue;
+    addEdge(
+      context,
+      generator,
+      generated,
+      "contains",
+      evidenceForPrismaSource(client.outputSource, "generated-client"),
+      "inferred",
+    );
+    for (const sourceFile of context.sourceFiles) {
+      for (const declaration of sourceFile.getImportDeclarations()) {
+        const specifier = declaration.getModuleSpecifierValue();
+        const matches = client.defaultOutput
+          ? specifier === "@prisma/client"
+          : outputPathMatchesImport(
+              context,
+              sourceFile,
+              specifier,
+              client.outputPath ?? "",
+            );
+        if (!matches) continue;
+        addEdge(
+          context,
+          moduleForFile(context, sourceFile),
+          generated,
+          "imports",
+          evidenceFor(
+            context,
+            declaration.getModuleSpecifier(),
+            `${PRISMA_SCHEMA_DETECTOR}/client-reference`,
+          ),
+          "inferred",
+        );
+      }
+    }
+  }
+};
+
 const registerCallable = (
   context: AnalyzerContext,
   node: FunctionLike,
@@ -3321,6 +3569,19 @@ const addPrismaEdge = (
     evidenceFor(context, operation.evidenceNode, `${DETECTOR_VERSION}/prisma`),
     "inferred",
   );
+  const schemaModel = [...context.prismaModels.values()].find(
+    (model) => model.name === prismaModelName(operation.model),
+  );
+  if (schemaModel) {
+    addEdge(
+      context,
+      callerFor(context, call),
+      target,
+      operation.kind,
+      evidenceForPrismaSource(schemaModel.source, "model-operation"),
+      "inferred",
+    );
+  }
   return true;
 };
 
@@ -3697,6 +3958,13 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
   );
   for (const [path, contentHash] of apiDiscovery.fileHashes)
     fileHashes.set(path, contentHash);
+  const prismaDiscovery: PrismaSchemaDiscovery = discoverPrismaSchema(
+    rootDir,
+    resources,
+    checkBudget,
+  );
+  for (const [path, contentHash] of prismaDiscovery.fileHashes)
+    fileHashes.set(path, contentHash);
 
   return {
     apiBoundaries: apiDiscovery.boundaries,
@@ -3710,6 +3978,12 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
     fileHashes,
     filesByPath,
     nodes: new Map(),
+    prismaDatasources: prismaDiscovery.datasources,
+    prismaDiagnostics: prismaDiscovery.diagnostics,
+    prismaGeneratedClients: prismaDiscovery.generatedClients,
+    prismaModels: new Map(
+      prismaDiscovery.models.map((model) => [model.name, model]),
+    ),
     project,
     resolveModule: projectSetup.resolveModule,
     resolveModuleInfo: projectSetup.resolveModuleInfo,
@@ -3737,6 +4011,7 @@ export const analyzeTypeScriptRepository = (
   registerCallables(context);
   addApiBoundaryEdges(context);
   importSourceFiles(context);
+  addPrismaSchemaEdges(context);
   analyzeCalls(context);
   context.checkBudget();
 

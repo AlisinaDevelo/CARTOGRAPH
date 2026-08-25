@@ -114,6 +114,22 @@ export const CAPABILITY_REGISTRY: CapabilityRegistry =
             ],
           },
           {
+            id: "prisma.schema",
+            diagnosticCodes: [
+              "MULTIPLE_PRISMA_SCHEMA_FILES",
+              "AMBIGUOUS_PRISMA_SCHEMA",
+              "UNSUPPORTED_PRISMA_PROVIDER",
+              "UNSUPPORTED_PRISMA_GENERATOR",
+              "UNSUPPORTED_PRISMA_GENERATED_OUTPUT",
+            ],
+            confidence: ["inferred"],
+            examples: [
+              "Prisma datasources contain typed model nodes with schema-file evidence.",
+              "Model relations become bounded depends_on edges without connecting to a database.",
+              "Generated client output paths and unsupported providers remain explicit diagnostics; generation is never executed.",
+            ],
+          },
+          {
             id: "typescript.async",
             diagnosticCodes: [
               "UNSUPPORTED_DYNAMIC_EVENT_NAME",
