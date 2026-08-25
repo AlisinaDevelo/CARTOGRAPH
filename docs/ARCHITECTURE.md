@@ -168,6 +168,24 @@ for reviewer action. The matcher does not rewrite stable keys or mutate
 snapshots. The diff pipeline consumes this contract without rewriting
 canonical stable keys.
 
+## Topology summaries
+
+`diffGraphSnapshots` accepts an optional `topology` configuration. The resulting
+GraphDiff contains deterministic `topology.before` and `topology.after`
+summaries. Cycles are strongly connected components (including self-loops),
+with canonical node order and every contributing edge's evidence attached so a
+reviewer can follow the summary back to source records. The SCC algorithm is
+offline and does not infer semantic ownership from names or paths.
+
+Layer assignments are explicit policy metadata: each layer has a stable ID, an
+integer `order`, and a node selector. A higher-order layer may depend on an
+equal or lower-order layer; the reverse direction is reported as a
+`LAYER_BOUNDARY_VIOLATION` with the contributing edge evidence. Nodes matching
+multiple selectors and edges with uncovered endpoints remain unresolved rather
+than receiving a guessed layer. If no layer metadata is supplied, the summary
+contains `UNRESOLVED_LAYER_ASSIGNMENT` and no layer result. Markdown, HTML, and
+JSON reports preserve the cycle, layer, violation, and diagnostic sections.
+
 ## Git revisions
 
 Revision analysis validates refs with Git, archives each tree into its own temporary directory, analyzes the extracted source, and removes the directory in a `finally` path. It does not checkout, reset, stash, or otherwise alter the caller's worktree.

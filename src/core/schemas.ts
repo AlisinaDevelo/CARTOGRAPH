@@ -548,6 +548,56 @@ export const GraphDiffSummarySchema = z
   })
   .strict();
 
+const GraphTopologyEdgeSchema = z
+  .object({
+    from: IdentifierSchema,
+    to: IdentifierSchema,
+    kind: EdgeKindSchema,
+    evidence: z.array(EvidenceSchema).default([]),
+  })
+  .strict();
+
+const GraphTopologyCycleSchema = z
+  .object({
+    id: IdentifierSchema,
+    nodes: z.array(IdentifierSchema).min(1),
+    edges: z.array(GraphTopologyEdgeSchema).min(1),
+  })
+  .strict();
+
+const GraphTopologyLayerSchema = z
+  .object({
+    id: IdentifierSchema,
+    order: z.number().int().nonnegative(),
+    nodeIds: z.array(IdentifierSchema).default([]),
+  })
+  .strict();
+
+const GraphTopologyViolationSchema = z
+  .object({
+    id: IdentifierSchema,
+    fromLayer: IdentifierSchema,
+    toLayer: IdentifierSchema,
+    edge: GraphTopologyEdgeSchema,
+  })
+  .strict();
+
+export const GraphTopologySummarySchema = z
+  .object({
+    cycles: z.array(GraphTopologyCycleSchema).default([]),
+    layers: z.array(GraphTopologyLayerSchema).default([]),
+    violations: z.array(GraphTopologyViolationSchema).default([]),
+    diagnostics: z.array(DiagnosticSchema).default([]),
+  })
+  .strict();
+
+export const GraphDiffTopologySchema = z
+  .object({
+    before: GraphTopologySummarySchema,
+    after: GraphTopologySummarySchema,
+  })
+  .strict();
+
 export const DiffComparisonModeSchema = z.enum(["direct", "merge-base"]);
 
 export const DiffComparisonSchema = z
@@ -586,6 +636,7 @@ export const GraphDiffSchema = z
       .default(CAPABILITY_REGISTRY_VERSION),
     summary: GraphDiffSummarySchema,
     comparison: DiffComparisonSchema.optional(),
+    topology: GraphDiffTopologySchema.optional(),
     fromRevision: RevisionSchema,
     toRevision: RevisionSchema,
     nodes: z
@@ -644,6 +695,14 @@ export type ChangedEdge = z.infer<typeof ChangedEdgeSchema>;
 export type RewiredEdge = z.infer<typeof RewiredEdgeSchema>;
 export type ChangedDiagnostic = z.infer<typeof ChangedDiagnosticSchema>;
 export type GraphDiffSummary = z.infer<typeof GraphDiffSummarySchema>;
+export type GraphTopologyEdge = z.infer<typeof GraphTopologyEdgeSchema>;
+export type GraphTopologyCycle = z.infer<typeof GraphTopologyCycleSchema>;
+export type GraphTopologyLayer = z.infer<typeof GraphTopologyLayerSchema>;
+export type GraphTopologyViolation = z.infer<
+  typeof GraphTopologyViolationSchema
+>;
+export type GraphTopologySummary = z.infer<typeof GraphTopologySummarySchema>;
+export type GraphDiffTopology = z.infer<typeof GraphDiffTopologySchema>;
 export type DiffComparisonMode = z.infer<typeof DiffComparisonModeSchema>;
 export type DiffComparison = z.infer<typeof DiffComparisonSchema>;
 export type GraphDiff = z.infer<typeof GraphDiffSchema>;

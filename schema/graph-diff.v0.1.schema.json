@@ -29,6 +29,9 @@
     "comparison": {
       "$ref": "#/definitions/comparison"
     },
+    "topology": {
+      "$ref": "#/definitions/topology"
+    },
     "fromRevision": {
       "$ref": "#/definitions/revision"
     },
@@ -343,6 +346,94 @@
         "diagnosticsAdded": { "$ref": "#/definitions/count" },
         "diagnosticsRemoved": { "$ref": "#/definitions/count" },
         "diagnosticsChanged": { "$ref": "#/definitions/count" }
+      }
+    },
+    "topologyEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "kind", "evidence"],
+      "properties": {
+        "from": { "$ref": "#/definitions/identifier" },
+        "to": { "$ref": "#/definitions/identifier" },
+        "kind": { "$ref": "#/definitions/edge/properties/kind" },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/evidence" }
+        }
+      }
+    },
+    "topologyCycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "nodes", "edges"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "edges": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/topologyEdge" }
+        }
+      }
+    },
+    "topologyLayer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "order", "nodeIds"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "order": { "type": "integer", "minimum": 0 },
+        "nodeIds": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "topologyViolation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "fromLayer", "toLayer", "edge"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "fromLayer": { "$ref": "#/definitions/identifier" },
+        "toLayer": { "$ref": "#/definitions/identifier" },
+        "edge": { "$ref": "#/definitions/topologyEdge" }
+      }
+    },
+    "topologySummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cycles", "layers", "violations", "diagnostics"],
+      "properties": {
+        "cycles": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/topologyCycle" }
+        },
+        "layers": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/topologyLayer" }
+        },
+        "violations": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/topologyViolation" }
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/diagnostic" }
+        }
+      }
+    },
+    "topology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["before", "after"],
+      "properties": {
+        "before": { "$ref": "#/definitions/topologySummary" },
+        "after": { "$ref": "#/definitions/topologySummary" }
       }
     },
     "fieldChange": {

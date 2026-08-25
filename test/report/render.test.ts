@@ -214,6 +214,20 @@ describe("diff reports", () => {
     expect(html).toContain("merge base <code>111111111111</code>");
   });
 
+  it("renders opt-in topology summaries and unresolved layer diagnostics", () => {
+    const topologyDiff = diffGraphSnapshots(before, after, {
+      topology: {},
+    });
+    const markdown = renderMarkdownReport(topologyDiff);
+    const html = renderHtmlReport(topologyDiff);
+
+    expect(markdown).toContain("## Topology");
+    expect(markdown).toContain("### Before");
+    expect(markdown).toContain("UNRESOLVED_LAYER_ASSIGNMENT");
+    expect(html).toContain('aria-label="Topology"');
+    expect(html).toContain("UNRESOLVED_LAYER_ASSIGNMENT");
+  });
+
   it("renders self-contained HTML that escapes repository-controlled text", () => {
     const report = renderHtmlReport(diff);
 

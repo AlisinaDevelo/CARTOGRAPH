@@ -23,6 +23,11 @@ import {
   assertSupportedCapabilityRegistryVersion,
 } from "./capabilities.js";
 import {
+  canonicalizeGraphTopology,
+  summarizeGraphTopology,
+  type GraphTopologyOptions,
+} from "./topology.js";
+import {
   canonicalizeDiagnostic,
   canonicalizeGraphEdge,
   canonicalizeGraphNode,
@@ -682,6 +687,13 @@ export const canonicalizeGraphDiff = (input: unknown): GraphDiff => {
     removed: sortDiagnostics(parsed.diagnostics.removed),
     changed: canonicalizeChangedDiagnostics(parsed.diagnostics.changed),
   };
+  const topology =
+    parsed.topology === undefined
+      ? undefined
+      : {
+          before: canonicalizeGraphTopology(parsed.topology.before),
+          after: canonicalizeGraphTopology(parsed.topology.after),
+        };
   const summary = summarizeDiff(nodes, edges, diagnostics);
   if (stableStringify(parsed.summary) !== stableStringify(summary)) {
     throw new GraphContractError(
@@ -696,6 +708,7 @@ export const canonicalizeGraphDiff = (input: unknown): GraphDiff => {
     identity,
     edges,
     diagnostics,
+    ...(topology === undefined ? {} : { topology }),
   };
 
   return GraphDiffSchema.parse(canonical);
@@ -712,6 +725,7 @@ export const canonicalizeGraphDiff = (input: unknown): GraphDiff => {
 export type GraphDiffOptions = {
   comparison?: DiffComparison;
   identity?: IdentityReconciliationOptions;
+  topology?: GraphTopologyOptions;
 };
 
 export const diffGraphSnapshots = (
@@ -759,6 +773,14 @@ export const diffGraphSnapshots = (
       ambiguous: identity.ambiguous,
       unsupported: identity.unsupported,
     },
+    ...(options.topology === undefined
+      ? {}
+      : {
+          topology: {
+            before: summarizeGraphTopology(before, options.topology),
+            after: summarizeGraphTopology(after, options.topology),
+          },
+        }),
     edges,
     diagnostics,
   };

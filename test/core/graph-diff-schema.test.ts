@@ -27,6 +27,7 @@ const diffSchema = readJson(
   properties?: {
     schemaVersion?: { const?: number };
     identity?: unknown;
+    topology?: unknown;
   };
 };
 const validateJsonSchema = new Ajv({ allErrors: true }).compile(diffSchema);
@@ -46,6 +47,7 @@ describe("GraphDiff v0.1 JSON Schema", () => {
     );
     expect(diffSchema.properties?.schemaVersion?.const).toBe(1);
     expect(diffSchema.properties?.identity).toBeDefined();
+    expect(diffSchema.properties?.topology).toBeDefined();
   });
 
   it("accepts the valid fixture through JSON Schema and runtime validation", () => {
