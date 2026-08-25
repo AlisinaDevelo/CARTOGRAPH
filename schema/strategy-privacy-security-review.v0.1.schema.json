@@ -1,0 +1,468 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/strategy-privacy-security-review.v0.1.schema.json",
+  "title": "CARTOGRAPH strategy privacy and security review v0.1",
+  "description": "A public, evidence-backed review of the selected OSS-only local-first strategy branch and its rejected hosted boundary.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "reviewId",
+    "asOf",
+    "selectedBranch",
+    "decision",
+    "scope",
+    "assets",
+    "actors",
+    "dataFlows",
+    "tenancyAuthorization",
+    "retention",
+    "resolvedQuestions",
+    "incidentResponse",
+    "supplyChain",
+    "abuseCases",
+    "blockingMitigations",
+    "rejectedDataCollection",
+    "residualRisks",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.strategy-privacy-security-review" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.strategy-privacy-security-review+json"
+    },
+    "reviewId": { "$ref": "#/definitions/identifier" },
+    "asOf": { "$ref": "#/definitions/dateTime" },
+    "selectedBranch": { "$ref": "#/definitions/selectedBranch" },
+    "decision": { "$ref": "#/definitions/decision" },
+    "scope": { "$ref": "#/definitions/scope" },
+    "assets": {
+      "type": "array",
+      "minItems": 7,
+      "items": { "$ref": "#/definitions/asset" }
+    },
+    "actors": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/definitions/actor" }
+    },
+    "dataFlows": {
+      "type": "array",
+      "minItems": 7,
+      "items": { "$ref": "#/definitions/dataFlow" }
+    },
+    "tenancyAuthorization": { "$ref": "#/definitions/tenancyAuthorization" },
+    "retention": {
+      "type": "array",
+      "minItems": 7,
+      "items": { "$ref": "#/definitions/retention" }
+    },
+    "resolvedQuestions": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/definitions/reviewQuestion" }
+    },
+    "incidentResponse": { "$ref": "#/definitions/incidentResponse" },
+    "supplyChain": { "$ref": "#/definitions/supplyChain" },
+    "abuseCases": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/definitions/abuseCase" }
+    },
+    "blockingMitigations": {
+      "type": "array",
+      "minItems": 7,
+      "items": { "$ref": "#/definitions/mitigation" }
+    },
+    "rejectedDataCollection": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/definitions/rejectedCollection" }
+    },
+    "residualRisks": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/definitions/residualRisk" }
+    },
+    "provenance": { "$ref": "#/definitions/provenance" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "dateTime": { "type": "string", "format": "date-time" },
+    "evidenceRefs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/text" }
+    },
+    "selectedBranch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "description", "rationale", "evidenceRefs"],
+      "properties": {
+        "id": { "const": "oss-local-first" },
+        "status": { "const": "accepted" },
+        "description": { "$ref": "#/definitions/text" },
+        "rationale": { "$ref": "#/definitions/text" },
+        "evidenceRefs": { "$ref": "#/definitions/evidenceRefs" }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "hostedExpansion",
+        "newTrustBoundaryRequired",
+        "rationale",
+        "revisitTriggers",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "const": "oss-only-no-new-boundary" },
+        "hostedExpansion": { "const": "deferred" },
+        "newTrustBoundaryRequired": { "const": false },
+        "rationale": { "$ref": "#/definitions/text" },
+        "revisitTriggers": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "evidenceRefs": { "$ref": "#/definitions/evidenceRefs" }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "network",
+        "sourceUpload",
+        "hiddenTelemetry",
+        "hostedService",
+        "accountRequired",
+        "multiTenantStorage",
+        "repositoryCodeExecution",
+        "collectionMode"
+      ],
+      "properties": {
+        "network": { "const": false },
+        "sourceUpload": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "hostedService": { "const": false },
+        "accountRequired": { "const": false },
+        "multiTenantStorage": { "const": false },
+        "repositoryCodeExecution": { "const": false },
+        "collectionMode": { "const": "local-explicit-inputs-only" }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "classification",
+        "description",
+        "integrityControl",
+        "retention",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "classification": {
+          "enum": ["confidential", "internal", "public", "availability"]
+        },
+        "description": { "$ref": "#/definitions/text" },
+        "integrityControl": { "$ref": "#/definitions/text" },
+        "retention": { "$ref": "#/definitions/text" },
+        "evidenceRefs": { "$ref": "#/definitions/evidenceRefs" }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "role",
+        "startingAuthority",
+        "canDo",
+        "cannotDo",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "role": { "$ref": "#/definitions/text" },
+        "startingAuthority": { "$ref": "#/definitions/text" },
+        "canDo": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "cannotDo": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "evidenceRefs": { "$ref": "#/definitions/evidenceRefs" }
+      }
+    },
+    "dataFlow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "from",
+        "to",
+        "data",
+        "purpose",
+        "network",
+        "storage",
+        "retention",
+        "authorization",
+        "controls",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "from": { "$ref": "#/definitions/text" },
+        "to": { "$ref": "#/definitions/text" },
+        "data": { "$ref": "#/definitions/text" },
+        "purpose": { "$ref": "#/definitions/text" },
+        "network": { "type": "boolean" },
+        "storage": {
+          "enum": [
+            "none",
+            "ephemeral",
+            "caller-selected-local",
+            "bounded-memory",
+            "github-artifact",
+            "public-release"
+          ]
+        },
+        "retention": { "$ref": "#/definitions/text" },
+        "authorization": { "$ref": "#/definitions/text" },
+        "controls": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "evidenceRefs": { "$ref": "#/definitions/evidenceRefs" }
+      }
+    },
+    "tenancyAuthorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "multiTenant",
+        "accountRequired",
+        "authModel",
+        "actionPermission",
+        "secretsAvailable",
+        "sourceUpload",
+        "operatorObligation",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "multiTenant": { "const": false },
+        "accountRequired": { "const": false },
+        "authModel": { "const": "none-local-caller-authorized" },
+        "actionPermission": { "const": "contents-read-only" },
+        "secretsAvailable": { "const": false },
+        "sourceUpload": { "const": false },
+        "operatorObligation": { "$ref": "#/definitions/text" },
+        "evidenceRefs": { "$ref": "#/definitions/evidenceRefs" }
+      }
+    },
+    "retention": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "state", "rule", "deletionOwner", "evidenceRefs"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "state": {
+          "enum": [
+            "ephemeral",
+            "caller-controlled",
+            "bounded-memory",
+            "short-lived-public-artifact",
+            "not-collected"
+          ]
+        },
+        "rule": { "$ref": "#/definitions/text" },
+        "deletionOwner": { "$ref": "#/definitions/text" },
+        "evidenceRefs": { "$ref": "#/definitions/evidenceRefs" }
+      }
+    },
+    "reviewQuestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "question", "resolution", "status", "evidenceRefs"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "question": { "$ref": "#/definitions/text" },
+        "resolution": { "$ref": "#/definitions/text" },
+        "status": { "enum": ["resolved", "gap-remains"] },
+        "evidenceRefs": { "$ref": "#/definitions/evidenceRefs" }
+      }
+    },
+    "incidentResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reporting",
+        "detection",
+        "containment",
+        "disclosure",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "reporting": { "$ref": "#/definitions/text" },
+        "detection": { "$ref": "#/definitions/text" },
+        "containment": { "$ref": "#/definitions/text" },
+        "disclosure": { "$ref": "#/definitions/text" },
+        "evidenceRefs": { "$ref": "#/definitions/evidenceRefs" }
+      }
+    },
+    "supplyChain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "installScriptsExecuted",
+        "actionsPinned",
+        "lockfileRequired",
+        "dependencyReview",
+        "codeql",
+        "provenance",
+        "releaseStatus",
+        "residual",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "installScriptsExecuted": { "const": false },
+        "actionsPinned": { "const": true },
+        "lockfileRequired": { "const": true },
+        "dependencyReview": { "const": true },
+        "codeql": { "const": true },
+        "provenance": { "const": true },
+        "releaseStatus": { "const": "no-public-release-yet" },
+        "residual": { "$ref": "#/definitions/text" },
+        "evidenceRefs": { "$ref": "#/definitions/evidenceRefs" }
+      }
+    },
+    "abuseCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "attacker",
+        "entryPoint",
+        "capabilityGain",
+        "impact",
+        "controls",
+        "mitigation",
+        "status",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "attacker": { "$ref": "#/definitions/text" },
+        "entryPoint": { "$ref": "#/definitions/text" },
+        "capabilityGain": { "$ref": "#/definitions/text" },
+        "impact": { "$ref": "#/definitions/text" },
+        "controls": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "mitigation": { "$ref": "#/definitions/text" },
+        "status": {
+          "enum": ["blocked", "required-before-expansion", "accepted-residual"]
+        },
+        "evidenceRefs": { "$ref": "#/definitions/evidenceRefs" }
+      }
+    },
+    "mitigation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "requirement",
+        "status",
+        "blockingReason",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "requirement": { "$ref": "#/definitions/text" },
+        "status": {
+          "enum": ["enforced", "required-before-expansion", "deferred"]
+        },
+        "blockingReason": { "$ref": "#/definitions/text" },
+        "evidenceRefs": { "$ref": "#/definitions/evidenceRefs" }
+      }
+    },
+    "rejectedCollection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "item", "rationale", "evidenceRefs"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "item": { "$ref": "#/definitions/text" },
+        "rationale": { "$ref": "#/definitions/text" },
+        "evidenceRefs": { "$ref": "#/definitions/evidenceRefs" }
+      }
+    },
+    "residualRisk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "risk",
+        "impact",
+        "owner",
+        "treatment",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "risk": { "$ref": "#/definitions/text" },
+        "impact": { "$ref": "#/definitions/text" },
+        "owner": { "$ref": "#/definitions/text" },
+        "treatment": { "$ref": "#/definitions/text" },
+        "evidenceRefs": { "$ref": "#/definitions/evidenceRefs" }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "license",
+        "reference",
+        "transformation",
+        "sourceBodiesIncluded",
+        "secretsIncluded",
+        "redistribution"
+      ],
+      "properties": {
+        "source": { "$ref": "#/definitions/text" },
+        "license": { "const": "Apache-2.0" },
+        "reference": { "$ref": "#/definitions/text" },
+        "transformation": { "$ref": "#/definitions/text" },
+        "sourceBodiesIncluded": { "const": false },
+        "secretsIncluded": { "const": false },
+        "redistribution": { "const": "allowed" }
+      }
+    }
+  }
+}

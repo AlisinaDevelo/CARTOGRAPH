@@ -200,6 +200,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "strategy-privacy-security-review",
+      "path": "strategy-security",
+      "source": "CARTOGRAPH repository-authored strategy privacy and security review fixture",
+      "license": "Apache-2.0",
+      "reference": "M-009 strategy-branch privacy and security review; F-002 threat model; M-005 scorecard; M-006 ADR",
+      "transformation": "The review maps the selected OSS-only local-first branch's assets, actors, data flows, retention, incident response, supply chain, abuse cases, controls, and rejected collection without source bodies, secrets, private records, or telemetry.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "review-regressions",
       "path": "review-regressions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

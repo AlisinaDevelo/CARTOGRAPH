@@ -95,6 +95,20 @@ device reproduction recorded in `docs/evidence/f-001-product-charter.md`. A futu
 collector or report integration must add a separate opt-in test and update this threat
 model before it is included in the support matrix.
 
+## Strategy-branch privacy and security review
+
+The accepted M-009 review selects the `oss-local-first` branch and records why
+no new trust boundary is needed in
+[`STRATEGY_PRIVACY_SECURITY_REVIEW.md`](STRATEGY_PRIVACY_SECURITY_REVIEW.md).
+Its versioned fixture covers assets, actors, local and Action data flows,
+tenancy and authorization assumptions, retention, incident response,
+supply-chain risks, abuse cases, blocking mitigations, rejected collection, and
+residual risks. The selected scope keeps network access, source upload, hidden
+telemetry, hosted service, accounts, multi-tenant storage, and repository-code
+execution disabled. Any hosted, team, provider, automatic-binding, or broader
+runtime proposal requires a public RFC, refreshed evidence, and a separate
+reviewed ADR before implementation.
+
 ## Accepted residual risks
 
 Static analysis is incomplete for dynamic JavaScript. CARTOGRAPH mitigates this with diagnostics and confidence labels; it does not claim completeness. The TypeScript compiler and npm dependency chain remain trusted dependencies and require ongoing patching and release review.

@@ -49,6 +49,14 @@ and cost model must be published (M-010), and the claims audit and capacity
 charter must be explicit. A later ADR may still choose to defer, narrow, or
 sunset the proposed expansion.
 
+The accepted M-009 [strategy-branch privacy and security review](../STRATEGY_PRIVACY_SECURITY_REVIEW.md)
+records the selected `oss-local-first` branch, its assets, actors, data flows,
+retention and incident-response assumptions, blocking mitigations, and rejected
+collection. Its versioned fixture is validated offline and remains bound to the
+same local-first decision.
+Review ID: `strategy-privacy-security-review-v0.1`.
+Review digest: `sha256:6d64721736a7fad5eea4f940e366ec7723dd66522b23800ed514366ecec5fb1e`.
+
 ## Alternatives
 
 - **Authorize hosted discovery now** — rejected because the current scorecard
