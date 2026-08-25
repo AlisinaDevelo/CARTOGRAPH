@@ -254,6 +254,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "policy-decision-drift",
+      "path": "policy-decision-drift",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A curated offline scenario suite combines graph diffs, local policies, ADR references, exceptions, and schema boundaries to publish expected and observed drift findings with reviewer effort and categorized noise.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "snapshots",
       "path": "snapshots",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

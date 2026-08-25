@@ -121,6 +121,14 @@ violation; expired and malformed records remain visible and leave the finding
 intact. The validator checks report-schema conformance, evidence references,
 expected suppression, and deterministic repeated evaluation.
 
+P-018 adds the offline [policy and decision drift evaluation](POLICY_DECISION_DRIFT.md).
+Its six curated scenarios compare expected and observed findings for ADR
+supersession, removed architecture, policy changes, unreferenced additions,
+exceptions, and mixed schema versions. The report publishes evidence-linked
+findings, false-positive categories, reviewer minutes and steps, and the Year 2
+Q3 milestone exit decision; `npm run policy-drift:validate` is a local release
+gate.
+
 ## Practical compatibility
 
 R-005 records the first compatibility review in
