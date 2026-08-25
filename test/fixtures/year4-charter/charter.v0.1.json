@@ -1,0 +1,366 @@
+{
+  "$schema": "../../schema/year4-investment-charter.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.year4-investment-charter",
+  "mediaType": "application/vnd.cartograph.year4-investment-charter+json",
+  "charterId": "year4-investment-charter-v0.1",
+  "asOf": "2026-08-25T19:00:00Z",
+  "scope": {
+    "publicOnly": true,
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "privateDataIncluded": false,
+    "hiddenTelemetry": false,
+    "sourceUpload": false,
+    "accountRequired": false,
+    "hostedExpansion": "deferred"
+  },
+  "selectedTrack": {
+    "id": "conditional-maintenance-first",
+    "category": "maintenance-track",
+    "status": "accepted",
+    "fundingMode": "unfunded-capacity-gated",
+    "expansion": "deferred",
+    "description": "Maintain the local-first OSS analyzer, its security and compatibility boundaries, and its reproducible evidence without starting Year 4 team-scale feature work.",
+    "rationale": "The accepted strategy and ADR keep the product local-first; sustainability ranges are planning assumptions; the claims audit records incomplete evidence; adoption is a technical sample; and maintainer backup staffing is unverified.",
+    "evidenceRefs": [
+      "docs/adr/0007-local-first-investment-boundary.md",
+      "docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md",
+      "docs/SUSTAINABILITY_COST_MODEL.md",
+      "docs/CLAIMS_AUDIT.md",
+      "docs/ADOPTION_EVALUATION.md"
+    ]
+  },
+  "owners": [
+    {
+      "id": "primary-maintainer",
+      "handle": "@AlisinaDevelo",
+      "role": "Maintainer for local contracts, security boundaries, evidence, releases, and roadmap decisions",
+      "status": "named",
+      "backupStatus": "documented-unverified",
+      "responsibilities": [
+        "Keep local graph, diff, adapter, policy, and report contracts compatible.",
+        "Review security, dependency, workflow, and release-boundary changes.",
+        "Run and publish the local verification and evidence gates.",
+        "Review capacity and stop conditions before each quarter's work.",
+        "Keep public RFC, issue, and handoff routes current."
+      ],
+      "evidenceRefs": [
+        "docs/MAINTENANCE.md",
+        "docs/MAINTAINER_RESILIENCE.md",
+        "GOVERNANCE.md"
+      ]
+    }
+  ],
+  "capacity": {
+    "status": "unmeasured",
+    "namedMaintainers": 1,
+    "verifiedBackups": 0,
+    "numericQuarterCommitment": null,
+    "fundingStatus": "not-approved",
+    "commitment": "none",
+    "capacityStatement": "No maintainer-time series, staffed independent backup, funding approval, or numeric quarterly commitment is observed. Work starts only when the named maintainer can explicitly accept it.",
+    "evidenceRefs": [
+      "docs/MAINTAINER_RESILIENCE.md",
+      "docs/OSS_HEALTH_SCORECARD.md",
+      "docs/SUSTAINABILITY_COST_MODEL.md"
+    ]
+  },
+  "gates": [
+    {
+      "id": "strategy-security-review",
+      "status": "accepted",
+      "decision": "oss-only-no-new-boundary",
+      "digest": "sha256:6d64721736a7fad5eea4f940e366ec7723dd66522b23800ed514366ecec5fb1e",
+      "limitations": [
+        "The review preserves documented resource, Action, adapter, and release gaps; it does not authorize hosted collection or a new trust boundary."
+      ],
+      "evidenceRefs": [
+        "docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md",
+        "test/fixtures/strategy-security/review.v0.1.json"
+      ]
+    },
+    {
+      "id": "local-first-investment-adr",
+      "status": "accepted",
+      "decision": "local-first-oss-stewardship",
+      "digest": null,
+      "limitations": [
+        "A materially different hosted, account, or team direction requires a public RFC and a separate reviewed ADR."
+      ],
+      "evidenceRefs": ["docs/adr/0007-local-first-investment-boundary.md"]
+    },
+    {
+      "id": "sustainability-cost-model",
+      "status": "accepted-with-limitations",
+      "decision": "local-first-capacity-gated",
+      "digest": "sha256:c97f9910a50ba5b6d905183d85ebc745316c759acc10703628655a379cad8828",
+      "limitations": [
+        "Ranges are planning assumptions, not invoices, funding approval, measured capacity, or a service budget.",
+        "Hosted team expansion remains deferred and unknown rather than zero."
+      ],
+      "evidenceRefs": [
+        "docs/SUSTAINABILITY_COST_MODEL.md",
+        "test/fixtures/sustainability-cost/report.v0.1.json"
+      ]
+    },
+    {
+      "id": "claims-audit",
+      "status": "accepted-with-limitations",
+      "decision": "defer-expansion",
+      "digest": "sha256:9816d6bdc618f4c34113f44f02e080ca3e764bdf27df24f5cfa206406560e71f",
+      "limitations": [
+        "The audit records 15 verified, 9 partial, 1 unsupported, 1 negative, 4 not-observed, and 2 deferred claims; incomplete evidence is not converted into traction or accuracy claims."
+      ],
+      "evidenceRefs": [
+        "docs/CLAIMS_AUDIT.md",
+        "test/fixtures/claims-audit/audit.v0.1.json"
+      ]
+    },
+    {
+      "id": "adoption-evaluation",
+      "status": "accepted-with-limitations",
+      "decision": "technical-sample-not-adoption",
+      "digest": "sha256:f0fa50be0315043d26af5b2355ee34f7b439a119a6cf9af227c763bb92de82f1",
+      "limitations": [
+        "Three pinned public records are a compatibility sample; repository size, timing, framework inventory, external reviewer usefulness, representative adoption, certification, and support remain not observed."
+      ],
+      "evidenceRefs": [
+        "docs/ADOPTION_EVALUATION.md",
+        "test/fixtures/adoption-evaluation/report.v0.1.json"
+      ]
+    },
+    {
+      "id": "maintainer-resilience",
+      "status": "accepted-with-limitations",
+      "decision": "documented-routes-unverified-backup",
+      "digest": null,
+      "limitations": [
+        "The public role map and two synthetic rehearsals reduce discovery friction but do not establish independent staffing, succession, or a support SLA."
+      ],
+      "evidenceRefs": [
+        "docs/MAINTAINER_RESILIENCE.md",
+        "test/fixtures/maintainer-resilience/report.v0.1.json"
+      ]
+    }
+  ],
+  "outcomes": [
+    {
+      "id": "local-core-continuity",
+      "status": "maintenance-only",
+      "objective": "Keep the supported local TypeScript/Express analyzer, graph and diff contracts, reports, policies, adapters, and read-only Action coherent through compatibility-preserving fixes.",
+      "ownerId": "primary-maintainer",
+      "capacityGate": "explicit-capacity-required",
+      "stopConditions": [
+        "Pause when the named maintainer cannot accept the work in the current quarter.",
+        "Stop and open a public RFC when the change needs a new account, hosted service, source-upload, or authorization boundary."
+      ],
+      "evidenceRefs": [
+        "docs/ARCHITECTURE.md",
+        "docs/MAINTENANCE.md",
+        "docs/SUPPORT_MATRIX.md"
+      ]
+    },
+    {
+      "id": "security-and-dependency-maintenance",
+      "status": "maintenance-only",
+      "objective": "Maintain dependency, workflow, security, adapter, release-rehearsal, and known hosted-fixture follow-up controls without claiming hosted check success.",
+      "ownerId": "primary-maintainer",
+      "capacityGate": "explicit-capacity-required",
+      "stopConditions": [
+        "A failed security, dependency, schema, or local release gate is a no-go until repaired or explicitly documented.",
+        "Do not publish a release or expand support while ownership, provenance, or the declared compatibility boundary is unresolved."
+      ],
+      "evidenceRefs": [
+        "SECURITY.md",
+        "docs/RELEASE.md",
+        "docs/RELEASE_REHEARSAL.md",
+        "docs/ADAPTER_RETIREMENT.md"
+      ]
+    },
+    {
+      "id": "evidence-and-documentation-replay",
+      "status": "maintenance-only",
+      "objective": "Keep public schemas, synthetic fixtures, provenance, claims limitations, adoption limits, and documentation links reproducible from local repository state.",
+      "ownerId": "primary-maintainer",
+      "capacityGate": "explicit-capacity-required",
+      "stopConditions": [
+        "Do not convert a local pass, technical sample, or not-observed field into an external adoption, accuracy, certification, or support claim.",
+        "Refresh the bound evidence and charter when a source contract, strategy boundary, or material claim changes."
+      ],
+      "evidenceRefs": [
+        "docs/FIXTURES.md",
+        "docs/CLAIMS_AUDIT.md",
+        "docs/ADOPTION_EVALUATION.md",
+        "docs/ROADMAP.md"
+      ]
+    },
+    {
+      "id": "maintainer-route-rehearsal",
+      "status": "maintenance-only",
+      "objective": "Preserve public onboarding and backup routes and repeat a bounded non-author rehearsal only when an actual independent contributor is available.",
+      "ownerId": "primary-maintainer",
+      "capacityGate": "explicit-capacity-required",
+      "stopConditions": [
+        "A synthetic rehearsal must not be reported as independent staffing or succession evidence.",
+        "Freeze promotion or release when the responsible owner or a safe handoff route is unavailable."
+      ],
+      "evidenceRefs": [
+        "docs/MAINTAINER_RESILIENCE.md",
+        "CONTRIBUTING.md",
+        "GOVERNANCE.md"
+      ]
+    }
+  ],
+  "quarters": [
+    {
+      "id": "year4-q1",
+      "period": "August–October 2029",
+      "status": "maintenance-only",
+      "objective": "Preserve the local core and security/dependency gates; do not start bounded query or workspace feature work.",
+      "ownerId": "primary-maintainer",
+      "plannedOutcomeIds": [
+        "local-core-continuity",
+        "security-and-dependency-maintenance"
+      ],
+      "stopConditions": [
+        "No explicit maintainer capacity means maintenance is paused or narrowed to security response.",
+        "Any strategy, security, sustainability, or claims gate that is stale or materially changed blocks expansion.",
+        "A proposed feature needs source upload, an account, hidden telemetry, or a new authorization boundary."
+      ],
+      "evidenceRefs": ["docs/ROADMAP.md", "docs/MAINTENANCE.md"]
+    },
+    {
+      "id": "year4-q2",
+      "period": "November 2029–January 2030",
+      "status": "maintenance-only",
+      "objective": "Maintain offline evidence, provenance, and documentation replay; do not start multi-repository composition.",
+      "ownerId": "primary-maintainer",
+      "plannedOutcomeIds": ["evidence-and-documentation-replay"],
+      "stopConditions": [
+        "No explicit maintainer capacity stops non-security documentation and evidence work.",
+        "A local result with unknown or partial coverage must remain labeled and cannot authorize a broader claim.",
+        "Any federation or workspace proposal introduces an unreviewed boundary or cannot preserve local-only operation."
+      ],
+      "evidenceRefs": ["docs/ROADMAP.md", "docs/FIXTURES.md"]
+    },
+    {
+      "id": "year4-q3",
+      "period": "February–April 2030",
+      "status": "maintenance-only",
+      "objective": "Review ownership and public handoff routes; do not start governed team review or interoperability features.",
+      "ownerId": "primary-maintainer",
+      "plannedOutcomeIds": ["maintainer-route-rehearsal"],
+      "stopConditions": [
+        "No independent contributor acknowledgement keeps backup staffing unverified and blocks scope growth.",
+        "A security, release, or adapter owner gap freezes promotion rather than being silently assigned.",
+        "A proposed team workflow requires hosted history, tenant authorization, or a support promise."
+      ],
+      "evidenceRefs": [
+        "docs/MAINTAINER_RESILIENCE.md",
+        "docs/ADAPTER_RETIREMENT.md"
+      ]
+    },
+    {
+      "id": "year4-q4",
+      "period": "May–July 2030",
+      "status": "maintenance-only",
+      "objective": "Renew, narrow, transfer, or sunset the maintenance charter from refreshed evidence; do not auto-authorize assurance bundles.",
+      "ownerId": "primary-maintainer",
+      "plannedOutcomeIds": [
+        "local-core-continuity",
+        "evidence-and-documentation-replay",
+        "maintainer-route-rehearsal"
+      ],
+      "stopConditions": [
+        "Without refreshed strategy, security, sustainability, claims, and capacity evidence, continue maintenance or sunset rather than expand.",
+        "No funding or staffed owner means no funded team-scale commitment.",
+        "Any new trust boundary requires a public RFC, privacy/security review, cost model, and separate ADR before work begins."
+      ],
+      "evidenceRefs": [
+        "docs/ROADMAP.md",
+        "docs/adr/0007-local-first-investment-boundary.md"
+      ]
+    }
+  ],
+  "risks": [
+    {
+      "id": "single-maintainer-capacity",
+      "severity": "high",
+      "status": "open",
+      "description": "One named maintainer owns the current roles and no independent backup staffing is verified.",
+      "mitigation": "Keep public onboarding and handoff routes, require explicit capacity before work, and freeze promotion when ownership is unavailable.",
+      "evidenceRefs": ["docs/MAINTAINER_RESILIENCE.md", "docs/MAINTENANCE.md"]
+    },
+    {
+      "id": "hosted-check-ceilings",
+      "severity": "medium",
+      "status": "open",
+      "description": "Hosted Node 22 Action fixtures and Node 24 adapter validation have recurring environment-specific failures.",
+      "mitigation": "Run the complete local pipe, retain the exact hosted failure record, repair fixtures or budgets before treating hosted checks as passing, and do not claim hosted success from local evidence.",
+      "evidenceRefs": ["docs/MAINTENANCE.md", "docs/RELEASE_REHEARSAL.md"]
+    },
+    {
+      "id": "unverified-adoption-and-traction",
+      "severity": "high",
+      "status": "open",
+      "description": "The compatibility and adoption records are technical samples; repeat users, contributors, retention, reviewer usefulness, and support load remain not observed.",
+      "mitigation": "Keep the adoption report aggregate-only and defer traction, certification, support, and market claims until consented reproducible evidence exists.",
+      "evidenceRefs": [
+        "docs/ADOPTION_EVALUATION.md",
+        "docs/OSS_HEALTH_SCORECARD.md"
+      ]
+    },
+    {
+      "id": "unsupported-claim-drift",
+      "severity": "high",
+      "status": "open",
+      "description": "Partial, unsupported, negative, and not-observed Year 1–3 claims could be mistaken for roadmap-completion or broad accuracy evidence.",
+      "mitigation": "Keep the claims audit digest-bound, preserve negative and unknown outcomes, and require a refreshed audit for any material strategy decision.",
+      "evidenceRefs": [
+        "docs/CLAIMS_AUDIT.md",
+        "test/fixtures/claims-audit/audit.v0.1.json"
+      ]
+    },
+    {
+      "id": "scope-and-release-creep",
+      "severity": "medium",
+      "status": "open",
+      "description": "A backlog item or release request could widen support, authority, or operational promises without capacity and boundary review.",
+      "mitigation": "Require public RFC and separate ADR for new boundaries, enforce release and support gates, and keep Year 4 outcomes maintenance-only.",
+      "evidenceRefs": ["GOVERNANCE.md", "docs/RELEASE.md", "docs/ROADMAP.md"]
+    }
+  ],
+  "nonGoals": [
+    "A hosted analyzer, hosted source storage, account, tenant, or team workspace.",
+    "Source upload, hidden telemetry, background collection, or an automatic runtime collector.",
+    "A funded team-scale commitment or a numeric staffing, support, or release budget.",
+    "Certification, formal compliance, representative adoption, market traction, or support guarantees.",
+    "Broad Rust coverage or any unsupported language or construct claim.",
+    "A public SLA, fixed security response time, or release-date promise.",
+    "Automatic authorization of Year 4 query, federation, governed-review, or assurance-bundle features.",
+    "Treating hosted checks, local synthetic rehearsals, or backlog completion as independent evidence."
+  ],
+  "summary": {
+    "selectedTrack": "conditional-maintenance-first",
+    "gateCount": 6,
+    "outcomeCount": 4,
+    "quarterCount": 4,
+    "riskCount": 5,
+    "nonGoalCount": 8,
+    "hostedExpansion": "deferred",
+    "fundedTeamScale": false,
+    "ossHardeningBeyondMaintenance": false,
+    "capacityStatus": "unmeasured",
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "privateDataIncluded": false,
+    "hiddenTelemetry": false
+  },
+  "provenance": {
+    "source": "CARTOGRAPH repository-authored conditional Year 4 governance fixture",
+    "reference": "M-012 charter; M-006 ADR; M-009 strategy review; M-010 sustainability model; M-011 claims audit; R-017 adoption evaluation; M-008 maintainer resilience",
+    "transformation": "The fixture binds prior public decisions and limitations into a maintenance-only, capacity-gated quarter plan without retaining source bodies, private records, credentials, telemetry, or hosted data.",
+    "redistribution": "allowed"
+  }
+}

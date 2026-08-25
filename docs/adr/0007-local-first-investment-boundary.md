@@ -59,8 +59,9 @@ Review digest: `sha256:6d64721736a7fad5eea4f940e366ec7723dd66522b23800ed514366ec
 
 The accepted M-011 [Year 1–3 claims audit](../CLAIMS_AUDIT.md) maps the
 capability, quality, privacy, adoption, and maintenance claims that remain
-material to this decision. Its non-verified results feed a conditional
-maintenance-first Year 4 charter rather than authorizing hosted or team scope.
+material to this decision. Its non-verified results feed the [conditional
+maintenance-first Year 4 charter](../YEAR4_INVESTMENT_CHARTER.md) rather than
+authorizing hosted or team scope.
 Audit ID: `claims-audit-year1-3-v0.1`.
 Audit digest: `sha256:9816d6bdc618f4c34113f44f02e080ca3e764bdf27df24f5cfa206406560e71f`.
 
