@@ -23,6 +23,16 @@ export {
   type GraphDiffOptions,
 } from "./diff.js";
 export {
+  canonicalizeGraphTopology,
+  GraphLayerDefinitionSchema,
+  GraphTopologyOptionsSchema,
+  GraphTopologyValidationError,
+  serializeGraphTopology,
+  summarizeGraphTopology,
+  type GraphLayerDefinition,
+  type GraphTopologyOptions,
+} from "./topology.js";
+export {
   computeForwardImpact,
   computeImpactSubgraph,
   computeReverseImpact,
@@ -102,8 +112,10 @@ export {
   EdgeChangeClassificationSchema,
   EvidenceSchema,
   GraphDiffSchema,
+  GraphDiffTopologySchema,
   GraphDiffSummarySchema,
   GraphEdgeSchema,
+  GraphTopologySummarySchema,
   GraphNodeSchema,
   GraphSnapshotSchema,
   RewiredEdgeSchema,
@@ -111,6 +123,7 @@ export {
   SourceLocationSchema,
   GRAPH_DIFF_SCHEMA_VERSION,
   GRAPH_SNAPSHOT_SCHEMA_VERSION,
+  type GraphTopologySummary,
 } from "./schemas.js";
 export {
   migrateGraphSnapshot,

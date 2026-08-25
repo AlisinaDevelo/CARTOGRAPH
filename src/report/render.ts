@@ -6,6 +6,7 @@ import {
   type Evidence,
   type GraphDiff,
   type GraphEdge,
+  type GraphTopologySummary,
 } from "../core/index.js";
 import { assertReportItemLimit, ResourceLimitError } from "../resources.js";
 import type { AdrCoverage, AdrReport, AdrReportReference } from "./adr.js";
@@ -130,6 +131,58 @@ const markdownEdge = (edge: GraphEdge): string => {
     evidence ||
     markdownCode(`unresolved: ${edge.unresolvedReason ?? "unspecified"}`);
   return `- ${markdownCode(edge.from)} ${markdownCode(edge.kind)} ${markdownCode(edge.to)} — ${basis}`;
+};
+
+const markdownTopologyEdge = (
+  edge: GraphTopologySummary["cycles"][number]["edges"][number],
+): string => {
+  const evidence = edge.evidence
+    .map((item) => markdownCode(evidenceLabel(item)))
+    .join(", ");
+  return `- ${markdownCode(edge.from)} ${markdownCode(edge.kind)} ${markdownCode(edge.to)} — evidence: ${evidence || markdownCode("none")}`;
+};
+
+const markdownTopologySummary = (
+  title: string,
+  topology: GraphTopologySummary,
+): string[] => {
+  const lines = [
+    `### ${title}`,
+    "",
+    `- ${plural(topology.cycles.length, "cycle")} summarized; ${plural(topology.layers.length, "layer")} configured; ${plural(topology.violations.length, "layer violation")} found`,
+  ];
+  if (topology.cycles.length > 0) {
+    lines.push("", "#### Cycles", "");
+    for (const cycle of topology.cycles) {
+      lines.push(
+        `- ${markdownCode(cycle.id)} — nodes: ${cycle.nodes.map(markdownCode).join(", ")}`,
+        ...cycle.edges.map(markdownTopologyEdge),
+      );
+    }
+  }
+  if (topology.layers.length > 0) {
+    lines.push("", "#### Configured layers", "");
+    lines.push(
+      ...topology.layers.map(
+        (layer) =>
+          `- ${markdownCode(layer.id)} (order ${layer.order}) — nodes: ${layer.nodeIds.length === 0 ? markdownCode("none") : layer.nodeIds.map(markdownCode).join(", ")}`,
+      ),
+    );
+  }
+  if (topology.violations.length > 0) {
+    lines.push("", "#### Layer violations", "");
+    for (const violation of topology.violations) {
+      lines.push(
+        `- ${markdownCode(violation.fromLayer)} → ${markdownCode(violation.toLayer)} — ${markdownCode(violation.id)}`,
+        markdownTopologyEdge(violation.edge),
+      );
+    }
+  }
+  if (topology.diagnostics.length > 0) {
+    lines.push("", "#### Topology diagnostics", "");
+    lines.push(...topology.diagnostics.map(markdownDiagnostic));
+  }
+  return lines;
 };
 
 const changedPaths = (changes: readonly { readonly path: string }[]): string =>
@@ -375,6 +428,12 @@ export function renderMarkdownReport(
     );
   }
 
+  if (diff.topology !== undefined) {
+    lines.push("", "## Topology", "");
+    lines.push(...markdownTopologySummary("Before", diff.topology.before));
+    lines.push(...markdownTopologySummary("After", diff.topology.after));
+  }
+
   const diagnosticGroups = [
     ["Added diagnostics", diff.diagnostics.added] as const,
     ["Removed diagnostics", diff.diagnostics.removed] as const,
@@ -418,6 +477,31 @@ const htmlEvidence = (edge: GraphEdge): string => {
 
 const htmlEdge = (edge: GraphEdge): string =>
   `<code>${escapeHtml(edge.from)}</code> <strong>${escapeHtml(edge.kind)}</strong> <code>${escapeHtml(edge.to)}</code><div class="evidence">${htmlEvidence(edge)}</div>`;
+
+const htmlTopologyEdge = (
+  edge: GraphTopologySummary["cycles"][number]["edges"][number],
+): string =>
+  `<code>${escapeHtml(edge.from)}</code> <strong>${escapeHtml(edge.kind)}</strong> <code>${escapeHtml(edge.to)}</code><div class="evidence">evidence: ${edge.evidence.length === 0 ? "none" : edge.evidence.map((item) => `<code>${escapeHtml(evidenceLabel(item))}</code>`).join(", ")}</div>`;
+
+const htmlTopologySummary = (
+  title: string,
+  topology: GraphTopologySummary,
+): string => {
+  const cycles = topology.cycles.map(
+    (cycle) =>
+      `<li><code>${escapeHtml(cycle.id)}</code> — nodes: ${cycle.nodes.map((node) => `<code>${escapeHtml(node)}</code>`).join(", ")}<ul>${cycle.edges.map((edge) => `<li>${htmlTopologyEdge(edge)}</li>`).join("")}</ul></li>`,
+  );
+  const layers = topology.layers.map(
+    (layer) =>
+      `<li><code>${escapeHtml(layer.id)}</code> (order ${layer.order}) — nodes: ${layer.nodeIds.length === 0 ? "none" : layer.nodeIds.map((node) => `<code>${escapeHtml(node)}</code>`).join(", ")}</li>`,
+  );
+  const violations = topology.violations.map(
+    (violation) =>
+      `<li><code>${escapeHtml(violation.fromLayer)}</code> → <code>${escapeHtml(violation.toLayer)}</code> — <code>${escapeHtml(violation.id)}</code><ul><li>${htmlTopologyEdge(violation.edge)}</li></ul></li>`,
+  );
+  const diagnostics = topology.diagnostics.map(htmlDiagnostic);
+  return `<section aria-label="Topology ${escapeHtml(title)}"><h3>${escapeHtml(title)}</h3><p>${plural(topology.cycles.length, "cycle")} summarized; ${plural(topology.layers.length, "layer")} configured; ${plural(topology.violations.length, "layer violation")} found.</p><h4>Cycles</h4>${htmlList(cycles)}<h4>Configured layers</h4>${htmlList(layers)}<h4>Layer violations</h4>${htmlList(violations)}<h4>Topology diagnostics</h4>${htmlList(diagnostics)}</section>`;
+};
 
 const htmlNode = (node: GraphDiff["nodes"]["added"][number]): string =>
   `<code>${escapeHtml(node.name)}</code> <span class="kind">${escapeHtml(node.kind)}</span>`;
@@ -571,6 +655,10 @@ export function renderHtmlReport(
     (diagnostic) =>
       `<code>${escapeHtml(diagnostic.id)}</code><div class="evidence">${htmlChanges(diagnostic.changes)}</div>`,
   );
+  const topology =
+    diff.topology === undefined
+      ? ""
+      : `<section aria-label="Topology"><h2>Topology</h2>${htmlTopologySummary("Before", diff.topology.before)}${htmlTopologySummary("After", diff.topology.after)}</section>`;
 
   const report = `<!doctype html>
 <html lang="en">
@@ -624,6 +712,7 @@ export function renderHtmlReport(
     <section aria-label="Added diagnostics"><h2>Added diagnostics</h2>${htmlList(addedDiagnostics)}</section>
     <section aria-label="Removed diagnostics"><h2>Removed diagnostics</h2>${htmlList(removedDiagnostics)}</section>
     <section aria-label="Changed diagnostics"><h2>Changed diagnostics</h2>${htmlList(changedDiagnostics)}</section>
+    ${topology}
     ${adrReport === undefined ? "" : htmlAdrSection(adrReport)}
   </main>
 </body>

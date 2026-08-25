@@ -145,6 +145,18 @@ method/signal enums, and diagnostic registry entries are additive for readers
 that ignore them. Runtime canonicalization, the published JSON Schema, and
 golden diff fixtures are checked together.
 
+## D-009 additive topology review
+
+D-009 adds an optional `topology` section to GraphDiff v0.1. It records
+deterministic before/after cycle summaries, explicitly configured layer
+assignments, layer-boundary violations, and unresolved or ambiguous layer
+diagnostics. Cycle and violation records retain the contributing edge evidence
+so reviewers can follow a summary back to canonical graph records. Existing
+GraphDiff consumers that ignore the optional section retain their prior
+semantics; no snapshot schema or capability-registry migration is required.
+Layer selectors are never inferred from names or paths, and missing metadata
+fails closed with `UNRESOLVED_LAYER_ASSIGNMENT` rather than inventing a layer.
+
 ## D-013 additive revision-comparison review
 
 D-013 adds an optional `comparison` section to GraphDiff v0.1. It records the

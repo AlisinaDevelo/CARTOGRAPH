@@ -109,6 +109,31 @@ export const DIAGNOSTIC_REGISTRY: DiagnosticRegistry =
           "Review the contributing identity signals before treating the fallback match as canonical history.",
       },
       {
+        code: "UNRESOLVED_LAYER_ASSIGNMENT",
+        severity: "warning",
+        message: "A graph boundary could not be assigned to an explicit layer.",
+        evidence: { kind: "source", location: "source-span" },
+        remediation:
+          "Provide explicit layer selectors for the affected nodes before relying on a boundary result.",
+      },
+      {
+        code: "AMBIGUOUS_LAYER_ASSIGNMENT",
+        severity: "warning",
+        message: "A graph node matches multiple configured layers.",
+        evidence: { kind: "source", location: "source-span" },
+        remediation:
+          "Narrow overlapping layer selectors so each node has one explicit layer.",
+      },
+      {
+        code: "LAYER_BOUNDARY_VIOLATION",
+        severity: "warning",
+        message:
+          "A dependency crosses configured layers in the disallowed direction.",
+        evidence: { kind: "source", location: "source-span" },
+        remediation:
+          "Move the dependency to an allowed direction or record a reviewed policy exception.",
+      },
+      {
         code: "UNRESOLVED_ROUTE_HANDLER",
         severity: "warning",
         message: "Could not resolve an Express route or middleware handler.",
