@@ -191,6 +191,22 @@ evidence, and the adapter's manifest denies network, child-process, dynamic
 loading, and repository-code execution. These metrics do not generalize to
 Rust constructs outside the named pilot slice.
 
+E-010 adds the versioned
+[`language-equivalence/scenarios.v0.1.json`](../test/fixtures/language-equivalence/scenarios.v0.1.json)
+corpus and its
+[`language-equivalence.v0.1.schema.json`](../schema/language-equivalence.v0.1.schema.json)
+contract. `npm run language-equivalence:validate` analyzes the paired
+TypeScript and Rust fixtures and reports conformance by semantic category:
+modules, calls, boundaries, identity, evidence, and unknown behavior. The
+v0.1 run has six cases, five equivalent projections, one intentionally
+different unknown projection, complete source-bound evidence, and two
+language-agnostic identity matches. Rust declaration-containment edges,
+confidence vocabulary, detector identities, and Rust-specific dynamic-query
+diagnostics are declared differences rather than mismatches. Any drift in a
+declared node/edge count, diagnostic set, evidence minimum, or identity result
+fails with the affected category and case, so the corpus remains a local
+release gate even when hosted Actions are unavailable.
+
 E-018 adds the offline [adapter compatibility matrix](ADAPTER_COMPATIBILITY_MATRIX.md).
 It binds the declared Node and compiler lines, checks every shipped adapter
 capability against bounded fixtures with deterministic evidence, replays all

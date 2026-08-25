@@ -1,0 +1,269 @@
+{
+  "$schema": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/language-equivalence.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.language-equivalence",
+  "corpusId": "language-equivalence.v0.1",
+  "cases": [
+    {
+      "id": "modules",
+      "category": "modules",
+      "typescript": {
+        "root": "test/fixtures/language-equivalence/typescript/modules"
+      },
+      "rust": {
+        "root": "test/fixtures/language-equivalence/rust/modules"
+      },
+      "relation": "equivalent",
+      "typescriptExpected": {
+        "nodeCounts": { "module": 2, "function": 2 },
+        "edgeCounts": { "imports": 1, "calls": 1 },
+        "diagnosticCodes": [],
+        "evidence": {
+          "minEdgeEvidence": 2,
+          "minDiagnosticEvidence": 0,
+          "sourceBound": true
+        }
+      },
+      "rustExpected": {
+        "nodeCounts": { "module": 2, "function": 2 },
+        "edgeCounts": { "imports": 1, "calls": 1, "contains": 2 },
+        "diagnosticCodes": [],
+        "evidence": {
+          "minEdgeEvidence": 4,
+          "minDiagnosticEvidence": 0,
+          "sourceBound": true
+        }
+      },
+      "intentionalDifferences": [
+        {
+          "kind": "edge-kind",
+          "language": "rust",
+          "detail": "The Rust pilot emits declaration containment edges; the TypeScript projection does not."
+        }
+      ]
+    },
+    {
+      "id": "calls",
+      "category": "calls",
+      "typescript": {
+        "root": "test/fixtures/language-equivalence/typescript/modules"
+      },
+      "rust": {
+        "root": "test/fixtures/language-equivalence/rust/modules"
+      },
+      "relation": "equivalent",
+      "typescriptExpected": {
+        "nodeCounts": { "function": 2 },
+        "edgeCounts": { "calls": 1 },
+        "diagnosticCodes": [],
+        "evidence": {
+          "minEdgeEvidence": 1,
+          "minDiagnosticEvidence": 0,
+          "sourceBound": true
+        }
+      },
+      "rustExpected": {
+        "nodeCounts": { "function": 2 },
+        "edgeCounts": { "calls": 1 },
+        "diagnosticCodes": [],
+        "evidence": {
+          "minEdgeEvidence": 1,
+          "minDiagnosticEvidence": 0,
+          "sourceBound": true
+        }
+      },
+      "intentionalDifferences": [
+        {
+          "kind": "declaration-projection",
+          "language": "rust",
+          "detail": "The call relation is equivalent even though the Rust graph also retains module containment."
+        }
+      ]
+    },
+    {
+      "id": "boundary",
+      "category": "boundary",
+      "typescript": {
+        "root": "test/fixtures/language-equivalence/typescript/boundary"
+      },
+      "rust": {
+        "root": "test/fixtures/language-equivalence/rust/boundary"
+      },
+      "relation": "equivalent",
+      "typescriptExpected": {
+        "nodeCounts": { "module": 1, "function": 1, "external_service": 1 },
+        "edgeCounts": { "requests": 1 },
+        "diagnosticCodes": [],
+        "evidence": {
+          "minEdgeEvidence": 1,
+          "minDiagnosticEvidence": 0,
+          "sourceBound": true
+        }
+      },
+      "rustExpected": {
+        "nodeCounts": { "module": 1, "function": 1, "external_service": 1 },
+        "edgeCounts": { "requests": 1 },
+        "diagnosticCodes": [],
+        "evidence": {
+          "minEdgeEvidence": 1,
+          "minDiagnosticEvidence": 0,
+          "sourceBound": true
+        }
+      },
+      "intentionalDifferences": [
+        {
+          "kind": "confidence",
+          "language": "rust",
+          "detail": "The Rust pilot labels literal reqwest boundaries inferred while the TypeScript analyzer labels the same boundary certain."
+        },
+        {
+          "kind": "edge-kind",
+          "language": "rust",
+          "detail": "The Rust pilot emits one declaration containment edge in addition to the equivalent requests edge."
+        }
+      ]
+    },
+    {
+      "id": "identity",
+      "category": "identity",
+      "typescript": {
+        "root": "test/fixtures/language-equivalence/typescript/modules"
+      },
+      "rust": {
+        "root": "test/fixtures/language-equivalence/rust/modules"
+      },
+      "relation": "equivalent",
+      "typescriptExpected": {
+        "nodeCounts": { "function": 2 },
+        "edgeCounts": {},
+        "diagnosticCodes": [],
+        "evidence": {
+          "minEdgeEvidence": 0,
+          "minDiagnosticEvidence": 0,
+          "sourceBound": true
+        }
+      },
+      "rustExpected": {
+        "nodeCounts": { "function": 2 },
+        "edgeCounts": {},
+        "diagnosticCodes": [],
+        "evidence": {
+          "minEdgeEvidence": 0,
+          "minDiagnosticEvidence": 0,
+          "sourceBound": true
+        }
+      },
+      "identity": {
+        "typescript": {
+          "nodeKind": "function",
+          "nodeName": "charge",
+          "beforePath": "src/payments.ts",
+          "afterPath": "src/billing.ts"
+        },
+        "rust": {
+          "nodeKind": "function",
+          "nodeName": "charge",
+          "beforePath": "src/payments.rs",
+          "afterPath": "src/billing.rs"
+        },
+        "expectedMatches": 1,
+        "expectedAmbiguous": 0,
+        "expectedUnsupported": 0
+      },
+      "intentionalDifferences": [
+        {
+          "kind": "path-extension",
+          "language": "both",
+          "detail": "Identity reconciliation preserves the named function across language-specific source extensions."
+        }
+      ]
+    },
+    {
+      "id": "evidence",
+      "category": "evidence",
+      "typescript": {
+        "root": "test/fixtures/language-equivalence/typescript/boundary"
+      },
+      "rust": {
+        "root": "test/fixtures/language-equivalence/rust/boundary"
+      },
+      "relation": "equivalent",
+      "typescriptExpected": {
+        "nodeCounts": {},
+        "edgeCounts": { "requests": 1 },
+        "diagnosticCodes": [],
+        "evidence": {
+          "minEdgeEvidence": 1,
+          "minDiagnosticEvidence": 0,
+          "sourceBound": true
+        }
+      },
+      "rustExpected": {
+        "nodeCounts": {},
+        "edgeCounts": { "requests": 1 },
+        "diagnosticCodes": [],
+        "evidence": {
+          "minEdgeEvidence": 1,
+          "minDiagnosticEvidence": 0,
+          "sourceBound": true
+        }
+      },
+      "intentionalDifferences": [
+        {
+          "kind": "detector",
+          "language": "both",
+          "detail": "Evidence remains source-bound in both projections while detector identities remain language-specific."
+        }
+      ]
+    },
+    {
+      "id": "unknown",
+      "category": "unknown",
+      "typescript": {
+        "root": "test/fixtures/language-equivalence/typescript/unknown"
+      },
+      "rust": {
+        "root": "test/fixtures/language-equivalence/rust/unknown"
+      },
+      "relation": "intentional-difference",
+      "typescriptExpected": {
+        "nodeCounts": { "module": 1, "function": 1 },
+        "edgeCounts": {},
+        "diagnosticCodes": [
+          "UNSUPPORTED_DYNAMIC_HTTP_DESTINATION",
+          "UNSUPPORTED_DYNAMIC_IMPORT"
+        ],
+        "evidence": {
+          "minEdgeEvidence": 0,
+          "minDiagnosticEvidence": 2,
+          "sourceBound": true
+        }
+      },
+      "rustExpected": {
+        "nodeCounts": { "module": 1, "function": 1 },
+        "edgeCounts": { "contains": 1 },
+        "diagnosticCodes": [
+          "UNSUPPORTED_RUST_DYNAMIC_HTTP_DESTINATION",
+          "UNSUPPORTED_RUST_DYNAMIC_QUERY"
+        ],
+        "evidence": {
+          "minEdgeEvidence": 1,
+          "minDiagnosticEvidence": 2,
+          "sourceBound": true
+        }
+      },
+      "intentionalDifferences": [
+        {
+          "kind": "diagnostic-vocabulary",
+          "language": "both",
+          "detail": "Dynamic destinations and dynamic imports or queries are rejected with adapter-specific diagnostic codes."
+        },
+        {
+          "kind": "edge-kind",
+          "language": "rust",
+          "detail": "The Rust pilot retains module containment while both projections refuse unsupported dynamic relationships."
+        }
+      ]
+    }
+  ]
+}

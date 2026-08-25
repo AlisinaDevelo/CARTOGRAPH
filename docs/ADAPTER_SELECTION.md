@@ -20,6 +20,13 @@ preview rather than a production support claim. The Rust pilot is not a broad
 Rust language claim: it covers only the named module, function, literal HTTP,
 and literal SQL constructs.
 
+The E-010 equivalence corpus is now the executable boundary for comparing the
+TypeScript core and Rust pilot. It checks semantic categories and evidence,
+records intentional Rust projection differences, and does not promote the
+pilot to a universal Rust-language claim. A future adapter proposal must add
+equivalent positive and unknown cases to the same contract before it can make
+a language-level support statement.
+
 The support matrix is authoritative for four statuses:
 
 | Status         | Meaning                                                                                                    | Claim permitted                                                      |
