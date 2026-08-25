@@ -94,7 +94,7 @@ Exit gate: versioned local input; deterministic classifications; sampling and un
 
 Larger repositories and new contributors receive predictable performance, security, upgrade, and support behavior.
 
-Exit gate: performance budgets; bounded fuzz/property suites; automated compatibility matrix; maintenance policy; adopter feedback; reduced maintainer single points of failure.
+Exit gate: performance budgets; bounded fuzz/property suites; automated compatibility matrix; maintenance policy; adopter feedback; and the [maintainer resilience and onboarding report](MAINTAINER_RESILIENCE.md) with explicit backup paths, two non-author role rehearsals, and published unresolved bus-factor risks.
 
 ### Q4 — Traction-based strategy gate
 

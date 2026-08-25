@@ -1,0 +1,340 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/maintainer-resilience.v0.1.schema.json",
+  "title": "CARTOGRAPH maintainer resilience contract v0.1",
+  "description": "A public, local-only ownership, onboarding, and non-author rehearsal record that exposes maintainer continuity gaps without telemetry or source collection.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "reportId",
+    "asOf",
+    "scope",
+    "roles",
+    "onboarding",
+    "dryRuns",
+    "risks",
+    "summary",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.maintainer-resilience" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.maintainer-resilience+json"
+    },
+    "reportId": { "$ref": "#/definitions/identifier" },
+    "asOf": { "$ref": "#/definitions/dateTime" },
+    "scope": { "$ref": "#/definitions/scope" },
+    "roles": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": { "$ref": "#/definitions/role" }
+    },
+    "onboarding": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 48,
+      "items": { "$ref": "#/definitions/onboarding" }
+    },
+    "dryRuns": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 8,
+      "items": { "$ref": "#/definitions/dryRun" }
+    },
+    "risks": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": { "$ref": "#/definitions/risk" }
+    },
+    "summary": { "$ref": "#/definitions/summary" },
+    "provenance": { "$ref": "#/definitions/provenance" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "dateTime": { "type": "string", "format": "date-time" },
+    "portablePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!/)(?!~)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)(?!.*\\u0000).+$"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "publicOnly",
+        "network",
+        "sourcePayloads",
+        "personalData",
+        "hostedChecks",
+        "retention"
+      ],
+      "properties": {
+        "publicOnly": { "const": true },
+        "network": { "const": false },
+        "sourcePayloads": { "const": false },
+        "personalData": { "const": false },
+        "hostedChecks": { "const": "not-used" },
+        "retention": { "const": "summary-and-digest-only" }
+      }
+    },
+    "primaryOwner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "staffing"],
+      "properties": {
+        "id": { "$ref": "#/definitions/text" },
+        "kind": { "enum": ["named-maintainer", "maintainer-role"] },
+        "staffing": { "enum": ["current", "not-observed"] }
+      }
+    },
+    "backup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "route", "status", "steps"],
+      "properties": {
+        "id": { "$ref": "#/definitions/text" },
+        "kind": {
+          "enum": ["maintainer-role", "public-route", "private-route"]
+        },
+        "route": { "$ref": "#/definitions/portablePath" },
+        "status": { "enum": ["documented-unverified", "staffed"] },
+        "steps": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 8,
+          "items": { "$ref": "#/definitions/text" }
+        }
+      }
+    },
+    "role": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "primaryOwner",
+        "backup",
+        "authorityRefs",
+        "onboardingRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "label": { "$ref": "#/definitions/text" },
+        "primaryOwner": { "$ref": "#/definitions/primaryOwner" },
+        "backup": { "$ref": "#/definitions/backup" },
+        "authorityRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "onboardingRefs": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        }
+      }
+    },
+    "onboarding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "roleId",
+        "sequence",
+        "entrypoint",
+        "expected",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "roleId": { "$ref": "#/definitions/identifier" },
+        "sequence": { "type": "integer", "minimum": 1, "maximum": 16 },
+        "entrypoint": { "$ref": "#/definitions/text" },
+        "expected": { "$ref": "#/definitions/text" },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["os", "node", "npm"],
+      "properties": {
+        "os": { "$ref": "#/definitions/text" },
+        "node": { "$ref": "#/definitions/text" },
+        "npm": { "$ref": "#/definitions/text" }
+      }
+    },
+    "dryRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "actor",
+        "actorIsRepositoryAuthor",
+        "taskKind",
+        "scenario",
+        "commands",
+        "outcome",
+        "observedAt",
+        "environment",
+        "evidenceRefs",
+        "friction",
+        "unresolvedRiskIds",
+        "network",
+        "sourcePayloads"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "actor": {
+          "type": "string",
+          "pattern": "^non-author-[a-z0-9-]+$"
+        },
+        "actorIsRepositoryAuthor": { "const": false },
+        "taskKind": { "enum": ["contribution", "release-or-triage"] },
+        "scenario": { "$ref": "#/definitions/text" },
+        "commands": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "outcome": { "enum": ["passed", "bounded-failure"] },
+        "observedAt": { "$ref": "#/definitions/dateTime" },
+        "environment": { "$ref": "#/definitions/environment" },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "friction": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "unresolvedRiskIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "network": { "const": false },
+        "sourcePayloads": { "const": false }
+      }
+    },
+    "risk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "roleId",
+        "category",
+        "severity",
+        "status",
+        "finding",
+        "mitigation",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "roleId": { "$ref": "#/definitions/identifier" },
+        "category": {
+          "enum": [
+            "bus-factor",
+            "onboarding-friction",
+            "release-gap",
+            "security-gap"
+          ]
+        },
+        "severity": { "enum": ["high", "medium", "low"] },
+        "status": { "const": "open" },
+        "finding": { "$ref": "#/definitions/text" },
+        "mitigation": { "$ref": "#/definitions/text" },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "roleCount",
+        "rolesWithBackupPath",
+        "staffedBackupCount",
+        "onboardingStepCount",
+        "dryRunCount",
+        "passedDryRunCount",
+        "unresolvedRiskCount",
+        "publicOnly",
+        "network",
+        "sourcePayloads",
+        "claimsOfExternalParticipation"
+      ],
+      "properties": {
+        "roleCount": { "type": "integer", "minimum": 0 },
+        "rolesWithBackupPath": { "type": "integer", "minimum": 0 },
+        "staffedBackupCount": { "type": "integer", "minimum": 0 },
+        "onboardingStepCount": { "type": "integer", "minimum": 0 },
+        "dryRunCount": { "type": "integer", "minimum": 0 },
+        "passedDryRunCount": { "type": "integer", "minimum": 0 },
+        "unresolvedRiskCount": { "type": "integer", "minimum": 0 },
+        "publicOnly": { "const": true },
+        "network": { "const": false },
+        "sourcePayloads": { "const": false },
+        "claimsOfExternalParticipation": { "const": false }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "license",
+        "reference",
+        "transformation",
+        "redistribution"
+      ],
+      "properties": {
+        "source": { "$ref": "#/definitions/text" },
+        "license": { "const": "Apache-2.0" },
+        "reference": { "$ref": "#/definitions/text" },
+        "transformation": { "$ref": "#/definitions/text" },
+        "redistribution": { "const": "allowed" }
+      }
+    }
+  }
+}

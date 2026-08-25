@@ -218,6 +218,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "maintainer-resilience",
+      "path": "maintainer-resilience",
+      "source": "CARTOGRAPH repository-authored maintainer resilience rehearsal fixture",
+      "license": "Apache-2.0",
+      "reference": "M-008 contributor and maintainer single-point-of-failure issue; no external participant record",
+      "transformation": "The report encodes public ownership and onboarding paths plus two synthetic non-author role rehearsals; it retains no contributor identity, source body, private report, hosted check, network trace, or telemetry.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "review-regressions",
       "path": "review-regressions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",
