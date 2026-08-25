@@ -136,6 +136,14 @@ escape. The validator requires typed fail-closed errors, enforces
 input/output/memory/time ceilings, and waits for terminated child processes to
 close before accepting cleanup.
 
+E-003 adds a bounded Fastify framework corpus selected through the public
+[framework-selection RFC](https://github.com/AlisinaDevelo/CARTOGRAPH/issues/270).
+It covers literal direct routes, object-form routes, method arrays, plugin
+registration context, dynamic paths and methods, and an unresolved handler.
+The adapter publishes route coverage and unknown diagnostics while keeping
+plugin execution, hooks, decorators, and runtime-generated registration
+explicitly unsupported.
+
 ## Practical compatibility
 
 R-005 records the first compatibility review in

@@ -101,6 +101,24 @@ export const CAPABILITY_REGISTRY: CapabilityRegistry =
           },
         ],
       },
+      {
+        id: "cartograph.typescript-fastify",
+        version: "1",
+        capabilities: [
+          {
+            id: "fastify.routes",
+            diagnosticCodes: [
+              "UNRESOLVED_FASTIFY_HANDLER",
+              "UNSUPPORTED_DYNAMIC_FASTIFY_ROUTE",
+            ],
+            confidence: ["inferred"],
+            examples: [
+              "Literal Fastify methods and object-form route declarations produce endpoint relationships.",
+              "Dynamic methods, URLs, and unresolved handlers remain explicit diagnostics.",
+            ],
+          },
+        ],
+      },
     ],
   });
 

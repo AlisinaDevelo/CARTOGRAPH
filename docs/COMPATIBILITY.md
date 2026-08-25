@@ -348,3 +348,13 @@ code execution to be false. The sample adapter and validator are local,
 deterministic, and offline. This is an additive new contract; framework
 adapters, isolation sandboxes, and runtime-specific resource enforcement remain
 follow-on work.
+
+## E-003 Fastify framework adapter
+
+E-003 adds `cartograph.fastify@0.1.0` behind the unchanged adapter result
+contract. The bounded extractor recognizes literal Fastify route methods and
+object-form route declarations, emits source evidence for endpoint-to-handler
+edges, and reports dynamic methods/URLs or unresolved handlers as diagnostics.
+The `fastify` extractor is opt-in in repository configuration; existing
+TypeScript/Express defaults remain unchanged. Plugin execution, hooks,
+decorators, schemas, and runtime-generated registration are not claimed.

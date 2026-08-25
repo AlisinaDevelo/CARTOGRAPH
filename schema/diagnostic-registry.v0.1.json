@@ -105,6 +105,20 @@
       "message": "Express route or middleware registration is not statically resolvable.",
       "evidence": { "kind": "source", "location": "source-span" },
       "remediation": "Use a literal route or middleware path and a statically named registration method."
+    },
+    {
+      "code": "UNRESOLVED_FASTIFY_HANDLER",
+      "severity": "warning",
+      "message": "Could not resolve a Fastify route handler in the supported adapter subset.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Use a locally declared or inline Fastify handler and keep route registration statically resolvable."
+    },
+    {
+      "code": "UNSUPPORTED_DYNAMIC_FASTIFY_ROUTE",
+      "severity": "warning",
+      "message": "Fastify route method and URL must be statically named literals in the supported adapter subset.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Use literal Fastify route methods and URLs, or review dynamic registration manually."
     }
   ]
 }

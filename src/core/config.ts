@@ -99,7 +99,7 @@ const CartographConfigInputSchema = z
     exclude: z.array(ConfigPathSchema).default([]),
     tsconfigPath: ConfigPathSchema.optional(),
     extractors: z
-      .array(z.enum(["typescript", "express"]))
+      .array(z.enum(["typescript", "express", "fastify"]))
       .min(1)
       .refine(
         (values) => new Set(values).size === values.length,

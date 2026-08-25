@@ -8,10 +8,10 @@ Deterministic architecture graph scanning and evidence-backed revision diffs for
 
 CARTOGRAPH scans a supported repository into a deterministic architecture graph, compares two Git revisions, and shows which nodes and relationships changed. Every emitted relationship carries repository-relative source evidence or an explicit unresolved reason.
 
-The project is pre-alpha. The local TypeScript/Express slice and a read-only,
-informational-by-default GitHub Action work and are tested; stable identity
-across refactors, additional framework adapters, runtime redaction/retention,
-and hosted export remain roadmap work. The versioned local
+The project is pre-alpha. The local TypeScript/Express slice, bounded Fastify
+adapter, and a read-only, informational-by-default GitHub Action work and are
+tested; stable identity across refactors, broader framework coverage, runtime
+redaction/retention, and hosted export remain roadmap work. The versioned local
 adapter, inert OTLP import, and explicit local reconciliation boundaries are
 published, but none executes repository code or contacts a network. Any
 hosted or account-based scope remains behind later traction, privacy, security,
