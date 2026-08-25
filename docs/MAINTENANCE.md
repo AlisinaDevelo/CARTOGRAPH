@@ -18,6 +18,11 @@ Material changes to those surfaces still require a public RFC issue as described
 in [`GOVERNANCE.md`](../GOVERNANCE.md). Routine fixes require focused tests and
 the completion evidence described in [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 
+The role map, onboarding path, backup routes, and non-author rehearsals are
+recorded in [`MAINTAINER_RESILIENCE.md`](MAINTAINER_RESILIENCE.md). Its
+`documented-unverified` backup status is intentional: the map does not claim a
+staffed second maintainer.
+
 ## Required merge checks
 
 Protected `main` requires these status-check contexts when hosted GitHub checks

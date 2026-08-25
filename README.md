@@ -185,6 +185,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Adapter selection RFC](docs/ADAPTER_SELECTION.md)
 - [Adapter support matrix](schema/adapter-support-matrix.v0.1.json)
 - [Maintenance and ownership](docs/MAINTENANCE.md)
+- [Maintainer resilience and onboarding](docs/MAINTAINER_RESILIENCE.md)
 - [Compatibility and versioning](docs/COMPATIBILITY.md)
 - [Language-neutral graph semantics](docs/LANGUAGE_NEUTRAL_SEMANTICS.md)
 - [Snapshot and identity migration](docs/IDENTITY_MIGRATION.md)

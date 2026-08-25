@@ -1,0 +1,460 @@
+{
+  "$schema": "../../schema/maintainer-resilience.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.maintainer-resilience",
+  "mediaType": "application/vnd.cartograph.maintainer-resilience+json",
+  "reportId": "maintainer-resilience-year3-q3-v0.1",
+  "asOf": "2026-08-25T16:00:00Z",
+  "scope": {
+    "publicOnly": true,
+    "network": false,
+    "sourcePayloads": false,
+    "personalData": false,
+    "hostedChecks": "not-used",
+    "retention": "summary-and-digest-only"
+  },
+  "roles": [
+    {
+      "id": "triage",
+      "label": "Issue and contributor triage",
+      "primaryOwner": {
+        "id": "@AlisinaDevelo",
+        "kind": "named-maintainer",
+        "staffing": "current"
+      },
+      "backup": {
+        "id": "public-triage-route",
+        "kind": "public-route",
+        "route": "docs/COMMUNITY_FEEDBACK.md#triage-taxonomy",
+        "status": "documented-unverified",
+        "steps": [
+          "Classify a reproducible request with the public triage taxonomy.",
+          "Use a public issue or governance discussion to leave an auditable handoff when no maintainer is available."
+        ]
+      },
+      "authorityRefs": [
+        "docs/COMMUNITY_FEEDBACK.md",
+        ".github/ISSUE_TEMPLATE/bug_report.yml",
+        "GOVERNANCE.md"
+      ],
+      "onboardingRefs": ["triage-read", "triage-reproduce"]
+    },
+    {
+      "id": "release",
+      "label": "Release and rollback operations",
+      "primaryOwner": {
+        "id": "@AlisinaDevelo",
+        "kind": "named-maintainer",
+        "staffing": "current"
+      },
+      "backup": {
+        "id": "release-rehearsal-route",
+        "kind": "public-route",
+        "route": "docs/RELEASE_REHEARSAL.md",
+        "status": "documented-unverified",
+        "steps": [
+          "Start from the versioned release rehearsal and record the exact blocked gate.",
+          "Leave the tag or rollback decision in a public issue for the maintainer to resume."
+        ]
+      },
+      "authorityRefs": [
+        "docs/RELEASE.md",
+        "docs/RELEASE_REHEARSAL.md",
+        "docs/MAINTENANCE.md"
+      ],
+      "onboardingRefs": ["release-read", "release-dry-run"]
+    },
+    {
+      "id": "security",
+      "label": "Security intake and response",
+      "primaryOwner": {
+        "id": "@AlisinaDevelo",
+        "kind": "named-maintainer",
+        "staffing": "current"
+      },
+      "backup": {
+        "id": "private-security-route",
+        "kind": "private-route",
+        "route": "SECURITY.md#reporting-a-vulnerability",
+        "status": "documented-unverified",
+        "steps": [
+          "Use private vulnerability reporting when enabled, without opening a public issue.",
+          "If unavailable, contact the maintainer privately and retain only a redacted reproduction."
+        ]
+      },
+      "authorityRefs": [
+        "SECURITY.md",
+        "docs/THREAT_MODEL.md",
+        "docs/ADAPTER_RETIREMENT.md"
+      ],
+      "onboardingRefs": ["security-read", "security-intake"]
+    },
+    {
+      "id": "core-contracts",
+      "label": "Graph, evidence, and CLI contracts",
+      "primaryOwner": {
+        "id": "@AlisinaDevelo",
+        "kind": "named-maintainer",
+        "staffing": "current"
+      },
+      "backup": {
+        "id": "core-maintainers",
+        "kind": "maintainer-role",
+        "route": "GOVERNANCE.md",
+        "status": "documented-unverified",
+        "steps": [
+          "Open a public RFC with compatibility, privacy, security, and evidence impact.",
+          "Keep the change on hold until a second reviewer is named or the risk is explicitly accepted."
+        ]
+      },
+      "authorityRefs": [
+        "docs/ARCHITECTURE.md",
+        "docs/CHANGE_CONTROL.md",
+        "CONTRIBUTING.md"
+      ],
+      "onboardingRefs": ["core-read", "core-test"]
+    },
+    {
+      "id": "adapters",
+      "label": "Adapter ownership and compatibility",
+      "primaryOwner": {
+        "id": "@AlisinaDevelo",
+        "kind": "named-maintainer",
+        "staffing": "current"
+      },
+      "backup": {
+        "id": "core-maintainers",
+        "kind": "maintainer-role",
+        "route": "docs/ADAPTER_RETIREMENT.md#ownership",
+        "status": "documented-unverified",
+        "steps": [
+          "Freeze new adapter capability claims when owner or backup acknowledgement is missing.",
+          "Replay the lifecycle evidence and route a deprecation or migration decision through a public issue."
+        ]
+      },
+      "authorityRefs": [
+        "docs/ADAPTER_REVIEW_PLAYBOOK.md",
+        "docs/ADAPTER_RETIREMENT.md",
+        "docs/SUPPORT_MATRIX.md"
+      ],
+      "onboardingRefs": ["adapter-read", "adapter-review"]
+    },
+    {
+      "id": "roadmap-operations",
+      "label": "Roadmap, governance, and evidence operations",
+      "primaryOwner": {
+        "id": "@AlisinaDevelo",
+        "kind": "named-maintainer",
+        "staffing": "current"
+      },
+      "backup": {
+        "id": "public-roadmap-route",
+        "kind": "public-route",
+        "route": "docs/ROADMAP.md",
+        "status": "documented-unverified",
+        "steps": [
+          "Record a dependency-aware issue with acceptance criteria and evidence references.",
+          "Do not mark an item complete until the merged-main reproduction and limitations are retained."
+        ]
+      },
+      "authorityRefs": ["docs/ROADMAP.md", "GOVERNANCE.md", "CONTRIBUTING.md"],
+      "onboardingRefs": ["roadmap-read", "roadmap-evidence"]
+    }
+  ],
+  "onboarding": [
+    {
+      "id": "triage-read",
+      "roleId": "triage",
+      "sequence": 1,
+      "entrypoint": "Read docs/COMMUNITY_FEEDBACK.md and the issue templates.",
+      "expected": "Classify bugs, features, compatibility reports, contributor signals, and security reports without exposing private data.",
+      "evidenceRefs": [
+        "docs/COMMUNITY_FEEDBACK.md",
+        ".github/ISSUE_TEMPLATE/bug_report.yml"
+      ]
+    },
+    {
+      "id": "triage-reproduce",
+      "roleId": "triage",
+      "sequence": 2,
+      "entrypoint": "Request a minimal sanitized reproduction and exact runtime details.",
+      "expected": "A maintainer can replay the report locally or record a bounded failure without treating an issue as a support guarantee.",
+      "evidenceRefs": ["SUPPORT.md", "CONTRIBUTING.md"]
+    },
+    {
+      "id": "release-read",
+      "roleId": "release",
+      "sequence": 1,
+      "entrypoint": "Read docs/RELEASE.md and docs/RELEASE_REHEARSAL.md.",
+      "expected": "The operator can identify the package/tag, compatibility, artifact, provenance, and rollback gates before creating a tag.",
+      "evidenceRefs": ["docs/RELEASE.md", "docs/RELEASE_REHEARSAL.md"]
+    },
+    {
+      "id": "release-dry-run",
+      "roleId": "release",
+      "sequence": 2,
+      "entrypoint": "Run the offline release and compatibility validators from a clean source state.",
+      "expected": "A failed gate is recorded as a no-go with the exact command and no release mutation is attempted.",
+      "evidenceRefs": ["docs/RELEASE.md", "docs/MAINTENANCE.md"]
+    },
+    {
+      "id": "security-read",
+      "roleId": "security",
+      "sequence": 1,
+      "entrypoint": "Read SECURITY.md and docs/THREAT_MODEL.md.",
+      "expected": "A reporter knows the private intake route, safe reproduction boundary, and prohibited public disclosure paths.",
+      "evidenceRefs": ["SECURITY.md", "docs/THREAT_MODEL.md"]
+    },
+    {
+      "id": "security-intake",
+      "roleId": "security",
+      "sequence": 2,
+      "entrypoint": "Use a synthetic redacted report and the adapter lifecycle response steps.",
+      "expected": "The report can be contained and replayed without collecting credentials, source bodies, network data, or public exploit details.",
+      "evidenceRefs": [
+        "docs/ADAPTER_RETIREMENT.md",
+        "docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md"
+      ]
+    },
+    {
+      "id": "core-read",
+      "roleId": "core-contracts",
+      "sequence": 1,
+      "entrypoint": "Read docs/ARCHITECTURE.md, docs/CHANGE_CONTROL.md, and the public RFC process.",
+      "expected": "A contributor can distinguish a routine fix from a material contract change that needs an RFC and compatibility evidence.",
+      "evidenceRefs": [
+        "docs/ARCHITECTURE.md",
+        "docs/CHANGE_CONTROL.md",
+        "GOVERNANCE.md"
+      ]
+    },
+    {
+      "id": "core-test",
+      "roleId": "core-contracts",
+      "sequence": 2,
+      "entrypoint": "Run the focused test and full local check commands before proposing a merge.",
+      "expected": "The change retains deterministic fixtures, negative coverage, privacy checks, and the exact local toolchain record.",
+      "evidenceRefs": ["CONTRIBUTING.md", "docs/MAINTENANCE.md"]
+    },
+    {
+      "id": "adapter-read",
+      "roleId": "adapters",
+      "sequence": 1,
+      "entrypoint": "Read docs/ADAPTER_REVIEW_PLAYBOOK.md and docs/SUPPORT_MATRIX.md.",
+      "expected": "A proposed adapter names its construct slice, owner, backup, compatibility dimensions, evidence, and explicit non-goals.",
+      "evidenceRefs": [
+        "docs/ADAPTER_REVIEW_PLAYBOOK.md",
+        "docs/SUPPORT_MATRIX.md"
+      ]
+    },
+    {
+      "id": "adapter-review",
+      "roleId": "adapters",
+      "sequence": 2,
+      "entrypoint": "Replay conformance, isolation, packaging, and lifecycle validators for a synthetic adapter.",
+      "expected": "Owner gaps freeze promotion and releases instead of silently widening the support claim.",
+      "evidenceRefs": [
+        "docs/ADAPTER_RETIREMENT.md",
+        "docs/ADAPTER_REVIEW_DRY_RUN.md"
+      ]
+    },
+    {
+      "id": "roadmap-read",
+      "roleId": "roadmap-operations",
+      "sequence": 1,
+      "entrypoint": "Read docs/ROADMAP.md, roadmap/manifest.json, and GOVERNANCE.md.",
+      "expected": "A coordinator can find prerequisites, acceptance criteria, issue identity, and the evidence gate for a proposed task.",
+      "evidenceRefs": [
+        "docs/ROADMAP.md",
+        "roadmap/manifest.json",
+        "GOVERNANCE.md"
+      ]
+    },
+    {
+      "id": "roadmap-evidence",
+      "roleId": "roadmap-operations",
+      "sequence": 2,
+      "entrypoint": "Use CONTRIBUTING.md completion evidence and rerun the merged-main reproduction.",
+      "expected": "A roadmap item remains open when hosted or platform evidence is unavailable; no unsupported completion claim is made.",
+      "evidenceRefs": ["CONTRIBUTING.md", "docs/CLAIMS_AUDIT.md"]
+    }
+  ],
+  "dryRuns": [
+    {
+      "id": "non-author-contribution",
+      "actor": "non-author-contributor",
+      "actorIsRepositoryAuthor": false,
+      "taskKind": "contribution",
+      "scenario": "Synthetic contributor follows the public setup, formatting, lint, typecheck, and focused resilience-test path without editing or pushing source.",
+      "commands": [
+        "npm run format:check",
+        "npm run lint",
+        "npm run typecheck",
+        "npx vitest run test/core/maintainer-resilience.test.ts"
+      ],
+      "outcome": "passed",
+      "observedAt": "2026-08-25T16:00:00Z",
+      "environment": {
+        "os": "macOS Darwin 25.6.0 arm64",
+        "node": "Node.js 26.7.0",
+        "npm": "npm 11.19.0"
+      },
+      "evidenceRefs": [
+        "CONTRIBUTING.md",
+        "docs/MAINTAINER_RESILIENCE.md",
+        "M-008"
+      ],
+      "friction": [
+        "The path is documented, but a second human reviewer is not currently staffed.",
+        "The supported Node window is 22.x and 24.x; this local rehearsal used compatible Node 26.7.0 and does not expand that support claim."
+      ],
+      "unresolvedRiskIds": [
+        "core-contract-bus-factor",
+        "cross-role-onboarding-friction"
+      ],
+      "network": false,
+      "sourcePayloads": false
+    },
+    {
+      "id": "non-author-release-triage",
+      "actor": "non-author-release-triager",
+      "actorIsRepositoryAuthor": false,
+      "taskKind": "release-or-triage",
+      "scenario": "Synthetic release-triager follows the no-write compatibility, Action-fixture, documentation-link, and roadmap validation path without creating a tag, issue, or release.",
+      "commands": [
+        "npm run release-compatibility:validate",
+        "npm run action:validate",
+        "npm run action:security:validate",
+        "npm run docs:links:validate",
+        "npm run roadmap:validate"
+      ],
+      "outcome": "passed",
+      "observedAt": "2026-08-25T16:00:00Z",
+      "environment": {
+        "os": "macOS Darwin 25.6.0 arm64",
+        "node": "Node.js 26.7.0",
+        "npm": "npm 11.19.0"
+      },
+      "evidenceRefs": ["docs/RELEASE.md", "docs/MAINTENANCE.md", "M-008"],
+      "friction": [
+        "The dry run can prove command reachability and no-write behavior, but cannot prove that a second human will acknowledge a future incident.",
+        "Hosted checks and GitHub mutations are intentionally outside this offline rehearsal."
+      ],
+      "unresolvedRiskIds": [
+        "release-bus-factor",
+        "security-bus-factor",
+        "roadmap-bus-factor"
+      ],
+      "network": false,
+      "sourcePayloads": false
+    }
+  ],
+  "risks": [
+    {
+      "id": "triage-bus-factor",
+      "roleId": "triage",
+      "category": "bus-factor",
+      "severity": "high",
+      "status": "open",
+      "finding": "Only @AlisinaDevelo is a current named maintainer; the public triage route is documented but no staffed backup is observed.",
+      "mitigation": "Keep the taxonomy, issue templates, and handoff steps public; record a second maintainer only after sustained reviewed stewardship.",
+      "evidenceRefs": ["GOVERNANCE.md", "docs/COMMUNITY_FEEDBACK.md"]
+    },
+    {
+      "id": "release-bus-factor",
+      "roleId": "release",
+      "category": "bus-factor",
+      "severity": "high",
+      "status": "open",
+      "finding": "Release and rollback authority remains with the current maintainer; the rehearsal is a route, not release permission.",
+      "mitigation": "Require the versioned release rehearsal and public no-go record before a second release owner is staffed.",
+      "evidenceRefs": ["docs/RELEASE.md", "docs/RELEASE_REHEARSAL.md"]
+    },
+    {
+      "id": "security-bus-factor",
+      "roleId": "security",
+      "category": "security-gap",
+      "severity": "high",
+      "status": "open",
+      "finding": "Private vulnerability intake has a documented fallback, but no independent security responder is observed.",
+      "mitigation": "Use private intake, synthetic or redacted reproductions, and the adapter containment sequence; do not publish exploit details while ownership is unresolved.",
+      "evidenceRefs": [
+        "SECURITY.md",
+        "docs/THREAT_MODEL.md",
+        "docs/ADAPTER_RETIREMENT.md"
+      ]
+    },
+    {
+      "id": "core-contract-bus-factor",
+      "roleId": "core-contracts",
+      "category": "bus-factor",
+      "severity": "high",
+      "status": "open",
+      "finding": "Graph, evidence, and CLI compatibility decisions have one current named owner and no verified backup reviewer.",
+      "mitigation": "Require an RFC, focused tests, compatibility evidence, and explicit second-reviewer assignment before material contract changes merge.",
+      "evidenceRefs": [
+        "docs/ARCHITECTURE.md",
+        "docs/CHANGE_CONTROL.md",
+        "CONTRIBUTING.md"
+      ]
+    },
+    {
+      "id": "adapter-bus-factor",
+      "roleId": "adapters",
+      "category": "bus-factor",
+      "severity": "high",
+      "status": "open",
+      "finding": "Adapter policies name role-based backups, but current staffing of those roles is not observed in the public snapshot.",
+      "mitigation": "Freeze promotion on owner gaps, replay lifecycle fixtures, and require a named owner and backup before graduation.",
+      "evidenceRefs": [
+        "docs/ADAPTER_REVIEW_PLAYBOOK.md",
+        "docs/ADAPTER_RETIREMENT.md",
+        "docs/SUPPORT_MATRIX.md"
+      ]
+    },
+    {
+      "id": "roadmap-bus-factor",
+      "roleId": "roadmap-operations",
+      "category": "bus-factor",
+      "severity": "medium",
+      "status": "open",
+      "finding": "Roadmap sequencing, issue reconciliation, and evidence closure remain maintainer-led; a public manifest is not a staffed operations team.",
+      "mitigation": "Keep dependencies and acceptance criteria machine-readable and leave every closure linked to merged-main evidence.",
+      "evidenceRefs": [
+        "docs/ROADMAP.md",
+        "roadmap/manifest.json",
+        "CONTRIBUTING.md"
+      ]
+    },
+    {
+      "id": "cross-role-onboarding-friction",
+      "roleId": "core-contracts",
+      "category": "onboarding-friction",
+      "severity": "medium",
+      "status": "open",
+      "finding": "A role map reduces discovery cost, but the repository has no independent human rehearsal record or staffed handoff acknowledgement.",
+      "mitigation": "Repeat the two role rehearsals with an actual non-author contributor when available and publish friction without collecting private telemetry.",
+      "evidenceRefs": ["docs/MAINTAINER_RESILIENCE.md", "M-008"]
+    }
+  ],
+  "summary": {
+    "roleCount": 6,
+    "rolesWithBackupPath": 6,
+    "staffedBackupCount": 0,
+    "onboardingStepCount": 12,
+    "dryRunCount": 2,
+    "passedDryRunCount": 2,
+    "unresolvedRiskCount": 7,
+    "publicOnly": true,
+    "network": false,
+    "sourcePayloads": false,
+    "claimsOfExternalParticipation": false
+  },
+  "provenance": {
+    "source": "CARTOGRAPH repository-authored maintainer resilience rehearsal fixture",
+    "license": "Apache-2.0",
+    "reference": "M-008 contributor and maintainer single-point-of-failure issue; no external participant record",
+    "transformation": "The report encodes public ownership and onboarding paths plus two synthetic non-author role rehearsals; it retains no contributor identity, source body, private report, hosted check, network trace, or telemetry.",
+    "redistribution": "allowed"
+  }
+}
