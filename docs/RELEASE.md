@@ -4,9 +4,12 @@ The versioned acceptance and rollback record for the current package is
 [`RELEASE_REHEARSAL.md`](RELEASE_REHEARSAL.md). It is a local evidence record;
 the dry-run section does not alter an active release.
 
-CARTOGRAPH is not published to npm. A `v<package.version>` tag is the supported
-release trigger: [`.github/workflows/release.yml`](../.github/workflows/release.yml)
-checks the tagged source, creates an installable tarball, runs an isolated package
+CARTOGRAPH is not published to npm. The supported v0.1 distribution decision,
+including the explicit deferral of a standalone native executable, is recorded
+in [`DISTRIBUTION_DECISION.md`](DISTRIBUTION_DECISION.md). A `v<package.version>`
+tag is the supported release trigger:
+[`.github/workflows/release.yml`](../.github/workflows/release.yml) checks the
+tagged source, creates an installable tarball, runs an isolated offline package
 consumer smoke test, and creates a GitHub release containing the tarball,
 `SHA256SUMS`, a CycloneDX SBOM, a SLSA/in-toto provenance statement, and
 `release-metadata.json`. The workflow obtains a Sigstore-backed GitHub
@@ -21,7 +24,7 @@ Before creating a release tag:
 
 1. Confirm package ownership and final package/brand naming.
 2. Run format, lint, typecheck, unit/integration tests, coverage, build, and a package dry-run from a clean checkout.
-3. Install the packed tarball in a temporary fixture and run `cartograph --version`, `cartograph --help`, a scan, and a diff.
+3. Install the packed tarball in a temporary fixture with lifecycle scripts disabled and offline dependency resolution; verify the package exports, `cartograph` bin, Node engine declaration, `cartograph --version`, `cartograph --help`, a scan, and a diff.
 4. Validate schema compatibility, deterministic fixtures, and the declared support matrix.
 5. Run `npm run change-control:validate`; overdue compatibility surfaces or removals without a migration note and fixture update block the release gate.
 6. Run `npm run policy-bundle:migrations:validate`; expiry, revocation, owner, selector, or compatibility migration failures must remain blocked until reviewed or repaired.
@@ -61,8 +64,8 @@ gh attestation verify cartograph-cli-0.1.0.tgz \
 
 The package contents are fail-closed against workflow, fixture, test, script,
 benchmark, and coverage paths; credentials and repository source fixtures are
-not release subjects. Install the tarball with lifecycle scripts disabled until
-the package and its provenance have been reviewed.
+not release subjects. Install the tarball with `--offline --ignore-scripts`
+until the package and its provenance have been reviewed.
 
 Generated `dist`, coverage, temporary repositories, reports, and package tarballs stay out of source commits.
 

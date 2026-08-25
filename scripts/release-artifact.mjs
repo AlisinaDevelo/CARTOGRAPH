@@ -318,11 +318,12 @@ try {
       generatedFile: "release-notes.md",
     },
     smokeTest: {
-      install: "npm install --ignore-scripts <tarball>",
+      install: "npm install --offline --ignore-scripts <tarball>",
       commands: [
         "cartograph --version",
         "cartograph --help",
         "cartograph scan",
+        "node --input-type=module -e import('cartograph-cli')",
       ],
       fixture: "test/fixtures/typescript-express",
     },
@@ -339,7 +340,37 @@ try {
   });
   execFileSync(
     "npm",
-    ["install", "--ignore-scripts", "--no-audit", "--no-fund", tarballPath],
+    [
+      "install",
+      "--offline",
+      "--ignore-scripts",
+      "--no-audit",
+      "--no-fund",
+      tarballPath,
+    ],
+    {
+      cwd: consumerRoot,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "inherit"],
+    },
+  );
+  const installedPackage = await readJson(
+    join(consumerRoot, "node_modules", packageJson.name, "package.json"),
+  );
+  if (
+    installedPackage.engines?.node !== packageJson.engines?.node ||
+    installedPackage.bin?.cartograph !== "dist/cli.js" ||
+    installedPackage.exports?.["."]?.import !== "./dist/index.js" ||
+    installedPackage.exports?.["."]?.types !== "./dist/index.d.ts"
+  )
+    fail("packed artifact package, bin, export, or engine contract drifted");
+  execFileSync(
+    process.execPath,
+    [
+      "--input-type=module",
+      "--eval",
+      "import { scanRepository } from 'cartograph-cli';\nif (typeof scanRepository !== 'function') process.exit(1);",
+    ],
     {
       cwd: consumerRoot,
       encoding: "utf8",
