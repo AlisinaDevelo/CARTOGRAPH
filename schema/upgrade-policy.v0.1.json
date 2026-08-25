@@ -1,0 +1,49 @@
+{
+  "$schema": "./upgrade-policy.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.upgrade-policy",
+  "policyId": "cartograph-public-upgrade-policy",
+  "support": {
+    "nodeMinimum": "22.13.0",
+    "nodeLts": ["22.x", "24.x"],
+    "platforms": ["darwin", "linux"],
+    "ciPlatforms": ["ubuntu-latest", "macos-latest"],
+    "typescript": "6.0.3",
+    "tsMorph": "28.0.0"
+  },
+  "compatibility": {
+    "snapshot": 1,
+    "diff": 1,
+    "capabilities": 1,
+    "diagnostics": 1,
+    "adapters": 1,
+    "adapterApi": 1,
+    "adapterCompatibility": 1
+  },
+  "semver": {
+    "patch": "Bug fixes, documentation, and internal changes that preserve public behavior and artifact meaning.",
+    "minor": "Additive optional fields, diagnostics, report details, and backwards-compatible capabilities; existing readers retain their meaning.",
+    "major": "Required or removed fields, changed identity, changed meaning, retired readers, or any incompatible artifact contract; publish a migration review.",
+    "pre1": "Before 1.0, package semver does not override versioned artifact contracts; snapshot, diff, policy, and adapter compatibility still require explicit review."
+  },
+  "deprecation": {
+    "notice": "Document a deprecation in the changelog and compatibility policy, identify affected readers, and retain the old behavior for one documented compatibility window.",
+    "removal": "Remove a deprecated field or value only in a reviewed breaking release or after an explicit migration record names the replacement.",
+    "migration": "Migration fixtures, a deterministic reader/writer decision, and an upgrade note are required before a retired artifact version is removed."
+  },
+  "maintenance": {
+    "owner": "@AlisinaDevelo",
+    "reviewCadence": "At least quarterly and before every minor release.",
+    "supportRoute": "GitHub issues for public support; private vulnerability reporting for security issues.",
+    "requiredChecks": [
+      "npm run format:check",
+      "npm run lint",
+      "npm run typecheck",
+      "npm run support:validate",
+      "npm run upgrade:validate",
+      "npm run schema:compatibility",
+      "npm run test:coverage",
+      "npm run build"
+    ]
+  }
+}
