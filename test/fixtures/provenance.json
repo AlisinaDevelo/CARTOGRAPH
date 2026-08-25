@@ -245,6 +245,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "year4-investment-charter",
+      "path": "year4-charter",
+      "source": "CARTOGRAPH repository-authored conditional Year 4 governance fixture",
+      "license": "Apache-2.0",
+      "reference": "M-012 conditional Year 4 investment charter; M-006 ADR; M-009 strategy review; M-010 sustainability model; M-011 claims audit; R-017 adoption evaluation; M-008 maintainer resilience",
+      "transformation": "The charter binds public strategy, security, sustainability, claims, adoption, and ownership limits into a maintenance-only quarter plan without source bodies, private records, credentials, telemetry, or hosted data.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "review-regressions",
       "path": "review-regressions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",
