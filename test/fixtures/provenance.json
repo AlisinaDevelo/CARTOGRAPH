@@ -245,6 +245,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "property-regressions",
+      "path": "property-regressions",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A bounded seeded property corpus exercises hostile TypeScript input, snapshot JSON, local policy configuration, and adapter output with explicit no-execution, prototype-pollution, traversal, and authority-escalation regression cases.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "snapshots",
       "path": "snapshots",
       "source": "CARTOGRAPH repository-authored synthetic fixture",
