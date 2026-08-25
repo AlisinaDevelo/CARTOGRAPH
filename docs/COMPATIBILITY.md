@@ -359,6 +359,22 @@ The `fastify` extractor is opt-in in repository configuration; existing
 TypeScript/Express defaults remain unchanged. Plugin execution, hooks,
 decorators, schemas, and runtime-generated registration are not claimed.
 
+## X-011 asynchronous relationship extraction
+
+X-011 extends the existing TypeScript/Express extractor capability registry
+without changing GraphSnapshot or GraphDiff versions. The bounded slice maps
+literal `EventEmitter` publication and listener registration, Bull/BullMQ queue
+publication and worker/process registration, timer and microtask callbacks, and
+local callback parameters that are invoked by their callee to existing `queue`,
+`publishes`, `subscribes`, and `calls` records. Registration and handler spans
+remain separate source evidence records.
+
+Dynamic event or queue names, string-only reflection, unsupported queue clients,
+and unresolved handlers use the registered X-011 diagnostics. They do not emit a
+guessed edge or execute source code. The synthetic
+[`typescript-async`](../test/fixtures/typescript-async) fixture is the positive,
+negative, and deterministic compatibility boundary for this additive capability.
+
 ## E-004 language-neutral semantic contract
 
 E-004 documents the GraphSnapshot v1 contract independently of TypeScript in

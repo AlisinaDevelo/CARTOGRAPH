@@ -99,6 +99,22 @@ export const CAPABILITY_REGISTRY: CapabilityRegistry =
               "Computed model or operation names remain unsupported diagnostics.",
             ],
           },
+          {
+            id: "typescript.async",
+            diagnosticCodes: [
+              "UNSUPPORTED_DYNAMIC_EVENT_NAME",
+              "UNSUPPORTED_EVENT_REFLECTION",
+              "UNSUPPORTED_QUEUE_CLIENT",
+              "UNSUPPORTED_DYNAMIC_QUEUE_NAME",
+              "UNSUPPORTED_CALLBACK_REFLECTION",
+              "UNRESOLVED_ASYNC_HANDLER",
+            ],
+            confidence: ["certain", "inferred"],
+            examples: [
+              "Literal EventEmitter events, bounded Bull/BullMQ queues, timers, and locally invoked callback parameters preserve registration and handler evidence.",
+              "Dynamic event names, reflective handlers, unsupported queue clients, and unresolved callbacks remain explicit diagnostics.",
+            ],
+          },
         ],
       },
       {

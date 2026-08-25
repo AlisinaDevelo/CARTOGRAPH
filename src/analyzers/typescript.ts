@@ -93,6 +93,33 @@ const HTTP_METHODS = new Set([
   "put",
   "request",
 ]);
+const EVENT_SUBSCRIBE_METHODS = new Set([
+  "addListener",
+  "on",
+  "once",
+  "prependListener",
+]);
+const EVENT_PUBLISH_METHOD = "emit";
+const QUEUE_PUBLISH_METHODS = new Set([
+  "add",
+  "addBulk",
+  "enqueue",
+  "publish",
+  "send",
+]);
+const QUEUE_SUBSCRIBE_METHODS = new Set(["consume", "process", "register"]);
+const QUEUE_METHODS = new Set([
+  ...QUEUE_PUBLISH_METHODS,
+  ...QUEUE_SUBSCRIBE_METHODS,
+]);
+const QUEUE_CLIENT_MODULES = new Set(["bull", "bullmq"]);
+const EVENT_MODULES = new Set(["events", "node:events"]);
+const ASYNC_CALLBACK_ROOTS = new Set([
+  "queueMicrotask",
+  "setImmediate",
+  "setInterval",
+  "setTimeout",
+]);
 const BUILTIN_CALL_ROOTS = new Set([
   "Array",
   "Boolean",
@@ -134,6 +161,7 @@ const FRAMEWORK_CALL_ROOTS = new Set([
 
 const DETECTOR_VERSION = "cartograph.typescript-express@1";
 const FASTIFY_DETECTOR_VERSION = "cartograph.typescript-fastify@1";
+const ASYNC_DETECTOR_VERSION = `${DETECTOR_VERSION}/async`;
 
 export type TypeScriptExtractor = "typescript" | "express" | "fastify";
 
@@ -161,6 +189,12 @@ interface CallableInfo {
   graphNode: GraphNode;
   node: FunctionLike;
 }
+
+type QueueBinding = {
+  kind: "queue" | "worker";
+  module: string;
+  name: string | undefined;
+};
 
 interface AnalyzerContext {
   blockedRelativeImports: Set<string>;
@@ -1677,9 +1711,12 @@ const moduleForFile = (
   });
 };
 
+const ownerFor = (context: AnalyzerContext, node: Node): GraphNode =>
+  enclosingCallable(context, node)?.graphNode ??
+  moduleForFile(context, node.getSourceFile());
+
 const callerFor = (context: AnalyzerContext, call: CallExpression): GraphNode =>
-  enclosingCallable(context, call)?.graphNode ??
-  moduleForFile(context, call.getSourceFile());
+  ownerFor(context, call);
 
 const resolveImportedModule = (
   context: AnalyzerContext,
@@ -1899,6 +1936,608 @@ const literalString = (node: Node | undefined): string | undefined => {
   if (Node.isStringLiteral(node)) return node.getLiteralValue();
   if (Node.isNoSubstitutionTemplateLiteral(node)) return node.getLiteralValue();
   return undefined;
+};
+
+const importedModuleFor = (expression: Expression): string | undefined => {
+  const root = expressionRootNode(expression);
+  if (!Node.isIdentifier(root)) return undefined;
+  return root
+    .getSourceFile()
+    .getImportDeclarations()
+    .find((declaration) =>
+      importedLocalNames(declaration).includes(root.getText()),
+    )
+    ?.getModuleSpecifierValue();
+};
+
+const importedExportNameFor = (expression: Expression): string | undefined => {
+  const root = expressionRootNode(expression);
+  if (!Node.isIdentifier(root)) return undefined;
+  const declaration = root
+    .getSourceFile()
+    .getImportDeclarations()
+    .find((candidate) =>
+      importedLocalNames(candidate).includes(root.getText()),
+    );
+  if (!declaration) return undefined;
+  if (Node.isPropertyAccessExpression(expression)) {
+    const namespaceImport = declaration.getNamespaceImport()?.getText();
+    if (namespaceImport === root.getText()) return expression.getName();
+  }
+  if (declaration.getDefaultImport()?.getText() === root.getText())
+    return "default";
+  return declaration
+    .getNamedImports()
+    .find(
+      (specifier) =>
+        (specifier.getAliasNode()?.getText() ?? specifier.getName()) ===
+        root.getText(),
+    )
+    ?.getName();
+};
+
+const expressionMemberName = (expression: Expression): string | undefined =>
+  Node.isIdentifier(expression)
+    ? expression.getText()
+    : Node.isPropertyAccessExpression(expression)
+      ? expression.getName()
+      : undefined;
+
+const eventEmitterConstructor = (
+  context: AnalyzerContext,
+  expression: Expression,
+): boolean => {
+  const name = expressionMemberName(expression);
+  const importedName = importedExportNameFor(expression);
+  return (
+    (name === "EventEmitter" || importedName === "EventEmitter") &&
+    EVENT_MODULES.has(importedModuleFor(expression) ?? "") &&
+    !hasLocalImplementation(context, expression)
+  );
+};
+
+const eventEmitterReceiver = (
+  context: AnalyzerContext,
+  receiver: Expression,
+): boolean => {
+  if (Node.isNewExpression(receiver))
+    return eventEmitterConstructor(context, receiver.getExpression());
+
+  const root = expressionRootNode(receiver);
+  if (!Node.isIdentifier(root) || isBlockedImportedReference(context, root))
+    return false;
+
+  for (const declaration of declarationsFor(context, root)) {
+    if (!Node.isVariableDeclaration(declaration)) continue;
+    const initializer = declaration.getInitializer();
+    if (
+      initializer &&
+      Node.isNewExpression(initializer) &&
+      eventEmitterConstructor(context, initializer.getExpression())
+    ) {
+      return true;
+    }
+  }
+
+  return (
+    !hasLocalImplementation(context, root) &&
+    /\bEventEmitter\b/u.test(receiver.getType().getText())
+  );
+};
+
+const asyncCallableFromExpression = (
+  context: AnalyzerContext,
+  expression: Node | undefined,
+  fallbackName: string,
+): CallableInfo | undefined => {
+  if (!expression) return undefined;
+  if (
+    Node.isArrowFunction(expression) ||
+    Node.isFunctionExpression(expression) ||
+    Node.isFunctionDeclaration(expression) ||
+    Node.isMethodDeclaration(expression)
+  ) {
+    return registerCallable(context, expression, fallbackName);
+  }
+  if (Node.isExpression(expression))
+    return resolveCallable(context, expression);
+  return undefined;
+};
+
+const queueBindingFromNew = (
+  context: AnalyzerContext,
+  expression: Node,
+): QueueBinding | undefined => {
+  if (!Node.isNewExpression(expression)) return undefined;
+  const constructor = expression.getExpression();
+  const module = importedModuleFor(constructor);
+  if (!module || !QUEUE_CLIENT_MODULES.has(module)) return undefined;
+  const name = expressionMemberName(constructor);
+  const importedName = importedExportNameFor(constructor);
+  const worker =
+    (name === "Worker" || importedName === "Worker") && module === "bullmq";
+  const queue =
+    name === "Queue" ||
+    importedName === "Queue" ||
+    (module === "bull" && !worker);
+  if (!worker && !queue) return undefined;
+  return {
+    kind: worker ? "worker" : "queue",
+    module,
+    name: literalString(expression.getArguments()[0]),
+  };
+};
+
+const queueBindingForReceiver = (
+  context: AnalyzerContext,
+  receiver: Expression,
+): QueueBinding | undefined => {
+  const direct = queueBindingFromNew(context, receiver);
+  if (direct) return direct;
+
+  const root = expressionRootNode(receiver);
+  if (!Node.isIdentifier(root) || isBlockedImportedReference(context, root))
+    return undefined;
+  for (const declaration of declarationsFor(context, root)) {
+    if (!Node.isVariableDeclaration(declaration)) continue;
+    const initializer = declaration.getInitializer();
+    const binding = initializer
+      ? queueBindingFromNew(context, initializer)
+      : undefined;
+    if (binding) return binding;
+  }
+  return undefined;
+};
+
+const queueNode = (
+  context: AnalyzerContext,
+  binding: QueueBinding,
+  node: Node,
+): GraphNode => {
+  const name = binding.name ?? "<dynamic>";
+  return addNode(
+    context,
+    `queue:${binding.module}:${name}`,
+    "queue",
+    `${binding.module} ${name}`,
+    sourcePosition(context.rootDir, node),
+  );
+};
+
+const eventNode = (
+  context: AnalyzerContext,
+  eventName: string,
+  node: Node,
+): GraphNode =>
+  addNode(
+    context,
+    `queue:event:${eventName}`,
+    "queue",
+    `event ${eventName}`,
+    sourcePosition(context.rootDir, node),
+  );
+
+const callbackNode = (
+  context: AnalyzerContext,
+  callbackName: string,
+  node: Node,
+): GraphNode =>
+  addNode(
+    context,
+    `queue:callback:${callbackName}`,
+    "queue",
+    `callback ${callbackName}`,
+    sourcePosition(context.rootDir, node),
+  );
+
+const queueLikeReceiver = (receiver: Expression): boolean => {
+  const root = expressionRootNode(receiver);
+  if (!Node.isIdentifier(root)) return false;
+  return /(?:queue|worker|job)/iu.test(
+    `${root.getText()} ${receiver.getType().getText()}`,
+  );
+};
+
+const addEventEmitterEdges = (
+  context: AnalyzerContext,
+  call: CallExpression,
+): boolean => {
+  const expression = call.getExpression();
+  if (!Node.isPropertyAccessExpression(expression)) return false;
+  const method = expression.getName();
+  if (method !== EVENT_PUBLISH_METHOD && !EVENT_SUBSCRIBE_METHODS.has(method))
+    return false;
+  const receiver = expression.getExpression();
+  if (!eventEmitterReceiver(context, receiver)) return false;
+
+  const eventArgument = call.getArguments()[0];
+  const eventName = literalString(eventArgument);
+  if (eventName === undefined) {
+    addDiagnostic(
+      context,
+      "UNSUPPORTED_DYNAMIC_EVENT_NAME",
+      "Event name must be a literal string for a confident event edge.",
+      eventArgument ?? call,
+    );
+    return true;
+  }
+
+  if (method === EVENT_PUBLISH_METHOD) {
+    const target = eventNode(context, eventName, eventArgument ?? call);
+    addEdge(
+      context,
+      callerFor(context, call),
+      target,
+      "publishes",
+      evidenceFor(
+        context,
+        eventArgument ?? call,
+        `${ASYNC_DETECTOR_VERSION}/event`,
+      ),
+    );
+    return true;
+  }
+
+  const handlerArgument = call.getArguments()[1];
+  if (!handlerArgument || literalString(handlerArgument) !== undefined) {
+    addDiagnostic(
+      context,
+      "UNSUPPORTED_EVENT_REFLECTION",
+      "Event handler must be a statically resolvable callable.",
+      handlerArgument ?? call,
+    );
+    return true;
+  }
+  const handler = asyncCallableFromExpression(
+    context,
+    handlerArgument,
+    `event:${eventName}`,
+  );
+  if (!handler) {
+    addDiagnostic(
+      context,
+      "UNRESOLVED_ASYNC_HANDLER",
+      "Could not resolve an asynchronous event or queue handler.",
+      handlerArgument,
+    );
+    return true;
+  }
+
+  const target = eventNode(context, eventName, eventArgument ?? call);
+
+  addEdge(
+    context,
+    callerFor(context, call),
+    target,
+    "subscribes",
+    evidenceFor(context, call, `${ASYNC_DETECTOR_VERSION}/event`),
+    "inferred",
+  );
+  addEdge(
+    context,
+    target,
+    handler.graphNode,
+    "calls",
+    evidenceFor(context, handlerArgument, `${ASYNC_DETECTOR_VERSION}/handler`),
+    "inferred",
+  );
+  return true;
+};
+
+const queueHandlerArgument = (
+  context: AnalyzerContext,
+  call: CallExpression,
+): Node | undefined => {
+  const argumentsList = call.getArguments();
+  for (const candidate of argumentsList.slice(0, 2).reverse()) {
+    if (asyncCallableFromExpression(context, candidate, "queue-handler"))
+      return candidate;
+  }
+  return argumentsList.length > 1 ? argumentsList[1] : argumentsList[0];
+};
+
+const addQueueEdges = (
+  context: AnalyzerContext,
+  call: CallExpression,
+): boolean => {
+  const expression = call.getExpression();
+  if (!Node.isPropertyAccessExpression(expression)) return false;
+  const method = expression.getName();
+  if (!QUEUE_METHODS.has(method)) return false;
+  const receiver = expression.getExpression();
+  const binding = queueBindingForReceiver(context, receiver);
+  if (!binding) {
+    if (!queueLikeReceiver(receiver)) return false;
+    addDiagnostic(
+      context,
+      "UNSUPPORTED_QUEUE_CLIENT",
+      "Queue client is outside the supported Bull and BullMQ registration subset.",
+      call,
+    );
+    return true;
+  }
+  if (
+    binding.name === undefined ||
+    binding.kind === "worker" ||
+    (method === "process" && binding.module !== "bull")
+  ) {
+    addDiagnostic(
+      context,
+      binding.name === undefined
+        ? "UNSUPPORTED_DYNAMIC_QUEUE_NAME"
+        : "UNSUPPORTED_QUEUE_CLIENT",
+      binding.name === undefined
+        ? "Queue name must be a literal string for a confident queue edge."
+        : "Queue client method is outside the supported registration subset.",
+      call,
+    );
+    return true;
+  }
+
+  const target = queueNode(context, binding, call);
+  if (QUEUE_PUBLISH_METHODS.has(method)) {
+    addEdge(
+      context,
+      callerFor(context, call),
+      target,
+      "publishes",
+      evidenceFor(context, call, `${ASYNC_DETECTOR_VERSION}/queue`),
+      "inferred",
+    );
+    return true;
+  }
+
+  const handlerArgument = queueHandlerArgument(context, call);
+  if (
+    !handlerArgument ||
+    literalString(handlerArgument) !== undefined ||
+    !asyncCallableFromExpression(context, handlerArgument, "queue-handler")
+  ) {
+    addDiagnostic(
+      context,
+      literalString(handlerArgument) !== undefined
+        ? "UNSUPPORTED_CALLBACK_REFLECTION"
+        : "UNRESOLVED_ASYNC_HANDLER",
+      literalString(handlerArgument) !== undefined
+        ? "Queue handler must be a statically resolvable callable."
+        : "Could not resolve an asynchronous event or queue handler.",
+      handlerArgument ?? call,
+    );
+    return true;
+  }
+  const handler = asyncCallableFromExpression(
+    context,
+    handlerArgument,
+    "queue-handler",
+  );
+  if (!handler) return true;
+  addEdge(
+    context,
+    callerFor(context, call),
+    target,
+    "subscribes",
+    evidenceFor(context, call, `${ASYNC_DETECTOR_VERSION}/queue`),
+    "inferred",
+  );
+  addEdge(
+    context,
+    target,
+    handler.graphNode,
+    "calls",
+    evidenceFor(context, handlerArgument, `${ASYNC_DETECTOR_VERSION}/handler`),
+    "inferred",
+  );
+  return true;
+};
+
+const asyncCallbackMethod = (
+  context: AnalyzerContext,
+  expression: Expression,
+): string | undefined => {
+  if (Node.isIdentifier(expression)) {
+    if (
+      ASYNC_CALLBACK_ROOTS.has(expression.getText()) &&
+      !isBlockedImportedReference(context, expression) &&
+      !hasLocalImplementation(context, expression)
+    ) {
+      return expression.getText();
+    }
+    return undefined;
+  }
+  if (
+    Node.isPropertyAccessExpression(expression) &&
+    expression.getName() === "nextTick"
+  ) {
+    const receiver = expression.getExpression();
+    if (
+      Node.isIdentifier(receiver) &&
+      receiver.getText() === "process" &&
+      !isBlockedImportedReference(context, receiver) &&
+      !hasLocalImplementation(context, receiver)
+    ) {
+      return "process.nextTick";
+    }
+  }
+  return undefined;
+};
+
+const addAsyncCallbackEdges = (
+  context: AnalyzerContext,
+  call: CallExpression,
+): boolean => {
+  const method = asyncCallbackMethod(context, call.getExpression());
+  if (!method) return false;
+  const handlerArgument = call.getArguments()[0];
+  if (!handlerArgument || literalString(handlerArgument) !== undefined) {
+    addDiagnostic(
+      context,
+      "UNSUPPORTED_CALLBACK_REFLECTION",
+      "Asynchronous callback must be a statically resolvable callable.",
+      handlerArgument ?? call,
+    );
+    return true;
+  }
+  const handler = asyncCallableFromExpression(
+    context,
+    handlerArgument,
+    `callback:${method}`,
+  );
+  if (!handler) {
+    addDiagnostic(
+      context,
+      "UNRESOLVED_ASYNC_HANDLER",
+      "Could not resolve an asynchronous event or queue handler.",
+      handlerArgument,
+    );
+    return true;
+  }
+  const target = callbackNode(context, method, call);
+  addEdge(
+    context,
+    callerFor(context, call),
+    target,
+    "subscribes",
+    evidenceFor(context, call, `${ASYNC_DETECTOR_VERSION}/callback`),
+    "inferred",
+  );
+  addEdge(
+    context,
+    target,
+    handler.graphNode,
+    "calls",
+    evidenceFor(context, handlerArgument, `${ASYNC_DETECTOR_VERSION}/handler`),
+    "inferred",
+  );
+  return true;
+};
+
+const callbackInvocation = (
+  target: CallableInfo,
+  parameter: Node,
+): CallExpression | undefined => {
+  if (!Node.isParameterDeclaration(parameter)) return undefined;
+  const name = parameter.getName();
+  const declarationKeyValue = declarationKey(parameter);
+  return target.node
+    .getDescendantsOfKind(SyntaxKind.CallExpression)
+    .find((candidate) => {
+      const expression = candidate.getExpression();
+      if (expressionRootName(expression) !== name) return false;
+      return declarationsForNode(expression).some(
+        (declaration) => declarationKey(declaration) === declarationKeyValue,
+      );
+    });
+};
+
+const declarationsForNode = (expression: Expression): Node[] =>
+  symbolDeclarations(expression);
+
+const addLocalCallbackEdges = (
+  context: AnalyzerContext,
+  call: CallExpression,
+  target: CallableInfo,
+): void => {
+  const parameters = target.node.getParameters();
+  call.getArguments().forEach((argument, index) => {
+    const parameter = parameters[index];
+    if (!parameter) return;
+    const invocation = callbackInvocation(target, parameter);
+    if (!invocation) return;
+    const handler = asyncCallableFromExpression(
+      context,
+      argument,
+      "callback-handler",
+    );
+    if (!handler) {
+      addDiagnostic(
+        context,
+        literalString(argument) !== undefined
+          ? "UNSUPPORTED_CALLBACK_REFLECTION"
+          : "UNRESOLVED_ASYNC_HANDLER",
+        literalString(argument) !== undefined
+          ? "Callback target must be a statically resolvable callable."
+          : "Could not resolve an asynchronous event or queue handler.",
+        argument,
+      );
+      return;
+    }
+    addEdge(
+      context,
+      target.graphNode,
+      handler.graphNode,
+      "calls",
+      evidenceFor(context, argument, `${ASYNC_DETECTOR_VERSION}/callback`),
+      "inferred",
+    );
+    addEdge(
+      context,
+      target.graphNode,
+      handler.graphNode,
+      "calls",
+      evidenceFor(context, invocation, `${ASYNC_DETECTOR_VERSION}/callback`),
+      "inferred",
+    );
+  });
+};
+
+const addWorkerConstructorEdges = (
+  context: AnalyzerContext,
+  expression: Node,
+): boolean => {
+  const binding = queueBindingFromNew(context, expression);
+  if (!binding || binding.kind !== "worker") return false;
+  if (!Node.isNewExpression(expression)) return false;
+  if (binding.name === undefined) {
+    addDiagnostic(
+      context,
+      "UNSUPPORTED_DYNAMIC_QUEUE_NAME",
+      "Queue name must be a literal string for a confident queue edge.",
+      expression,
+    );
+    return true;
+  }
+  const handlerArgument = expression.getArguments()[1];
+  if (!handlerArgument || literalString(handlerArgument) !== undefined) {
+    addDiagnostic(
+      context,
+      "UNSUPPORTED_CALLBACK_REFLECTION",
+      "Queue handler must be a statically resolvable callable.",
+      handlerArgument ?? expression,
+    );
+    return true;
+  }
+  const handler = asyncCallableFromExpression(
+    context,
+    handlerArgument,
+    "queue-worker",
+  );
+  if (!handler) {
+    addDiagnostic(
+      context,
+      "UNRESOLVED_ASYNC_HANDLER",
+      "Could not resolve an asynchronous event or queue handler.",
+      handlerArgument,
+    );
+    return true;
+  }
+  const target = queueNode(context, binding, expression);
+  addEdge(
+    context,
+    ownerFor(context, expression),
+    target,
+    "subscribes",
+    evidenceFor(context, expression, `${ASYNC_DETECTOR_VERSION}/queue`),
+    "inferred",
+  );
+  addEdge(
+    context,
+    target,
+    handler.graphNode,
+    "calls",
+    evidenceFor(context, handlerArgument, `${ASYNC_DETECTOR_VERSION}/handler`),
+    "inferred",
+  );
+  return true;
 };
 
 const safeHttpDestination = (destination: string): string => {
@@ -2425,6 +3064,7 @@ const addCallEdge = (context: AnalyzerContext, call: CallExpression): void => {
   const expression = call.getExpression();
   const target = resolveCallable(context, expression);
   if (target) {
+    addLocalCallbackEdges(context, call, target);
     addEdge(
       context,
       callerFor(context, call),
@@ -2439,6 +3079,14 @@ const addCallEdge = (context: AnalyzerContext, call: CallExpression): void => {
     Node.isPropertyAccessExpression(expression) &&
     expression.getName() === "route" &&
     isVerifiedExpressReceiver(context, expression.getExpression())
+  ) {
+    return;
+  }
+
+  if (
+    declarationsFor(context, expression).some((declaration) =>
+      Node.isParameterDeclaration(declaration),
+    )
   ) {
     return;
   }
@@ -2629,10 +3277,19 @@ const addFastifyRouteEdges = (
 const analyzeCalls = (context: AnalyzerContext): void => {
   for (const sourceFile of context.sourceFiles) {
     context.checkBudget();
+    for (const expression of sourceFile.getDescendantsOfKind(
+      SyntaxKind.NewExpression,
+    )) {
+      context.checkBudget();
+      addWorkerConstructorEdges(context, expression);
+    }
     for (const call of sourceFile.getDescendantsOfKind(
       SyntaxKind.CallExpression,
     )) {
       context.checkBudget();
+      if (addEventEmitterEdges(context, call)) continue;
+      if (addQueueEdges(context, call)) continue;
+      if (addAsyncCallbackEdges(context, call)) continue;
       if (
         context.extractors.has("fastify") &&
         addFastifyRouteEdges(context, call)
@@ -2794,7 +3451,7 @@ export const analyzeTypeScriptRepository = (
       : {}),
   };
 
-  return {
+  const result: TypeScriptAnalyzerResult = {
     schemaVersion: 1,
     capabilityRegistryVersion: CAPABILITY_REGISTRY_VERSION,
     revision,
@@ -2811,6 +3468,14 @@ export const analyzeTypeScriptRepository = (
       compareStrings(left.id, right.id),
     ),
   };
+
+  // ts-morph keeps compiler ASTs attached to the Project. The graph result is
+  // fully materialized above, so detach those source files before returning;
+  // repeated adapter analyses must not retain an entire compiler project.
+  for (const sourceFile of context.project.getSourceFiles())
+    context.project.removeSourceFile(sourceFile);
+
+  return result;
 };
 
 export const analyzeTypeScriptProject = analyzeTypeScriptRepository;

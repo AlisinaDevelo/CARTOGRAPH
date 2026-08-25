@@ -1,0 +1,85 @@
+{
+  "edges": [
+    [
+      "calls",
+      "function:src/async.ts:passCallback",
+      "function:src/handlers.ts:registerCallback"
+    ],
+    [
+      "calls",
+      "function:src/async.ts:registerEvents.event:order.retry:16:31",
+      "function:src/handlers.ts:handleRetry"
+    ],
+    [
+      "calls",
+      "function:src/async.ts:scheduleRetry.callback:queueMicrotask:43:18",
+      "function:src/handlers.ts:handleOrder"
+    ],
+    [
+      "calls",
+      "function:src/handlers.ts:registerCallback",
+      "function:src/handlers.ts:handleRetry"
+    ],
+    ["calls", "queue:bull:legacy", "function:src/handlers.ts:handleRetry"],
+    ["calls", "queue:bullmq:orders", "function:src/handlers.ts:handleOrder"],
+    [
+      "calls",
+      "queue:callback:queueMicrotask",
+      "function:src/async.ts:scheduleRetry.callback:queueMicrotask:43:18"
+    ],
+    [
+      "calls",
+      "queue:callback:setTimeout",
+      "function:src/handlers.ts:handleRetry"
+    ],
+    [
+      "calls",
+      "queue:event:order.created",
+      "function:src/handlers.ts:handleOrder"
+    ],
+    [
+      "calls",
+      "queue:event:order.retry",
+      "function:src/async.ts:registerEvents.event:order.retry:16:31"
+    ],
+    ["imports", "module:src/async.ts", "module:external:<redacted-module>"],
+    ["imports", "module:src/async.ts", "module:external:bull"],
+    ["imports", "module:src/async.ts", "module:external:bullmq"],
+    ["imports", "module:src/async.ts", "module:src/handlers.ts"],
+    [
+      "publishes",
+      "function:src/async.ts:publishOrder",
+      "queue:event:order.created"
+    ],
+    ["publishes", "module:src/async.ts", "queue:bullmq:orders"],
+    [
+      "subscribes",
+      "function:src/async.ts:registerEvents",
+      "queue:event:order.created"
+    ],
+    [
+      "subscribes",
+      "function:src/async.ts:registerEvents",
+      "queue:event:order.retry"
+    ],
+    [
+      "subscribes",
+      "function:src/async.ts:scheduleRetry",
+      "queue:callback:queueMicrotask"
+    ],
+    [
+      "subscribes",
+      "function:src/async.ts:scheduleRetry",
+      "queue:callback:setTimeout"
+    ],
+    ["subscribes", "module:src/async.ts", "queue:bull:legacy"],
+    ["subscribes", "module:src/async.ts", "queue:bullmq:orders"]
+  ],
+  "diagnostics": [
+    "UNSUPPORTED_CALLBACK_REFLECTION",
+    "UNSUPPORTED_DYNAMIC_EVENT_NAME",
+    "UNSUPPORTED_DYNAMIC_QUEUE_NAME",
+    "UNSUPPORTED_EVENT_REFLECTION",
+    "UNSUPPORTED_QUEUE_CLIENT"
+  ]
+}
