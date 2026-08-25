@@ -118,8 +118,8 @@ support is not expanded until the measured evidence justifies it.
 4. Add the cross-language equivalence corpus from E-010 before making a
    language-level claim. Equivalence is measured by semantic category, not by
    matching syntax or line counts.
-5. Use the E-012 gate report and a public ADR to graduate, retain as
-   experimental, narrow, defer, or retire the candidate.
+5. Use the [E-012 gate report](LANGUAGE_EXPANSION_GATE.md) and its public ADR
+   to graduate, retain as experimental, narrow, defer, or retire the candidate.
 6. Re-review implemented and experimental entries quarterly and before a
    minor release. The review records the matrix digest, tested runtime,
    fixture/provenance changes, owner, and unresolved risks.

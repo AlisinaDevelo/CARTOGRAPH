@@ -218,6 +218,15 @@ stable/experimental/unreleased windows, precision/recall/evidence triggers,
 notice/archive/replacement requirements, ordered deadlines, public templates,
 and source-leak guards. Both cases pass with ten deterministic events.
 
+E-012 adds the digest-bound [language-expansion gate report](LANGUAGE_EXPANSION_GATE.md)
+and public [ADR 0006](adr/0006-language-expansion-gate.md). The report compares
+predeclared conformance, semantic coverage, unknown rate, precision, recall,
+performance, maintenance cost, demand, security ownership, and evidence
+completeness for the bounded Rust pilot. The measured quality and safety floors
+pass, but no independent demand signal is recorded, so the decision retains
+the pilot as experimental and keeps broad `language.rust` expansion deferred
+with zero implementation commitments.
+
 E-018 adds the offline [adapter compatibility matrix](ADAPTER_COMPATIBILITY_MATRIX.md).
 It binds the declared Node and compiler lines, checks every shipped adapter
 capability against bounded fixtures with deterministic evidence, replays all
