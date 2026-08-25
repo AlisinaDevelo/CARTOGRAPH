@@ -475,7 +475,7 @@
       "source": "CARTOGRAPH repository-authored synthetic fixture",
       "license": "Apache-2.0",
       "reference": "CARTOGRAPH repository history; no external source",
-      "transformation": "Positive, negative, malformed, unsupported, over-limit, traversal, path, boundary, and cycle query requests exercise selector predicates, canonical output ordering, complete evidence projection, truncation diagnostics, and fail-closed local resource bounds without source execution or network access.",
+      "transformation": "Positive, negative, malformed, unsupported, over-limit, traversal, path, boundary, cycle, and metadata projection requests exercise selector predicates, canonical output ordering, complete evidence and policy/ADR/ownership provenance, missing and stale metadata diagnostics, truncation diagnostics, and fail-closed local resource bounds without source execution or network access.",
       "redistribution": "allowed"
     }
   ]

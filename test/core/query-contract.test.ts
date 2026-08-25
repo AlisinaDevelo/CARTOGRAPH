@@ -10,6 +10,7 @@ import {
   ArchitectureQueryResultSchema,
   createGraphSnapshot,
   executeArchitectureQuery,
+  evaluatePolicyOnSnapshot,
   GraphValidationError,
   parseArchitectureQuery,
   serializeArchitectureQuery,
@@ -433,5 +434,178 @@ describe("architecture query contract", () => {
     expect(ArchitectureQueryResultSchema.parse(result)).toBeDefined();
     const isValid = validate as (input: unknown) => boolean;
     expect(isValid(result), JSON.stringify(validate.errors)).toBe(true);
+  });
+
+  it("projects applicable policy, ADR, ownership, and unsupported metadata without inference", () => {
+    const policy = {
+      schemaVersion: 1,
+      policyId: "architecture-policy",
+      version: "1.0.0",
+      mode: "enforce",
+      rules: [
+        {
+          id: "node-presence",
+          target: "node",
+          selector: { id: "node-a" },
+          assertion: "exists",
+          effect: "enforce",
+        },
+        {
+          id: "edge-presence",
+          target: "edge",
+          selector: { kind: "calls" },
+          assertion: "exists",
+          effect: "informational",
+        },
+        {
+          id: "diff-review",
+          target: "diff",
+          selector: { kind: "node-changed" },
+          assertion: "exists",
+        },
+      ],
+    };
+    const evaluation = evaluatePolicyOnSnapshot(policy, graph);
+    const before = JSON.stringify({ graph, policy, evaluation });
+    const result = executeArchitectureQuery(
+      graph,
+      {
+        schemaVersion: 1,
+        contract: ARCHITECTURE_QUERY_CONTRACT,
+        queryId: "metadata-projection",
+        operation: "select-nodes",
+        selectors: { nodes: [{ kind: "function" }] },
+        projection: { metadata: "full" },
+      },
+      {
+        schemaVersion: 1,
+        contract: "cartograph.architecture-query-metadata",
+        policies: [
+          {
+            source: ".cartograph/policy.json",
+            config: policy,
+            evaluation,
+          },
+        ],
+        decisions: {
+          source: ".cartograph/adr.json",
+          document: {
+            schemaVersion: 1,
+            references: [
+              {
+                id: "adr-architecture",
+                file: "docs/adr/0001-architecture.md",
+                title: "Architecture boundary",
+                status: "accepted",
+                graphIds: ["node:node-a"],
+              },
+              {
+                id: "adr-stale",
+                file: "docs/adr/0002-stale.md",
+                title: "Stale decision",
+                status: "deprecated",
+                graphIds: ["node:missing"],
+              },
+            ],
+          },
+          diagnostics: [
+            {
+              code: "ADR_REFERENCE_STALE_GRAPH_ID",
+              severity: "error",
+              referenceId: "adr-stale",
+              file: "docs/adr/0002-stale.md",
+              graphId: "node:missing",
+              message: "ADR graph ID is stale",
+            },
+          ],
+        },
+        ownership: {
+          source: ".cartograph/ownership.json",
+          hints: [
+            {
+              id: "owner-a-primary",
+              target: { kind: "node", graphId: "node:node-a" },
+              owners: ["team-architecture"],
+              source: ".cartograph/ownership.json",
+              evidenceRefs: ["ownership:owner-a-primary"],
+            },
+            {
+              id: "owner-a-conflict",
+              target: { kind: "node", graphId: "node:node-a" },
+              owners: ["team-runtime"],
+              source: ".cartograph/ownership.json",
+              evidenceRefs: ["ownership:owner-a-conflict"],
+            },
+          ],
+        },
+        unsupported: [
+          {
+            id: "remote-owner-catalog",
+            category: "ownership",
+            code: "REMOTE_METADATA_UNSUPPORTED",
+            message:
+              "remote ownership catalogs are outside the local query contract",
+            evidenceRefs: ["metadata:remote-owner-catalog"],
+          },
+        ],
+      },
+    );
+
+    expect(result.metadata?.policies[0]?.rules).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          ruleId: "node-presence",
+          applicableGraphIds: ["node:node-a"],
+        }),
+      ]),
+    );
+    expect(result.metadata?.policies[0]?.unsupported).toEqual([
+      expect.objectContaining({ ruleId: "diff-review" }),
+    ]);
+    expect(
+      result.metadata?.decisions.references.map((reference) => reference.id),
+    ).toEqual(["adr-architecture", "adr-stale"]);
+    expect(result.metadata?.decisions.references[1]?.diagnostics[0]?.code).toBe(
+      "ADR_REFERENCE_STALE_GRAPH_ID",
+    );
+    expect(result.metadata?.ownership.hints.map((hint) => hint.id)).toEqual([
+      "owner-a-conflict",
+      "owner-a-primary",
+    ]);
+    expect(
+      result.metadata?.diagnostics.map((diagnostic) => diagnostic.code),
+    ).toEqual(
+      expect.arrayContaining([
+        "METADATA_OWNERSHIP_CONFLICT",
+        "METADATA_OWNERSHIP_MISSING",
+      ]),
+    );
+    expect(result.metadata?.unsupported[0]?.code).toBe(
+      "REMOTE_METADATA_UNSUPPORTED",
+    );
+    expect(JSON.stringify({ graph, policy, evaluation })).toBe(before);
+  });
+
+  it("keeps metadata projection opt-in and reports absent ownership instead of guessing", () => {
+    const result = executeArchitectureQuery(graph, {
+      schemaVersion: 1,
+      contract: ARCHITECTURE_QUERY_CONTRACT,
+      queryId: "metadata-missing",
+      operation: "select-nodes",
+      selectors: { nodes: [{ id: "node-b" }] },
+      projection: { metadata: "full" },
+    });
+
+    expect(result.metadata?.ownership.hints).toEqual([]);
+    expect(result.metadata?.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "METADATA_OWNERSHIP_MISSING",
+          target: { kind: "node", graphId: "node:node-b" },
+        }),
+        expect.objectContaining({ code: "METADATA_DECISIONS_MISSING" }),
+      ]),
+    );
+    expect(result.metadata?.policies).toEqual([]);
   });
 });

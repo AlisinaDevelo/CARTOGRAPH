@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "contract": "cartograph.architecture-query-fixtures",
-  "fixtureId": "q002-v0.1",
+  "fixtureId": "q003-v0.1",
   "scope": {
     "network": false,
     "filesystemWrites": false,
@@ -202,6 +202,123 @@
       "expected": {
         "status": "resource-limit",
         "diagnosticCode": "QUERY_RESOURCE_LIMIT"
+      }
+    },
+    {
+      "id": "positive-metadata-projection",
+      "scenario": "positive",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q003-positive-metadata-projection",
+        "operation": "select-nodes",
+        "selectors": { "nodes": [{ "id": "node-a" }] },
+        "projection": { "metadata": "full" }
+      },
+      "metadata": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query-metadata",
+        "policies": [
+          {
+            "source": ".cartograph/policy.json",
+            "config": {
+              "schemaVersion": 1,
+              "policyId": "fixture-policy",
+              "version": "1.0.0",
+              "mode": "enforce",
+              "rules": [
+                {
+                  "id": "node-a-required",
+                  "target": "node",
+                  "selector": { "id": "node-a" },
+                  "assertion": "exists",
+                  "effect": "enforce"
+                }
+              ]
+            },
+            "evaluation": {
+              "schemaVersion": 1,
+              "contract": "cartograph.policy-evaluation",
+              "policyId": "fixture-policy",
+              "policyVersion": "1.0.0",
+              "inputKind": "snapshot",
+              "mode": "enforce",
+              "status": "passed",
+              "evaluatedRules": 1,
+              "passedRules": 1,
+              "unsupportedRules": 0,
+              "violations": [],
+              "unsupported": [],
+              "exceptions": []
+            }
+          }
+        ],
+        "decisions": {
+          "source": ".cartograph/adr.json",
+          "document": {
+            "schemaVersion": 1,
+            "references": [
+              {
+                "id": "adr-fixture",
+                "file": "docs/adr/fixture.md",
+                "title": "Fixture decision",
+                "status": "accepted",
+                "graphIds": ["node:node-a"]
+              }
+            ]
+          }
+        },
+        "ownership": {
+          "source": ".cartograph/ownership.json",
+          "hints": [
+            {
+              "id": "owner-fixture",
+              "target": { "kind": "node", "graphId": "node:node-a" },
+              "owners": ["team-architecture"],
+              "source": ".cartograph/ownership.json",
+              "evidenceRefs": ["ownership:owner-fixture"]
+            }
+          ]
+        },
+        "unsupported": [
+          {
+            "id": "remote-catalog",
+            "category": "ownership",
+            "code": "REMOTE_METADATA_UNSUPPORTED",
+            "message": "remote ownership catalog is outside the local contract",
+            "evidenceRefs": ["metadata:remote-catalog"]
+          }
+        ]
+      },
+      "expected": {
+        "status": "ok",
+        "nodes": 1,
+        "metadataPolicyRules": 1,
+        "metadataDecisions": 1,
+        "metadataOwnershipHints": 1,
+        "metadataUnsupportedCode": "REMOTE_METADATA_UNSUPPORTED"
+      }
+    },
+    {
+      "id": "positive-metadata-missing-ownership",
+      "scenario": "positive",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q003-positive-metadata-missing-ownership",
+        "operation": "select-nodes",
+        "selectors": { "nodes": [{ "id": "node-b" }] },
+        "projection": { "metadata": "summary" }
+      },
+      "metadata": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query-metadata"
+      },
+      "expected": {
+        "status": "ok",
+        "nodes": 1,
+        "metadataOwnershipHints": 0,
+        "metadataDiagnosticCode": "METADATA_OWNERSHIP_MISSING"
       }
     }
   ]

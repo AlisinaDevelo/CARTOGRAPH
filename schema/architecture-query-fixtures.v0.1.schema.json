@@ -58,6 +58,7 @@
           ]
         },
         "query": { "type": ["object", "null"] },
+        "metadata": { "$ref": "#/definitions/metadata" },
         "expected": { "$ref": "#/definitions/expected" }
       }
     },
@@ -75,11 +76,35 @@
         "cycles": { "type": "integer", "minimum": 0 },
         "boundaries": { "type": "integer", "minimum": 0 },
         "truncated": { "type": "boolean" },
+        "metadataPolicyRules": { "type": "integer", "minimum": 0 },
+        "metadataDecisions": { "type": "integer", "minimum": 0 },
+        "metadataOwnershipHints": { "type": "integer", "minimum": 0 },
+        "metadataDiagnosticCode": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_.:-]*$"
+        },
+        "metadataUnsupportedCode": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_.:-]*$"
+        },
         "diagnosticCode": {
           "type": "string",
           "pattern": "^[A-Z][A-Z0-9_.:-]*$"
         },
         "errorIncludes": { "type": "string", "minLength": 1 }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "contract"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.architecture-query-metadata" },
+        "policies": { "type": "array" },
+        "decisions": { "type": "object" },
+        "ownership": { "type": "object" },
+        "unsupported": { "type": "array" }
       }
     }
   }

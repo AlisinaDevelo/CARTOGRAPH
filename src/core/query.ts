@@ -23,6 +23,11 @@ import {
   type ImpactDirection,
   type ImpactSubgraph,
 } from "./impact.js";
+import {
+  projectArchitectureQueryMetadata,
+  ArchitectureQueryMetadataResultSchema,
+  type ArchitectureQueryMetadataResult,
+} from "./query-metadata.js";
 import { createResourceBudget, ResourceLimitError } from "../resources.js";
 
 export const ARCHITECTURE_QUERY_SCHEMA_VERSION = 1 as const;
@@ -228,6 +233,7 @@ export const ArchitectureQueryProjectionSchema = z
     includeNodes: z.boolean().default(true),
     includeEdges: z.boolean().default(true),
     includeDiagnostics: z.boolean().default(true),
+    metadata: z.enum(["full", "summary", "none"]).default("none"),
   })
   .strict()
   .default({
@@ -235,6 +241,7 @@ export const ArchitectureQueryProjectionSchema = z
     includeNodes: true,
     includeEdges: true,
     includeDiagnostics: true,
+    metadata: "none",
   });
 
 export const ArchitectureQueryOrderingSchema = z
@@ -500,6 +507,7 @@ export const ArchitectureQueryResultSchema = z
     nodeDepths: z.array(ArchitectureQueryNodeDepthSchema).default([]),
     truncated: z.boolean().default(false),
     truncatedEdges: z.array(ArchitectureQueryEdgeSchema).default([]),
+    metadata: ArchitectureQueryMetadataResultSchema.optional(),
     unsupportedOperation: ArchitectureQueryOperationSchema.optional(),
   })
   .strict()
@@ -562,6 +570,7 @@ export type ArchitectureQueryBoundary = z.infer<
 export type ArchitectureQueryNodeDepth = z.infer<
   typeof ArchitectureQueryNodeDepthSchema
 >;
+export type ArchitectureQueryMetadata = ArchitectureQueryMetadataResult;
 export type ArchitectureQueryResult = z.infer<
   typeof ArchitectureQueryResultSchema
 >;
@@ -740,6 +749,7 @@ type QueryResultDetails = Partial<
     | "nodeDepths"
     | "truncated"
     | "truncatedEdges"
+    | "metadata"
   >
 >;
 
@@ -777,6 +787,7 @@ const buildResult = (
     truncatedEdges: [...(details.truncatedEdges ?? [])].sort((left, right) =>
       compareEdges(left, right),
     ),
+    ...(details.metadata === undefined ? {} : { metadata: details.metadata }),
     ...(unsupportedOperation === undefined ? {} : { unsupportedOperation }),
   };
   return parseQueryContract(
@@ -1330,6 +1341,7 @@ const executeTraversal = (
 export const executeArchitectureQuery = (
   snapshotInput: unknown,
   queryInput: unknown,
+  metadataInput?: unknown,
 ): ArchitectureQueryResult => {
   const query = parseArchitectureQuery(queryInput);
   const snapshot = canonicalizeGraphSnapshot(snapshotInput);
@@ -1406,6 +1418,12 @@ export const executeArchitectureQuery = (
           ? execution.details.truncatedEdges
           : [];
       }
+      if (query.projection.metadata !== "none") {
+        detailProjection.metadata = projectArchitectureQueryMetadata(
+          metadataInput,
+          { nodes: execution.nodes, edges: execution.edges },
+        );
+      }
       const result = buildResult(
         query,
         "ok",
@@ -1473,6 +1491,13 @@ export const executeArchitectureQuery = (
   const diagnostics = query.projection.includeDiagnostics
     ? selectedSnapshotDiagnostics(snapshot, nodeIds, selectedEdges)
     : [];
+  const metadata =
+    query.projection.metadata === "none"
+      ? undefined
+      : projectArchitectureQueryMetadata(metadataInput, {
+          nodes: resultNodes,
+          edges: selectedEdges,
+        });
   const result = buildResult(
     query,
     "ok",
@@ -1483,6 +1508,8 @@ export const executeArchitectureQuery = (
         )
       : [],
     diagnostics,
+    undefined,
+    metadata === undefined ? {} : { metadata },
   );
   return resultWithByteLimit(query, result);
 };

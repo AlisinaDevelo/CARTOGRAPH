@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query.v0.1.schema.json",
   "title": "CARTOGRAPH architecture query request v0.1",
-  "description": "A local, read-only, deterministic, resource-bounded query request over one canonical GraphSnapshot. It supports selection, bounded traversal, shortest dependency paths, boundary crossings, and cycle reporting without source bodies or remote references.",
+  "description": "A local, read-only, deterministic, resource-bounded query request over one canonical GraphSnapshot. It supports selection, bounded traversal, shortest dependency paths, boundary crossings, cycle reporting, and an opt-in metadata projection without source bodies or remote references.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "contract", "queryId", "operation"],
@@ -168,7 +168,8 @@
         "evidence": { "enum": ["full", "summary", "none"], "default": "full" },
         "includeNodes": { "type": "boolean", "default": true },
         "includeEdges": { "type": "boolean", "default": true },
-        "includeDiagnostics": { "type": "boolean", "default": true }
+        "includeDiagnostics": { "type": "boolean", "default": true },
+        "metadata": { "enum": ["full", "summary", "none"], "default": "none" }
       }
     },
     "ordering": {
