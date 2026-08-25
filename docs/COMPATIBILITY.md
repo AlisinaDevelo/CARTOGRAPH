@@ -75,6 +75,12 @@ migration review. The five-case fixture and evaluation schemas are
 [`architecture-query-explanation-fixtures.v0.1.schema.json`](../schema/architecture-query-explanation-fixtures.v0.1.schema.json)
 and
 [`architecture-query-explanation-evaluation.v0.1.schema.json`](../schema/architecture-query-explanation-evaluation.v0.1.schema.json).
+The Q-006 quality gate is a report-only governance contract at
+[`architecture-query-quality-gate.v0.1.schema.json`](../schema/architecture-query-quality-gate.v0.1.schema.json).
+It does not change GraphSnapshot, GraphDiff, query, impact, or explanation
+wire shapes; it records threshold results and conservative scope decisions for
+those existing v1 contracts. A future gate revision that changes metric
+meaning requires a new report version or explicit migration review.
 Local ADR reference indexes use the reviewed `adrReferences` contract and
 [`schema/adr-reference.v0.1.schema.json`](../schema/adr-reference.v0.1.schema.json).
 P-008 adds ADR comparison details only to Markdown and standalone HTML report

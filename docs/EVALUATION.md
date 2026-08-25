@@ -70,6 +70,18 @@ executable resources. This is a local synthetic corpus: it exercises report
 interpretability and privacy boundaries, not analyzer accuracy over a production
 repository. Validate it with `npm run query:explanation:validate`.
 
+Q-006 publishes the digest-bound
+[`architecture-query-quality-gate/report.v0.1.json`](../test/fixtures/architecture-query-quality-gate/report.v0.1.json)
+and the public
+[`architecture-query quality and safety gate`](ARCHITECTURE_QUERY_QUALITY_GATE.md).
+The gate compares deterministic query correctness, impact precision and recall,
+explanation completeness, fail-closed resource and malformed-input behavior,
+path-leakage safety, repeatability, and bounded reviewer-task completion. It
+records the Q-004 precision miss (`0.8888888888888888` versus the `0.90`
+threshold), keeps single-repository query work narrow, and defers
+multi-repository composition until workspace and independent reviewer evidence
+exists. Validate it with `npm run query:quality:validate`.
+
 Identity fixtures cover a source-line move, a unique same-name file move, a
 rename supported by an unchanged directed neighborhood, duplicate-name
 ambiguity, a non-mutual destination collision, and a weak unsupported rename.

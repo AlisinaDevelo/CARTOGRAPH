@@ -143,3 +143,19 @@ cycles, depth truncation, missing evidence, empty results, and metadata context:
 ```sh
 npm run query:explanation:validate
 ```
+
+## Quality and safety gate
+
+Q-006 combines the query, impact, and explanation corpora into a public quality
+and safety decision. The digest-bound
+[`architecture-query-quality-gate`](../schema/architecture-query-quality-gate.v0.1.schema.json)
+report checks deterministic correctness, precision and recall, explanation
+completeness, fail-closed resource and malformed-input behavior, path-leakage
+safety, repeatability, and reviewer-task completion. The current report narrows
+impact claims because the synthetic impact precision is below its declared
+floor, and defers multi-repository composition because workspace trust and
+independent reviewer evidence are not measured. Run:
+
+```sh
+npm run query:quality:validate
+```

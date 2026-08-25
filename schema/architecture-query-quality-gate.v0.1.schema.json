@@ -1,0 +1,245 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query-quality-gate.v0.1.schema.json",
+  "title": "CARTOGRAPH architecture-query quality and safety gate v0.1",
+  "description": "Digest-bound local evidence and decision record for bounded architecture-query quality, safety, and reviewer utility.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "gateId",
+    "asOf",
+    "scope",
+    "thresholds",
+    "measurements",
+    "reviewerTasks",
+    "limitations",
+    "decision",
+    "publicReport",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.architecture-query-quality-gate" },
+    "gateId": { "$ref": "#/definitions/identifier" },
+    "asOf": { "type": "string", "format": "date" },
+    "scope": { "$ref": "#/definitions/scope" },
+    "thresholds": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/definitions/threshold" }
+    },
+    "measurements": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/definitions/measurement" }
+    },
+    "reviewerTasks": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/definitions/reviewerTask" }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/limitation" }
+    },
+    "decision": { "$ref": "#/definitions/decision" },
+    "publicReport": { "$ref": "#/definitions/publicReport" },
+    "provenance": { "$ref": "#/definitions/provenance" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240,
+      "pattern": "^(?:[a-zA-Z0-9_.-]+/)*[a-zA-Z0-9_.-]+$"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "network",
+        "filesystemWrites",
+        "sourceBodiesIncluded",
+        "execution",
+        "deterministic",
+        "supportedBoundary",
+        "unsupportedBoundary"
+      ],
+      "properties": {
+        "network": { "const": false },
+        "filesystemWrites": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "execution": { "const": false },
+        "deterministic": { "const": true },
+        "supportedBoundary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1600
+        },
+        "unsupportedBoundary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1600
+        }
+      }
+    },
+    "metricId": {
+      "enum": [
+        "deterministic-correctness",
+        "impact-precision",
+        "impact-recall",
+        "explanation-completeness",
+        "resource-safety",
+        "malformed-input-safety",
+        "path-leakage-safety",
+        "reviewer-task-completion",
+        "repeatability",
+        "multi-repository-readiness"
+      ]
+    },
+    "threshold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "operator", "target", "unit", "rationale"],
+      "properties": {
+        "id": { "$ref": "#/definitions/metricId" },
+        "operator": { "enum": [">=", "<=", "=="] },
+        "target": { "anyOf": [{ "type": "number" }, { "type": "boolean" }] },
+        "unit": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 900 }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "value", "unit", "status", "evidenceRefs", "notes"],
+      "properties": {
+        "id": { "$ref": "#/definitions/metricId" },
+        "value": { "anyOf": [{ "type": "number" }, { "type": "boolean" }] },
+        "unit": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "status": { "enum": ["pass", "miss"] },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1, "maxLength": 240 }
+        },
+        "notes": { "type": "string", "minLength": 1, "maxLength": 1600 }
+      }
+    },
+    "reviewerTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "scenario",
+        "expected",
+        "completed",
+        "outcome",
+        "evidenceRefs",
+        "notes"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "scenario": { "$ref": "#/definitions/identifier" },
+        "expected": { "type": "string", "minLength": 1, "maxLength": 600 },
+        "completed": { "type": "boolean" },
+        "outcome": { "enum": ["complete", "partial", "blocked"] },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1, "maxLength": 240 }
+        },
+        "notes": { "type": "string", "minLength": 1, "maxLength": 1200 }
+      }
+    },
+    "limitation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "severity", "description", "evidenceRefs"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "severity": { "enum": ["low", "medium", "high"] },
+        "description": { "type": "string", "minLength": 1, "maxLength": 1600 },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1, "maxLength": 240 }
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "multiRepositoryOutcome",
+        "rationale",
+        "failedThresholds",
+        "continueScope",
+        "narrowScope",
+        "deferScope",
+        "nextReviewAt"
+      ],
+      "properties": {
+        "outcome": { "enum": ["continue", "narrow", "defer"] },
+        "multiRepositoryOutcome": { "enum": ["continue", "narrow", "defer"] },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 2400 },
+        "failedThresholds": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/metricId" }
+        },
+        "continueScope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1600
+        },
+        "narrowScope": { "type": "string", "minLength": 1, "maxLength": 1600 },
+        "deferScope": { "type": "string", "minLength": 1, "maxLength": 1600 },
+        "nextReviewAt": { "type": "string", "format": "date" }
+      }
+    },
+    "publicReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "decision", "multiRepositoryDecision"],
+      "properties": {
+        "path": { "$ref": "#/definitions/path" },
+        "decision": { "enum": ["continue", "narrow", "defer"] },
+        "multiRepositoryDecision": { "enum": ["continue", "narrow", "defer"] }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "commands",
+        "externalSources",
+        "sourceBodiesIncluded",
+        "secretsIncluded"
+      ],
+      "properties": {
+        "source": { "type": "string", "minLength": 1, "maxLength": 800 },
+        "commands": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1, "maxLength": 240 }
+        },
+        "externalSources": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "secretsIncluded": { "const": false }
+      }
+    }
+  }
+}

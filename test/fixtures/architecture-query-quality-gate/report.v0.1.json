@@ -1,0 +1,324 @@
+{
+  "$schema": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query-quality-gate.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.architecture-query-quality-gate",
+  "gateId": "architecture-query-quality-gate-v0.1",
+  "asOf": "2026-08-25",
+  "scope": {
+    "network": false,
+    "filesystemWrites": false,
+    "sourceBodiesIncluded": false,
+    "execution": false,
+    "deterministic": true,
+    "supportedBoundary": "Offline, read-only, single-repository architecture queries with explicit selectors, bounded traversal, evidence-linked paths, impact explanations, metadata projections, and declared resource limits.",
+    "unsupportedBoundary": "Multi-repository composition, production reviewer behavior, universal precision claims, unbounded traversal, source execution, network retrieval, and absolute-path or source-body reporting remain outside this gate."
+  },
+  "thresholds": [
+    {
+      "id": "deterministic-correctness",
+      "operator": "==",
+      "target": 1,
+      "unit": "passing deterministic query cases",
+      "rationale": "Every declared query-contract case must remain correct and repeatable."
+    },
+    {
+      "id": "impact-precision",
+      "operator": ">=",
+      "target": 0.9,
+      "unit": "impact precision",
+      "rationale": "Affected-set overreach must stay below the declared single-repository review floor."
+    },
+    {
+      "id": "impact-recall",
+      "operator": ">=",
+      "target": 0.85,
+      "unit": "impact recall",
+      "rationale": "Supported impact paths must recover the declared affected records."
+    },
+    {
+      "id": "explanation-completeness",
+      "operator": "==",
+      "target": 1,
+      "unit": "complete explanation cases",
+      "rationale": "Every explanation case must expose inspectable paths, evidence, uncertainty, limits, and tool metadata."
+    },
+    {
+      "id": "resource-safety",
+      "operator": "==",
+      "target": true,
+      "unit": "fail-closed resource behavior",
+      "rationale": "Declared node, edge, depth, report, memory, and wall-clock limits must produce typed bounded outcomes."
+    },
+    {
+      "id": "malformed-input-safety",
+      "operator": "==",
+      "target": true,
+      "unit": "malformed inputs rejected",
+      "rationale": "Invalid requests must fail closed without executing or mutating a graph."
+    },
+    {
+      "id": "path-leakage-safety",
+      "operator": "==",
+      "target": true,
+      "unit": "path and source disclosure checks passed",
+      "rationale": "Reports must not expose absolute paths, source bodies, secrets, remote fetches, or executable resources."
+    },
+    {
+      "id": "reviewer-task-completion",
+      "operator": ">=",
+      "target": 0.8,
+      "unit": "synthetic reviewer task completion",
+      "rationale": "At least four representative reviewer tasks are required before team-scale composition."
+    },
+    {
+      "id": "repeatability",
+      "operator": "==",
+      "target": true,
+      "unit": "byte-stable repeated runs",
+      "rationale": "The same canonical inputs must serialize identically across repeated local runs."
+    },
+    {
+      "id": "multi-repository-readiness",
+      "operator": "==",
+      "target": true,
+      "unit": "multi-repository readiness",
+      "rationale": "Team-scale composition requires evidence beyond the bounded single-repository corpus."
+    }
+  ],
+  "measurements": [
+    {
+      "id": "deterministic-correctness",
+      "value": 1,
+      "unit": "passing deterministic query cases",
+      "status": "pass",
+      "evidenceRefs": [
+        "command:npm run query-contract:validate",
+        "test/fixtures/architecture-query/scenarios.v0.1.json"
+      ],
+      "notes": "All 14 query-contract cases passed, including positive, unsupported, resource-limit, malformed, path, cycle, and metadata outcomes."
+    },
+    {
+      "id": "impact-precision",
+      "value": 0.8888888888888888,
+      "unit": "impact precision",
+      "status": "miss",
+      "evidenceRefs": [
+        "command:npm run impact:validate",
+        "schema/architecture-impact-evaluation.v0.1.json"
+      ],
+      "notes": "The six-case Q-004 corpus reports 16 true positives and two declared overreach records, for precision 0.8888888888888888."
+    },
+    {
+      "id": "impact-recall",
+      "value": 1,
+      "unit": "impact recall",
+      "status": "pass",
+      "evidenceRefs": [
+        "command:npm run impact:validate",
+        "schema/architecture-impact-evaluation.v0.1.json"
+      ],
+      "notes": "The Q-004 corpus recovered all 16 expected affected records with no false negatives."
+    },
+    {
+      "id": "explanation-completeness",
+      "value": 1,
+      "unit": "complete explanation cases",
+      "status": "pass",
+      "evidenceRefs": [
+        "command:npm run query:explanation:validate",
+        "schema/architecture-query-explanation-evaluation.v0.1.json",
+        "docs/ARCHITECTURE_QUERIES.md"
+      ],
+      "notes": "All five Q-005 cases produced complete JSON, Markdown, and HTML explanations with expected uncertainty, limits, evidence, and metadata."
+    },
+    {
+      "id": "resource-safety",
+      "value": true,
+      "unit": "fail-closed resource behavior",
+      "status": "pass",
+      "evidenceRefs": [
+        "command:npm run query-contract:validate",
+        "schema/architecture-query.v0.1.schema.json",
+        "src/resources.ts"
+      ],
+      "notes": "Over-limit query cases return the declared resource-limit state; the local contract enforces bounded depth, nodes, edges, output, memory, and wall-clock resources."
+    },
+    {
+      "id": "malformed-input-safety",
+      "value": true,
+      "unit": "malformed inputs rejected",
+      "status": "pass",
+      "evidenceRefs": [
+        "command:npm run query-contract:validate",
+        "test/fixtures/architecture-query/scenarios.v0.1.json"
+      ],
+      "notes": "Malformed requests are rejected with a typed validation error, and the validator proves the graph remains unchanged."
+    },
+    {
+      "id": "path-leakage-safety",
+      "value": true,
+      "unit": "path and source disclosure checks passed",
+      "status": "pass",
+      "evidenceRefs": [
+        "command:npm run query:explanation:validate",
+        "docs/ARCHITECTURE_QUERIES.md",
+        "schema/architecture-query-quality-gate.v0.1.schema.json"
+      ],
+      "notes": "The report and explanation evaluators reject absolute paths, source-body fields, remote references, executable resources, and secret markers."
+    },
+    {
+      "id": "reviewer-task-completion",
+      "value": 0.75,
+      "unit": "synthetic reviewer task completion",
+      "status": "miss",
+      "evidenceRefs": [
+        "test/fixtures/architecture-query-quality-gate/report.v0.1.json",
+        "schema/architecture-impact-evaluation.v0.1.json"
+      ],
+      "notes": "Three of four bounded reviewer tasks completed; the impact-overreach task remains partial because the precision floor is missed."
+    },
+    {
+      "id": "repeatability",
+      "value": true,
+      "unit": "byte-stable repeated runs",
+      "status": "pass",
+      "evidenceRefs": [
+        "command:npm run impact:validate",
+        "command:npm run query:explanation:validate",
+        "docs/EVALUATION.md"
+      ],
+      "notes": "Impact and explanation evaluators compare repeated serialized output and fail on any digest or ordering drift."
+    },
+    {
+      "id": "multi-repository-readiness",
+      "value": false,
+      "unit": "multi-repository readiness",
+      "status": "miss",
+      "evidenceRefs": [
+        "docs/ARCHITECTURE_QUERIES.md",
+        "docs/ROADMAP.md",
+        "schema/architecture-query-quality-gate.v0.1.schema.json"
+      ],
+      "notes": "The checked-in corpus is single-repository and synthetic; no workspace composition or external reviewer replication evidence is present."
+    }
+  ],
+  "reviewerTasks": [
+    {
+      "id": "query-trace",
+      "scenario": "cycle-and-boundary",
+      "expected": "Identify the selected path, cycle, boundary, evidence, and uncertainty without reading source bodies.",
+      "completed": true,
+      "outcome": "complete",
+      "evidenceRefs": [
+        "command:npm run query:explanation:validate",
+        "test/fixtures/architecture-query-explanation/scenarios.v0.1.json"
+      ],
+      "notes": "The explanation includes the normalized plan, path, cycle, evidence, and truncation details."
+    },
+    {
+      "id": "impact-overreach",
+      "scenario": "impact-precision-review",
+      "expected": "Distinguish expected affected records from boundary-stop and unresolved-edge overreach.",
+      "completed": false,
+      "outcome": "partial",
+      "evidenceRefs": [
+        "command:npm run impact:validate",
+        "schema/architecture-impact-evaluation.v0.1.json"
+      ],
+      "notes": "The reasons are visible, but the measured precision is below the declared quality floor."
+    },
+    {
+      "id": "explanation-context",
+      "scenario": "metadata-and-empty-result",
+      "expected": "Locate policy, ADR, ownership, empty-result, and missing-evidence context in a self-contained report.",
+      "completed": true,
+      "outcome": "complete",
+      "evidenceRefs": [
+        "command:npm run query:explanation:validate",
+        "docs/ARCHITECTURE_QUERIES.md"
+      ],
+      "notes": "JSON, Markdown, and HTML projections expose the expected context and accessibility landmarks."
+    },
+    {
+      "id": "malformed-and-limit",
+      "scenario": "malformed-and-resource-limit",
+      "expected": "Recognize malformed and over-limit outcomes as safe fail-closed states rather than empty success.",
+      "completed": true,
+      "outcome": "complete",
+      "evidenceRefs": [
+        "command:npm run query-contract:validate",
+        "schema/architecture-query.v0.1.schema.json"
+      ],
+      "notes": "The corpus distinguishes invalid, resource-limit, unsupported, and successful outcomes."
+    }
+  ],
+  "limitations": [
+    {
+      "id": "impact-overreach",
+      "severity": "high",
+      "description": "The Q-004 synthetic impact corpus has two declared overreach records and precision below the 0.90 gate floor, so broad impact claims would be misleading.",
+      "evidenceRefs": [
+        "command:npm run impact:validate",
+        "schema/architecture-impact-evaluation.v0.1.json"
+      ]
+    },
+    {
+      "id": "bounded-resource-ceiling",
+      "severity": "medium",
+      "description": "Whole-repository adapter and language-equivalence runs can hit the configured 536870912-byte RSS ceiling; this gate does not convert a bounded-resource outcome into a scale guarantee.",
+      "evidenceRefs": [
+        "command:npm run language-equivalence:validate",
+        "src/resources.ts"
+      ]
+    },
+    {
+      "id": "synthetic-reviewer-corpus",
+      "severity": "medium",
+      "description": "Reviewer tasks are repository-authored synthetic scenarios rather than independent external user studies.",
+      "evidenceRefs": [
+        "test/fixtures/architecture-query-quality-gate/report.v0.1.json",
+        "docs/EVALUATION.md"
+      ]
+    },
+    {
+      "id": "multi-repository-coverage",
+      "severity": "high",
+      "description": "No workspace manifest, cross-repository identity, trust, or missing-repository composition evidence is included, so team-scale composition remains deferred.",
+      "evidenceRefs": [
+        "docs/ROADMAP.md",
+        "schema/architecture-query-quality-gate.v0.1.schema.json"
+      ]
+    }
+  ],
+  "decision": {
+    "outcome": "narrow",
+    "multiRepositoryOutcome": "defer",
+    "rationale": "Continue the bounded, offline, single-repository query and explanation slice, but narrow impact claims because precision is 0.8888888888888888 against a 0.90 floor and one reviewer task remains partial. Defer multi-repository composition because the current evidence has no workspace trust, identity, omission, or independent reviewer replication coverage.",
+    "failedThresholds": [
+      "impact-precision",
+      "reviewer-task-completion",
+      "multi-repository-readiness"
+    ],
+    "continueScope": "Keep deterministic, read-only, source-free query selection and inspectable explanations available for one bounded repository with explicit limits and visible uncertainty.",
+    "narrowScope": "Treat impact output as review assistance, surface boundary-stop and unresolved-edge overreach, and require human confirmation whenever the precision floor or reviewer task floor is missed.",
+    "deferScope": "Do not claim team-scale or multi-repository composition until workspace identity, trust, missing-input, resource, and independent reviewer-utility evidence are measured in a follow-up gate.",
+    "nextReviewAt": "2026-09-25"
+  },
+  "publicReport": {
+    "path": "docs/ARCHITECTURE_QUERY_QUALITY_GATE.md",
+    "decision": "narrow",
+    "multiRepositoryDecision": "defer"
+  },
+  "provenance": {
+    "source": "CARTOGRAPH repository-authored measurements from Q-003, Q-004, and Q-005 local validators",
+    "commands": [
+      "npm run query-contract:validate",
+      "npm run impact:validate",
+      "npm run query:explanation:validate",
+      "npm run query:quality:validate"
+    ],
+    "externalSources": false,
+    "sourceBodiesIncluded": false,
+    "secretsIncluded": false
+  }
+}
