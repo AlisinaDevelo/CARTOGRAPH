@@ -227,6 +227,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "sustainability-cost-model",
+      "path": "sustainability-cost",
+      "source": "CARTOGRAPH repository-authored sustainability and cost planning fixture",
+      "license": "Apache-2.0",
+      "reference": "M-010 sustainability and cost model; M-005 OSS health scorecard; M-008 maintainer resilience report",
+      "transformation": "The model turns checked-in maintenance, release, security, adapter, CI, and strategy boundaries into explicit planning ranges and deferred conditions; it retains no invoices, private records, source bodies, telemetry, or hosted data.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "review-regressions",
       "path": "review-regressions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

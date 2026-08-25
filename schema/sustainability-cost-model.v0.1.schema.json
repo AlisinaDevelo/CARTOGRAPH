@@ -1,0 +1,320 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/sustainability-cost-model.v0.1.schema.json",
+  "title": "CARTOGRAPH sustainability and cost model v0.1",
+  "description": "Planning ranges for maintainer effort and direct cost across local OSS, funded stewardship, and deferred hosted scenarios; it is not an invoice, budget approval, or funding claim.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "modelId",
+    "asOf",
+    "scope",
+    "inputs",
+    "scenarios",
+    "summary",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.sustainability-cost-model" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.sustainability-cost-model+json"
+    },
+    "modelId": { "$ref": "#/definitions/identifier" },
+    "asOf": { "$ref": "#/definitions/dateTime" },
+    "scope": { "$ref": "#/definitions/scope" },
+    "inputs": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/input" }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "$ref": "#/definitions/scenario" }
+    },
+    "summary": { "$ref": "#/definitions/summary" },
+    "provenance": { "$ref": "#/definitions/provenance" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "dateTime": { "type": "string", "format": "date-time" },
+    "portablePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!/)(?!~)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)(?!.*\\u0000).+$"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "publicOnly",
+        "network",
+        "sourceBodiesIncluded",
+        "privateDataIncluded",
+        "hiddenTelemetry",
+        "hostedExpansion",
+        "currency",
+        "rateBasis"
+      ],
+      "properties": {
+        "publicOnly": { "const": true },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "privateDataIncluded": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "hostedExpansion": { "const": "deferred" },
+        "currency": { "const": "USD" },
+        "rateBasis": { "enum": ["planning-assumption", "reviewed-rate-card"] }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "status", "evidenceRefs", "limitation"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "label": { "$ref": "#/definitions/text" },
+        "status": {
+          "enum": ["observed", "not-observed", "planning-range", "deferred"]
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "limitation": { "$ref": "#/definitions/text" }
+      }
+    },
+    "estimatedRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "min", "max"],
+      "properties": {
+        "kind": { "const": "estimated" },
+        "min": { "type": "number", "minimum": 0 },
+        "max": { "type": "number", "minimum": 0 }
+      }
+    },
+    "deferredRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "reason"],
+      "properties": {
+        "kind": { "const": "deferred" },
+        "reason": { "$ref": "#/definitions/text" }
+      }
+    },
+    "range": {
+      "oneOf": [
+        { "$ref": "#/definitions/estimatedRange" },
+        { "$ref": "#/definitions/deferredRange" }
+      ]
+    },
+    "positiveRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": {
+        "min": { "type": "number", "exclusiveMinimum": 0 },
+        "max": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "category",
+        "hours",
+        "directCostUsd",
+        "assumption",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "label": { "$ref": "#/definitions/text" },
+        "category": {
+          "enum": [
+            "core-contracts",
+            "roadmap-governance",
+            "release-distribution",
+            "dependency-upkeep",
+            "support-burden",
+            "security-response",
+            "adapter-ownership",
+            "ci-artifact",
+            "approved-service-operations"
+          ]
+        },
+        "hours": { "$ref": "#/definitions/range" },
+        "directCostUsd": { "$ref": "#/definitions/range" },
+        "assumption": { "$ref": "#/definitions/text" },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        }
+      }
+    },
+    "breakEven": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "thresholdUsdPerQuarter", "condition"],
+      "properties": {
+        "kind": {
+          "enum": ["capacity-only", "budget-threshold", "deferred"]
+        },
+        "thresholdUsdPerQuarter": {
+          "type": ["number", "null"],
+          "minimum": 0
+        },
+        "condition": { "$ref": "#/definitions/text" }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "decision",
+        "estimateStatus",
+        "fundingMode",
+        "serviceOperationsApproved",
+        "laborRateUsdPerHour",
+        "components",
+        "hours",
+        "directCostUsd",
+        "totalCostUsd",
+        "assumptions",
+        "breakEven",
+        "stopConditions",
+        "nonGoals",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "label": { "$ref": "#/definitions/text" },
+        "decision": { "enum": ["retain", "fund-if-capacity", "defer"] },
+        "estimateStatus": { "enum": ["estimated", "deferred"] },
+        "fundingMode": {
+          "enum": ["unfunded", "sponsor-or-grant", "deferred"]
+        },
+        "serviceOperationsApproved": { "const": false },
+        "laborRateUsdPerHour": { "$ref": "#/definitions/positiveRange" },
+        "components": {
+          "type": "array",
+          "minItems": 9,
+          "maxItems": 9,
+          "items": { "$ref": "#/definitions/component" }
+        },
+        "hours": { "$ref": "#/definitions/range" },
+        "directCostUsd": { "$ref": "#/definitions/range" },
+        "totalCostUsd": { "$ref": "#/definitions/range" },
+        "assumptions": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "breakEven": { "$ref": "#/definitions/breakEven" },
+        "stopConditions": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "nonGoals": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenarioCount",
+        "estimatedScenarioCount",
+        "deferredScenarioCount",
+        "componentCategoryCount",
+        "inputCount",
+        "observedInputCount",
+        "planningInputCount",
+        "deferredInputCount",
+        "publicOnly",
+        "network",
+        "sourceBodiesIncluded",
+        "privateDataIncluded",
+        "hiddenTelemetry",
+        "volunteerLaborPriced"
+      ],
+      "properties": {
+        "scenarioCount": { "type": "integer", "minimum": 0 },
+        "estimatedScenarioCount": { "type": "integer", "minimum": 0 },
+        "deferredScenarioCount": { "type": "integer", "minimum": 0 },
+        "componentCategoryCount": { "type": "integer", "minimum": 0 },
+        "inputCount": { "type": "integer", "minimum": 0 },
+        "observedInputCount": { "type": "integer", "minimum": 0 },
+        "planningInputCount": { "type": "integer", "minimum": 0 },
+        "deferredInputCount": { "type": "integer", "minimum": 0 },
+        "publicOnly": { "const": true },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "privateDataIncluded": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "volunteerLaborPriced": { "const": true }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "license",
+        "reference",
+        "transformation",
+        "redistribution"
+      ],
+      "properties": {
+        "source": { "$ref": "#/definitions/text" },
+        "license": { "const": "Apache-2.0" },
+        "reference": { "$ref": "#/definitions/text" },
+        "transformation": { "$ref": "#/definitions/text" },
+        "redistribution": { "const": "allowed" }
+      }
+    }
+  }
+}
