@@ -218,6 +218,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "compatibility-review",
+      "path": "compatibility-review",
+      "source": "CARTOGRAPH repository-authored aggregate review record",
+      "license": "Apache-2.0",
+      "reference": "Public repository metadata and local analyzer runs recorded on 2026-08-25",
+      "transformation": "Records repository URLs, source commits, licenses, configuration paths, snapshot digests, aggregate graph counts, diagnostic counts, bounded failure messages, feedback, and follow-up issue IDs; no third-party source or snapshot is redistributed.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "identity-corpus",
       "path": "identity-corpus",
       "source": "CARTOGRAPH repository-authored synthetic fixture",
