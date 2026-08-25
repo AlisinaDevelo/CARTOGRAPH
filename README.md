@@ -1,12 +1,20 @@
 # CARTOGRAPH
 
-Deterministic architecture graph scanning and evidence-backed revision diffs for TypeScript.
+Deterministic architecture graph, revision-diff, policy, and bounded runtime-reconciliation tooling for TypeScript.
 
 [![CI](https://github.com/AlisinaDevelo/CARTOGRAPH/actions/workflows/ci.yml/badge.svg)](https://github.com/AlisinaDevelo/CARTOGRAPH/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/AlisinaDevelo/CARTOGRAPH/actions/workflows/codeql.yml/badge.svg)](https://github.com/AlisinaDevelo/CARTOGRAPH/actions/workflows/codeql.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 CARTOGRAPH scans a supported repository into a deterministic architecture graph, compares two Git revisions, and shows which nodes and relationships changed. Every emitted relationship carries repository-relative source evidence or an explicit unresolved reason.
+
+## Boundary with STRATA
+
+STRATA is the compiler-backed semantic architecture-change analyzer/package for
+TypeScript revisions. CARTOGRAPH is the broader architecture graph, report,
+policy, and bounded runtime-reconciliation product: it consumes explicit
+static/runtime evidence and emits reviewable graph artifacts, but does not
+replace STRATA's compiler-backed semantic analysis.
 
 The project is pre-alpha. The local TypeScript/Express slice, bounded Fastify
 adapter, and a read-only, informational-by-default GitHub Action work and are
