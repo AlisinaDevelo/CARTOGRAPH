@@ -1,0 +1,148 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/adapter-support-matrix.v0.1.schema.json",
+  "title": "CARTOGRAPH adapter support matrix v0.1",
+  "description": "Versioned adapter selection decisions, support statuses, ownership, and bounded support claims.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "matrixId",
+    "review",
+    "statusDefinitions",
+    "criteria",
+    "entries"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.adapter-support" },
+    "matrixId": { "$ref": "#/definitions/identifier" },
+    "review": { "$ref": "#/definitions/review" },
+    "statusDefinitions": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/definitions/statusDefinition" }
+    },
+    "criteria": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/definitions/criterion" }
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/entry" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "repositoryPath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["implemented", "experimental", "deferred", "unsupported"]
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner", "backup", "cadence", "nextReview"],
+      "properties": {
+        "owner": { "$ref": "#/definitions/text" },
+        "backup": { "$ref": "#/definitions/text" },
+        "cadence": { "$ref": "#/definitions/text" },
+        "nextReview": { "$ref": "#/definitions/date" }
+      }
+    },
+    "statusDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "meaning", "claim"],
+      "properties": {
+        "id": { "$ref": "#/definitions/status" },
+        "meaning": { "$ref": "#/definitions/text" },
+        "claim": { "$ref": "#/definitions/text" }
+      }
+    },
+    "criterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "threshold", "requiredEvidence"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "title": { "$ref": "#/definitions/text" },
+        "threshold": { "$ref": "#/definitions/text" },
+        "requiredEvidence": { "$ref": "#/definitions/text" }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "name",
+        "status",
+        "owner",
+        "backup",
+        "supportBoundary",
+        "references",
+        "rationale"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "reference-adapter",
+            "framework-adapter",
+            "starter",
+            "language"
+          ]
+        },
+        "name": { "$ref": "#/definitions/text" },
+        "status": { "$ref": "#/definitions/status" },
+        "version": { "$ref": "#/definitions/semver" },
+        "capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "owner": { "$ref": "#/definitions/text" },
+        "backup": { "$ref": "#/definitions/text" },
+        "supportBoundary": { "$ref": "#/definitions/text" },
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/repositoryPath" }
+        },
+        "rationale": { "$ref": "#/definitions/text" }
+      }
+    }
+  }
+}

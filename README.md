@@ -173,6 +173,8 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [CLI runtime and exit policy](docs/CLI.md)
 - [Read-only GitHub Action](docs/ACTION.md)
 - [Support matrix and review process](docs/SUPPORT_MATRIX.md)
+- [Adapter selection RFC](docs/ADAPTER_SELECTION.md)
+- [Adapter support matrix](schema/adapter-support-matrix.v0.1.json)
 - [Maintenance and ownership](docs/MAINTENANCE.md)
 - [Compatibility and versioning](docs/COMPATIBILITY.md)
 - [Language-neutral graph semantics](docs/LANGUAGE_NEUTRAL_SEMANTICS.md)

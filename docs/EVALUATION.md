@@ -172,6 +172,14 @@ unavailable-runtime refusal). The review stages, ownership, maintenance,
 security response, and graduation threshold are recorded in the
 [adapter review playbook](ADAPTER_REVIEW_PLAYBOOK.md).
 
+E-006 adds the public [adapter selection RFC](ADAPTER_SELECTION.md) and the
+[adapter support matrix](../schema/adapter-support-matrix.v0.1.json). The
+matrix records implemented, experimental, deferred, and unsupported entries,
+bounded support claims, owners and backups, compatibility dimensions, and
+retirement triggers. `npm run adapter:support:validate` checks the versioned
+schema, all status rows, shipped adapter manifests, repository references, and
+the digest-bound documentation before the normal local check.
+
 E-018 adds the offline [adapter compatibility matrix](ADAPTER_COMPATIBILITY_MATRIX.md).
 It binds the declared Node and compiler lines, checks every shipped adapter
 capability against bounded fixtures with deterministic evidence, replays all

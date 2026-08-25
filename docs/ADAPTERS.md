@@ -125,7 +125,9 @@ bounded evidence, a named owner and backup, security and retirement handling,
 and the recorded independent dry run in
 [`ADAPTER_REVIEW_DRY_RUN.md`](ADAPTER_REVIEW_DRY_RUN.md). A starter is not a
 stable support claim until the review is accepted and the adapter is listed in
-the support matrix.
+the [adapter support matrix](../schema/adapter-support-matrix.v0.1.json),
+whose selection criteria and retirement rules are published in the
+[adapter selection RFC](ADAPTER_SELECTION.md).
 
 ### Compatibility negotiation
 
