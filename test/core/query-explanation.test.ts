@@ -160,7 +160,7 @@ describe("architecture query explanations", () => {
     expect(html).toContain('<main id="report" tabindex="-1">');
     expect(html).toContain("Content-Security-Policy");
     expect(html).toContain("<details");
-    expect(html).not.toMatch(/<(?:script|link|img)(?:\s|>)/u);
+    expect(html).not.toMatch(/<(?:script|link|img)(?:\s|>)/iu);
   });
 
   it("includes metadata context, reports format projections, and rejects mismatches", () => {
