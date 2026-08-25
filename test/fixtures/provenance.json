@@ -74,6 +74,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "policy-adr-bindings",
+      "path": "policy-adr-bindings",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Scenario metadata exercises valid, missing, stale, mismatched, and planned-exception ADR bindings against a bounded local graph without remote authority or source disclosure.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "remediation-suggestions",
       "path": "remediation-suggestions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

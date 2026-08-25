@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   composePolicyConfig,
+  LocalPolicyAdrBindingSchema,
   PolicyCompositionError,
   PolicyCompositionSchema,
   serializePolicyComposition,
@@ -101,6 +102,17 @@ describe("local policy composition", () => {
         [rule("root-sentinel", "exists", { kind: "module" })],
         {
           includes: [{ path: "child.json" }, { path: "base.json" }],
+          adrBindings: [
+            {
+              schemaVersion: 1,
+              contract: "cartograph.policy-adr-binding",
+              id: "root-adr",
+              ruleId: "root-sentinel",
+              requirement: "boundary",
+              scope: { target: "node", selector: { kind: "module" } },
+              referenceId: "ADR-0002",
+            },
+          ],
         },
       ),
       "base.json": policy(
@@ -140,6 +152,10 @@ describe("local policy composition", () => {
         "endpoint-required",
         "root-sentinel",
       ]);
+      expect(parsed.policy.adrBindings).toHaveLength(1);
+      expect(
+        LocalPolicyAdrBindingSchema.parse(parsed.policy.adrBindings[0]).id,
+      ).toBe("root-adr");
       expect(parsed.overrides).toEqual([
         {
           ruleId: "endpoint-limit",

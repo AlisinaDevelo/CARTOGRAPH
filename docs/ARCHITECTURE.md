@@ -185,14 +185,12 @@ JSON is the canonical machine contract. Markdown is optimized for review summari
 
 The following are roadmap items, not current implementation claims:
 
-- policy composition, exception precedence, and policy/ADR binding evaluation;
-- local ADR reference parsing and stale/missing reference diagnostics remain
-  offline and data-only; lifecycle, report, and policy binding are separate
-  contracts;
+- ADR lifecycle, supersession semantics, and policy/decision drift evaluation
+  beyond the current offline reference and policy-binding contracts;
 - a reusable GitHub Action and Check annotations;
 - the remaining identity quality, portability, and history work;
 - additional framework or language adapters and stronger runtime isolation
   enforcement beyond the v0.1 data-only adapter policy;
-- automatic binding and CLI/report integration beyond the v0.1 local
-  reconciliation, trace-safety, and budget contracts;
+- broader automated decision binding beyond the v0.1 local ADR and policy
+  contracts;
 - hosted collaboration or organizational history.

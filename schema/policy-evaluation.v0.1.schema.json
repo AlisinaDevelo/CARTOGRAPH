@@ -102,6 +102,7 @@
         "id": { "$ref": "#/definitions/identifier" },
         "policyId": { "$ref": "#/definitions/identifier" },
         "ruleId": { "$ref": "#/definitions/identifier" },
+        "adrReferenceId": { "$ref": "#/definitions/identifier" },
         "target": { "$ref": "#/definitions/target" },
         "assertion": { "$ref": "#/definitions/assertion" },
         "effect": { "$ref": "#/definitions/effect" },
@@ -163,6 +164,7 @@
       "properties": {
         "id": { "$ref": "#/definitions/identifier" },
         "ruleId": { "$ref": "#/definitions/identifier" },
+        "adrReferenceId": { "$ref": "#/definitions/identifier" },
         "status": { "$ref": "#/definitions/exceptionStatus" },
         "precedence": {
           "type": "integer",

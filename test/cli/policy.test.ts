@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -304,5 +304,90 @@ describe("policy CLI mode contract", () => {
         ],
       },
     );
+  });
+
+  it("loads a local ADR document for required policy bindings", async () => {
+    const root = await mkdtemp(join(tmpdir(), "cartograph-policy-cli-adr-"));
+    temporaryDirectories.push(root);
+    const policyPath = join(root, "policy.json");
+    const snapshotPath = join(root, "snapshot.json");
+    const adrPath = join(root, "adr.json");
+    const adrFile = join(root, "docs/adr/decision.md");
+    await mkdir(dirname(adrFile), { recursive: true });
+    await writeFile(
+      adrFile,
+      "# ADR 0001: Keep module a\n\n- Status: accepted\n",
+    );
+    await writeFile(
+      adrPath,
+      JSON.stringify({
+        schemaVersion: 1,
+        references: [
+          {
+            id: "ADR-0001",
+            file: "docs/adr/decision.md",
+            title: "Keep module a",
+            status: "accepted",
+            graphIds: ["module:a"],
+          },
+        ],
+      }),
+    );
+    await writeFile(
+      policyPath,
+      JSON.stringify({
+        schemaVersion: 1,
+        policyId: "policy-cli-adr",
+        version: "1.0.0",
+        mode: "enforce",
+        rules: [
+          {
+            id: "module-required",
+            target: "node",
+            selector: { id: "module:a" },
+            assertion: "exists",
+          },
+        ],
+        adrBindings: [
+          {
+            schemaVersion: 1,
+            contract: "cartograph.policy-adr-binding",
+            id: "module-adr",
+            ruleId: "module-required",
+            requirement: "boundary",
+            scope: { target: "node", selector: { id: "module:a" } },
+            referenceId: "ADR-0001",
+          },
+        ],
+      }),
+    );
+    await writeFile(snapshotPath, JSON.stringify(snapshot));
+
+    const missing = await runEntrypoint([
+      "policy",
+      root,
+      "--policy",
+      "policy.json",
+      "--snapshot",
+      snapshotPath,
+    ]);
+    const valid = await runEntrypoint([
+      "policy",
+      root,
+      "--policy",
+      "policy.json",
+      "--snapshot",
+      snapshotPath,
+      "--adr",
+      "adr.json",
+    ]);
+
+    expect(missing.code).toBe(2);
+    expect(valid.code).toBe(0);
+    expect(valid.stderr).toBe("");
+    expect(JSON.parse(valid.stdout)).toMatchObject({
+      status: "passed",
+      violations: [],
+    });
   });
 });

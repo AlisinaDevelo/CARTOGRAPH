@@ -39,3 +39,9 @@ network access, account lookup, hosting-service call, or code execution.
 The contract records traceability, not architectural truth: an ADR link does
 not prove that the decision is correct or that the implementation follows its
 intent.
+
+Policies can require selected boundaries and expiry-bound exceptions to carry
+these references through the additive
+[`policy ADR binding contract`](POLICY_ADR_BINDINGS.md). Binding evaluation
+remains local and evidence-backed; it does not infer approval or fetch a
+decision from a hosting service.

@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/policy-adr-binding-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH policy ADR binding fixture corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["fixtureId", "snapshot", "cases"],
+  "properties": {
+    "fixtureId": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "snapshot": { "type": "object" },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "policy", "expected"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "kind": { "enum": ["positive", "negative"] },
+        "policy": { "type": "object" },
+        "adrDocument": { "type": "object" },
+        "expected": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "violationIds", "suppressedIds"],
+          "properties": {
+            "status": { "enum": ["passed", "violations", "unsupported"] },
+            "violationIds": { "type": "array", "items": { "type": "string" } },
+            "suppressedIds": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    }
+  }
+}

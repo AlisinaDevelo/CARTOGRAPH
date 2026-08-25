@@ -48,6 +48,13 @@
       "items": {},
       "description": "Versioned local exception records. The evaluator retains malformed records as visible findings instead of allowing them to suppress policy violations."
     },
+    "adrBindings": {
+      "type": "array",
+      "maxItems": 128,
+      "default": [],
+      "items": {},
+      "description": "Versioned local requirements that selected policy boundaries, exceptions, or planned violations carry a graph-backed ADR reference. Malformed records become visible policy findings."
+    },
     "rules": {
       "type": "array",
       "minItems": 1,
@@ -75,6 +82,12 @@
       "minLength": 1,
       "maxLength": 160,
       "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "adrReferenceId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[^\\u0000\\r\\n]+$"
     },
     "selectorValue": {
       "type": "string",
@@ -158,12 +171,37 @@
         "owner": { "$ref": "#/definitions/identifier" },
         "createdAt": { "$ref": "#/definitions/dateTime" },
         "expiresAt": { "$ref": "#/definitions/dateTime" },
+        "adrReferenceId": { "$ref": "#/definitions/adrReferenceId" },
         "precedence": {
           "type": "integer",
           "minimum": 0,
           "maximum": 1000,
           "default": 0
         }
+      }
+    },
+    "adrBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "id",
+        "ruleId",
+        "requirement",
+        "scope",
+        "referenceId"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.policy-adr-binding" },
+        "id": { "$ref": "#/definitions/identifier" },
+        "ruleId": { "$ref": "#/definitions/identifier" },
+        "requirement": {
+          "enum": ["boundary", "exception", "planned-violation"]
+        },
+        "scope": { "$ref": "#/definitions/exceptionScope" },
+        "referenceId": { "$ref": "#/definitions/adrReferenceId" }
       }
     },
     "nodeSelector": {
