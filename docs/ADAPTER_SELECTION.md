@@ -88,7 +88,8 @@ documented refusal; a missing denial boundary blocks promotion.
 An implemented or experimental entry names a primary maintainer group and a
 backup group. The owner is responsible for dependency updates, fixture review,
 compatibility decisions, and security intake. E-011 defines the detailed
-retirement and security-response tabletop; this RFC requires ownership before
+[retirement and security-response policy](ADAPTER_RETIREMENT.md) and tabletop;
+this RFC requires ownership before
 an entry can leave `deferred`.
 
 ### `compatibility` — public contract cost

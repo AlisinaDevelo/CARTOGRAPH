@@ -39,6 +39,12 @@ The schema compatibility check is part of `npm run check`; it rejects drift
 between runtime constants, the published schema, and the reviewed compatibility
 manifest.
 
+Adapter ownership, quality floors, support windows, deprecation, archive
+behavior, and private security response are governed by the
+[adapter retirement policy](ADAPTER_RETIREMENT.md). Its two timed tabletop
+exercises run as `npm run adapter:lifecycle:validate`; tabletop deadlines are
+internal rehearsal targets, not a public response-time SLA.
+
 ## Dependency-update ownership
 
 Dependabot owns update proposals, not automatic merging. The configuration in

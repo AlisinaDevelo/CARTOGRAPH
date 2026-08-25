@@ -351,6 +351,15 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "A versioned TypeScript and Rust pilot corpus exercises equivalent modules, calls, boundaries, language-agnostic identity, source-bound evidence, and explicit unknown behavior without compiler or repository execution.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "adapter-lifecycle",
+      "path": "adapter-lifecycle",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A versioned adapter lifecycle policy and two timed tabletop exercises cover ownership loss, quality review, private vulnerability intake, containment, coordinated disclosure, deprecation, archive behavior, and replacement guidance without source or secret data.",
+      "redistribution": "allowed"
     }
   ]
 }
