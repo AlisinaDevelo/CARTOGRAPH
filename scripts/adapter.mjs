@@ -12,9 +12,10 @@ import {
   AdapterValidationError,
   parseAdapterManifest,
   runAdapter,
+  runAdapterConformance,
   serializeAdapterInput,
   serializeAdapterOutput,
-} from "../src/core/adapters.ts";
+} from "../src/core/index.ts";
 import {
   createSampleAdapter,
   SAMPLE_ADAPTER_MANIFEST,
@@ -23,6 +24,23 @@ import {
 const repositoryRoot = resolve(process.cwd());
 const readJson = (relativePath) =>
   JSON.parse(readFileSync(resolve(repositoryRoot, relativePath), "utf8"));
+
+const adapterInput = (fixture, commitSha = "sample-fixture") => ({
+  apiVersion: ADAPTER_API_VERSION,
+  source: {
+    rootDir: repositoryRoot,
+    include: ["."],
+    exclude: [],
+    revision: { commitSha },
+  },
+  config: { fixture },
+  resources: {
+    maxFiles: 1,
+    maxFileBytes: 1_024,
+    maxSourceBytes: 1_024,
+    maxWallClockMs: 1_000,
+  },
+});
 
 const validate = () => {
   const schema = readJson("schema/adapter.v0.1.schema.json");
@@ -53,22 +71,7 @@ const validate = () => {
     );
   }
 
-  const output = runAdapter(createSampleAdapter(), {
-    apiVersion: ADAPTER_API_VERSION,
-    source: {
-      rootDir: repositoryRoot,
-      include: ["."],
-      exclude: [],
-      revision: { commitSha: "sample-fixture" },
-    },
-    config: { fixture: "empty" },
-    resources: {
-      maxFiles: 1,
-      maxFileBytes: 1_024,
-      maxSourceBytes: 1_024,
-      maxWallClockMs: 1_000,
-    },
-  });
+  const output = runAdapter(createSampleAdapter(), adapterInput("empty"));
   if (
     output.graph.nodes.length !== 0 ||
     output.graph.edges.length !== 0 ||
@@ -101,6 +104,35 @@ const validate = () => {
     if (!(error instanceof AdapterValidationError)) throw error;
   }
 
+  const conformance = runAdapterConformance(createSampleAdapter(), {
+    cases: [
+      { id: "empty", input: adapterInput("empty") },
+      {
+        id: "supported",
+        input: adapterInput("supported"),
+        expect: { minNodes: 2, minEdges: 1 },
+      },
+      {
+        id: "unsupported",
+        input: adapterInput("unsupported"),
+        expect: {
+          minNodes: 2,
+          minEdges: 1,
+          unsupportedDiagnosticCodes: ["UNSUPPORTED_SAMPLE_CONSTRUCT"],
+        },
+      },
+    ],
+    identity: {
+      before: adapterInput("identity-before", "identity-before"),
+      after: adapterInput("identity-after", "identity-after"),
+      expectedMatches: 1,
+      maxAdded: 0,
+      maxRemoved: 0,
+    },
+    repetitions: 2,
+    maxDurationMs: 1_000,
+  });
+
   return {
     ok: true,
     apiVersion: ADAPTER_API_VERSION,
@@ -111,6 +143,13 @@ const validate = () => {
     network: output.capability.execution.network,
     repositoryCodeExecution:
       output.capability.execution.repositoryCodeExecution,
+    conformance: {
+      cases: conformance.cases.length,
+      deterministic: conformance.deterministic,
+      evidenceComplete: conformance.evidenceComplete,
+      identity: conformance.identity,
+      performance: conformance.performance,
+    },
   };
 };
 

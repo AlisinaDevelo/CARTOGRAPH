@@ -13,6 +13,7 @@ import {
   parseAdapterManifest,
   parseAdapterOutput,
   runAdapter,
+  runAdapterConformance,
   serializeAdapterManifest,
   serializeAdapterOutput,
   type AdapterCapabilityManifest,
@@ -91,6 +92,80 @@ describe("adapter contract", () => {
     expect(serializeAdapterOutput(output)).toBe(
       serializeAdapterOutput(JSON.parse(serializeAdapterOutput(output))),
     );
+  });
+
+  it("runs the reference adapter through every conformance gate", () => {
+    const input = (fixture: string, commitSha = "adapter-fixture") =>
+      request({
+        config: { fixture },
+        source: { ...request().source, revision: { commitSha } },
+      });
+    const report = runAdapterConformance(createSampleAdapter(), {
+      cases: [
+        { id: "empty", input: input("empty") },
+        {
+          id: "supported",
+          input: input("supported"),
+          expect: { minNodes: 2, minEdges: 1 },
+        },
+        {
+          id: "unsupported",
+          input: input("unsupported"),
+          expect: {
+            minNodes: 2,
+            minEdges: 1,
+            unsupportedDiagnosticCodes: ["UNSUPPORTED_SAMPLE_CONSTRUCT"],
+          },
+        },
+      ],
+      identity: {
+        before: input("identity-before", "identity-before"),
+        after: input("identity-after", "identity-after"),
+        expectedMatches: 1,
+        maxAdded: 0,
+        maxRemoved: 0,
+      },
+      repetitions: 2,
+      maxDurationMs: 1_000,
+    });
+
+    expect(report).toMatchObject({
+      ok: true,
+      adapterId: "cartograph.sample",
+      deterministic: true,
+      evidenceComplete: true,
+      identity: { matches: 1, ambiguous: 0, added: 0, removed: 0 },
+      performance: { repetitions: 2, maxDurationMs: 1_000 },
+    });
+    expect(report.cases).toHaveLength(3);
+    expect(
+      report.cases.find((testCase) => testCase.id === "unsupported"),
+    ).toMatchObject({
+      diagnosticCodes: ["UNSUPPORTED_SAMPLE_CONSTRUCT"],
+      evidenceComplete: true,
+    });
+  });
+
+  it("fails closed when an adapter drops referenced evidence", () => {
+    const adapter = createSampleAdapter();
+    const invalid: CartographAdapter = {
+      manifest: adapter.manifest,
+      analyze(input) {
+        const output = adapter.analyze(input);
+        return { ...output, evidence: [] };
+      },
+    };
+
+    expect(() =>
+      runAdapterConformance(invalid, {
+        cases: [
+          {
+            id: "missing-evidence",
+            input: request({ config: { fixture: "supported" } }),
+          },
+        ],
+      }),
+    ).toThrow(/referenced but not declared/u);
   });
 
   it("rejects unsafe authority declarations and executable configuration", () => {
