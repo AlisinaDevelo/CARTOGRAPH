@@ -1,0 +1,587 @@
+{
+  "$schema": "../../schema/sustainability-cost-model.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.sustainability-cost-model",
+  "mediaType": "application/vnd.cartograph.sustainability-cost-model+json",
+  "modelId": "sustainability-cost-year3-q4-v0.1",
+  "asOf": "2026-08-25T16:30:00Z",
+  "scope": {
+    "publicOnly": true,
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "privateDataIncluded": false,
+    "hiddenTelemetry": false,
+    "hostedExpansion": "deferred",
+    "currency": "USD",
+    "rateBasis": "planning-assumption"
+  },
+  "inputs": [
+    {
+      "id": "maintainer-capacity",
+      "label": "Maintainer capacity and continuity",
+      "status": "not-observed",
+      "evidenceRefs": [
+        "docs/OSS_HEALTH_SCORECARD.md",
+        "docs/MAINTAINER_RESILIENCE.md",
+        "M-008"
+      ],
+      "limitation": "No maintainer-time telemetry or staffed independent backup is observed; the range is a planning envelope, not a measured workload."
+    },
+    {
+      "id": "ci-artifact-cost",
+      "label": "CI and artifact operations",
+      "status": "planning-range",
+      "evidenceRefs": [
+        ".github/workflows/ci.yml",
+        "docs/RELEASE.md",
+        "docs/RELEASE_REHEARSAL.md"
+      ],
+      "limitation": "The repository records commands and artifacts but no invoice, hosted quota, or committed compute price."
+    },
+    {
+      "id": "dependency-upkeep",
+      "label": "Dependency and workflow upkeep",
+      "status": "planning-range",
+      "evidenceRefs": [".github/dependabot.yml", "docs/MAINTENANCE.md"],
+      "limitation": "Dependabot cadence and review responsibilities are public; actual update volume and time are not observed."
+    },
+    {
+      "id": "support-burden",
+      "label": "Support and contributor burden",
+      "status": "not-observed",
+      "evidenceRefs": [
+        "SUPPORT.md",
+        "docs/OSS_HEALTH_SCORECARD.md",
+        "docs/MAINTAINER_RESILIENCE.md"
+      ],
+      "limitation": "There is no consented support-load series or external contributor record, so the model retains a wide planning range."
+    },
+    {
+      "id": "security-response",
+      "label": "Security response reserve",
+      "status": "planning-range",
+      "evidenceRefs": [
+        "SECURITY.md",
+        "docs/THREAT_MODEL.md",
+        "docs/ADAPTER_RETIREMENT.md"
+      ],
+      "limitation": "Tabletop deadlines are internal rehearsal targets, not an incident-rate forecast or public response SLA."
+    },
+    {
+      "id": "adapter-ownership",
+      "label": "Adapter ownership and compatibility",
+      "status": "planning-range",
+      "evidenceRefs": [
+        "docs/SUPPORT_MATRIX.md",
+        "docs/ADAPTER_REVIEW_PLAYBOOK.md",
+        "docs/MAINTAINER_RESILIENCE.md"
+      ],
+      "limitation": "Adapter role paths are documented but backup staffing is unverified; no adapter support hours are measured."
+    },
+    {
+      "id": "release-distribution",
+      "label": "Release and distribution work",
+      "status": "planning-range",
+      "evidenceRefs": ["docs/RELEASE.md", "docs/RELEASE_REHEARSAL.md"],
+      "limitation": "The package release is rehearsed locally and has no public release history or publication invoice in this snapshot."
+    },
+    {
+      "id": "service-operations",
+      "label": "Approved hosted or service operations",
+      "status": "deferred",
+      "evidenceRefs": [
+        "docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md",
+        "docs/OSS_HEALTH_SCORECARD.md",
+        "M-005"
+      ],
+      "limitation": "No hosted service, account, source-ingestion path, or background collector is approved; hosted expansion requires a new gate."
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "oss-local-first",
+      "label": "OSS-only local-first maintenance",
+      "decision": "retain",
+      "estimateStatus": "estimated",
+      "fundingMode": "unfunded",
+      "serviceOperationsApproved": false,
+      "laborRateUsdPerHour": { "min": 100, "max": 200 },
+      "components": [
+        {
+          "id": "oss-core-contracts",
+          "label": "Core graph, evidence, and CLI contracts",
+          "category": "core-contracts",
+          "hours": { "kind": "estimated", "min": 4, "max": 12 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 5 },
+          "assumption": "Reserve time for compatibility, deterministic fixtures, and bounded contract review each quarter.",
+          "evidenceRefs": ["docs/ARCHITECTURE.md", "docs/CHANGE_CONTROL.md"]
+        },
+        {
+          "id": "oss-roadmap-governance",
+          "label": "Roadmap and evidence governance",
+          "category": "roadmap-governance",
+          "hours": { "kind": "estimated", "min": 4, "max": 12 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 5 },
+          "assumption": "Keep dependencies, issue evidence, claims limitations, and quarterly decisions reconciled.",
+          "evidenceRefs": ["docs/ROADMAP.md", "docs/CLAIMS_AUDIT.md"]
+        },
+        {
+          "id": "oss-release-distribution",
+          "label": "Release and rollback rehearsal",
+          "category": "release-distribution",
+          "hours": { "kind": "estimated", "min": 2, "max": 8 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 10 },
+          "assumption": "Run a local package, provenance, compatibility, and rollback rehearsal without assuming publication.",
+          "evidenceRefs": ["docs/RELEASE.md", "docs/RELEASE_REHEARSAL.md"]
+        },
+        {
+          "id": "oss-dependency-upkeep",
+          "label": "Dependency and Action update review",
+          "category": "dependency-upkeep",
+          "hours": { "kind": "estimated", "min": 4, "max": 10 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 10 },
+          "assumption": "Review the weekly npm and monthly Action proposals, lockfile impact, security, and license changes.",
+          "evidenceRefs": [".github/dependabot.yml", "docs/MAINTENANCE.md"]
+        },
+        {
+          "id": "oss-support-burden",
+          "label": "Support and contributor requests",
+          "category": "support-burden",
+          "hours": { "kind": "estimated", "min": 2, "max": 8 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 10 },
+          "assumption": "Cover bounded issue triage, contributor questions, and documentation updates without a support SLA.",
+          "evidenceRefs": ["SUPPORT.md", "docs/COMMUNITY_FEEDBACK.md"]
+        },
+        {
+          "id": "oss-security-response",
+          "label": "Security intake and tabletop reserve",
+          "category": "security-response",
+          "hours": { "kind": "estimated", "min": 2, "max": 8 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 10 },
+          "assumption": "Reserve review capacity for private reports, containment, fixture replay, and coordinated disclosure decisions.",
+          "evidenceRefs": ["SECURITY.md", "docs/ADAPTER_RETIREMENT.md"]
+        },
+        {
+          "id": "oss-adapter-ownership",
+          "label": "Adapter support and compatibility review",
+          "category": "adapter-ownership",
+          "hours": { "kind": "estimated", "min": 2, "max": 8 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 10 },
+          "assumption": "Review bounded adapter evidence, ownership gaps, support windows, and retirement triggers.",
+          "evidenceRefs": [
+            "docs/SUPPORT_MATRIX.md",
+            "docs/ADAPTER_REVIEW_PLAYBOOK.md"
+          ]
+        },
+        {
+          "id": "oss-ci-artifact",
+          "label": "CI, benchmark, and artifact execution",
+          "category": "ci-artifact",
+          "hours": { "kind": "estimated", "min": 1, "max": 4 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 40 },
+          "assumption": "Use the public-repository allowance or donated compute as a planning assumption; no hosted invoice is observed.",
+          "evidenceRefs": [
+            ".github/workflows/ci.yml",
+            "docs/BENCHMARK_PROTOCOL.md"
+          ]
+        },
+        {
+          "id": "oss-approved-service-operations",
+          "label": "Approved hosted service operations",
+          "category": "approved-service-operations",
+          "hours": { "kind": "estimated", "min": 0, "max": 0 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 0 },
+          "assumption": "No hosted service or account-bearing operation is approved in the local-first branch.",
+          "evidenceRefs": [
+            "docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md",
+            "docs/OSS_HEALTH_SCORECARD.md"
+          ]
+        }
+      ],
+      "hours": { "kind": "estimated", "min": 21, "max": 70 },
+      "directCostUsd": { "kind": "estimated", "min": 0, "max": 100 },
+      "totalCostUsd": { "kind": "estimated", "min": 2100, "max": 14100 },
+      "assumptions": [
+        "Hours are quarterly planning ranges, not observed time records.",
+        "The USD 100–200 per hour rate prices maintainer labor even when the current work is volunteer; it is not a compensation offer.",
+        "Public CI or donated compute may make direct spend low, but its opportunity cost and quota risk are not zero.",
+        "The repository remains local-first, unreleased, and without a hosted service."
+      ],
+      "breakEven": {
+        "kind": "capacity-only",
+        "thresholdUsdPerQuarter": null,
+        "condition": "Continue only while available maintainer capacity covers the 21–70 hour quarterly range and direct spend remains reviewable; no funding or hosted break-even claim is made."
+      },
+      "stopConditions": [
+        "Pause roadmap expansion when the upper capacity range cannot be staffed.",
+        "Stop or narrow work when security, support, or release obligations displace core correctness.",
+        "Require a new cost, privacy, and security review before adding hosted or account-bearing operations."
+      ],
+      "nonGoals": [
+        "This is not an invoice, budget approval, salary survey, or public funding claim.",
+        "This option does not promise response times, support coverage, or a public package release."
+      ],
+      "evidenceRefs": [
+        "M-005",
+        "M-008",
+        "docs/MAINTENANCE.md",
+        "docs/RELEASE_REHEARSAL.md"
+      ]
+    },
+    {
+      "id": "funded-oss-stewardship",
+      "label": "Funded OSS stewardship without hosted expansion",
+      "decision": "fund-if-capacity",
+      "estimateStatus": "estimated",
+      "fundingMode": "sponsor-or-grant",
+      "serviceOperationsApproved": false,
+      "laborRateUsdPerHour": { "min": 150, "max": 250 },
+      "components": [
+        {
+          "id": "funded-core-contracts",
+          "label": "Core graph, evidence, and CLI contracts",
+          "category": "core-contracts",
+          "hours": { "kind": "estimated", "min": 8, "max": 20 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 10 },
+          "assumption": "Add funded review and compatibility capacity while preserving the local contract.",
+          "evidenceRefs": ["docs/ARCHITECTURE.md", "docs/CHANGE_CONTROL.md"]
+        },
+        {
+          "id": "funded-roadmap-governance",
+          "label": "Roadmap and evidence governance",
+          "category": "roadmap-governance",
+          "hours": { "kind": "estimated", "min": 8, "max": 20 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 10 },
+          "assumption": "Fund independent review, claims maintenance, and explicit quarterly investment decisions.",
+          "evidenceRefs": ["docs/ROADMAP.md", "docs/CLAIMS_AUDIT.md"]
+        },
+        {
+          "id": "funded-release-distribution",
+          "label": "Release and rollback rehearsal",
+          "category": "release-distribution",
+          "hours": { "kind": "estimated", "min": 4, "max": 12 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 20 },
+          "assumption": "Support reproducible release and recovery work without presuming npm publication.",
+          "evidenceRefs": ["docs/RELEASE.md", "docs/RELEASE_REHEARSAL.md"]
+        },
+        {
+          "id": "funded-dependency-upkeep",
+          "label": "Dependency and Action update review",
+          "category": "dependency-upkeep",
+          "hours": { "kind": "estimated", "min": 6, "max": 16 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 20 },
+          "assumption": "Review update proposals more frequently when funded scope increases, still with explicit major-version decisions.",
+          "evidenceRefs": [".github/dependabot.yml", "docs/MAINTENANCE.md"]
+        },
+        {
+          "id": "funded-support-burden",
+          "label": "Support and contributor requests",
+          "category": "support-burden",
+          "hours": { "kind": "estimated", "min": 8, "max": 24 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 25 },
+          "assumption": "Provide bounded contributor onboarding and issue triage capacity without converting it into a response SLA.",
+          "evidenceRefs": [
+            "SUPPORT.md",
+            "docs/COMMUNITY_FEEDBACK.md",
+            "docs/MAINTAINER_RESILIENCE.md"
+          ]
+        },
+        {
+          "id": "funded-security-response",
+          "label": "Security intake and tabletop reserve",
+          "category": "security-response",
+          "hours": { "kind": "estimated", "min": 8, "max": 24 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 25 },
+          "assumption": "Reserve a second-reviewer and incident-response budget while retaining private intake and local reproduction.",
+          "evidenceRefs": ["SECURITY.md", "docs/ADAPTER_RETIREMENT.md"]
+        },
+        {
+          "id": "funded-adapter-ownership",
+          "label": "Adapter support and compatibility review",
+          "category": "adapter-ownership",
+          "hours": { "kind": "estimated", "min": 8, "max": 24 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 20 },
+          "assumption": "Staff bounded adapter ownership and independent conformance review; broad language claims remain out of scope.",
+          "evidenceRefs": [
+            "docs/SUPPORT_MATRIX.md",
+            "docs/ADAPTER_REVIEW_PLAYBOOK.md"
+          ]
+        },
+        {
+          "id": "funded-ci-artifact",
+          "label": "CI, benchmark, and artifact execution",
+          "category": "ci-artifact",
+          "hours": { "kind": "estimated", "min": 2, "max": 8 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 100 },
+          "assumption": "Budget for reproducible compute or artifact retention only after actual quotas and invoices are reviewed.",
+          "evidenceRefs": [
+            ".github/workflows/ci.yml",
+            "docs/BENCHMARK_PROTOCOL.md"
+          ]
+        },
+        {
+          "id": "funded-approved-service-operations",
+          "label": "Approved hosted service operations",
+          "category": "approved-service-operations",
+          "hours": { "kind": "estimated", "min": 0, "max": 0 },
+          "directCostUsd": { "kind": "estimated", "min": 0, "max": 0 },
+          "assumption": "No hosted service is approved; funding covers OSS stewardship only.",
+          "evidenceRefs": [
+            "docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md",
+            "docs/OSS_HEALTH_SCORECARD.md"
+          ]
+        }
+      ],
+      "hours": { "kind": "estimated", "min": 52, "max": 148 },
+      "directCostUsd": { "kind": "estimated", "min": 0, "max": 230 },
+      "totalCostUsd": { "kind": "estimated", "min": 7800, "max": 37230 },
+      "assumptions": [
+        "Hours are quarterly planning ranges for a funded OSS stewardship track, not a commitment to hire or spend.",
+        "The USD 150–250 per hour rate prices labor and review capacity; it is not a compensation offer or market benchmark.",
+        "A sponsor or grant must cover the upper modeled quarterly total before this branch is authorized.",
+        "Hosted service operations, source upload, telemetry, and account-bearing support remain outside this option."
+      ],
+      "breakEven": {
+        "kind": "budget-threshold",
+        "thresholdUsdPerQuarter": 37230,
+        "condition": "Do not fund this branch unless a committed sponsor or grant budget covers the conservative upper quarterly range of USD 37,230 and names an accountable steward."
+      },
+      "stopConditions": [
+        "Stop funded scope when the committed budget falls below the upper range for two review periods.",
+        "Stop or narrow work when a second reviewer, security responder, or adapter owner cannot be staffed.",
+        "Do not convert funding into hosted expansion without a new privacy, security, service-cost, and governance gate."
+      ],
+      "nonGoals": [
+        "This option does not authorize a hosted product, source ingestion, telemetry, or account service.",
+        "This option does not claim market demand, revenue, grant availability, or external contributor adoption."
+      ],
+      "evidenceRefs": [
+        "M-005",
+        "M-008",
+        "docs/MAINTENANCE.md",
+        "docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md"
+      ]
+    },
+    {
+      "id": "hosted-team-expansion",
+      "label": "Hosted team product expansion",
+      "decision": "defer",
+      "estimateStatus": "deferred",
+      "fundingMode": "deferred",
+      "serviceOperationsApproved": false,
+      "laborRateUsdPerHour": { "min": 150, "max": 250 },
+      "components": [
+        {
+          "id": "hosted-core-contracts",
+          "label": "Core graph, evidence, and CLI contracts",
+          "category": "core-contracts",
+          "hours": {
+            "kind": "deferred",
+            "reason": "Requires a separately authorized hosted-boundary design and capacity review."
+          },
+          "directCostUsd": {
+            "kind": "deferred",
+            "reason": "No hosted architecture or infrastructure budget is approved."
+          },
+          "assumption": "No numeric estimate is published before the hosted boundary is authorized.",
+          "evidenceRefs": ["docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md", "M-009"]
+        },
+        {
+          "id": "hosted-roadmap-governance",
+          "label": "Roadmap and evidence governance",
+          "category": "roadmap-governance",
+          "hours": {
+            "kind": "deferred",
+            "reason": "Requires a capacity-backed Year 4 charter."
+          },
+          "directCostUsd": {
+            "kind": "deferred",
+            "reason": "No hosted program budget is approved."
+          },
+          "assumption": "No numeric estimate is published before the strategy gate accepts hosted scope.",
+          "evidenceRefs": ["docs/ROADMAP.md", "docs/CLAIMS_AUDIT.md"]
+        },
+        {
+          "id": "hosted-release-distribution",
+          "label": "Hosted release and distribution",
+          "category": "release-distribution",
+          "hours": {
+            "kind": "deferred",
+            "reason": "Requires release-integrity and service-operations review."
+          },
+          "directCostUsd": {
+            "kind": "deferred",
+            "reason": "No publication or hosted distribution plan is approved."
+          },
+          "assumption": "No hosted distribution estimate is treated as zero cost.",
+          "evidenceRefs": [
+            "docs/RELEASE.md",
+            "docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md"
+          ]
+        },
+        {
+          "id": "hosted-dependency-upkeep",
+          "label": "Hosted dependency and workflow upkeep",
+          "category": "dependency-upkeep",
+          "hours": {
+            "kind": "deferred",
+            "reason": "Requires a declared hosted dependency and action inventory."
+          },
+          "directCostUsd": {
+            "kind": "deferred",
+            "reason": "No hosted dependency bill of materials is approved."
+          },
+          "assumption": "No hosted dependency estimate is treated as zero cost.",
+          "evidenceRefs": [".github/dependabot.yml", "docs/MAINTENANCE.md"]
+        },
+        {
+          "id": "hosted-support-burden",
+          "label": "Hosted support burden",
+          "category": "support-burden",
+          "hours": {
+            "kind": "deferred",
+            "reason": "Requires a support model, user boundary, and privacy review."
+          },
+          "directCostUsd": {
+            "kind": "deferred",
+            "reason": "No support service or user volume is approved."
+          },
+          "assumption": "No hosted support estimate is treated as zero burden.",
+          "evidenceRefs": [
+            "SUPPORT.md",
+            "docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md"
+          ]
+        },
+        {
+          "id": "hosted-security-response",
+          "label": "Hosted security response",
+          "category": "security-response",
+          "hours": {
+            "kind": "deferred",
+            "reason": "Requires hosted threat modeling, incident authority, and disclosure review."
+          },
+          "directCostUsd": {
+            "kind": "deferred",
+            "reason": "No hosted security service or incident budget is approved."
+          },
+          "assumption": "No hosted security estimate is treated as zero reserve.",
+          "evidenceRefs": [
+            "SECURITY.md",
+            "docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md"
+          ]
+        },
+        {
+          "id": "hosted-adapter-ownership",
+          "label": "Hosted adapter ownership",
+          "category": "adapter-ownership",
+          "hours": {
+            "kind": "deferred",
+            "reason": "Requires a hosted adapter isolation and support contract."
+          },
+          "directCostUsd": {
+            "kind": "deferred",
+            "reason": "No hosted adapter infrastructure is approved."
+          },
+          "assumption": "No hosted adapter estimate is treated as zero maintenance.",
+          "evidenceRefs": [
+            "docs/ADAPTER_RETIREMENT.md",
+            "docs/SUPPORT_MATRIX.md"
+          ]
+        },
+        {
+          "id": "hosted-ci-artifact",
+          "label": "Hosted CI and artifact operations",
+          "category": "ci-artifact",
+          "hours": {
+            "kind": "deferred",
+            "reason": "Requires actual hosted quota and retention data."
+          },
+          "directCostUsd": {
+            "kind": "deferred",
+            "reason": "No hosted quota, artifact retention, or invoice is approved."
+          },
+          "assumption": "No hosted CI estimate is treated as zero cost.",
+          "evidenceRefs": [".github/workflows/ci.yml", "docs/RELEASE.md"]
+        },
+        {
+          "id": "hosted-approved-service-operations",
+          "label": "Approved hosted service operations",
+          "category": "approved-service-operations",
+          "hours": {
+            "kind": "deferred",
+            "reason": "No service operation is approved; a new gate is required."
+          },
+          "directCostUsd": {
+            "kind": "deferred",
+            "reason": "No account, collector, source-ingestion, or service budget is approved."
+          },
+          "assumption": "Deferred is not free: the option is blocked until privacy, security, sustainability, and governance evidence exists.",
+          "evidenceRefs": [
+            "docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md",
+            "docs/OSS_HEALTH_SCORECARD.md"
+          ]
+        }
+      ],
+      "hours": {
+        "kind": "deferred",
+        "reason": "Hosted team capacity is not authorized."
+      },
+      "directCostUsd": {
+        "kind": "deferred",
+        "reason": "Hosted infrastructure and service pricing are not authorized."
+      },
+      "totalCostUsd": {
+        "kind": "deferred",
+        "reason": "No break-even estimate is valid before the hosted boundary is accepted."
+      },
+      "assumptions": [
+        "No numeric estimate is published because hosted collection, accounts, source upload, and service operations are deferred.",
+        "Deferred costs are unknown, not zero; a new model must use an approved architecture, privacy review, security review, and actual quota assumptions.",
+        "Year 4 expansion remains blocked until strategy, security, sustainability, claims-audit, and capacity gates are accepted."
+      ],
+      "breakEven": {
+        "kind": "deferred",
+        "thresholdUsdPerQuarter": null,
+        "condition": "Do not evaluate break-even until a capacity-backed charter, service boundary, privacy/security review, and approved cost inputs exist."
+      },
+      "stopConditions": [
+        "Keep the option deferred while hosted expansion lacks an accepted local-first boundary.",
+        "Reject any proposal that assumes source upload, hidden telemetry, or service operations without a new public gate.",
+        "Stop planning if the required evidence cannot be reproduced without private data or undisclosed collection."
+      ],
+      "nonGoals": [
+        "This option is not a roadmap commitment, hosted product plan, or funding request.",
+        "This option does not imply that hosted service cost, support burden, or security response is zero."
+      ],
+      "evidenceRefs": [
+        "M-005",
+        "M-009",
+        "docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md",
+        "docs/ROADMAP.md"
+      ]
+    }
+  ],
+  "summary": {
+    "scenarioCount": 3,
+    "estimatedScenarioCount": 2,
+    "deferredScenarioCount": 1,
+    "componentCategoryCount": 9,
+    "inputCount": 8,
+    "observedInputCount": 0,
+    "planningInputCount": 5,
+    "deferredInputCount": 1,
+    "publicOnly": true,
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "privateDataIncluded": false,
+    "hiddenTelemetry": false,
+    "volunteerLaborPriced": true
+  },
+  "provenance": {
+    "source": "CARTOGRAPH repository-authored sustainability and cost planning fixture",
+    "license": "Apache-2.0",
+    "reference": "M-010 sustainability and cost model; M-005 OSS health scorecard; M-008 maintainer resilience report",
+    "transformation": "The model turns checked-in maintenance, release, security, adapter, CI, and strategy boundaries into explicit planning ranges and deferred conditions; it retains no invoices, private records, source bodies, telemetry, or hosted data.",
+    "redistribution": "allowed"
+  }
+}
