@@ -144,6 +144,18 @@ impact is not hidden, with `includeUnresolved: false` available when a review
 needs only resolved relationships. Node and edge ceilings fail closed with an
 actionable resource diagnostic rather than truncating the result.
 
+## Architecture query contract
+
+The Q-001 query contract wraps bounded, local questions in a versioned request
+and result shape. v0.1 supports deterministic node and edge selection with
+exact predicates, canonical ordering, explicit evidence projection, and
+selected snapshot diagnostics. It names traversal, dependency-path,
+boundary-crossing, cycle, source-body, remote, and mutation operations as
+unsupported until their dedicated roadmap work is reviewed; callers receive a
+stable unsupported diagnostic rather than an inferred answer. See the
+[architecture query contract](ARCHITECTURE_QUERIES.md) for selector, limit,
+privacy, and result semantics.
+
 ## Identity
 
 The initial stable key combines the node kind with normalized module and symbol

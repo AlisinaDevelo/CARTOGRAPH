@@ -221,6 +221,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Strategy-branch privacy and security review](docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md)
 - [Local-first investment ADR](docs/adr/0007-local-first-investment-boundary.md)
 - [Conditional Year 4 investment charter](docs/YEAR4_INVESTMENT_CHARTER.md)
+- [Architecture query contract](docs/ARCHITECTURE_QUERIES.md)
 - [Release gate](docs/RELEASE.md)
 - [Release acceptance and rollback rehearsal](docs/RELEASE_REHEARSAL.md)
 - [Changelog](CHANGELOG.md)
