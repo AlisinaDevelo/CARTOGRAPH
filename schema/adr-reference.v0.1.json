@@ -42,6 +42,13 @@
       "title": "Retain the bounded Rust pilot as experimental",
       "status": "accepted",
       "graphIds": ["module:scripts/language-expansion-gate.mjs"]
+    },
+    {
+      "id": "ADR-0007",
+      "file": "docs/adr/0007-local-first-investment-boundary.md",
+      "title": "Keep investment local-first and defer hosted expansion",
+      "status": "accepted",
+      "graphIds": ["module:scripts/oss-health-scorecard.mjs"]
     }
   ]
 }
