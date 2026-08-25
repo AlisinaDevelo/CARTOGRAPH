@@ -29,6 +29,7 @@ repository or materialized Git revision
 
 - `src/core`: versioned graph, diff, and configuration contracts, validation, canonicalization, and comparison.
 - `src/analyzers/typescript`: TypeScript program loading and language-level relationships.
+- `src/analyzers/api-boundaries`: bounded GraphQL SDL/template and OpenAPI operation discovery with resolver/handler links.
 - `src/analyzers/workspace`: bounded npm, pnpm, and Yarn workspace manifest discovery and package ownership edges.
 - `src/analyzers/express`: bounded Express route semantics.
 - `src/git`: read-only Git validation and revision materialization in narrow temporary directories.
@@ -104,6 +105,13 @@ roots. A package stable key is `package:<repository-relative-root>` and its
 dependencies become `depends_on` edges, and source modules under a package
 root become `contains` edges. Overlapping, malformed, mixed-manager, or
 unbounded declarations fail closed before any package roots are merged.
+
+The API boundary analyzer maps static GraphQL root fields and OpenAPI path
+operations to `endpoint` nodes. Resolver and handler references become
+evidence-backed `routes_to` edges when exactly one local callable or matching
+literal route is available. Generated schemas, aliased references, missing
+handler mappings, and runtime-composed routes remain explicit partial-coverage
+diagnostics; no schema or route is guessed from runtime behavior.
 
 ## Diff semantics
 

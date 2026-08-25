@@ -11,9 +11,18 @@ Each curated fixture contains source, an expected canonical graph, and an explan
 3. direct Express routes, router registrations, middleware, and handler references;
 4. literal outbound HTTP calls;
 5. conventional Prisma reads and writes;
-6. dynamic or unresolved negative cases.
+6. GraphQL root fields, resolver aliases, and OpenAPI operation-to-handler
+   boundaries;
+7. dynamic or unresolved negative cases.
 
 Fixtures test observable contracts. They do not assert internal traversal order.
+
+X-012's `api-boundaries` fixture measures endpoint identity, resolver and
+handler-link precision, source-span evidence, repeat serialization, and
+partial-coverage diagnostics for generated schemas, aliases, and
+runtime-composed routes. It is intentionally a bounded static slice: schema
+generators, remote references, and runtime router composition are not treated
+as complete API coverage.
 
 ## Correctness metrics
 

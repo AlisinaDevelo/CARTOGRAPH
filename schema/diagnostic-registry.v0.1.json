@@ -107,6 +107,27 @@
       "remediation": "Use a literal route or middleware path and a statically named registration method."
     },
     {
+      "code": "PARTIAL_API_SCHEMA_GENERATION",
+      "severity": "warning",
+      "message": "API schema generation or parsing is only partially covered by the static analyzer.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Keep the schema declaration statically readable and review generated or runtime-composed schema portions manually."
+    },
+    {
+      "code": "PARTIAL_API_SCHEMA_ALIAS",
+      "severity": "warning",
+      "message": "An API schema boundary uses an alias or handler mapping that is not fully statically resolvable.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Use a unique local resolver or handler reference and review aliased or external schema definitions manually."
+    },
+    {
+      "code": "PARTIAL_RUNTIME_COMPOSED_ROUTE",
+      "severity": "warning",
+      "message": "An API boundary is backed by a runtime-composed route that cannot be mapped statically.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Declare a literal route path and method or review the runtime router composition alongside the API schema."
+    },
+    {
       "code": "UNRESOLVED_FASTIFY_HANDLER",
       "severity": "warning",
       "message": "Could not resolve a Fastify route handler in the supported adapter subset.",

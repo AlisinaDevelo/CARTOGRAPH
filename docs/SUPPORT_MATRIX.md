@@ -49,21 +49,22 @@ This matrix is the public boundary of the first analyzer. A construct is support
 
 ## Supported constructs
 
-| Construct                                                                               | Status    | Evidence source                                            | Unknown or excluded behavior                                                                                                     |
-| --------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| TypeScript `.ts`, `.tsx`, `.mts`, and `.cts` files                                      | Supported | TypeScript compiler program and normalized source spans    | JavaScript files and declaration files are excluded; generated and dependency directories are excluded                           |
-| Local and external imports, re-exports, literal dynamic imports, and literal `require`  | Supported | Import or export syntax at the source location             | Non-literal module expressions produce an unresolved diagnostic rather than a guessed edge                                       |
-| Node16/NodeNext package `exports` and `imports` maps                                    | Supported | TypeScript resolver outcome plus package-map source span   | `import`/`require`/`node`/`types` branches are deterministic; additional environment branches emit `AMBIGUOUS_PACKAGE_CONDITION` |
-| npm/Yarn `package.json` and pnpm workspace package roots and local dependencies         | Supported | Workspace manifest and package.json source evidence        | Missing, malformed, overlapping, mixed-manager, or external package declarations fail closed rather than merging roots           |
-| Named functions, class methods, and variable-bound arrow functions                      | Supported | Declaration and symbol spans from the TypeScript program   | Anonymous or dynamically-created call targets remain unresolved                                                                  |
-| Statically resolvable calls                                                             | Supported | TypeScript symbol resolution at the call site              | Dynamic dispatch and unresolved symbols do not become confident call edges                                                       |
-| Literal EventEmitter events, bounded Bull/BullMQ queues, timers, and local callbacks    | Supported | Registration, publication, queue, and handler source spans | Dynamic event or queue names, reflective handlers, unsupported clients, and unresolved callbacks remain diagnostics              |
-| Direct Express `app` or `router` routes and bounded `use` middleware with literal paths | Supported | Express registration call and handler source spans         | Dynamic route registration, computed paths, and framework metaprogramming produce diagnostics                                    |
-| Literal `fetch` and Axios destinations                                                  | Supported | Literal URL argument and request call span                 | Computed or runtime-only destinations remain unresolved                                                                          |
-| Conventional Prisma model reads and writes                                              | Supported | Prisma model operation and source span                     | Dynamic model names and unsupported client wrappers remain unresolved                                                            |
-| Rust `.rs` modules, functions, local `mod`/`use`, and unique local calls                | Pilot     | Declaration or call source span                            | Macros, traits, generics, compiler resolution, and ambiguous names remain outside the claim                                      |
-| Literal Rust `reqwest`/client HTTP origins                                              | Pilot     | Literal URL argument and request call span                 | Runtime-selected destinations remain `UNSUPPORTED_RUST_DYNAMIC_HTTP_DESTINATION`                                                 |
-| Literal Rust `sqlx` table reads and writes                                              | Pilot     | Literal SQL query call and source span                     | Dynamic or table-less SQL remains `UNSUPPORTED_RUST_DYNAMIC_QUERY`                                                               |
+| Construct                                                                               | Status    | Evidence source                                             | Unknown or excluded behavior                                                                                                     |
+| --------------------------------------------------------------------------------------- | --------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| TypeScript `.ts`, `.tsx`, `.mts`, and `.cts` files                                      | Supported | TypeScript compiler program and normalized source spans     | JavaScript files and declaration files are excluded; generated and dependency directories are excluded                           |
+| Local and external imports, re-exports, literal dynamic imports, and literal `require`  | Supported | Import or export syntax at the source location              | Non-literal module expressions produce an unresolved diagnostic rather than a guessed edge                                       |
+| Node16/NodeNext package `exports` and `imports` maps                                    | Supported | TypeScript resolver outcome plus package-map source span    | `import`/`require`/`node`/`types` branches are deterministic; additional environment branches emit `AMBIGUOUS_PACKAGE_CONDITION` |
+| npm/Yarn `package.json` and pnpm workspace package roots and local dependencies         | Supported | Workspace manifest and package.json source evidence         | Missing, malformed, overlapping, mixed-manager, or external package declarations fail closed rather than merging roots           |
+| GraphQL SDL/root fields and OpenAPI path operations with local resolver/handler links   | Supported | Schema operation source spans and resolver/handler evidence | Generated schemas, aliased references, missing mappings, and runtime-composed routes remain partial-coverage diagnostics         |
+| Named functions, class methods, and variable-bound arrow functions                      | Supported | Declaration and symbol spans from the TypeScript program    | Anonymous or dynamically-created call targets remain unresolved                                                                  |
+| Statically resolvable calls                                                             | Supported | TypeScript symbol resolution at the call site               | Dynamic dispatch and unresolved symbols do not become confident call edges                                                       |
+| Literal EventEmitter events, bounded Bull/BullMQ queues, timers, and local callbacks    | Supported | Registration, publication, queue, and handler source spans  | Dynamic event or queue names, reflective handlers, unsupported clients, and unresolved callbacks remain diagnostics              |
+| Direct Express `app` or `router` routes and bounded `use` middleware with literal paths | Supported | Express registration call and handler source spans          | Dynamic route registration, computed paths, and framework metaprogramming produce diagnostics                                    |
+| Literal `fetch` and Axios destinations                                                  | Supported | Literal URL argument and request call span                  | Computed or runtime-only destinations remain unresolved                                                                          |
+| Conventional Prisma model reads and writes                                              | Supported | Prisma model operation and source span                      | Dynamic model names and unsupported client wrappers remain unresolved                                                            |
+| Rust `.rs` modules, functions, local `mod`/`use`, and unique local calls                | Pilot     | Declaration or call source span                             | Macros, traits, generics, compiler resolution, and ambiguous names remain outside the claim                                      |
+| Literal Rust `reqwest`/client HTTP origins                                              | Pilot     | Literal URL argument and request call span                  | Runtime-selected destinations remain `UNSUPPORTED_RUST_DYNAMIC_HTTP_DESTINATION`                                                 |
+| Literal Rust `sqlx` table reads and writes                                              | Pilot     | Literal SQL query call and source span                      | Dynamic or table-less SQL remains `UNSUPPORTED_RUST_DYNAMIC_QUERY`                                                               |
 
 The X-002 golden fixture covers named re-exports, star re-exports, literal
 dynamic `import()`, literal `require()`, and non-literal dynamic module
@@ -83,6 +84,13 @@ callee. Registration and handler edges retain separate source evidence.
 Dynamic event or queue names, string-only reflection, unsupported queue clients,
 and unresolved callbacks remain stable diagnostics; no runtime dispatch is
 guessed.
+
+The X-012 API-boundary fixture covers GraphQL SDL root fields, statically bound
+resolver aliases, OpenAPI YAML operations, literal Express handler matching,
+generated schema inputs, aliased path references, and runtime-composed routes.
+The analyzer emits `endpoint` nodes with `routes_to` evidence only for static
+links; `PARTIAL_API_SCHEMA_GENERATION`, `PARTIAL_API_SCHEMA_ALIAS`, and
+`PARTIAL_RUNTIME_COMPOSED_ROUTE` preserve the remaining coverage boundary.
 
 The E-005 Rust pilot fixture covers two `.rs` modules, local module imports and
 calls, a literal `reqwest` request, a literal `sqlx` read, and dynamic HTTP and
