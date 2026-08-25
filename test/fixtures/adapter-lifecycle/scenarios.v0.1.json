@@ -1,0 +1,246 @@
+{
+  "$schema": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/adapter-lifecycle.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.adapter-lifecycle",
+  "policyId": "cartograph-adapter-lifecycle-v0.1",
+  "policy": {
+    "ownership": {
+      "primary": "@AlisinaDevelo",
+      "backup": "extractor-maintainers",
+      "matrixOwner": "CARTOGRAPH maintainers",
+      "reviewCadence": "quarterly and before every minor release",
+      "reviewDueDate": "2026-11-30"
+    },
+    "vulnerabilityIntake": {
+      "privateRoute": "GitHub private vulnerability reporting",
+      "fallbackRoute": "private maintainer contact through the AlisinaDevelo profile",
+      "publicRule": "Do not open a public issue or discussion for a suspected vulnerability.",
+      "requiredReportFields": [
+        "affected-commit",
+        "command-or-input",
+        "operating-system",
+        "impact",
+        "redacted-reproduction"
+      ],
+      "secretsProhibited": true
+    },
+    "supportedVersionWindows": {
+      "stable": {
+        "supportDays": 365,
+        "noticeDays": 90,
+        "snapshotReadabilityDays": 1095
+      },
+      "experimental": {
+        "supportDays": 90,
+        "noticeDays": 30,
+        "snapshotReadabilityDays": 1095
+      },
+      "unreleased": {
+        "supportDays": 0,
+        "noticeDays": 14,
+        "snapshotReadabilityDays": 1095
+      }
+    },
+    "qualityRegressionTriggers": [
+      {
+        "id": "precision-floor",
+        "metric": "precision",
+        "operator": "<",
+        "threshold": 0.9,
+        "action": "warning"
+      },
+      {
+        "id": "recall-floor",
+        "metric": "recall",
+        "operator": "<",
+        "threshold": 0.85,
+        "action": "warning"
+      },
+      {
+        "id": "evidence-completeness",
+        "metric": "evidence-completeness",
+        "operator": "<",
+        "threshold": 1,
+        "action": "block"
+      },
+      {
+        "id": "owner-acknowledgement",
+        "metric": "owner-acknowledgement-days",
+        "operator": ">",
+        "threshold": 30,
+        "action": "deprecate"
+      },
+      {
+        "id": "security-finding",
+        "metric": "open-security-findings",
+        "operator": ">",
+        "threshold": 0,
+        "action": "block"
+      }
+    ],
+    "deprecationNotice": {
+      "requiredFields": [
+        "adapter-id",
+        "reason",
+        "effective-at",
+        "replacement",
+        "migration",
+        "support-window"
+      ],
+      "minimumNoticeDays": 90,
+      "channels": ["release-notes", "support-docs", "public-issue"]
+    },
+    "archiveBehavior": {
+      "preserveHistoricalSnapshots": true,
+      "retainEvidence": true,
+      "removeSupportClaim": true,
+      "requireMigrationNote": true,
+      "archiveRepository": false
+    },
+    "replacementGuidance": {
+      "requiredFields": [
+        "replacement-id",
+        "scope",
+        "migration",
+        "compatibility"
+      ],
+      "searchSteps": [
+        "Check the support matrix for an implemented bounded adapter.",
+        "Compare the replacement semantic scope and compatibility dimensions.",
+        "Replay the replacement conformance and language-equivalence fixtures before promotion."
+      ],
+      "noImplicitPromotion": true
+    }
+  },
+  "tabletops": [
+    {
+      "id": "abandoned-adapter",
+      "category": "abandoned-adapter",
+      "scenario": "The experimental adapter owner and backup stop responding while its support window is still open.",
+      "initialState": "active",
+      "events": [
+        {
+          "atHours": 0,
+          "deadlineHours": 24,
+          "phase": "owner-gap",
+          "owner": "CARTOGRAPH maintainers",
+          "action": "Record the missing owner and backup, freeze new capability claims, and open a governance tracking issue.",
+          "state": "warning"
+        },
+        {
+          "atHours": 24,
+          "deadlineHours": 72,
+          "phase": "quality-review",
+          "owner": "extractor-maintainers",
+          "action": "Replay conformance, identity, evidence, and compatibility fixtures; publish the observed support boundary.",
+          "state": "warning"
+        },
+        {
+          "atHours": 72,
+          "deadlineHours": 168,
+          "phase": "deprecation-notice",
+          "owner": "@AlisinaDevelo",
+          "action": "Publish the deprecation notice with effective date, migration, replacement search, and support-window details.",
+          "state": "deprecated"
+        },
+        {
+          "atHours": 168,
+          "deadlineHours": 216,
+          "phase": "migration-record",
+          "owner": "extractor-maintainers",
+          "action": "Add replacement guidance, retain historical snapshots and evidence, and remove the active support claim.",
+          "state": "deprecated"
+        },
+        {
+          "atHours": 216,
+          "deadlineHours": 240,
+          "phase": "archive",
+          "owner": "CARTOGRAPH maintainers",
+          "action": "Archive the adapter entry and fixture path while keeping the migration note and historical artifacts readable.",
+          "state": "archived"
+        }
+      ],
+      "publicTemplates": {
+        "intake": "Adapter {{adapterId}} has an ownership gap. Please do not submit new capabilities while maintainers verify support and security coverage.",
+        "notice": "CARTOGRAPH will deprecate {{adapterId}} on {{effectiveAt}} because {{reason}}. The supported scope, migration {{migration}}, replacement {{replacement}}, and {{supportWindow}} are documented.",
+        "closure": "{{adapterId}} is archived. Historical snapshots and evidence remain readable; use {{replacement}} for new analyses and follow {{migration}} for migration."
+      },
+      "expectedOutcome": {
+        "finalState": "archived",
+        "requiredActions": [
+          "owner-gap-recorded",
+          "support-claim-removed",
+          "deprecation-notice",
+          "migration-note",
+          "archive-preserves-snapshots"
+        ],
+        "noSourceLeak": true
+      }
+    },
+    {
+      "id": "security-defect",
+      "category": "security-defect",
+      "scenario": "A critical adapter vulnerability is privately reported while the adapter is listed as implemented.",
+      "initialState": "active",
+      "events": [
+        {
+          "atHours": 0,
+          "deadlineHours": 4,
+          "phase": "private-intake",
+          "owner": "@AlisinaDevelo",
+          "action": "Acknowledge the private report, verify required fields, redact secrets, and assign a maintainer-only incident record.",
+          "state": "warning"
+        },
+        {
+          "atHours": 4,
+          "deadlineHours": 24,
+          "phase": "containment",
+          "owner": "extractor-maintainers",
+          "action": "Freeze the affected adapter claim, block promotion and releases, and identify affected versions and boundaries.",
+          "state": "blocked"
+        },
+        {
+          "atHours": 24,
+          "deadlineHours": 72,
+          "phase": "advisory",
+          "owner": "CARTOGRAPH maintainers",
+          "action": "Publish a redacted advisory with impact, affected versions, mitigation, and disclosure coordination without source or secret data.",
+          "state": "blocked"
+        },
+        {
+          "atHours": 72,
+          "deadlineHours": 168,
+          "phase": "fix-and-replay",
+          "owner": "extractor-maintainers",
+          "action": "Ship the bounded fix, replay hostile isolation and conformance fixtures, and obtain a second maintainer review before unblocking.",
+          "state": "active"
+        },
+        {
+          "atHours": 168,
+          "deadlineHours": 192,
+          "phase": "coordinated-disclosure",
+          "owner": "@AlisinaDevelo",
+          "action": "Close the private report, publish release and migration guidance, and record the compatibility and security decision.",
+          "state": "active"
+        }
+      ],
+      "publicTemplates": {
+        "intake": "A private security report for {{adapterId}} was received. The project will not request secrets or reproduce the issue with proprietary source.",
+        "notice": "Security advisory for {{adapterId}}: {{reason}} affects {{supportWindow}}. Apply {{migration}} or use {{replacement}} while the fix is reviewed.",
+        "closure": "The {{adapterId}} security report is resolved. The validated fix, affected versions, compatibility result, and disclosure record are available without exposing the reproduction."
+      },
+      "expectedOutcome": {
+        "finalState": "active",
+        "requiredActions": [
+          "private-intake",
+          "containment",
+          "advisory",
+          "fix",
+          "conformance-replay",
+          "coordinated-disclosure"
+        ],
+        "noSourceLeak": true
+      }
+    }
+  ]
+}

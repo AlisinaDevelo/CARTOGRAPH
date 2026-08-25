@@ -1,0 +1,272 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/adapter-lifecycle.v0.1.schema.json",
+  "title": "CARTOGRAPH adapter lifecycle and security-response policy v0.1",
+  "description": "Versioned ownership, support-window, quality-trigger, retirement, and security-response policy with timed tabletop exercises.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "policyId",
+    "policy",
+    "tabletops"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.adapter-lifecycle" },
+    "policyId": { "$ref": "#/definitions/identifier" },
+    "policy": { "$ref": "#/definitions/policy" },
+    "tabletops": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/definitions/tabletop" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "positiveInteger": { "type": "integer", "minimum": 1 },
+    "state": {
+      "enum": ["active", "warning", "blocked", "deprecated", "archived"]
+    },
+    "ownership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primary",
+        "backup",
+        "matrixOwner",
+        "reviewCadence",
+        "reviewDueDate"
+      ],
+      "properties": {
+        "primary": { "$ref": "#/definitions/text" },
+        "backup": { "$ref": "#/definitions/text" },
+        "matrixOwner": { "$ref": "#/definitions/text" },
+        "reviewCadence": { "$ref": "#/definitions/text" },
+        "reviewDueDate": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        }
+      }
+    },
+    "vulnerabilityIntake": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "privateRoute",
+        "fallbackRoute",
+        "publicRule",
+        "requiredReportFields",
+        "secretsProhibited"
+      ],
+      "properties": {
+        "privateRoute": { "$ref": "#/definitions/text" },
+        "fallbackRoute": { "$ref": "#/definitions/text" },
+        "publicRule": { "$ref": "#/definitions/text" },
+        "requiredReportFields": {
+          "type": "array",
+          "minItems": 5,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "secretsProhibited": { "const": true }
+      }
+    },
+    "supportWindow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supportDays", "noticeDays", "snapshotReadabilityDays"],
+      "properties": {
+        "supportDays": { "type": "integer", "minimum": 0 },
+        "noticeDays": { "type": "integer", "minimum": 0 },
+        "snapshotReadabilityDays": { "$ref": "#/definitions/positiveInteger" }
+      }
+    },
+    "qualityTrigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "metric", "operator", "threshold", "action"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "metric": { "$ref": "#/definitions/identifier" },
+        "operator": { "enum": ["<", "<=", ">", ">=", "=="] },
+        "threshold": { "type": "number", "minimum": 0 },
+        "action": { "enum": ["warning", "deprecate", "block"] }
+      }
+    },
+    "deprecationNotice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requiredFields", "minimumNoticeDays", "channels"],
+      "properties": {
+        "requiredFields": {
+          "type": "array",
+          "minItems": 5,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "minimumNoticeDays": { "$ref": "#/definitions/positiveInteger" },
+        "channels": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "archiveBehavior": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preserveHistoricalSnapshots",
+        "retainEvidence",
+        "removeSupportClaim",
+        "requireMigrationNote",
+        "archiveRepository"
+      ],
+      "properties": {
+        "preserveHistoricalSnapshots": { "type": "boolean" },
+        "retainEvidence": { "type": "boolean" },
+        "removeSupportClaim": { "type": "boolean" },
+        "requireMigrationNote": { "type": "boolean" },
+        "archiveRepository": { "type": "boolean" }
+      }
+    },
+    "replacementGuidance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requiredFields", "searchSteps", "noImplicitPromotion"],
+      "properties": {
+        "requiredFields": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "searchSteps": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "noImplicitPromotion": { "const": true }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ownership",
+        "vulnerabilityIntake",
+        "supportedVersionWindows",
+        "qualityRegressionTriggers",
+        "deprecationNotice",
+        "archiveBehavior",
+        "replacementGuidance"
+      ],
+      "properties": {
+        "ownership": { "$ref": "#/definitions/ownership" },
+        "vulnerabilityIntake": { "$ref": "#/definitions/vulnerabilityIntake" },
+        "supportedVersionWindows": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["stable", "experimental", "unreleased"],
+          "properties": {
+            "stable": { "$ref": "#/definitions/supportWindow" },
+            "experimental": { "$ref": "#/definitions/supportWindow" },
+            "unreleased": { "$ref": "#/definitions/supportWindow" }
+          }
+        },
+        "qualityRegressionTriggers": {
+          "type": "array",
+          "minItems": 4,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/qualityTrigger" }
+        },
+        "deprecationNotice": { "$ref": "#/definitions/deprecationNotice" },
+        "archiveBehavior": { "$ref": "#/definitions/archiveBehavior" },
+        "replacementGuidance": { "$ref": "#/definitions/replacementGuidance" }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "atHours",
+        "deadlineHours",
+        "phase",
+        "owner",
+        "action",
+        "state"
+      ],
+      "properties": {
+        "atHours": { "type": "integer", "minimum": 0 },
+        "deadlineHours": { "type": "integer", "minimum": 0 },
+        "phase": { "$ref": "#/definitions/identifier" },
+        "owner": { "$ref": "#/definitions/text" },
+        "action": { "$ref": "#/definitions/text" },
+        "state": { "$ref": "#/definitions/state" }
+      }
+    },
+    "templates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["intake", "notice", "closure"],
+      "properties": {
+        "intake": { "$ref": "#/definitions/text" },
+        "notice": { "$ref": "#/definitions/text" },
+        "closure": { "$ref": "#/definitions/text" }
+      }
+    },
+    "tabletop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "category",
+        "scenario",
+        "initialState",
+        "events",
+        "publicTemplates",
+        "expectedOutcome"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "category": { "enum": ["abandoned-adapter", "security-defect"] },
+        "scenario": { "$ref": "#/definitions/text" },
+        "initialState": { "$ref": "#/definitions/state" },
+        "events": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 12,
+          "items": { "$ref": "#/definitions/event" }
+        },
+        "publicTemplates": { "$ref": "#/definitions/templates" },
+        "expectedOutcome": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["finalState", "requiredActions", "noSourceLeak"],
+          "properties": {
+            "finalState": { "$ref": "#/definitions/state" },
+            "requiredActions": {
+              "type": "array",
+              "minItems": 4,
+              "uniqueItems": true,
+              "items": { "$ref": "#/definitions/identifier" }
+            },
+            "noSourceLeak": { "const": true }
+          }
+        }
+      }
+    }
+  }
+}

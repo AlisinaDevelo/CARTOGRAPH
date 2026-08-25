@@ -420,6 +420,22 @@ they do not change GraphSnapshot v1 or the adapter API. `npm run
 language-equivalence:validate` is the local compatibility gate and reports any
 drift with its category and case.
 
+## E-011 adapter lifecycle and security response
+
+E-011 publishes the versioned
+[`cartograph.adapter-lifecycle`](../schema/adapter-lifecycle.v0.1.schema.json)
+policy and the paired
+[`adapter-lifecycle/scenarios.v0.1.json`](../test/fixtures/adapter-lifecycle/scenarios.v0.1.json)
+tabletops. The contract is additive documentation and governance metadata; it
+does not change GraphSnapshot, GraphDiff, adapter API, or capability versions.
+It binds owner and backup responsibility, private vulnerability intake,
+stable/experimental/unreleased support windows, quality regression triggers,
+deprecation notice fields, archive preservation, and explicit replacement
+guidance. The validator replays an abandoned-adapter timeline and a security-
+defect timeline with ten bounded events and public communication templates;
+deadlines and final states are deterministic, and source or secret disclosure
+markers fail closed.
+
 ## E-008 adapter compatibility negotiation
 
 E-008 adds the reviewed `adapterCompatibilityNegotiation` v1 contract and

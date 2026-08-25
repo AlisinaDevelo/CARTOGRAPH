@@ -207,6 +207,17 @@ declared node/edge count, diagnostic set, evidence minimum, or identity result
 fails with the affected category and case, so the corpus remains a local
 release gate even when hosted Actions are unavailable.
 
+E-011 adds the versioned [adapter retirement and security-response policy](ADAPTER_RETIREMENT.md),
+its [`adapter-lifecycle.v0.1.schema.json`](../schema/adapter-lifecycle.v0.1.schema.json)
+contract, and two timed tabletop fixtures. The abandoned-adapter case covers
+owner loss, quality review, deprecation notice, migration, and archive while
+preserving historical snapshots and evidence. The security-defect case covers
+private intake, containment, advisory, fix/replay, and coordinated disclosure.
+`npm run adapter:lifecycle:validate` checks ownership, vulnerability fields,
+stable/experimental/unreleased windows, precision/recall/evidence triggers,
+notice/archive/replacement requirements, ordered deadlines, public templates,
+and source-leak guards. Both cases pass with ten deterministic events.
+
 E-018 adds the offline [adapter compatibility matrix](ADAPTER_COMPATIBILITY_MATRIX.md).
 It binds the declared Node and compiler lines, checks every shipped adapter
 capability against bounded fixtures with deterministic evidence, replays all

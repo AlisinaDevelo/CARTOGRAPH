@@ -129,6 +129,11 @@ the [adapter support matrix](../schema/adapter-support-matrix.v0.1.json),
 whose selection criteria and retirement rules are published in the
 [adapter selection RFC](ADAPTER_SELECTION.md).
 
+The lifecycle, security-intake, deprecation, archive, and replacement rules are
+the versioned [adapter retirement policy](ADAPTER_RETIREMENT.md). Run
+`npm run adapter:lifecycle:validate` to replay the abandoned-adapter and
+security-defect tabletops before promoting or retiring an entry.
+
 ### Compatibility negotiation
 
 Before `analyze` is called, `runAdapter` evaluates the adapter manifest against

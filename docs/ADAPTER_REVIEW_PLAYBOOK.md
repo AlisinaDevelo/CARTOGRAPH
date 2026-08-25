@@ -32,7 +32,9 @@ repeatable evidence under the same contract that protects the core.
    output. The package must declare its Node range and CARTOGRAPH peer
    dependency. The review names release responsibility, deprecation and
    compatibility windows, fixture ownership, support route, and vulnerability
-   response contact.
+   response contact. The lifecycle and security-response policy is the
+   [adapter retirement policy](ADAPTER_RETIREMENT.md), and its tabletop
+   validator must pass before graduation.
 6. **Graduation decision** — The reviewer records pass, conditional pass, or
    reject. Graduation to the supported matrix requires all blocking findings
    closed, a compatibility decision, a maintainer owner and backup, the
@@ -50,7 +52,8 @@ repeatable evidence under the same contract that protects the core.
 | Maintenance | owner, backup, support route, deprecation and retirement dates         |
 | Decision    | review checklist, findings, disposition, and issue/RFC link            |
 
-The starter's independent harness is `npm run adapter-starter:validate`. It is
+The starter's independent harness is `npm run adapter-starter:validate`. The
+policy and tabletop harness is `npm run adapter:lifecycle:validate`. It is
 deliberately separate from the adapter module: it imports only the public
 contract, reads the published fixture schema, performs a package dry-run, and
 checks compatibility and security behavior before any adapter result is
@@ -66,4 +69,5 @@ as experimental. Documentation, benchmark, and non-semantic presentation gaps
 must have an owner and target date before conditional approval. Retiring an
 adapter requires a migration note, a fixture update, a notice in the
 compatibility policy, and a support-window date; the change-control register
-must not be silently deleted.
+must not be silently deleted. The retirement policy also requires historical
+snapshot/evidence readability and explicit replacement guidance.
