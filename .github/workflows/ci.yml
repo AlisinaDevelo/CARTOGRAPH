@@ -76,6 +76,9 @@ jobs:
       - name: Validate benchmark baseline
         run: npm run benchmark:validate
 
+      - name: Validate benchmark budgets
+        run: npm run benchmark:budgets:validate
+
       - name: Run correctness, determinism, and performance gate
         run: npm run benchmark:ci
 

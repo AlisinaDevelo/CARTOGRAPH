@@ -4,6 +4,9 @@ CARTOGRAPH's benchmark corpus is selected by
 [`benchmarks/corpus.v0.1.json`](../benchmarks/corpus.v0.1.json), and the
 machine-readable measurement rules are in
 [`benchmarks/protocol.v0.1.json`](../benchmarks/protocol.v0.1.json).
+The versioned tier ceilings are in
+[`benchmarks/budgets.v0.1.json`](../benchmarks/budgets.v0.1.json) and are
+validated by `npm run benchmark:budgets:validate`.
 
 ## Corpus governance
 
@@ -45,8 +48,31 @@ run. A result more than 20% slower than the baseline requires an explanation
 before release; this is a review threshold, not a universal performance
 guarantee. Hardware and runtime differences must remain visible in the artifact.
 
+## Small, medium, and large budgets
+
+The baseline is divided into three bounded tiers so a fast small fixture cannot
+hide a large-fixture regression:
+
+- **Small tier:** `outside-import` and `exclusions`; p95 runtime is capped at
+  250 ms, peak RSS at 750,000,000 bytes, and serialized report size at 40,000
+  bytes.
+- **Medium tier:** `review-regressions` and `project-loader`; p95 runtime is
+  capped at 250 ms, peak RSS at 900,000,000 bytes, and serialized report size at
+  60,000 bytes.
+- **Large tier:** `typescript-express`, the largest bounded checked-in fixture;
+  p95 runtime is capped at 800 ms, peak RSS at 1,000,000,000 bytes, and
+  serialized report size at 100,000 bytes. This is a local budget ceiling, not
+  a claim that the fixture represents every production repository size.
+
+For each tier, both cold and warm p95 runtime and peak RSS are recorded for every
+fixture. `reportBytes` is the UTF-8 size of the deterministic serialized graph
+snapshot. The budget validator requires every corpus fixture to belong to one
+and only one tier and fails closed when any recorded metric exceeds its tier.
+
 ## CI gate
 
+`npm run benchmark:budgets:validate` checks the three tier budgets, p95 runtime,
+peak RSS, report size, and the 20% explanation rule before the gate runs.
 `npm run benchmark:ci` runs a fresh cold/warm artifact in a temporary directory
 (three cold and five warm samples by default); it never rewrites the checked-in
 baseline. The gate validates the artifact schema and corpus, compares graph

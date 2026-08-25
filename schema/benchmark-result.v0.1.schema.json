@@ -66,6 +66,7 @@
           "id",
           "digest",
           "fileCount",
+          "reportBytes",
           "cold",
           "warm",
           "graph",
@@ -75,6 +76,7 @@
           "id": { "type": "string", "minLength": 1 },
           "digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
           "fileCount": { "type": "integer", "minimum": 0 },
+          "reportBytes": { "type": "integer", "minimum": 0 },
           "cold": { "$ref": "#/definitions/timing" },
           "warm": { "$ref": "#/definitions/timing" },
           "graph": {

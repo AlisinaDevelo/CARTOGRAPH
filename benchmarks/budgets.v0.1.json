@@ -1,0 +1,38 @@
+{
+  "$schema": "../schema/benchmark-budgets.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.benchmark-budgets",
+  "budgetId": "cartograph-benchmark-budgets-v0.1",
+  "baseline": {
+    "artifact": "benchmarks/baseline.v0.1.json",
+    "protocolVersion": 1,
+    "metricModes": ["cold", "warm"]
+  },
+  "regression": {
+    "maxPercent": 20,
+    "explanationRequired": true
+  },
+  "tiers": [
+    {
+      "id": "small",
+      "fixtureIds": ["outside-import", "exclusions"],
+      "maxP95Ms": 250,
+      "maxPeakRssBytes": 750000000,
+      "maxReportBytes": 40000
+    },
+    {
+      "id": "medium",
+      "fixtureIds": ["review-regressions", "project-loader"],
+      "maxP95Ms": 250,
+      "maxPeakRssBytes": 900000000,
+      "maxReportBytes": 60000
+    },
+    {
+      "id": "large",
+      "fixtureIds": ["typescript-express"],
+      "maxP95Ms": 800,
+      "maxPeakRssBytes": 1000000000,
+      "maxReportBytes": 100000
+    }
+  ]
+}

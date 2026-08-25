@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* global console, process */
+/* global Buffer, console, process */
 
 import { createHash } from "node:crypto";
 import { cpus, totalmem } from "node:os";
@@ -395,6 +395,7 @@ const runBenchmark = async () => {
       id: fixture.id,
       digest: digestEntries(entries),
       fileCount: entries.length,
+      reportBytes: Buffer.byteLength(serializedSnapshot ?? "", "utf8"),
       cold: timingSummary(samples.cold),
       warm: timingSummary(samples.warm),
       graph: {
@@ -623,6 +624,7 @@ const validateArtifact = (artifact, manifest, protocol, options = {}) => {
         "id",
         "digest",
         "fileCount",
+        "reportBytes",
         "cold",
         "warm",
         "graph",
@@ -633,9 +635,13 @@ const validateArtifact = (artifact, manifest, protocol, options = {}) => {
     if (
       !validDigest(fixture.digest) ||
       !Number.isInteger(fixture.fileCount) ||
-      fixture.fileCount < 0
+      fixture.fileCount < 0 ||
+      !Number.isInteger(fixture.reportBytes) ||
+      fixture.reportBytes < 0
     )
-      fail(`benchmark fixture digest or file count is invalid: ${fixture.id}`);
+      fail(
+        `benchmark fixture digest, file count, or report size is invalid: ${fixture.id}`,
+      );
     validateTiming(fixture.cold, `${fixture.id} cold`, runs.cold);
     validateTiming(fixture.warm, `${fixture.id} warm`, runs.warm);
     exactObject(
