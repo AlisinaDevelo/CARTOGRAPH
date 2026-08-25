@@ -13,6 +13,7 @@ import {
 } from "../core/index.js";
 
 export const ADR_REPORT_SCHEMA_VERSION = 1 as const;
+export const ADR_COVERAGE_SCHEMA_VERSION = 1 as const;
 
 export type AdrReferenceChange = "added" | "removed" | "changed" | "unchanged";
 export type AdrReferenceState = AdrReferenceChange | "stale";
@@ -44,19 +45,91 @@ export type AdrReportSummary = {
   stale: number;
 };
 
+export type AdrCoverageTargetType = "node" | "edge";
+export type AdrCoverageResolution = "resolved" | "ambiguous" | "unresolved";
+
+export type AdrCoverageTarget = {
+  id: string;
+  type: AdrCoverageTargetType;
+  kind: GraphNode["kind"] | GraphEdge["kind"];
+};
+
+export type AdrCoverageGraphLink = {
+  graphId: string;
+  resolution: AdrCoverageResolution;
+  targets: AdrCoverageTarget[];
+};
+
+export type AdrCoverageAdrEntry = {
+  id: string;
+  file: string;
+  status: AdrReference["status"];
+  links: AdrCoverageGraphLink[];
+};
+
+export type AdrCoverageGraphEntry = AdrCoverageTarget & {
+  adrIds: string[];
+  ambiguousAdrIds: string[];
+};
+
+export type AdrCoverageKindCount = {
+  kind: GraphNode["kind"] | GraphEdge["kind"];
+  total: number;
+  linked: number;
+  ambiguous: number;
+  unlinked: number;
+};
+
+export type AdrCoverageObjectCounts = {
+  total: number;
+  linked: number;
+  ambiguous: number;
+  unlinked: number;
+  byKind: AdrCoverageKindCount[];
+};
+
+export type AdrCoverage = {
+  schemaVersion: typeof ADR_COVERAGE_SCHEMA_VERSION;
+  snapshotRevision?: string;
+  adrReferences: {
+    total: number;
+    linked: number;
+    ambiguous: number;
+    unlinked: number;
+  };
+  graphLinks: {
+    total: number;
+    resolved: number;
+    ambiguous: number;
+    unresolved: number;
+  };
+  nodes: AdrCoverageObjectCounts;
+  edges: AdrCoverageObjectCounts;
+  adrToGraph: AdrCoverageAdrEntry[];
+  graphToAdr: AdrCoverageGraphEntry[];
+};
+
+export type AdrReportCoverage = {
+  current?: AdrCoverage;
+  previous?: AdrCoverage;
+};
+
 export type AdrReport = {
   schemaVersion: typeof ADR_REPORT_SCHEMA_VERSION;
   summary: AdrReportSummary;
   references: AdrReportReference[];
   diagnostics: AdrReferenceDiagnostic[];
+  coverage?: AdrReportCoverage;
 };
 
 export type AdrReportBuildOptions = {
   current?: AdrReferenceDocument;
   previous?: AdrReferenceDocument;
   root?: string;
-  currentSnapshot?: Pick<GraphSnapshot, "nodes" | "edges">;
-  previousSnapshot?: Pick<GraphSnapshot, "nodes" | "edges">;
+  currentSnapshot?: Pick<GraphSnapshot, "nodes" | "edges"> &
+    Partial<Pick<GraphSnapshot, "revision">>;
+  previousSnapshot?: Pick<GraphSnapshot, "nodes" | "edges"> &
+    Partial<Pick<GraphSnapshot, "revision">>;
 };
 
 const compareStrings = (left: string, right: string): number => {
@@ -244,6 +317,242 @@ const referenceById = (
     (document?.references ?? []).map((reference) => [reference.id, reference]),
   );
 
+const nodeKinds: readonly GraphNode["kind"][] = [
+  "database_table",
+  "endpoint",
+  "external_service",
+  "file",
+  "function",
+  "module",
+  "queue",
+  "service",
+  "unknown",
+];
+
+const edgeKinds: readonly GraphEdge["kind"][] = [
+  "calls",
+  "contains",
+  "depends_on",
+  "implements",
+  "imports",
+  "publishes",
+  "reads",
+  "requests",
+  "routes_to",
+  "subscribes",
+  "unknown",
+  "writes",
+];
+
+type CoverageTargetRecord = AdrCoverageTarget & { aliases: string[] };
+
+const coverageNodeTarget = (node: GraphNode): CoverageTargetRecord => ({
+  id: `node:${node.id}`,
+  type: "node",
+  kind: node.kind,
+  aliases: sortUnique([
+    node.id,
+    node.stableKey,
+    `node:${node.id}`,
+    `node:${node.stableKey}`,
+  ]),
+});
+
+const coverageEdgeTarget = (edge: GraphEdge): CoverageTargetRecord => {
+  const id = serializeAdrGraphEdgeId(edge);
+  return { id, type: "edge", kind: edge.kind, aliases: [id] };
+};
+
+const targetForOutput = ({
+  aliases: _aliases,
+  ...target
+}: CoverageTargetRecord) => target;
+
+const resolveCoverageGraphId = (
+  graphId: string,
+  targets: readonly CoverageTargetRecord[],
+): { resolution: AdrCoverageResolution; targets: AdrCoverageTarget[] } => {
+  const matches = targets.filter((target) => target.aliases.includes(graphId));
+  const unique = new Map(matches.map((target) => [target.id, target]));
+  const resolvedTargets = [...unique.values()]
+    .sort((left, right) => compareStrings(left.id, right.id))
+    .map(targetForOutput);
+  return {
+    resolution:
+      resolvedTargets.length === 0
+        ? "unresolved"
+        : resolvedTargets.length === 1
+          ? "resolved"
+          : "ambiguous",
+    targets: resolvedTargets,
+  };
+};
+
+const emptyKindCounts = (
+  kinds: readonly (GraphNode["kind"] | GraphEdge["kind"])[],
+): AdrCoverageKindCount[] =>
+  kinds.map((kind) => ({
+    kind,
+    total: 0,
+    linked: 0,
+    ambiguous: 0,
+    unlinked: 0,
+  }));
+
+const summarizeCoverageObjects = (
+  targets: readonly CoverageTargetRecord[],
+  adrIdsByTarget: ReadonlyMap<string, ReadonlySet<string>>,
+  ambiguousAdrIdsByTarget: ReadonlyMap<string, ReadonlySet<string>>,
+  kinds: readonly (GraphNode["kind"] | GraphEdge["kind"])[],
+): AdrCoverageObjectCounts => {
+  const byKind = new Map(
+    emptyKindCounts(kinds).map((entry) => [entry.kind, entry]),
+  );
+  let linked = 0;
+  let ambiguous = 0;
+  let unlinked = 0;
+  for (const target of targets) {
+    const exactAdrIds = adrIdsByTarget.get(target.id) ?? new Set<string>();
+    const ambiguousAdrIds =
+      ambiguousAdrIdsByTarget.get(target.id) ?? new Set<string>();
+    const status =
+      exactAdrIds.size > 0
+        ? "linked"
+        : ambiguousAdrIds.size > 0
+          ? "ambiguous"
+          : "unlinked";
+    if (status === "linked") linked += 1;
+    else if (status === "ambiguous") ambiguous += 1;
+    else unlinked += 1;
+    const count = byKind.get(target.kind);
+    if (count === undefined) continue;
+    count.total += 1;
+    if (status === "linked") count.linked += 1;
+    else if (status === "ambiguous") count.ambiguous += 1;
+    else count.unlinked += 1;
+  }
+  return {
+    total: targets.length,
+    linked,
+    ambiguous,
+    unlinked,
+    byKind: [...byKind.values()],
+  };
+};
+
+/**
+ * Build the deterministic bidirectional ADR coverage index for one graph
+ * snapshot. Coverage is descriptive: unresolved and ambiguous references stay
+ * visible and are never counted as a definite link.
+ */
+export const buildAdrCoverage = (
+  snapshot: Pick<GraphSnapshot, "nodes" | "edges"> &
+    Partial<Pick<GraphSnapshot, "revision">>,
+  document: AdrReferenceDocument,
+): AdrCoverage => {
+  const nodeTargets = snapshot.nodes.map(coverageNodeTarget);
+  const edgeTargets = snapshot.edges.map(coverageEdgeTarget);
+  const targets = [...nodeTargets, ...edgeTargets];
+  const adrIdsByTarget = new Map<string, Set<string>>();
+  const ambiguousAdrIdsByTarget = new Map<string, Set<string>>();
+  const adrToGraph: AdrCoverageAdrEntry[] = [];
+  let resolvedLinks = 0;
+  let ambiguousLinks = 0;
+  let unresolvedLinks = 0;
+
+  for (const reference of [...document.references].sort((left, right) =>
+    compareStrings(left.id, right.id),
+  )) {
+    const links: AdrCoverageGraphLink[] = [];
+    for (const graphId of sortUnique(reference.graphIds)) {
+      const resolution = resolveCoverageGraphId(graphId, targets);
+      links.push({ graphId, ...resolution });
+      if (resolution.resolution === "resolved") resolvedLinks += 1;
+      else if (resolution.resolution === "ambiguous") ambiguousLinks += 1;
+      else unresolvedLinks += 1;
+      for (const target of resolution.targets) {
+        const targetMap =
+          resolution.resolution === "ambiguous"
+            ? ambiguousAdrIdsByTarget
+            : adrIdsByTarget;
+        const adrIds = targetMap.get(target.id) ?? new Set<string>();
+        adrIds.add(reference.id);
+        targetMap.set(target.id, adrIds);
+      }
+    }
+    adrToGraph.push({
+      id: reference.id,
+      file: reference.file,
+      status: reference.status,
+      links,
+    });
+  }
+
+  const graphToAdr = targets
+    .map((target) => ({
+      id: target.id,
+      type: target.type,
+      kind: target.kind,
+      adrIds: sortUnique([...(adrIdsByTarget.get(target.id) ?? [])]),
+      ambiguousAdrIds: sortUnique([
+        ...(ambiguousAdrIdsByTarget.get(target.id) ?? []),
+      ]),
+    }))
+    .sort((left, right) =>
+      compareStrings(
+        `${left.type}\u0000${left.id}`,
+        `${right.type}\u0000${right.id}`,
+      ),
+    );
+
+  let linkedReferences = 0;
+  let ambiguousReferences = 0;
+  let unlinkedReferences = 0;
+  for (const entry of adrToGraph) {
+    if (entry.links.some((link) => link.resolution === "resolved"))
+      linkedReferences += 1;
+    else if (entry.links.some((link) => link.resolution === "ambiguous"))
+      ambiguousReferences += 1;
+    else unlinkedReferences += 1;
+  }
+
+  return {
+    schemaVersion: ADR_COVERAGE_SCHEMA_VERSION,
+    ...(snapshot.revision?.commitSha === undefined
+      ? {}
+      : { snapshotRevision: snapshot.revision.commitSha }),
+    adrReferences: {
+      total: adrToGraph.length,
+      linked: linkedReferences,
+      ambiguous: ambiguousReferences,
+      unlinked: unlinkedReferences,
+    },
+    graphLinks: {
+      total: resolvedLinks + ambiguousLinks + unresolvedLinks,
+      resolved: resolvedLinks,
+      ambiguous: ambiguousLinks,
+      unresolved: unresolvedLinks,
+    },
+    nodes: summarizeCoverageObjects(
+      nodeTargets,
+      adrIdsByTarget,
+      ambiguousAdrIdsByTarget,
+      nodeKinds,
+    ),
+    edges: summarizeCoverageObjects(
+      edgeTargets,
+      adrIdsByTarget,
+      ambiguousAdrIdsByTarget,
+      edgeKinds,
+    ),
+    adrToGraph,
+    graphToAdr,
+  };
+};
+
+export const serializeAdrCoverage = (coverage: AdrCoverage): string =>
+  stableStringify(coverage);
+
 export const buildAdrReport = (
   diff: GraphDiff,
   options: AdrReportBuildOptions,
@@ -328,6 +637,26 @@ export const buildAdrReport = (
     stale: references.filter((reference) => reference.state === "stale").length,
   };
 
+  const currentCoverage =
+    options.current === undefined || options.currentSnapshot === undefined
+      ? undefined
+      : buildAdrCoverage(options.currentSnapshot, options.current);
+  const previousCoverage =
+    options.previous === undefined || options.previousSnapshot === undefined
+      ? undefined
+      : buildAdrCoverage(options.previousSnapshot, options.previous);
+  const coverage =
+    currentCoverage === undefined && previousCoverage === undefined
+      ? undefined
+      : {
+          ...(currentCoverage === undefined
+            ? {}
+            : { current: currentCoverage }),
+          ...(previousCoverage === undefined
+            ? {}
+            : { previous: previousCoverage }),
+        };
+
   return {
     schemaVersion: ADR_REPORT_SCHEMA_VERSION,
     summary,
@@ -337,5 +666,6 @@ export const buildAdrReport = (
       const rightKey = `${right.referenceId ?? ""}\u0000${right.code}\u0000${right.graphId ?? ""}\u0000${right.message}`;
       return compareStrings(leftKey, rightKey);
     }),
+    ...(coverage === undefined ? {} : { coverage }),
   };
 };

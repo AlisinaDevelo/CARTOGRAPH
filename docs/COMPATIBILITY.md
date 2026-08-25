@@ -211,6 +211,15 @@ diagnostics; readers that ignore those optional fields retain the P-007 meaning.
 Report rendering remains follow-on roadmap work. P-019 adds the separate
 policy-binding contract described below.
 
+## P-017 ADR coverage indexes
+
+P-017 publishes additive ADR coverage schema version `1` in
+`schema/adr-coverage.v0.1.schema.json`. Reports expose deterministic
+ADR-to-graph and graph-to-ADR indexes for each compared snapshot, retaining
+unresolved and ambiguous links and descriptive counts by node and edge kind.
+Readers that do not render the optional coverage section retain the prior ADR
+reference and GraphDiff v1 meaning.
+
 ## P-019 policy ADR bindings
 
 P-019 adds the versioned `policyAdrBindings` contract and the optional

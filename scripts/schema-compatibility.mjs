@@ -82,6 +82,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/patch-previews.ts" ||
       file === "src/core/remediation-review.ts" ||
       file === "src/core/remediation-evaluation.ts" ||
+      file === "src/report/adr.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
       file === "schema/graph-diff.v0.1.schema.json" ||
       file === "schema/capability-registry.v0.1.schema.json" ||
@@ -110,7 +111,8 @@ const checkHostedVersionChange = () => {
       file === "schema/patch-preview.v0.1.schema.json" ||
       file === "schema/patch-preview-report.v0.1.schema.json" ||
       file === "schema/remediation-review.v0.1.schema.json" ||
-      file === "schema/remediation-evaluation.v0.1.schema.json",
+      file === "schema/remediation-evaluation.v0.1.schema.json" ||
+      file === "schema/adr-coverage.v0.1.schema.json",
   );
   const reviewRecorded = changed.some(
     (file) =>
@@ -134,6 +136,7 @@ const checkCompatibility = () => {
   const localPolicySource = readText("src/core/policy.ts");
   const policyCompositionSource = readText("src/core/policy-composition.ts");
   const adrReferenceSource = readText("src/core/adr.ts");
+  const adrCoverageSource = readText("src/report/adr.ts");
   const adapterSource = readText("src/core/adapters.ts");
   const runtimeTraceSource = readText("src/core/runtime-traces.ts");
   const runtimeReconciliationSource = readText(
@@ -177,6 +180,7 @@ const checkCompatibility = () => {
     "schema/policy-composition.v0.1.schema.json",
   );
   const adrReferenceSchema = readJson("schema/adr-reference.v0.1.schema.json");
+  const adrCoverageSchema = readJson("schema/adr-coverage.v0.1.schema.json");
   const adapterSchema = readJson("schema/adapter.v0.1.schema.json");
   const runtimeTraceSchema = readJson("schema/runtime-traces.v0.1.schema.json");
   const runtimeReconciliationSchema = readJson(
@@ -257,6 +261,10 @@ const checkCompatibility = () => {
     adrReferenceSource,
     "ADR_REFERENCE_SCHEMA_VERSION",
   );
+  const adrCoverageVersion = sourceVersion(
+    adrCoverageSource,
+    "ADR_COVERAGE_SCHEMA_VERSION",
+  );
   const adapterVersion = sourceVersion(adapterSource, "ADAPTER_API_VERSION");
   const runtimeTraceVersion = sourceVersion(
     runtimeTraceSource,
@@ -318,6 +326,7 @@ const checkCompatibility = () => {
     policyAdrBindingVersion === undefined ||
     policyCompositionVersion === undefined ||
     adrReferenceVersion === undefined ||
+    adrCoverageVersion === undefined ||
     adapterVersion === undefined ||
     runtimeTraceVersion === undefined ||
     runtimeReconciliationVersion === undefined ||
@@ -429,6 +438,16 @@ const checkCompatibility = () => {
     "ADR reference JSON Schema/runtime",
     adrReferenceSchema.properties.schemaVersion.const,
     adrReferenceVersion,
+  );
+  requireEqual(
+    "ADR coverage runtime/policy",
+    adrCoverageVersion,
+    contracts.adrCoverage.current,
+  );
+  requireEqual(
+    "ADR coverage JSON Schema/runtime",
+    adrCoverageSchema.properties.schemaVersion.const,
+    adrCoverageVersion,
   );
   requireEqual(
     "adapter runtime/policy",
@@ -594,6 +613,7 @@ const checkCompatibility = () => {
     policyAdrBindingVersion,
     policyCompositionVersion,
     adrReferenceVersion,
+    adrCoverageVersion,
     adapterVersion,
     runtimeTraceVersion,
     runtimeReconciliationVersion,
