@@ -1,0 +1,295 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/community-feedback.v0.1.schema.json",
+  "title": "CARTOGRAPH public community feedback contract v0.1",
+  "description": "A consent-based public RFC, triage, adopter-feedback, and anonymized decision summary without source collection or private telemetry.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "asOf",
+    "scope",
+    "rfcProcess",
+    "triageTaxonomy",
+    "adopterTemplate",
+    "records",
+    "decisions",
+    "summary",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.community-feedback" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.community-feedback+json"
+    },
+    "asOf": { "$ref": "#/definitions/dateTime" },
+    "scope": { "$ref": "#/definitions/scope" },
+    "rfcProcess": { "$ref": "#/definitions/rfcProcess" },
+    "triageTaxonomy": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 24,
+      "items": { "$ref": "#/definitions/triage" }
+    },
+    "adopterTemplate": { "$ref": "#/definitions/template" },
+    "records": {
+      "type": "array",
+      "maxItems": 128,
+      "items": { "$ref": "#/definitions/record" }
+    },
+    "decisions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": { "$ref": "#/definitions/decision" }
+    },
+    "summary": { "$ref": "#/definitions/summary" },
+    "provenance": { "$ref": "#/definitions/provenance" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "portablePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!/)(?!~)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)(?!.*\\u0000).+$"
+    },
+    "dateTime": { "type": "string", "format": "date-time" },
+    "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "publicOnly",
+        "privateTelemetry",
+        "sourcePayloads",
+        "personalData",
+        "network",
+        "allowedSources"
+      ],
+      "properties": {
+        "publicOnly": { "const": true },
+        "privateTelemetry": { "const": false },
+        "sourcePayloads": { "const": false },
+        "personalData": { "const": false },
+        "network": { "const": false },
+        "allowedSources": {
+          "type": "array",
+          "minItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "public-issue",
+              "public-pr",
+              "public-discussion",
+              "adopter-interview",
+              "maintainer-review"
+            ]
+          }
+        }
+      }
+    },
+    "rfcProcess": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "publicIssueRequired",
+        "stages",
+        "requiredFields",
+        "decisionStates",
+        "decisionRecordPath"
+      ],
+      "properties": {
+        "publicIssueRequired": { "const": true },
+        "stages": {
+          "type": "array",
+          "minItems": 4,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "requiredFields": {
+          "type": "array",
+          "minItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "decisionStates": {
+          "type": "array",
+          "minItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["accept", "defer", "reject", "investigate"]
+          }
+        },
+        "decisionRecordPath": { "$ref": "#/definitions/portablePath" }
+      }
+    },
+    "triage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "description", "defaultAction"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "label": { "$ref": "#/definitions/text" },
+        "description": { "$ref": "#/definitions/text" },
+        "defaultAction": {
+          "enum": [
+            "request-reproduction",
+            "roadmap-review",
+            "document",
+            "private-report",
+            "close-duplicate",
+            "acknowledge"
+          ]
+        }
+      }
+    },
+    "template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "requiredFields",
+        "privacyInstructions",
+        "consentRequired"
+      ],
+      "properties": {
+        "path": { "$ref": "#/definitions/portablePath" },
+        "requiredFields": {
+          "type": "array",
+          "minItems": 7,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "privacyInstructions": { "$ref": "#/definitions/text" },
+        "consentRequired": { "const": true }
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sourceKind",
+        "external",
+        "synthetic",
+        "anonymized",
+        "consent",
+        "signal",
+        "triageIds",
+        "evidenceRefs",
+        "decisionId",
+        "privateData",
+        "sourcePayloadRetained"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "sourceKind": {
+          "enum": [
+            "public-issue",
+            "public-pr",
+            "public-discussion",
+            "adopter-interview",
+            "maintainer-review"
+          ]
+        },
+        "external": { "type": "boolean" },
+        "synthetic": { "type": "boolean" },
+        "anonymized": { "const": true },
+        "consent": { "enum": ["explicit", "not-applicable"] },
+        "signal": { "$ref": "#/definitions/text" },
+        "triageIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "decisionId": { "$ref": "#/definitions/identifier" },
+        "privateData": { "const": false },
+        "sourcePayloadRetained": { "const": false }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "state", "backlogRef", "rationale", "evidenceRefs"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "state": {
+          "enum": ["accept", "defer", "reject", "investigate"]
+        },
+        "backlogRef": {
+          "type": "string",
+          "pattern": "^(?:[A-Z]+-[0-9]+|none)$"
+        },
+        "rationale": { "$ref": "#/definitions/text" },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recordCount",
+        "externalRecordCount",
+        "syntheticRecordCount",
+        "decisionCount",
+        "backlogDecisionCount",
+        "allRecordsAnonymized",
+        "privateTelemetry",
+        "sourcePayloads",
+        "personalData"
+      ],
+      "properties": {
+        "recordCount": { "type": "integer", "minimum": 0 },
+        "externalRecordCount": { "type": "integer", "minimum": 0 },
+        "syntheticRecordCount": { "type": "integer", "minimum": 0 },
+        "decisionCount": { "type": "integer", "minimum": 1 },
+        "backlogDecisionCount": { "type": "integer", "minimum": 0 },
+        "allRecordsAnonymized": { "const": true },
+        "privateTelemetry": { "const": false },
+        "sourcePayloads": { "const": false },
+        "personalData": { "const": false }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "license",
+        "reference",
+        "transformation",
+        "redistribution"
+      ],
+      "properties": {
+        "source": { "$ref": "#/definitions/text" },
+        "license": { "const": "Apache-2.0" },
+        "reference": { "$ref": "#/definitions/text" },
+        "transformation": { "$ref": "#/definitions/text" },
+        "redistribution": { "const": "allowed" }
+      }
+    }
+  }
+}

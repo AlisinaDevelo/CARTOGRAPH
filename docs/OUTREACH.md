@@ -51,7 +51,9 @@ GitHub Marketplace and a hosted GitHub App come after the local Action is stable
 
 ## Feedback loop
 
-Track:
+Use the versioned [public community feedback contract](COMMUNITY_FEEDBACK.md)
+and [adopter template](ADOPTER_FEEDBACK_TEMPLATE.md). Track only anonymized,
+consented signals with public or digest-only evidence:
 
 - reported edges confirmed or rejected by maintainers;
 - unresolved constructs that block usefulness;
@@ -61,3 +63,7 @@ Track:
 - which report objects reviewers share.
 
 Feed repeated failures into fixtures and public issues. Do not collect source or usage telemetry by default.
+
+Every retained signal must name a triage category, evidence reference, privacy
+review, consent state, and explicit backlog decision. A zero-record snapshot is
+valid and must not be converted into an adoption or traction claim.

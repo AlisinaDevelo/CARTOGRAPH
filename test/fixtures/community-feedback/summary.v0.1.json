@@ -1,0 +1,169 @@
+{
+  "$schema": "../../../schema/community-feedback.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.community-feedback",
+  "mediaType": "application/vnd.cartograph.community-feedback+json",
+  "asOf": "2026-08-25T00:00:00Z",
+  "scope": {
+    "publicOnly": true,
+    "privateTelemetry": false,
+    "sourcePayloads": false,
+    "personalData": false,
+    "network": false,
+    "allowedSources": [
+      "public-issue",
+      "public-pr",
+      "public-discussion",
+      "adopter-interview",
+      "maintainer-review"
+    ]
+  },
+  "rfcProcess": {
+    "publicIssueRequired": true,
+    "stages": ["proposed", "evidence-requested", "reviewed", "decided"],
+    "requiredFields": [
+      "problem",
+      "affected-users",
+      "alternatives",
+      "evidence-plan",
+      "compatibility-impact",
+      "privacy-impact",
+      "decision"
+    ],
+    "decisionStates": ["accept", "defer", "reject", "investigate"],
+    "decisionRecordPath": "docs/adr"
+  },
+  "triageTaxonomy": [
+    {
+      "id": "bug",
+      "label": "Bug",
+      "description": "A reproducible behavior violates a documented contract.",
+      "defaultAction": "request-reproduction"
+    },
+    {
+      "id": "feature",
+      "label": "Feature",
+      "description": "A bounded capability request with a user-visible outcome.",
+      "defaultAction": "roadmap-review"
+    },
+    {
+      "id": "docs",
+      "label": "Documentation",
+      "description": "A correction or missing explanation that does not change behavior.",
+      "defaultAction": "document"
+    },
+    {
+      "id": "question",
+      "label": "Question",
+      "description": "A request for clarification that may become documentation.",
+      "defaultAction": "acknowledge"
+    },
+    {
+      "id": "performance",
+      "label": "Performance",
+      "description": "A measured resource, latency, or scale concern with a reproducible boundary.",
+      "defaultAction": "request-reproduction"
+    },
+    {
+      "id": "compatibility",
+      "label": "Compatibility",
+      "description": "A supported-runtime, schema, adapter, or platform mismatch.",
+      "defaultAction": "roadmap-review"
+    },
+    {
+      "id": "security",
+      "label": "Security",
+      "description": "A possible vulnerability or trust-boundary failure; use the private route for details.",
+      "defaultAction": "private-report"
+    },
+    {
+      "id": "adopter-feedback",
+      "label": "Adopter feedback",
+      "description": "A consented report from someone evaluating the documented workflow.",
+      "defaultAction": "roadmap-review"
+    },
+    {
+      "id": "contributor",
+      "label": "Contributor",
+      "description": "A contribution, maintainer-capacity, or onboarding signal.",
+      "defaultAction": "roadmap-review"
+    },
+    {
+      "id": "roadmap",
+      "label": "Roadmap",
+      "description": "A backlog sequencing or explicit investment decision.",
+      "defaultAction": "roadmap-review"
+    },
+    {
+      "id": "governance",
+      "label": "Governance",
+      "description": "A process, ownership, or public decision-record concern.",
+      "defaultAction": "roadmap-review"
+    }
+  ],
+  "adopterTemplate": {
+    "path": "docs/ADOPTER_FEEDBACK_TEMPLATE.md",
+    "requiredFields": [
+      "workflow",
+      "authorized-input",
+      "expected-result",
+      "observed-result",
+      "reproduction",
+      "privacy-review",
+      "consent",
+      "backlog-impact"
+    ],
+    "privacyInstructions": "Submit only public or explicitly authorized synthetic material; remove source bodies, private repository URLs, credentials, personal data, and proprietary architecture before publication.",
+    "consentRequired": true
+  },
+  "records": [
+    {
+      "id": "baseline-maintainer-review",
+      "sourceKind": "maintainer-review",
+      "external": false,
+      "synthetic": true,
+      "anonymized": true,
+      "consent": "not-applicable",
+      "signal": "The repository needs a public, consent-based feedback path before making adoption or traction claims; local deterministic artifacts remain the only current evidence.",
+      "triageIds": ["adopter-feedback", "governance", "roadmap"],
+      "evidenceRefs": ["M-004", "docs/OUTREACH.md", "docs/MAINTENANCE.md"],
+      "decisionId": "retain-local-first-boundary",
+      "privateData": false,
+      "sourcePayloadRetained": false
+    }
+  ],
+  "decisions": [
+    {
+      "id": "retain-local-first-boundary",
+      "state": "accept",
+      "backlogRef": "M-004",
+      "rationale": "Keep the feedback loop public, consent-based, anonymized, and local; do not add source upload or usage telemetry.",
+      "evidenceRefs": ["M-004", "docs/COMMUNITY_FEEDBACK.md"]
+    },
+    {
+      "id": "defer-traction-claims",
+      "state": "defer",
+      "backlogRef": "M-005",
+      "rationale": "No external adopter or contributor records are present in this snapshot, so the project must not claim traction or representative adoption.",
+      "evidenceRefs": ["M-005", "docs/OUTREACH.md"]
+    }
+  ],
+  "summary": {
+    "recordCount": 1,
+    "externalRecordCount": 0,
+    "syntheticRecordCount": 1,
+    "decisionCount": 2,
+    "backlogDecisionCount": 2,
+    "allRecordsAnonymized": true,
+    "privateTelemetry": false,
+    "sourcePayloads": false,
+    "personalData": false
+  },
+  "provenance": {
+    "source": "CARTOGRAPH repository-authored community-feedback process fixture",
+    "license": "Apache-2.0",
+    "reference": "M-004 public adopter and contributor feedback-loop issue; no external source",
+    "transformation": "The snapshot encodes the public process and one clearly synthetic maintainer baseline; it does not copy external messages, source bodies, private repositories, or telemetry.",
+    "redistribution": "allowed"
+  }
+}
