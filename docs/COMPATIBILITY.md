@@ -59,6 +59,14 @@ contract and
 Bounded runtime imports and explicit incomplete trace selection use the reviewed
 `runtimeTraceBudgets` contract and
 [`schema/runtime-trace-budgets.v0.1.schema.json`](../schema/runtime-trace-budgets.v0.1.schema.json).
+The O-004 synthetic evaluation fixture and report are versioned test artifacts
+defined by
+[`schema/runtime-reconciliation-evaluation-fixtures.v0.1.schema.json`](../schema/runtime-reconciliation-evaluation-fixtures.v0.1.schema.json)
+and
+[`schema/runtime-reconciliation-evaluation.v0.1.schema.json`](../schema/runtime-reconciliation-evaluation.v0.1.schema.json).
+They are not runtime inputs or outputs and do not change the O-002
+`runtimeReconciliation` reader boundary; a future evaluation revision must
+publish a new fixture/report version or an explicit migration review.
 
 ## Change categories
 

@@ -1,0 +1,74 @@
+{
+  "$schema": "../../../schema/runtime-reconciliation-evaluation-fixtures.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.runtime-reconciliation-evaluation-fixtures",
+  "evaluationId": "runtime-reconciliation-synthetic-baseline",
+  "evaluatedAt": "2026-08-25T00:00:00Z",
+  "baseInput": "schema/runtime-reconciliation-fixture.v0.1.json",
+  "releaseGating": {
+    "enabled": false,
+    "reason": "Synthetic baseline requires maintainer review before any release threshold is enabled."
+  },
+  "limitations": [
+    "The oracle uses a hand-authored four-node graph and a five-span trace; it is not representative of production workloads.",
+    "Expected classifications are fixture ground truth and do not estimate population-level precision or recall.",
+    "Explicit span bindings are supplied by the fixture, so binding discovery quality is outside this evaluation."
+  ],
+  "samplingCaveats": [
+    "The sampled case removes the tail span from an otherwise identical trace and compares it with the complete-trace oracle.",
+    "Missing spans can become modeled-not-observed or observed-but-unmodeled; runtime-edge coverage reports retained parent/child edges only.",
+    "Coverage is a bounded sample ratio, not evidence that unobserved production edges do not exist."
+  ],
+  "cases": [
+    {
+      "id": "complete-trace",
+      "dropSpanIds": [],
+      "dropBindingSpanIds": [],
+      "expectedRuntimeSpanEdges": 3,
+      "expectedRecords": [
+        {
+          "id": "ambiguous:module%3Aa=>module%3Ab",
+          "classification": "ambiguous"
+        },
+        {
+          "id": "modeled-not-observed:edge:module:b|calls|module:c",
+          "classification": "modeled-not-observed"
+        },
+        {
+          "id": "observed-and-modeled:edge:module:d|calls|module:a",
+          "classification": "observed-and-modeled"
+        },
+        {
+          "id": "observed-but-unmodeled:module%3Ac=>module%3Ad",
+          "classification": "observed-but-unmodeled"
+        }
+      ]
+    },
+    {
+      "id": "sampled-without-tail-span",
+      "dropSpanIds": ["0123456789abcdef0123456789abcdef:eeeeeeeeeeeeeeee"],
+      "dropBindingSpanIds": [
+        "0123456789abcdef0123456789abcdef:eeeeeeeeeeeeeeee"
+      ],
+      "expectedRuntimeSpanEdges": 3,
+      "expectedRecords": [
+        {
+          "id": "ambiguous:module%3Aa=>module%3Ab",
+          "classification": "ambiguous"
+        },
+        {
+          "id": "modeled-not-observed:edge:module:b|calls|module:c",
+          "classification": "modeled-not-observed"
+        },
+        {
+          "id": "observed-and-modeled:edge:module:d|calls|module:a",
+          "classification": "observed-and-modeled"
+        },
+        {
+          "id": "observed-but-unmodeled:module%3Ac=>module%3Ad",
+          "classification": "observed-but-unmodeled"
+        }
+      ]
+    }
+  ]
+}
