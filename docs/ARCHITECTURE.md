@@ -30,6 +30,7 @@ repository or materialized Git revision
 - `src/core`: versioned graph, diff, and configuration contracts, validation, canonicalization, and comparison.
 - `src/analyzers/typescript`: TypeScript program loading and language-level relationships.
 - `src/analyzers/api-boundaries`: bounded GraphQL SDL/template and OpenAPI operation discovery with resolver/handler links.
+- `src/analyzers/prisma-schema`: bounded Prisma datasource, model, relation, and generated-client discovery without database access.
 - `src/analyzers/workspace`: bounded npm, pnpm, and Yarn workspace manifest discovery and package ownership edges.
 - `src/analyzers/express`: bounded Express route semantics.
 - `src/git`: read-only Git validation and revision materialization in narrow temporary directories.
@@ -112,6 +113,13 @@ evidence-backed `routes_to` edges when exactly one local callable or matching
 literal route is available. Generated schemas, aliased references, missing
 handler mappings, and runtime-composed routes remain explicit partial-coverage
 diagnostics; no schema or route is guessed from runtime behavior.
+
+The Prisma schema analyzer reads `.prisma` files as bounded text input. Datasource
+services contain model table nodes, model relations become `depends_on` edges,
+and supported client generators contain generated module nodes. Multiple schema
+files, unsupported providers, duplicate declarations, and unsafe output paths
+remain evidence-backed diagnostics; no database connection or generation command
+is run.
 
 ## Diff semantics
 

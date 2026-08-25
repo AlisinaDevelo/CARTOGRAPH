@@ -27,6 +27,18 @@ export {
   type ApiResolverBinding,
   type ApiSource,
 } from "./api-boundaries.js";
+export {
+  PRISMA_SCHEMA_DETECTOR,
+  discoverPrismaSchema,
+  type PrismaDatasource,
+  type PrismaGeneratedClient,
+  type PrismaModel,
+  type PrismaPartialDiagnostic,
+  type PrismaPartialDiagnosticCode,
+  type PrismaRelation,
+  type PrismaSchemaDiscovery,
+  type PrismaSchemaSource,
+} from "./prisma-schema.js";
 export { CancellationError } from "../resources.js";
 export {
   analyzeExpressRouteCall,

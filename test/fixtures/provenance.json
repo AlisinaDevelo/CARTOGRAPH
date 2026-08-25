@@ -522,6 +522,21 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "GraphQL SDL, statically bound resolvers, OpenAPI operations, handler aliases, generated schema inputs, aliased path references, and runtime-composed routes exercise evidence-backed endpoint boundaries and explicit partial-coverage diagnostics without source execution or network access.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "prisma-schema",
+      "path": "prisma-schema",
+      "source": "CARTOGRAPH repository-authored synthetic Prisma schema fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Prisma datasource, models, relations, generated-client output, multiple schema files, dynamic providers, and outside output paths exercise typed schema evidence and explicit diagnostics without database access or client generation.",
+      "redistribution": "allowed",
+      "generated": [
+        {
+          "path": "generated",
+          "reason": "Synthetic generated-client declaration used to verify explicit output-path provenance without running Prisma generation."
+        }
+      ]
     }
   ]
 }

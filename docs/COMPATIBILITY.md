@@ -530,6 +530,20 @@ and runtime-composed routes remain visible as the stable
 `PARTIAL_RUNTIME_COMPOSED_ROUTE` diagnostics. The analyzer never executes a
 schema generator, follows a remote reference, or guesses a runtime route.
 
+## X-013 Prisma schema boundaries
+
+X-013 adds bounded `.prisma` schema discovery without changing graph, diff,
+adapter, capability, or diagnostic versions. Datasources are `service` nodes,
+models retain the existing `database_table:prisma:<Model>` identity, relations
+are `depends_on` edges, and supported generated clients are `module` nodes with
+schema-file evidence. Existing Prisma operation edges receive the matching model
+schema evidence when a declaration is available.
+
+Multiple schema files, duplicate declarations, unsupported providers or
+generators, and generated output paths outside the repository remain explicit
+diagnostics. The analyzer performs no database connection, network access, or
+Prisma generation.
+
 ## E-011 adapter lifecycle and security response
 
 E-011 publishes the versioned

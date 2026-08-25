@@ -1,0 +1,9 @@
+datasource analytics {
+  provider = env("DB_PROVIDER")
+  url      = env("ANALYTICS_DATABASE_URL")
+}
+
+generator external {
+  provider = "custom-generator"
+  output   = "../../outside/generated-prisma"
+}

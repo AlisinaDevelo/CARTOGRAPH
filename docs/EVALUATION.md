@@ -13,7 +13,8 @@ Each curated fixture contains source, an expected canonical graph, and an explan
 5. conventional Prisma reads and writes;
 6. GraphQL root fields, resolver aliases, and OpenAPI operation-to-handler
    boundaries;
-7. dynamic or unresolved negative cases.
+7. Prisma datasource/model/relation and generated-client boundaries;
+8. dynamic or unresolved negative cases.
 
 Fixtures test observable contracts. They do not assert internal traversal order.
 
@@ -23,6 +24,11 @@ partial-coverage diagnostics for generated schemas, aliases, and
 runtime-composed routes. It is intentionally a bounded static slice: schema
 generators, remote references, and runtime router composition are not treated
 as complete API coverage.
+
+X-013's `prisma-schema` fixture measures datasource containment, model relation
+edges, generated-client import references, schema-file evidence, deterministic
+multi-file handling, and fail-closed provider/output diagnostics. It never opens
+a database or executes Prisma generation.
 
 ## Correctness metrics
 
