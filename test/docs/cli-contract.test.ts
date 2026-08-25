@@ -37,6 +37,7 @@ describe("CLI contract", () => {
     expect(policy).toContain("discard-after-read");
     expect(policy).toContain("--max-report-items");
     expect(policy).toContain("collector");
+    expect(policy).toContain("capability limitations");
     expect(readme).toContain("[CLI runtime and exit policy](docs/CLI.md)");
     expect(readme).toContain("--comparison merge-base");
   });

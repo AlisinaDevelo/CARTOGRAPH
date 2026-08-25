@@ -82,6 +82,52 @@ export const RuntimeReconciliationUncertaintySummarySchema = z
   })
   .strict();
 
+export const RuntimeReconciliationReportClassificationCountsSchema = z
+  .object({
+    staticallyKnownRuntimeObserved: z.number().int().nonnegative(),
+    staticallyKnownUnobserved: z.number().int().nonnegative(),
+    runtimeOnly: z.number().int().nonnegative(),
+    ambiguous: z.number().int().nonnegative(),
+  })
+  .strict();
+
+const RuntimeReconciliationCapabilityLimitationSourceSchema = z.enum([
+  "static",
+  "runtime",
+  "binding",
+]);
+
+export const RuntimeReconciliationCapabilityLimitationSchema = z
+  .object({
+    source: RuntimeReconciliationCapabilityLimitationSourceSchema,
+    code: z
+      .string()
+      .trim()
+      .min(1)
+      .max(128)
+      .regex(/^[A-Za-z0-9._:-]+$/u),
+    count: z.number().int().positive().max(200_000),
+    detail: z.string().trim().min(1).max(512),
+  })
+  .strict();
+
+export const RuntimeReconciliationReportCoverageSchema = z
+  .object({
+    revision: RevisionSchema,
+    sampling: RuntimeTraceBudgetCoverageSchema,
+    classificationCounts: RuntimeReconciliationReportClassificationCountsSchema,
+    capability: z
+      .object({
+        staticRegistryVersion: z.number().int().positive().max(100),
+        runtimeTraceSchemaVersion: z.literal(1),
+        limitations: z
+          .array(RuntimeReconciliationCapabilityLimitationSchema)
+          .max(16),
+      })
+      .strict(),
+  })
+  .strict();
+
 export const RuntimeReconciliationReportLimitsSchema = z
   .object({
     tracePolicy: RuntimeTraceBudgetPolicySchema,
@@ -125,6 +171,7 @@ export const RuntimeReconciliationReportSchema = z
     runtime: RuntimeReconciliationRuntimeProvenanceSchema,
     bindings: RuntimeReconciliationBindingProvenanceSchema,
     reconciliation: RuntimeReconciliationSchema,
+    coverage: RuntimeReconciliationReportCoverageSchema.optional(),
     uncertainty: RuntimeReconciliationUncertaintySummarySchema,
     diagnostics: z.array(RuntimeReconciliationDiagnosticSchema).max(16),
     limits: RuntimeReconciliationReportLimitsSchema,
@@ -147,6 +194,15 @@ export type RuntimeReconciliationDiagnostic = z.infer<
 export type RuntimeReconciliationUncertaintySummary = z.infer<
   typeof RuntimeReconciliationUncertaintySummarySchema
 >;
+export type RuntimeReconciliationReportClassificationCounts = z.infer<
+  typeof RuntimeReconciliationReportClassificationCountsSchema
+>;
+export type RuntimeReconciliationCapabilityLimitation = z.infer<
+  typeof RuntimeReconciliationCapabilityLimitationSchema
+>;
+export type RuntimeReconciliationReportCoverage = z.infer<
+  typeof RuntimeReconciliationReportCoverageSchema
+>;
 export type RuntimeReconciliationReportLimits = z.infer<
   typeof RuntimeReconciliationReportLimitsSchema
 >;
@@ -162,6 +218,7 @@ export type RuntimeReconciliationReportInput = {
   readonly runtime: RuntimeReconciliationRuntimeProvenance;
   readonly bindings: RuntimeReconciliationBindingProvenance;
   readonly reconciliation: RuntimeReconciliation;
+  readonly coverage: RuntimeReconciliationReportCoverage;
   readonly uncertainty: RuntimeReconciliationUncertaintySummary;
   readonly diagnostics: readonly RuntimeReconciliationDiagnostic[];
   readonly limits: RuntimeReconciliationReportLimits;

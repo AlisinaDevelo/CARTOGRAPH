@@ -505,6 +505,81 @@ const runtimeReconciliationUncertainty = (
   return summary;
 };
 
+const runtimeReconciliationClassificationCounts = (
+  reconciliation: ReturnType<typeof reconcileRuntimeTrace>,
+) => {
+  const counts = {
+    staticallyKnownRuntimeObserved: 0,
+    staticallyKnownUnobserved: 0,
+    runtimeOnly: 0,
+    ambiguous: 0,
+  };
+  for (const record of reconciliation.records) {
+    if (record.classification === "observed-and-modeled")
+      counts.staticallyKnownRuntimeObserved += 1;
+    else if (record.classification === "modeled-not-observed")
+      counts.staticallyKnownUnobserved += 1;
+    else if (record.classification === "observed-but-unmodeled")
+      counts.runtimeOnly += 1;
+    else counts.ambiguous += 1;
+  }
+  return counts;
+};
+
+const runtimeReconciliationCapabilityLimitations = (
+  staticSnapshot: GraphSnapshot,
+  coverage: ReturnType<typeof importRuntimeTraceWithBudget>["coverage"],
+) => {
+  const byKey = new Map<
+    string,
+    {
+      source: "static" | "runtime" | "binding";
+      code: string;
+      count: number;
+      detail: string;
+    }
+  >();
+  const add = (
+    source: "static" | "runtime" | "binding",
+    code: string,
+    detail: string,
+    count = 1,
+  ) => {
+    const key = `${source}:${code}`;
+    const existing = byKey.get(key);
+    if (existing) existing.count += count;
+    else byKey.set(key, { source, code, count, detail });
+  };
+  for (const diagnostic of staticSnapshot.diagnostics) {
+    const code = /^[A-Za-z0-9._:-]+$/u.test(diagnostic.code)
+      ? diagnostic.code
+      : "static-diagnostic";
+    add(
+      "static",
+      code,
+      "A static analysis diagnostic limits the architecture capability claim.",
+    );
+  }
+  if (coverage.truncated || coverage.droppedSpans > 0) {
+    add(
+      "runtime",
+      "runtime-sampling-truncated",
+      "Dropped runtime observations are not evidence that behavior is absent.",
+      Math.max(1, coverage.droppedSpans + coverage.droppedTraces),
+    );
+  }
+  add(
+    "binding",
+    "explicit-span-binding-required",
+    "Span-to-node bindings are explicit; automatic binding is unavailable.",
+  );
+  return [...byKey.values()].sort(
+    (left, right) =>
+      left.source.localeCompare(right.source) ||
+      left.code.localeCompare(right.code),
+  );
+};
+
 export async function reconcileRuntimeFiles(
   options: RuntimeReconciliationFileOptions,
 ): Promise<string> {
@@ -662,6 +737,20 @@ export async function reconcileRuntimeFiles(
         digest: sha256(stableStringify(parsedBindings.data)),
       },
       reconciliation,
+      coverage: {
+        revision: staticSnapshot.revision,
+        sampling: budget.coverage,
+        classificationCounts:
+          runtimeReconciliationClassificationCounts(reconciliation),
+        capability: {
+          staticRegistryVersion: staticSnapshot.capabilityRegistryVersion,
+          runtimeTraceSchemaVersion: runtimeTrace.schemaVersion,
+          limitations: runtimeReconciliationCapabilityLimitations(
+            staticSnapshot,
+            budget.coverage,
+          ),
+        },
+      },
       uncertainty: runtimeReconciliationUncertainty(reconciliation),
       diagnostics: runtimeReconciliationDiagnostics(
         staticSnapshot,

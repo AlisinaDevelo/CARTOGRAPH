@@ -145,7 +145,7 @@ afterEach(async () => {
 describe("explicit local runtime reconciliation CLI", () => {
   it("joins only explicit local artifacts, keeps provenance separate, and redacts runtime text", async () => {
     const inputs = await createInputs();
-    const result = await runEntrypoint([
+    const args = [
       "reconcile-runtime",
       "--snapshot",
       inputs.snapshot,
@@ -155,7 +155,8 @@ describe("explicit local runtime reconciliation CLI", () => {
       inputs.bindings,
       "--max-traces",
       "100000",
-    ]);
+    ];
+    const result = await runEntrypoint(args);
 
     expect(result.code).toBe(0);
     expect(result.stderr).toBe("");
@@ -165,6 +166,26 @@ describe("explicit local runtime reconciliation CLI", () => {
       static?: { source?: string; digest?: string };
       runtime?: { source?: string; digest?: string; redacted?: boolean };
       bindings?: { source?: string; count?: number };
+      reconciliation?: unknown;
+      coverage?: {
+        revision?: { commitSha?: string };
+        sampling?: {
+          complete?: boolean;
+          truncated?: boolean;
+          retainedSpans?: number;
+        };
+        classificationCounts?: {
+          staticallyKnownRuntimeObserved?: number;
+          staticallyKnownUnobserved?: number;
+          runtimeOnly?: number;
+          ambiguous?: number;
+        };
+        capability?: {
+          staticRegistryVersion?: number;
+          runtimeTraceSchemaVersion?: number;
+          limitations?: Array<{ source?: string; code?: string }>;
+        };
+      };
       uncertainty?: { none?: number; unmapped?: number };
       diagnostics?: Array<{ source?: string; code?: string }>;
       limits?: { bounded?: boolean; observed?: { outputRecords?: number } };
@@ -188,6 +209,23 @@ describe("explicit local runtime reconciliation CLI", () => {
         redacted: true,
       },
       bindings: { source: "explicit-local-file", count: 5 },
+      coverage: {
+        revision: { commitSha: "static-fixture" },
+        sampling: { complete: true, truncated: false, retainedSpans: 5 },
+        classificationCounts: {
+          staticallyKnownRuntimeObserved: 1,
+          staticallyKnownUnobserved: 1,
+          runtimeOnly: 1,
+          ambiguous: 1,
+        },
+        capability: {
+          staticRegistryVersion: 1,
+          runtimeTraceSchemaVersion: 1,
+          limitations: [
+            { source: "binding", code: "explicit-span-binding-required" },
+          ],
+        },
+      },
       limits: { bounded: true },
       retention: {
         mode: "discard-after-read",
@@ -204,6 +242,12 @@ describe("explicit local runtime reconciliation CLI", () => {
       report.diagnostics?.some((item) => item.source === "reconciliation"),
     ).toBe(true);
     expect(report.limits?.observed?.outputRecords).toBe(4);
+
+    const repeat = await runEntrypoint(args);
+    expect(repeat.code).toBe(0);
+    const repeatedReport = JSON.parse(repeat.stdout) as typeof report;
+    expect(repeatedReport.reconciliation).toEqual(report.reconciliation);
+    expect(repeatedReport.coverage).toEqual(report.coverage);
   });
 
   it("fails closed before parsing when the explicit runtime byte budget is exceeded", async () => {
