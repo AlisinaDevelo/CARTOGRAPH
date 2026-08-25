@@ -44,8 +44,10 @@ Local policy configuration is a separate, data-only v0.1 contract. Its bounded
 node, edge, and diff selectors are parsed by `src/core/policy.ts`; the local
 reader accepts only an in-repository regular JSON file and defaults to
 informational mode. It does not evaluate rules, fetch remote policy, execute
-commands, or grant authority. Evaluation and enforcing exit behavior remain
-separate roadmap boundaries.
+commands, or grant authority. The `cartograph policy` command and the Action
+provide the CI boundary: informational findings return 0, enforce findings
+return 2, and malformed inputs remain tool failures at 1. The Action is
+disabled unless a policy path is explicitly supplied.
 
 The TypeScript loader reads JSON/JSONC configuration through the compiler parser
 without executing configuration or repository code. It validates and follows
@@ -183,8 +185,7 @@ JSON is the canonical machine contract. Markdown is optimized for review summari
 
 The following are roadmap items, not current implementation claims:
 
-- enforcing policy exit behavior, plus ADR lifecycle, report, and
-  policy-binding evaluation;
+- policy composition, exception precedence, and policy/ADR binding evaluation;
 - local ADR reference parsing and stale/missing reference diagnostics remain
   offline and data-only; lifecycle, report, and policy binding are separate
   contracts;

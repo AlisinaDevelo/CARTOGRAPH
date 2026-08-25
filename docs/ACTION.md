@@ -1,10 +1,12 @@
 # Read-only GitHub Action
 
-`action.yml` exposes the first hosted integration boundary for CARTOGRAPH. It
-is intentionally informational: the Action reads a pull request, writes a
+`action.yml` exposes the first hosted integration boundary for CARTOGRAPH. With
+its defaults it is informational: the Action reads a pull request, writes a
 concise job summary, and (unless opted out) uploads a static HTML/JSON report
-artifact. It does not comment, label, merge, change issues, execute repository
-code, use secrets, or require write permissions.
+artifact. A repository can opt into local policy evaluation with the `policy`
+input and opt into blocking findings with `policy-mode: enforce`. The Action
+never comments, labels, merges, changes issues, executes repository code, uses
+secrets, or requires write permissions.
 
 ## Fork pull requests and permissions
 
@@ -71,10 +73,11 @@ workflow. `merge-base` is the default and fails closed for shallow repositories,
 unrelated histories, or multiple merge bases; `direct` remains available for
 an explicit two-tree comparison.
 
-The report artifact is deliberately scoped to exactly two files:
-`architecture-diff.html` and the canonical `architecture-diff.json`. It never
-contains a source body, source snippet, credential, token, absolute local path,
-or arbitrary payload. Source evidence is limited to repository-relative paths,
+The architecture report artifact is deliberately scoped to exactly two files:
+`architecture-diff.html` and the canonical `architecture-diff.json`. An
+opted-in policy produces a separate canonical `policy-evaluation.json` artifact.
+Neither artifact ever contains a source body, source snippet, credential, token,
+absolute local path, or arbitrary payload. Source evidence is limited to repository-relative paths,
 spans, detector identities, and content hashes; HTML values are escaped and the
 report has a 16 MiB byte ceiling plus node, edge, and diagnostic cardinality
 ceilings. The retention default is seven days; GitHub's supported range is 1–90
@@ -91,6 +94,26 @@ with:
 `upload-report` defaults to `true`. The Action still validates the retention
 input and produces the report in the runner's temporary directory for the local
 rendering step, but no artifact is uploaded when the opt-out is set.
+
+## Optional policy gate
+
+Policy evaluation is disabled unless `policy` names a repository-relative JSON
+file. When enabled, `policy-mode` defaults explicitly to `informational`: the
+Action records violations in the job summary and succeeds. Set
+`policy-mode: enforce` to make a valid report with violations or unsupported
+rules fail with the stable policy findings status (exit code 2). Invalid policy,
+input, or output errors remain tool failures (exit code 1). A policy report is
+written to a separate `*-policy` artifact when report upload is enabled.
+
+```yaml
+with:
+  policy: .cartograph/policy.json
+  policy-mode: enforce
+```
+
+The policy input is read locally inside the analyzed repository. The Action
+does not fetch policy content or execute policy expressions. Leaving `policy`
+empty keeps the read-only architecture diff behavior without a policy gate.
 
 The Action builds the checked-out CARTOGRAPH source with
 `npm ci --ignore-scripts` and Node.js 24 before analyzing the caller repository;

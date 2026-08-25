@@ -34,6 +34,14 @@ inputs:
     description: Upload the JSON and HTML report artifact; set false for sensitive repositories
     required: false
     default: "true"
+  policy:
+    description: Repository-relative local policy JSON; leave empty to skip policy evaluation
+    required: false
+    default: ""
+  policy-mode:
+    description: Policy CI mode; informational is the non-blocking default and enforce is opt-in
+    required: false
+    default: informational
 
 runs:
   using: composite
@@ -65,6 +73,8 @@ runs:
         CARTOGRAPH_ARTIFACT_NAME: ${{ inputs.artifact-name }}
         CARTOGRAPH_RETENTION_DAYS: ${{ inputs.retention-days }}
         CARTOGRAPH_UPLOAD_REPORT: ${{ inputs.upload-report }}
+        CARTOGRAPH_POLICY_PATH: ${{ inputs.policy }}
+        CARTOGRAPH_POLICY_MODE: ${{ inputs.policy-mode }}
       run: |
         set -euo pipefail
         base_ref="${CARTOGRAPH_BASE_INPUT:-${CARTOGRAPH_PR_BASE_SHA:-}}"
@@ -91,6 +101,13 @@ runs:
             exit 1
             ;;
         esac
+        case "$CARTOGRAPH_POLICY_MODE" in
+          informational|enforce) ;;
+          *)
+            echo "CARTOGRAPH policy-mode must be informational or enforce" >&2
+            exit 1
+            ;;
+        esac
 
         report_dir="$RUNNER_TEMP/cartograph-report"
         mkdir -p "$report_dir"
@@ -101,12 +118,26 @@ runs:
           --format json \
           --output "$report_dir/architecture-diff.json" \
           --force
+        policy_exit=0
+        if [[ -n "$CARTOGRAPH_POLICY_PATH" ]]; then
+          set +e
+          node "$CARTOGRAPH_ACTION_PATH/dist/cli.js" policy "$CARTOGRAPH_ROOT" \
+            --policy "$CARTOGRAPH_POLICY_PATH" \
+            --diff "$report_dir/architecture-diff.json" \
+            --mode "$CARTOGRAPH_POLICY_MODE" \
+            --output "$report_dir/policy-evaluation.json" \
+            --force
+          policy_exit=$?
+          set -e
+        fi
+        printf '%s\n' "$policy_exit" > "$report_dir/policy-exit-code"
         node "$CARTOGRAPH_ACTION_PATH/scripts/action-report.mjs" \
           "$report_dir/architecture-diff.json" \
           "$report_dir/architecture-diff.html" \
           "${GITHUB_STEP_SUMMARY:-}" \
           "$CARTOGRAPH_ARTIFACT_NAME" \
-          "$CARTOGRAPH_UPLOAD_REPORT"
+          "$CARTOGRAPH_UPLOAD_REPORT" \
+          "$report_dir/policy-evaluation.json"
 
     - name: Upload architecture diff report
       if: inputs.upload-report == 'true'
@@ -118,3 +149,28 @@ runs:
           ${{ runner.temp }}/cartograph-report/architecture-diff.html
         if-no-files-found: error
         retention-days: ${{ inputs.retention-days }}
+
+    - name: Upload policy evaluation
+      if: inputs.upload-report == 'true' && inputs.policy != ''
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: ${{ inputs.artifact-name }}-policy
+        path: ${{ runner.temp }}/cartograph-report/policy-evaluation.json
+        if-no-files-found: error
+        retention-days: ${{ inputs.retention-days }}
+
+    - name: Apply policy exit status
+      if: always()
+      shell: bash
+      run: |
+        set -euo pipefail
+        status_file="$RUNNER_TEMP/cartograph-report/policy-exit-code"
+        if [[ ! -f "$status_file" ]]; then
+          exit 0
+        fi
+        read -r policy_exit < "$status_file"
+        case "$policy_exit" in
+          0) exit 0 ;;
+          1|2) exit "$policy_exit" ;;
+          *) echo "CARTOGRAPH policy command returned an invalid status" >&2; exit 1 ;;
+        esac

@@ -16,6 +16,7 @@ import {
 import {
   diffRepositoryRevisions,
   diffSnapshotFiles,
+  evaluatePolicyFile,
   migrateSnapshotFile,
   reviewRemediationFile,
   scanRepository,
@@ -24,9 +25,13 @@ import {
 } from "./commands.js";
 import {
   readCartographConfig,
+  parsePolicyCiMode,
+  policyCiExitCode,
   serializeGraphSnapshot,
   serializeMigrationReport,
+  serializePolicyEvaluation,
   type CartographConfig,
+  type PolicyCiMode,
 } from "./core/index.js";
 import type { ReportFormat } from "./report/render.js";
 import type { RevisionComparisonMode } from "./git/revision.js";
@@ -79,6 +84,16 @@ const revisionComparison = (value: string): RevisionComparisonMode => {
   throw new InvalidArgumentError(
     "comparison must be one of: direct, merge-base",
   );
+};
+
+const policyMode = (value: string): PolicyCiMode => {
+  try {
+    return parsePolicyCiMode(value);
+  } catch {
+    throw new InvalidArgumentError(
+      "mode must be one of: informational, enforce",
+    );
+  }
 };
 
 const emit = async (content: string, options: OutputOptions): Promise<void> => {
@@ -203,6 +218,61 @@ export function createCli(): Command {
         await emit(
           await diffSnapshotFiles(before, after, options.format),
           options,
+        );
+      },
+    );
+
+  program
+    .command("policy")
+    .description("evaluate a local policy against a graph snapshot or diff")
+    .argument("[root]", "repository or project root", ".")
+    .requiredOption(
+      "--policy <path>",
+      "repository-relative local policy JSON file",
+    )
+    .option("--snapshot <path>", "graph snapshot JSON input")
+    .option("--diff <path>", "GraphDiff JSON input")
+    .option(
+      "--mode <mode>",
+      "CI mode: informational or enforce; policy mode when omitted",
+      policyMode,
+    )
+    .option("-o, --output <path>", "output JSON report; stdout when omitted")
+    .option("--force", "replace an existing output file", false)
+    .action(
+      async (
+        root: string,
+        options: OutputOptions & {
+          diff?: string;
+          mode?: PolicyCiMode;
+          policy: string;
+          snapshot?: string;
+        },
+      ): Promise<void> => {
+        const hasSnapshot = options.snapshot !== undefined;
+        const hasDiff = options.diff !== undefined;
+        if (hasSnapshot === hasDiff) {
+          throw new InvalidArgumentError(
+            "exactly one of --snapshot or --diff is required",
+          );
+        }
+        const input = options.snapshot ?? options.diff;
+        if (input === undefined) {
+          throw new InvalidArgumentError(
+            "exactly one of --snapshot or --diff is required",
+          );
+        }
+        const report = await evaluatePolicyFile({
+          input,
+          inputKind: hasSnapshot ? "snapshot" : "diff",
+          ...(options.mode === undefined ? {} : { mode: options.mode }),
+          policy: options.policy,
+          root,
+        });
+        await emit(`${serializePolicyEvaluation(report)}\n`, options);
+        process.exitCode = policyCiExitCode(
+          options.mode ?? report.mode,
+          report,
         );
       },
     );

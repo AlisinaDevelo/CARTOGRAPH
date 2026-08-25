@@ -29,6 +29,8 @@ describe("CLI contract", () => {
     expect(policy).toContain("--comparison merge-base");
     expect(policy).toContain("fetch-depth: 0");
     expect(policy).toContain("shallow");
+    expect(policy).toContain("policy [root]");
+    expect(policy).toContain("Exit code 2");
     expect(readme).toContain("[CLI runtime and exit policy](docs/CLI.md)");
     expect(readme).toContain("--comparison merge-base");
   });
