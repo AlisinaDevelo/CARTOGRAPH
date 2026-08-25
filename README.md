@@ -211,6 +211,8 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Landscape research](docs/RESEARCH.md)
 - [Five-year roadmap](docs/ROADMAP.md)
 - [Design-partner outreach](docs/OUTREACH.md)
+- [Public community feedback and RFC process](docs/COMMUNITY_FEEDBACK.md)
+- [Adopter feedback template](docs/ADOPTER_FEEDBACK_TEMPLATE.md)
 - [Release gate](docs/RELEASE.md)
 - [Release acceptance and rollback rehearsal](docs/RELEASE_REHEARSAL.md)
 - [Changelog](CHANGELOG.md)

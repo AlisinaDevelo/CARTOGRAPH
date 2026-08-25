@@ -182,6 +182,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "community-feedback",
+      "path": "community-feedback",
+      "source": "CARTOGRAPH repository-authored community feedback process fixture",
+      "license": "Apache-2.0",
+      "reference": "M-004 public adopter and contributor feedback-loop issue; no external source",
+      "transformation": "The snapshot encodes the public RFC, triage, consent, anonymization, and backlog-decision contract with one synthetic maintainer baseline; it retains no external messages, source bodies, private repositories, or telemetry.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "review-regressions",
       "path": "review-regressions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

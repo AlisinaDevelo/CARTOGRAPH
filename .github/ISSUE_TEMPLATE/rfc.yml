@@ -1,0 +1,81 @@
+name: Public RFC
+description: Propose a material architecture, evidence, policy, adapter, privacy, or workflow change.
+title: "[RFC]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        RFCs are public design records. Do not include private source, credentials, personal data, or unpublished vulnerability details. Use the private security route for vulnerabilities.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and affected users
+      description: State the problem, who experiences it, and the smallest useful outcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Describe the alternatives considered and why they are insufficient.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and evaluation plan
+      description: Name the public or synthetic fixtures, measurements, and negative cases that would support or reject the proposal.
+    validations:
+      required: true
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility and migration impact
+      description: Explain affected schemas, CLI behavior, adapters, reports, and migration or deprecation needs.
+    validations:
+      required: true
+
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy, security, and local-only boundary
+      description: State whether source upload, network access, telemetry, retention, permissions, or trust boundaries change.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: decision
+    attributes:
+      label: Proposed decision
+      options:
+        - accept
+        - defer
+        - reject
+        - investigate
+    validations:
+      required: true
+
+  - type: input
+    id: backlog
+    attributes:
+      label: Backlog issue or RFC reference
+      description: Link the resulting issue, or write none when no follow-up is proposed.
+      placeholder: M-004 or none
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Public-boundary checks
+      options:
+        - label: I have searched existing issues and RFCs.
+          required: true
+        - label: I have removed private source, secrets, personal data, and unpublished vulnerability details.
+          required: true
+        - label: I understand that material changes require an explicit reviewed decision before implementation.
+          required: true
