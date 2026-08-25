@@ -1,0 +1,8 @@
+{
+  "name": "@fixture/npm-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "@fixture/npm-core": "workspace:*",
+    "outside-package": "^1.0.0"
+  }
+}

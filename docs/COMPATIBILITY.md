@@ -495,6 +495,25 @@ they do not change GraphSnapshot v1 or the adapter API. `npm run
 language-equivalence:validate` is the local compatibility gate and reports any
 drift with its category and case.
 
+## X-009 workspace package boundaries
+
+X-009 adds an additive `package` node kind to the GraphSnapshot v1 vocabulary.
+When a repository documents npm or Yarn `package.json` workspaces, or a pnpm
+`pnpm-workspace.yaml`/`.yml`, the TypeScript analyzer discovers only declared,
+repository-contained package roots. Each package node uses the stable relative
+root (`package:<root>`) and its `package.json` as source location and evidence.
+Local package dependencies become evidence-backed `depends_on` edges, while
+analyzed source modules become `contains` edges owned by their nearest package.
+
+Malformed manifests, duplicate package names, overlapping roots, mixed package
+manager declarations, absolute patterns, and patterns that select no package
+fail closed with an actionable `WorkspaceManifestError`; no unrelated package
+root is merged. Discovery is deterministic, read-only, source-body-free, and
+bounded by the analyzer resource policy. The new node kind is additive: existing
+GraphSnapshot, GraphDiff, adapter, capability, and diagnostic versions remain at
+`1`; older readers that do not understand package selectors can still preserve
+the node and its edges as opaque graph records.
+
 ## E-011 adapter lifecycle and security response
 
 E-011 publishes the versioned

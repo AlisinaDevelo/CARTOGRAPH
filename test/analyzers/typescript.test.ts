@@ -50,6 +50,18 @@ const missingBaseProjectRoot = resolve(
   "missing-base",
 );
 const unsupportedProjectRoot = resolve(projectLoaderConfigsRoot, "unsupported");
+const workspaceFixtureRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../fixtures/workspace-boundaries",
+);
+const npmWorkspaceRoot = resolve(workspaceFixtureRoot, "npm");
+const pnpmWorkspaceRoot = resolve(workspaceFixtureRoot, "pnpm");
+const yarnWorkspaceRoot = resolve(workspaceFixtureRoot, "yarn");
+const invalidWorkspaceRoot = resolve(workspaceFixtureRoot, "invalid");
+const malformedWorkspaceRoot = resolve(
+  workspaceFixtureRoot,
+  "invalid-malformed",
+);
 
 describe("TypeScript analyzer", () => {
   it("matches the manually asserted fixture relationships", () => {
@@ -321,6 +333,107 @@ describe("TypeScript analyzer", () => {
         kind: "imports",
         from: "module:packages/app/src/main.ts",
         to: "module:packages/core/src/index.ts",
+      }),
+    );
+  });
+
+  it("discovers npm workspace package roots and local dependency ownership", () => {
+    const snapshot = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: npmWorkspaceRoot }),
+    );
+    expect(snapshot.nodes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "package",
+          stableKey: "package:packages/app",
+          name: "@fixture/npm-app",
+          location: { path: "packages/app/package.json", line: 1, column: 1 },
+          language: "json",
+        }),
+        expect.objectContaining({
+          kind: "package",
+          stableKey: "package:packages/core",
+          name: "@fixture/npm-core",
+        }),
+      ]),
+    );
+    expect(snapshot.edges).toContainEqual(
+      expect.objectContaining({
+        kind: "depends_on",
+        from: "package:packages/app",
+        to: "package:packages/core",
+        evidence: [
+          expect.objectContaining({ path: "packages/app/package.json" }),
+        ],
+      }),
+    );
+    expect(snapshot.edges).toContainEqual(
+      expect.objectContaining({
+        kind: "contains",
+        from: "package:packages/app",
+        to: "module:packages/app/src/index.ts",
+        evidence: [
+          expect.objectContaining({ path: "packages/app/package.json" }),
+        ],
+      }),
+    );
+    expect(
+      snapshot.edges.some((edge) => edge.to.includes("outside-package")),
+    ).toBe(false);
+    expect(JSON.stringify(snapshot)).toBe(
+      JSON.stringify(
+        parseGraphSnapshot(
+          analyzeTypeScriptRepository({ rootDir: npmWorkspaceRoot }),
+        ),
+      ),
+    );
+  });
+
+  it("discovers pnpm and Yarn workspace declarations", () => {
+    const pnpm = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: pnpmWorkspaceRoot }),
+    );
+    expect(pnpm.nodes.map((node) => node.stableKey)).toEqual(
+      expect.arrayContaining(["package:packages/one", "package:packages/two"]),
+    );
+    expect(pnpm.edges).toContainEqual(
+      expect.objectContaining({
+        kind: "depends_on",
+        from: "package:packages/one",
+        to: "package:packages/two",
+      }),
+    );
+
+    const yarn = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: yarnWorkspaceRoot }),
+    );
+    expect(yarn.nodes.map((node) => node.stableKey)).toEqual(
+      expect.arrayContaining(["package:modules/shared", "package:modules/ui"]),
+    );
+    expect(yarn.edges).toContainEqual(
+      expect.objectContaining({
+        kind: "depends_on",
+        from: "package:modules/ui",
+        to: "package:modules/shared",
+      }),
+    );
+  });
+
+  it("fails closed for overlapping and malformed workspace declarations", () => {
+    expect(() =>
+      analyzeTypeScriptRepository({ rootDir: invalidWorkspaceRoot }),
+    ).toThrowError(
+      expect.objectContaining({
+        name: "WorkspaceManifestError",
+        code: "overlap",
+      }),
+    );
+    expect(() =>
+      analyzeTypeScriptRepository({ rootDir: malformedWorkspaceRoot }),
+    ).toThrowError(
+      expect.objectContaining({
+        name: "WorkspaceManifestError",
+        code: "malformed",
       }),
     );
   });

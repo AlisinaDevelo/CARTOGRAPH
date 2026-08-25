@@ -15,6 +15,7 @@ const TextSchema = z.string().trim().min(1, "must not be empty");
 const NodeKindSchema = z.enum([
   "endpoint",
   "module",
+  "package",
   "service",
   "function",
   "database_table",

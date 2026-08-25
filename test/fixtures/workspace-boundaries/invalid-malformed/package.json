@@ -1,0 +1,7 @@
+{
+  "name": "workspace-malformed-root",
+  "private": true,
+  "workspaces": {
+    "packages": "packages/*"
+  }
+}

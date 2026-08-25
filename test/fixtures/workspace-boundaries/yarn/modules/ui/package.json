@@ -1,0 +1,7 @@
+{
+  "name": "@fixture/yarn-ui",
+  "version": "1.0.0",
+  "peerDependencies": {
+    "@fixture/yarn-shared": "workspace:*"
+  }
+}

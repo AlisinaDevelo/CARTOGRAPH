@@ -27,6 +27,7 @@ const ImpactIdentifierSchema = z
 export const ImpactNodeKindSchema = z.enum([
   "endpoint",
   "module",
+  "package",
   "service",
   "function",
   "database_table",
