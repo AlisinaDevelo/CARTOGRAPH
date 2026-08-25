@@ -180,6 +180,17 @@ retirement triggers. `npm run adapter:support:validate` checks the versioned
 schema, all status rows, shipped adapter manifests, repository references, and
 the digest-bound documentation before the normal local check.
 
+E-005 adds the bounded Rust pilot evaluation. The synthetic Rust fixture has
+9 expected supported edges across module/function, local-call, literal HTTP,
+and literal SQL categories. The local evaluator compares the complete edge
+key set rather than only minimum counts: 9 true positives out of 9 predicted
+and 9 expected edges gives precision 1.00 and recall 1.00. Dynamic HTTP and
+dynamic SQL cases are counted as the two expected unsupported diagnostics, not
+as false negatives. Every emitted edge and diagnostic must retain source
+evidence, and the adapter's manifest denies network, child-process, dynamic
+loading, and repository-code execution. These metrics do not generalize to
+Rust constructs outside the named pilot slice.
+
 E-018 adds the offline [adapter compatibility matrix](ADAPTER_COMPATIBILITY_MATRIX.md).
 It binds the declared Node and compiler lines, checks every shipped adapter
 capability against bounded fixtures with deterministic evidence, replays all

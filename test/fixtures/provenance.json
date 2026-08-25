@@ -317,6 +317,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "rust-adapter",
+      "path": "rust-adapter",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Two small Rust source files exercise the bounded E-005 module/function, local import/call, literal HTTP, literal SQL, and dynamic unsupported cases without compiler execution, repository execution, or network access.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "adapter-compatibility",
       "path": "adapter-compatibility",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

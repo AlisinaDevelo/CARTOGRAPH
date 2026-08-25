@@ -17,6 +17,7 @@ import {
 } from "../../src/index.js";
 import {
   FASTIFY_ADAPTER_MANIFEST,
+  RUST_ADAPTER_MANIFEST,
   SAMPLE_ADAPTER_MANIFEST,
 } from "../../src/adapters/index.js";
 
@@ -126,9 +127,9 @@ describe("adapter compatibility negotiation", () => {
 
     expect(validate(value)).toBe(true);
     expect(validate.errors).toBeNull();
-    expect(fixture.cases).toHaveLength(5);
+    expect(fixture.cases).toHaveLength(6);
     expect(new Set(fixture.cases.map((entry) => entry.adapterId))).toEqual(
-      new Set(["cartograph.sample", "cartograph.fastify"]),
+      new Set(["cartograph.sample", "cartograph.fastify", "cartograph.rust"]),
     );
     expect(new Set(fixture.cases.map((entry) => entry.expectedState))).toEqual(
       new Set(["compatible", "migratable", "experimental", "rejected"]),
@@ -138,7 +139,9 @@ describe("adapter compatibility negotiation", () => {
       const base =
         scenario.adapterId === FASTIFY_ADAPTER_MANIFEST.id
           ? FASTIFY_ADAPTER_MANIFEST
-          : SAMPLE_ADAPTER_MANIFEST;
+          : scenario.adapterId === RUST_ADAPTER_MANIFEST.id
+            ? RUST_ADAPTER_MANIFEST
+            : SAMPLE_ADAPTER_MANIFEST;
       const result = negotiateAdapterCompatibility(
         manifestFor(base, scenario),
         { ...fixture.target, allowExperimental: scenario.allowExperimental },

@@ -137,19 +137,41 @@
       "rationale": "The starter is intentionally experimental until an independent adapter review graduates a contributor implementation."
     },
     {
+      "id": "cartograph.rust",
+      "kind": "language",
+      "name": "Bounded Rust adapter pilot",
+      "status": "implemented",
+      "version": "0.1.0",
+      "capabilities": ["rust.modules", "rust.http", "rust.sql"],
+      "owner": "extractor-maintainers",
+      "backup": "core-maintainers",
+      "supportBoundary": "Only Rust .rs module/function declarations, local mod/use imports and calls, literal reqwest/client HTTP origins, and literal sqlx table reads/writes are analyzed; this is not a broad Rust language-support claim.",
+      "references": [
+        "src/adapters/rust.ts",
+        "test/fixtures/rust-adapter",
+        "docs/ADAPTERS.md",
+        "docs/ADAPTER_SELECTION.md",
+        "docs/LANGUAGE_NEUTRAL_SEMANTICS.md",
+        "docs/EVALUATION.md",
+        "docs/ROADMAP.md"
+      ],
+      "rationale": "E-005 selects Rust as the first non-TypeScript pilot because its module/function and explicit integration constructs map cleanly to the language-neutral graph. The shipped adapter remains intentionally regex-bounded, publishes unsupported diagnostics, and records exact fixture precision and recall."
+    },
+    {
       "id": "language.rust",
       "kind": "language",
-      "name": "Rust adapter candidate",
+      "name": "Rust language expansion",
       "status": "deferred",
       "owner": "extractor-maintainers",
       "backup": "core-maintainers",
-      "supportBoundary": "No Rust source analysis or language-level support claim is made; any future pilot must pass the selection and E-005 gates.",
+      "supportBoundary": "No broad Rust language-support claim is made beyond the separately named cartograph.rust bounded pilot; traits, macros, generics, ownership semantics, compiler resolution, and runtime behavior remain outside the claim.",
       "references": [
         "docs/ADAPTER_SELECTION.md",
+        "docs/SUPPORT_MATRIX.md",
         "docs/LANGUAGE_NEUTRAL_SEMANTICS.md",
         "docs/ROADMAP.md"
       ],
-      "rationale": "Rust is a plausible language-neutral pilot, but demand, bounded construct scope, and maintenance ownership are intentionally deferred to a future public proposal."
+      "rationale": "The E-005 pilot is intentionally narrower than Rust language coverage. A future expansion must produce independent demand, compiler-sensitive quality evidence, and an ownership review before the language-level claim changes."
     },
     {
       "id": "language.python",

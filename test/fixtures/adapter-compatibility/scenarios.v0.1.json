@@ -40,6 +40,21 @@
       "expectedGuidance": "may be analyzed"
     },
     {
+      "id": "rust-current",
+      "adapterId": "cartograph.rust",
+      "adapterVersion": "0.1.0",
+      "stability": "stable",
+      "offered": {
+        "apiVersion": 1,
+        "compatibilityVersion": 1,
+        "capabilityRegistryVersion": 1,
+        "graphSchemaVersion": 1
+      },
+      "allowExperimental": false,
+      "expectedState": "compatible",
+      "expectedGuidance": "may be analyzed"
+    },
+    {
       "id": "sample-legacy-compatibility",
       "adapterId": "cartograph.sample",
       "adapterVersion": "0.1.0",

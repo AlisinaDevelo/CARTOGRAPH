@@ -61,9 +61,13 @@ describe("adapter compatibility matrix", () => {
       ok: true,
       matrixId: "cartograph-adapter-compatibility-v0.1",
       compatibility: {
-        fixtureCases: 5,
+        fixtureCases: 6,
         states: ["compatible", "experimental", "migratable", "rejected"],
-        adapters: ["cartograph.fastify", "cartograph.sample"],
+        adapters: [
+          "cartograph.fastify",
+          "cartograph.rust",
+          "cartograph.sample",
+        ],
       },
     });
     expect(["matched", "matched-local", "unlisted-local"]).toContain(
@@ -72,6 +76,7 @@ describe("adapter compatibility matrix", () => {
     expect(report.adapters.map((adapter) => adapter.id)).toEqual([
       "cartograph.sample",
       "cartograph.fastify",
+      "cartograph.rust",
     ]);
     const sample = report.adapters.find(
       (adapter) => adapter.id === "cartograph.sample",
@@ -79,7 +84,10 @@ describe("adapter compatibility matrix", () => {
     const fastify = report.adapters.find(
       (adapter) => adapter.id === "cartograph.fastify",
     );
-    if (!sample || !fastify)
+    const rust = report.adapters.find(
+      (adapter) => adapter.id === "cartograph.rust",
+    );
+    if (!sample || !fastify || !rust)
       throw new Error("matrix adapter report is incomplete");
     expect(sample.capabilities).toEqual(["sample.fixture"]);
     expect(sample.conformance).toMatchObject({
@@ -96,6 +104,16 @@ describe("adapter compatibility matrix", () => {
       evidenceComplete: true,
       repetitions: 2,
     });
+    expect(rust.capabilities).toEqual([
+      "rust.http",
+      "rust.modules",
+      "rust.sql",
+    ]);
+    expect(rust.conformance).toMatchObject({
+      deterministic: true,
+      evidenceComplete: true,
+      repetitions: 2,
+    });
     expect(
       report.adapters.flatMap((adapter) =>
         adapter.cases.flatMap((testCase) => testCase.capabilities),
@@ -105,6 +123,9 @@ describe("adapter compatibility matrix", () => {
         "sample.fixture",
         "fastify.routes",
         "typescript.graph",
+        "rust.modules",
+        "rust.http",
+        "rust.sql",
       ]),
     );
     expect(report.schemaChecks).toEqual([

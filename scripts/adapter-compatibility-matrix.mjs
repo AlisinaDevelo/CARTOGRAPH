@@ -19,8 +19,10 @@ import {
 import {
   FASTIFY_ADAPTER_MANIFEST,
   SAMPLE_ADAPTER_MANIFEST,
+  RUST_ADAPTER_MANIFEST,
   createFastifyAdapter,
   createSampleAdapter,
+  createRustAdapter,
 } from "../src/adapters/index.ts";
 
 const argumentValue = (name) => {
@@ -196,6 +198,10 @@ const matrixAdapters = new Map([
   [
     FASTIFY_ADAPTER_MANIFEST.id,
     { adapter: createFastifyAdapter(), manifest: FASTIFY_ADAPTER_MANIFEST },
+  ],
+  [
+    RUST_ADAPTER_MANIFEST.id,
+    { adapter: createRustAdapter(), manifest: RUST_ADAPTER_MANIFEST },
   ],
 ]);
 

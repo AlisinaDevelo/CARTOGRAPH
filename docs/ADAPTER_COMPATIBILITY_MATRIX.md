@@ -32,10 +32,11 @@ capability. Each case runs twice through `runAdapterConformance`, with finite
 resource limits, deterministic serialization, evidence completeness, minimum
 graph expectations, and explicitly declared unsupported diagnostics.
 
-| Adapter              | Capabilities                         | Fixtures                                                 |
-| -------------------- | ------------------------------------ | -------------------------------------------------------- |
-| `cartograph.sample`  | `sample.fixture`                     | `sample/empty`, `sample/supported`, `sample/unsupported` |
-| `cartograph.fastify` | `fastify.routes`, `typescript.graph` | `fastify/bounded-routes`                                 |
+| Adapter              | Capabilities                            | Fixtures                                                 |
+| -------------------- | --------------------------------------- | -------------------------------------------------------- |
+| `cartograph.sample`  | `sample.fixture`                        | `sample/empty`, `sample/supported`, `sample/unsupported` |
+| `cartograph.fastify` | `fastify.routes`, `typescript.graph`    | `fastify/bounded-routes`                                 |
+| `cartograph.rust`    | `rust.modules`, `rust.http`, `rust.sql` | `rust/bounded`                                           |
 
 An unsupported construct is part of the fixture contract. A missing warning or
 error is a failure, and an adapter is never considered covered because a case
@@ -46,7 +47,7 @@ was skipped.
 The validator runs every case in
 [`scenarios.v0.1.json`](../test/fixtures/adapter-compatibility/scenarios.v0.1.json)
 against the real runtime manifests. The required states are `compatible`,
-`migratable`, `experimental`, and `rejected`; both shipped adapter IDs must
+`migratable`, `experimental`, and `rejected`; every shipped adapter ID must
 appear in the corpus. The target tuple is checked against the adapter API,
 adapter compatibility, capability registry, and GraphSnapshot schema versions
 before analysis begins.
@@ -62,4 +63,4 @@ npm run adapter:compatibility:validate
 
 Matrix ID: `cartograph-adapter-compatibility-v0.1`
 
-Matrix digest: `sha256:6bfffe7bacb44559512bf10dc6ddcb0698c39d27c8f246a2ea055642c88a4def`
+Matrix digest: `sha256:5cd4dab4d9875a4f0e92d33a8b8b29bac1603f09280e67426d055d760bda773e`

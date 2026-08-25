@@ -161,6 +161,34 @@
       "message": "Could not resolve an asynchronous event or queue handler.",
       "evidence": { "kind": "source", "location": "source-span" },
       "remediation": "Keep the asynchronous handler local and statically resolvable, or review the registration manually."
+    },
+    {
+      "code": "UNSUPPORTED_RUST_DYNAMIC_HTTP_DESTINATION",
+      "severity": "warning",
+      "message": "Rust HTTP destination must be a literal string.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Use a literal reqwest or client URL, or review the runtime destination manually."
+    },
+    {
+      "code": "UNSUPPORTED_RUST_DYNAMIC_QUERY",
+      "severity": "warning",
+      "message": "Rust SQL query must contain a literal recognizable table.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Use a literal SQL statement with a table name, or review the runtime query manually."
+    },
+    {
+      "code": "UNRESOLVED_RUST_IMPORT",
+      "severity": "warning",
+      "message": "Rust local module could not be resolved within the source root.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Keep the module declaration inside the analyzed source root, or review the import manually."
+    },
+    {
+      "code": "UNRESOLVED_RUST_CALL",
+      "severity": "warning",
+      "message": "Rust call target is outside the bounded local symbol set.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Review the call target manually or provide a bounded local declaration."
     }
   ]
 }

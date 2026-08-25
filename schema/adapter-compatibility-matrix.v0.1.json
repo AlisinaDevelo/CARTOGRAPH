@@ -89,6 +89,40 @@
           "unsupportedDiagnosticCodes": ["UNSUPPORTED_DYNAMIC_FASTIFY_ROUTE"]
         }
       ]
+    },
+    {
+      "id": "cartograph.rust",
+      "module": "src/adapters/rust.ts",
+      "sourceRoot": "test/fixtures/rust-adapter",
+      "maxDurationMs": 5000,
+      "capabilities": [
+        {
+          "id": "rust.modules",
+          "cases": ["bounded"]
+        },
+        {
+          "id": "rust.http",
+          "cases": ["bounded"]
+        },
+        {
+          "id": "rust.sql",
+          "cases": ["bounded"]
+        }
+      ],
+      "cases": [
+        {
+          "id": "bounded",
+          "fixture": "rust/bounded",
+          "config": {},
+          "minNodes": 8,
+          "minEdges": 9,
+          "requiredDiagnosticCodes": [],
+          "unsupportedDiagnosticCodes": [
+            "UNSUPPORTED_RUST_DYNAMIC_HTTP_DESTINATION",
+            "UNSUPPORTED_RUST_DYNAMIC_QUERY"
+          ]
+        }
+      ]
     }
   ],
   "commands": [

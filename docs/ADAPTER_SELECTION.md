@@ -8,16 +8,17 @@ machine-readable decision record is
 [`schema/adapter-support-matrix.v0.1.json`](../schema/adapter-support-matrix.v0.1.json);
 this document defines the criteria and the lifecycle behind its statuses.
 The current record is `cartograph-adapter-support-v0.1` with digest
-`sha256:43a88a895f18053aa7a44369bd97bd2987cd0b94bebee61e388cc34f1354530f`.
+`sha256:a27a1f5b82c1f9f52c435186d8e69698de93deaf3a81e94743284c1120fb59c1`.
 
 ## Scope and decision
 
 CARTOGRAPH supports a bounded adapter contract, not every construct exposed by
 a framework or language. The current implemented boundary is the TypeScript
-core plus the bounded Fastify adapter. The sample adapter is a deterministic
-reference fixture, and the starter package is a contributor preview rather
-than a production support claim. No additional language is selected by this
-RFC; future language work remains a separately evaluated pilot.
+core, the bounded Fastify adapter, and the E-005 Rust pilot. The sample adapter
+is a deterministic reference fixture, and the starter package is a contributor
+preview rather than a production support claim. The Rust pilot is not a broad
+Rust language claim: it covers only the named module, function, literal HTTP,
+and literal SQL constructs.
 
 The support matrix is authoritative for four statuses:
 
@@ -104,8 +105,8 @@ support is not expanded until the measured evidence justifies it.
    is reviewed. This makes non-selection visible and creates no implementation
    commitment.
 3. If demand, semantic fit, security, and capacity justify a pilot, implement
-   only the named slice under the adapter contract. The E-005 pilot must add
-   conformance, unsupported cases, and precision/recall evidence.
+   only the named slice under the adapter contract. The E-005 Rust pilot adds
+   conformance, unsupported cases, and exact fixture precision/recall evidence.
 4. Add the cross-language equivalence corpus from E-010 before making a
    language-level claim. Equivalence is measured by semantic category, not by
    matching syntax or line counts.

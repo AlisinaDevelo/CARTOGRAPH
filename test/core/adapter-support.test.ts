@@ -43,7 +43,11 @@ describe("adapter support matrix", () => {
       criteria: 8,
       statuses: ["implemented", "experimental", "deferred", "unsupported"],
       entriesByStatus: {
-        implemented: ["cartograph.sample", "cartograph.fastify"],
+        implemented: [
+          "cartograph.sample",
+          "cartograph.fastify",
+          "cartograph.rust",
+        ],
         experimental: ["cartograph.starter.example"],
         deferred: ["language.rust"],
         unsupported: ["language.python"],
@@ -54,6 +58,7 @@ describe("adapter support matrix", () => {
       "cartograph.sample",
       "cartograph.fastify",
       "cartograph.starter.example",
+      "cartograph.rust",
       "language.rust",
       "language.python",
     ]);
