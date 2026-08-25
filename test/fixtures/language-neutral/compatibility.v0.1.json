@@ -1,0 +1,203 @@
+{
+  "$schema": "../../../schema/language-neutral-compatibility.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.language-neutral-compatibility",
+  "cases": [
+    {
+      "id": "rust-orders",
+      "language": "rust",
+      "snapshot": {
+        "schemaVersion": 1,
+        "capabilityRegistryVersion": 1,
+        "revision": {
+          "commitSha": "fixture-rust-v1",
+          "branch": "main"
+        },
+        "nodes": [
+          {
+            "id": "service:src/lib.rs:orders",
+            "stableKey": "service:src/lib.rs:orders",
+            "kind": "service",
+            "name": "orders",
+            "language": "rust",
+            "location": {
+              "path": "src/lib.rs",
+              "line": 10,
+              "column": 1,
+              "endLine": 20,
+              "endColumn": 2
+            }
+          },
+          {
+            "id": "database_table:src/store.rs:orders",
+            "stableKey": "database_table:src/store.rs:orders",
+            "kind": "database_table",
+            "name": "orders",
+            "language": "rust",
+            "location": {
+              "path": "src/store.rs",
+              "line": 4,
+              "column": 1
+            }
+          },
+          {
+            "id": "external_service:payments",
+            "stableKey": "external_service:payments",
+            "kind": "external_service",
+            "name": "payments",
+            "language": "rust",
+            "location": {
+              "path": "src/payments.rs",
+              "line": 7,
+              "column": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": "service:src/lib.rs:orders",
+            "to": "database_table:src/store.rs:orders",
+            "kind": "reads",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:rust:orders-read",
+                "kind": "source",
+                "location": {
+                  "path": "src/lib.rs",
+                  "line": 14,
+                  "column": 5
+                },
+                "detector": "cartograph.language-neutral.fixture@1",
+                "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            ]
+          },
+          {
+            "from": "service:src/lib.rs:orders",
+            "to": "external_service:payments",
+            "kind": "requests",
+            "confidence": "inferred",
+            "evidence": [],
+            "unresolvedReason": "The runtime-selected payment destination is not statically resolved."
+          }
+        ],
+        "diagnostics": [
+          {
+            "id": "diagnostic:rust:dynamic-payment",
+            "code": "UNSUPPORTED_DYNAMIC_HTTP_DESTINATION",
+            "severity": "warning",
+            "message": "The payment destination is selected at runtime.",
+            "remediation": "Use a literal destination or review the runtime configuration manually.",
+            "nodeId": "service:src/lib.rs:orders",
+            "location": {
+              "path": "src/payments.rs",
+              "line": 12,
+              "column": 9
+            },
+            "evidence": [
+              {
+                "id": "source:rust:dynamic-payment",
+                "kind": "source",
+                "path": "src/payments.rs",
+                "line": 12,
+                "column": 9,
+                "detector": "cartograph.language-neutral.fixture@1",
+                "contentHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "python-billing",
+      "language": "python",
+      "snapshot": {
+        "schemaVersion": 1,
+        "capabilityRegistryVersion": 1,
+        "revision": {
+          "commitSha": "fixture-python-v1",
+          "branch": "main"
+        },
+        "nodes": [
+          {
+            "id": "module:app/api.py",
+            "stableKey": "module:app/api.py",
+            "kind": "module",
+            "name": "billing-api",
+            "language": "python",
+            "location": {
+              "path": "app/api.py",
+              "line": 3,
+              "column": 1
+            }
+          },
+          {
+            "id": "external_service:tax",
+            "stableKey": "external_service:tax",
+            "kind": "external_service",
+            "name": "tax",
+            "language": "python",
+            "location": {
+              "path": "app/tax.py",
+              "line": 18,
+              "column": 1,
+              "endLine": 21,
+              "endColumn": 20
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": "module:app/api.py",
+            "to": "external_service:tax",
+            "kind": "requests",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:python:tax-request",
+                "kind": "source",
+                "path": "app/api.py",
+                "line": 11,
+                "column": 12,
+                "endLine": 11,
+                "endColumn": 31,
+                "detector": "cartograph.language-neutral.fixture@1",
+                "contentHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+              }
+            ]
+          }
+        ],
+        "diagnostics": [
+          {
+            "id": "diagnostic:python:dynamic-call",
+            "code": "UNRESOLVED_CALL",
+            "severity": "warning",
+            "message": "The callable target is selected through a dynamic dispatch table.",
+            "remediation": "Review the dispatch table or provide a statically resolvable callable.",
+            "nodeId": "module:app/api.py",
+            "location": {
+              "path": "app/api.py",
+              "line": 15,
+              "column": 5
+            },
+            "evidence": [
+              {
+                "id": "source:python:dynamic-call",
+                "kind": "source",
+                "location": {
+                  "path": "app/api.py",
+                  "line": 15,
+                  "column": 5
+                },
+                "detector": "cartograph.language-neutral.fixture@1",
+                "contentHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

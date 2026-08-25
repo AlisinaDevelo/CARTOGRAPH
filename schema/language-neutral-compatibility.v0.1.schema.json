@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/language-neutral-compatibility.v0.1.schema.json",
+  "title": "CARTOGRAPH language-neutral compatibility fixtures v0.1",
+  "description": "Non-TypeScript graph snapshots that exercise the language-neutral IR, identity metadata, source coordinates, evidence, and unknown semantics.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "contract", "cases"],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.language-neutral-compatibility" },
+    "cases": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "language": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z][a-z0-9]*(?:[-_][a-z0-9]+)*$"
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "language", "snapshot"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "language": { "$ref": "#/definitions/language" },
+        "snapshot": {
+          "$ref": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/graph-snapshot.v0.1.schema.json"
+        }
+      }
+    }
+  }
+}

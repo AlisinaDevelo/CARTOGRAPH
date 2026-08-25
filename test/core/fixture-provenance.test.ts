@@ -30,7 +30,7 @@ describe("fixture provenance validator", () => {
     });
     expect(JSON.parse(output)).toMatchObject({
       ok: true,
-      fixtures: 29,
+      fixtures: 30,
       generatedDirectories: 8,
     });
   });

@@ -175,6 +175,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Support matrix and review process](docs/SUPPORT_MATRIX.md)
 - [Maintenance and ownership](docs/MAINTENANCE.md)
 - [Compatibility and versioning](docs/COMPATIBILITY.md)
+- [Language-neutral graph semantics](docs/LANGUAGE_NEUTRAL_SEMANTICS.md)
 - [Snapshot and identity migration](docs/IDENTITY_MIGRATION.md)
 - [Configuration contract](docs/CONFIGURATION.md)
 - [Local ADR references](docs/ADR_REFERENCES.md)
