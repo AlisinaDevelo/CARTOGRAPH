@@ -172,6 +172,14 @@ unavailable-runtime refusal). The review stages, ownership, maintenance,
 security response, and graduation threshold are recorded in the
 [adapter review playbook](ADAPTER_REVIEW_PLAYBOOK.md).
 
+E-018 adds the offline [adapter compatibility matrix](ADAPTER_COMPATIBILITY_MATRIX.md).
+It binds the declared Node and compiler lines, checks every shipped adapter
+capability against bounded fixtures with deterministic evidence, replays all
+four compatibility-negotiation states, and runs schema-compatibility and
+upgrade-policy subchecks. CI supplies `CARTOGRAPH_MATRIX_NODE` from its Node
+matrix; a local runtime outside that window is reported rather than silently
+treated as a supported combination.
+
 ## Practical compatibility
 
 R-005 records the first compatibility review in

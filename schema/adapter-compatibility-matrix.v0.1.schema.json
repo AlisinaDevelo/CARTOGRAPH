@@ -1,0 +1,189 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/adapter-compatibility-matrix.v0.1.schema.json",
+  "title": "CARTOGRAPH adapter compatibility matrix v0.1",
+  "description": "The bounded adapter, capability-fixture, compiler, runtime, and schema dimensions exercised by the local and CI compatibility gate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "matrixId",
+    "runtime",
+    "contracts",
+    "compatibilityFixtures",
+    "requiredCompatibilityStates",
+    "adapters",
+    "commands"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.adapter-compatibility-matrix" },
+    "matrixId": { "$ref": "#/definitions/identifier" },
+    "runtime": { "$ref": "#/definitions/runtime" },
+    "contracts": { "$ref": "#/definitions/contracts" },
+    "compatibilityFixtures": { "$ref": "#/definitions/repositoryPath" },
+    "requiredCompatibilityStates": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/compatibilityState" }
+    },
+    "adapters": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/adapter" }
+    },
+    "commands": {
+      "type": "array",
+      "minItems": 3,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 160 }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "repositoryPath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "nodeLine": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.x$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "compatibilityState": {
+      "type": "string",
+      "enum": ["compatible", "migratable", "experimental", "rejected"]
+    },
+    "diagnosticCode": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]+$"
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node", "typescript", "tsMorph"],
+      "properties": {
+        "node": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/nodeLine" }
+        },
+        "typescript": { "$ref": "#/definitions/semver" },
+        "tsMorph": { "$ref": "#/definitions/semver" }
+      }
+    },
+    "contracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapterApi",
+        "adapterCompatibility",
+        "capabilityRegistry",
+        "graphSchema"
+      ],
+      "properties": {
+        "adapterApi": { "type": "integer", "minimum": 1 },
+        "adapterCompatibility": { "type": "integer", "minimum": 1 },
+        "capabilityRegistry": { "type": "integer", "minimum": 1 },
+        "graphSchema": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "cases"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "cases": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "fixture",
+        "config",
+        "minNodes",
+        "minEdges",
+        "requiredDiagnosticCodes",
+        "unsupportedDiagnosticCodes"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "fixture": { "$ref": "#/definitions/identifier" },
+        "config": {
+          "type": "object",
+          "maxProperties": 32
+        },
+        "minNodes": { "type": "integer", "minimum": 0 },
+        "minEdges": { "type": "integer", "minimum": 0 },
+        "requiredDiagnosticCodes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/diagnosticCode" }
+        },
+        "unsupportedDiagnosticCodes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/diagnosticCode" }
+        }
+      }
+    },
+    "adapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "module",
+        "sourceRoot",
+        "maxDurationMs",
+        "capabilities",
+        "cases"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "module": { "$ref": "#/definitions/repositoryPath" },
+        "sourceRoot": {
+          "type": "string",
+          "enum": ["repository", "test/fixtures/typescript-fastify"]
+        },
+        "maxDurationMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60000
+        },
+        "capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/capability" }
+        },
+        "cases": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/case" }
+        }
+      }
+    }
+  }
+}

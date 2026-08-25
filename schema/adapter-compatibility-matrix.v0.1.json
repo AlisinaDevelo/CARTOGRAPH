@@ -1,0 +1,99 @@
+{
+  "$schema": "./adapter-compatibility-matrix.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.adapter-compatibility-matrix",
+  "matrixId": "cartograph-adapter-compatibility-v0.1",
+  "runtime": {
+    "node": ["22.x", "24.x"],
+    "typescript": "6.0.3",
+    "tsMorph": "28.0.0"
+  },
+  "contracts": {
+    "adapterApi": 1,
+    "adapterCompatibility": 1,
+    "capabilityRegistry": 1,
+    "graphSchema": 1
+  },
+  "compatibilityFixtures": "test/fixtures/adapter-compatibility/scenarios.v0.1.json",
+  "requiredCompatibilityStates": [
+    "compatible",
+    "migratable",
+    "experimental",
+    "rejected"
+  ],
+  "adapters": [
+    {
+      "id": "cartograph.sample",
+      "module": "src/adapters/sample.ts",
+      "sourceRoot": "repository",
+      "maxDurationMs": 1000,
+      "capabilities": [
+        {
+          "id": "sample.fixture",
+          "cases": ["empty", "supported", "unsupported"]
+        }
+      ],
+      "cases": [
+        {
+          "id": "empty",
+          "fixture": "sample/empty",
+          "config": { "fixture": "empty" },
+          "minNodes": 0,
+          "minEdges": 0,
+          "requiredDiagnosticCodes": [],
+          "unsupportedDiagnosticCodes": []
+        },
+        {
+          "id": "supported",
+          "fixture": "sample/supported",
+          "config": { "fixture": "supported" },
+          "minNodes": 2,
+          "minEdges": 1,
+          "requiredDiagnosticCodes": [],
+          "unsupportedDiagnosticCodes": []
+        },
+        {
+          "id": "unsupported",
+          "fixture": "sample/unsupported",
+          "config": { "fixture": "unsupported" },
+          "minNodes": 2,
+          "minEdges": 1,
+          "requiredDiagnosticCodes": [],
+          "unsupportedDiagnosticCodes": ["UNSUPPORTED_SAMPLE_CONSTRUCT"]
+        }
+      ]
+    },
+    {
+      "id": "cartograph.fastify",
+      "module": "src/adapters/fastify.ts",
+      "sourceRoot": "test/fixtures/typescript-fastify",
+      "maxDurationMs": 5000,
+      "capabilities": [
+        {
+          "id": "fastify.routes",
+          "cases": ["bounded-routes"]
+        },
+        {
+          "id": "typescript.graph",
+          "cases": ["bounded-routes"]
+        }
+      ],
+      "cases": [
+        {
+          "id": "bounded-routes",
+          "fixture": "fastify/bounded-routes",
+          "config": {},
+          "minNodes": 8,
+          "minEdges": 5,
+          "requiredDiagnosticCodes": [],
+          "unsupportedDiagnosticCodes": ["UNSUPPORTED_DYNAMIC_FASTIFY_ROUTE"]
+        }
+      ]
+    }
+  ],
+  "commands": [
+    "npm run schema:compatibility",
+    "npm run upgrade:validate",
+    "npm run adapter:compatibility:validate"
+  ]
+}
