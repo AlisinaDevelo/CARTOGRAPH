@@ -57,6 +57,19 @@ Those numbers describe this checked-in fixture only; they are not a population
 risk estimate or a universal impact guarantee. Validate it with
 `npm run impact:validate`.
 
+Q-005 adds the five-case
+[`architecture-query-explanation/scenarios.v0.1.json`](../test/fixtures/architecture-query-explanation/scenarios.v0.1.json)
+corpus and a digest-bound `cartograph.architecture-query-explanation-evaluation`
+report. It replays cycle reachability, depth truncation, a missing-evidence
+publication, an empty selection, and a policy/ADR/ownership projection. Each
+case validates the explanation schema, checks repeated-run byte stability,
+compares expected uncertainty codes and summary counts, and renders JSON,
+Markdown, and HTML. The HTML checks cover the restrictive CSP, skip link,
+focusable main landmark, native disclosures, and the absence of external or
+executable resources. This is a local synthetic corpus: it exercises report
+interpretability and privacy boundaries, not analyzer accuracy over a production
+repository. Validate it with `npm run query:explanation:validate`.
+
 Identity fixtures cover a source-line move, a unique same-name file move, a
 rename supported by an unchanged directed neighborhood, duplicate-name
 ambiguity, a non-mutual destination collision, and a weak unsupported rename.

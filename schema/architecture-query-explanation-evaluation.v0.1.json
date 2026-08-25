@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.architecture-query-explanation-evaluation",
+  "fixtureId": "q005-v0.1",
+  "fixtureDigest": "sha256:12eac22a62d427e3b1c4fa683b7318320b80569bc5cf6ad4865750b5c9caaf6c",
+  "cases": [
+    {
+      "id": "cycle-reachability",
+      "operation": "reachability",
+      "status": "ok",
+      "resultNodes": 5,
+      "resultEdges": 5,
+      "pathCount": 0,
+      "cycleCount": 1,
+      "boundaryCount": 0,
+      "truncated": false,
+      "empty": false,
+      "uncertaintyCodes": [
+        {
+          "code": "cycle",
+          "count": 1
+        },
+        {
+          "code": "missing-evidence",
+          "count": 1
+        }
+      ],
+      "formats": {
+        "json": "sha256:8aa3b4cf918b33567c9b722f65795e55556d7dd80cb6bae6fc2042ab883171c1",
+        "markdown": "sha256:22617b522d64413b0237757e01be6706f28aaa9d57c09f3e42f8ab92909e8492",
+        "html": "sha256:9a098cbd8fa70a16f3d537e7a15b1a1a5995fdad26c4d20c29d48c4d4df706b8"
+      },
+      "htmlAccessible": true,
+      "pass": true
+    },
+    {
+      "id": "depth-truncation",
+      "operation": "reachability",
+      "status": "ok",
+      "resultNodes": 3,
+      "resultEdges": 3,
+      "pathCount": 0,
+      "cycleCount": 0,
+      "boundaryCount": 0,
+      "truncated": true,
+      "empty": false,
+      "uncertaintyCodes": [
+        {
+          "code": "diagnostic",
+          "count": 1
+        },
+        {
+          "code": "missing-evidence",
+          "count": 1
+        },
+        {
+          "code": "truncated",
+          "count": 1
+        }
+      ],
+      "formats": {
+        "json": "sha256:9f7078be3fd8a35150ff2c8dcd2fa96a818031b763590adae0b053a69a798e36",
+        "markdown": "sha256:25f9e586c4a1730bdb54e0f2c4dac396deb043f5559b1956e50bcb2c11361c71",
+        "html": "sha256:1eeabdc43163cdcb7e17e815b1873dd0a9e4989c46caa18a64036c425e33dbed"
+      },
+      "htmlAccessible": true,
+      "pass": true
+    },
+    {
+      "id": "empty-selection",
+      "operation": "select-nodes",
+      "status": "ok",
+      "resultNodes": 0,
+      "resultEdges": 0,
+      "pathCount": 0,
+      "cycleCount": 0,
+      "boundaryCount": 0,
+      "truncated": false,
+      "empty": true,
+      "uncertaintyCodes": [
+        {
+          "code": "empty-result",
+          "count": 1
+        }
+      ],
+      "formats": {
+        "json": "sha256:d3cb666b2afc57aade86161ee5fafbf9c07c9cf7ba72ec49098a062b13b50e83",
+        "markdown": "sha256:d5f8a18caa05ae42fd334da44e2f892b8ebf2dab0ef7b86ccd625de3e2584ef6",
+        "html": "sha256:90caf14fa16aa561b1e9809c6d12999cf49540b56d905c4ffb3d1ade91211f49"
+      },
+      "htmlAccessible": true,
+      "pass": true
+    },
+    {
+      "id": "metadata-context",
+      "operation": "select-nodes",
+      "status": "ok",
+      "resultNodes": 1,
+      "resultEdges": 0,
+      "pathCount": 0,
+      "cycleCount": 0,
+      "boundaryCount": 0,
+      "truncated": false,
+      "empty": false,
+      "uncertaintyCodes": [
+        {
+          "code": "metadata",
+          "count": 1
+        }
+      ],
+      "formats": {
+        "json": "sha256:bec16ed5b065c382e65b4fa561c75e0dea333f2ae096dc958e556bf456dce4bd",
+        "markdown": "sha256:c88be9dbd4ff98251642aeeca40be29198c6ca42d0981d5d0d8e9c845f90d4a9",
+        "html": "sha256:2637330a4e2eb2aa60a04fe58d940d3d711e76fcc204e2f6c2593fcf65f98586"
+      },
+      "htmlAccessible": true,
+      "pass": true
+    },
+    {
+      "id": "missing-publish-evidence",
+      "operation": "select-edges",
+      "status": "ok",
+      "resultNodes": 2,
+      "resultEdges": 1,
+      "pathCount": 0,
+      "cycleCount": 0,
+      "boundaryCount": 0,
+      "truncated": false,
+      "empty": false,
+      "uncertaintyCodes": [
+        {
+          "code": "missing-evidence",
+          "count": 1
+        }
+      ],
+      "formats": {
+        "json": "sha256:d7bf33162a98ba5aef260ddc6eb0e149bfd4bc12f6d06ec783345ae09c9a2146",
+        "markdown": "sha256:59350390bb98de450a7c722701e0262836159b4e73355af42a9017730edd46de",
+        "html": "sha256:94490961fdbf2be6a525b90dd55fb75bc2e91499a9a263bf3ca645d298c93d31"
+      },
+      "htmlAccessible": true,
+      "pass": true
+    }
+  ],
+  "overall": {
+    "cases": 5,
+    "statuses": ["ok"],
+    "uncertaintyCodes": [
+      {
+        "code": "cycle",
+        "count": 1
+      },
+      {
+        "code": "diagnostic",
+        "count": 1
+      },
+      {
+        "code": "empty-result",
+        "count": 1
+      },
+      {
+        "code": "metadata",
+        "count": 1
+      },
+      {
+        "code": "missing-evidence",
+        "count": 3
+      },
+      {
+        "code": "truncated",
+        "count": 1
+      }
+    ],
+    "formatCount": 3
+  },
+  "deterministic": true,
+  "readOnly": true,
+  "reportDigest": "sha256:c00ca0abb7772bc08da1d59ef02ead99a7e66a7578063a03055fae2bfd22c894"
+}

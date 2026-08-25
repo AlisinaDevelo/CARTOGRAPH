@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query-explanation-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH architecture query explanation fixtures v0.1",
+  "description": "Source-free, local-only golden requests for inspectable architecture query explanations.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "contract", "fixtureId", "scope", "cases"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": {
+      "const": "cartograph.architecture-query-explanation-fixtures"
+    },
+    "fixtureId": { "$ref": "#/definitions/identifier" },
+    "scope": { "$ref": "#/definitions/scope" },
+    "cases": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "network",
+        "filesystemWrites",
+        "sourceBodiesIncluded",
+        "execution",
+        "deterministic"
+      ],
+      "properties": {
+        "network": { "const": false },
+        "filesystemWrites": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "execution": { "const": false },
+        "deterministic": { "const": true }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "scenario", "query", "expected"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "scenario": {
+          "enum": [
+            "cycle",
+            "truncation",
+            "missing-evidence",
+            "empty",
+            "metadata"
+          ]
+        },
+        "description": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "query": {
+          "$ref": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query.v0.1.schema.json"
+        },
+        "metadata": { "type": "object" },
+        "expected": { "$ref": "#/definitions/expected" }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "uncertaintyCodes"],
+      "properties": {
+        "status": { "enum": ["ok", "unsupported", "resource-limit"] },
+        "resultNodes": { "type": "integer", "minimum": 0 },
+        "resultEdges": { "type": "integer", "minimum": 0 },
+        "pathCount": { "type": "integer", "minimum": 0 },
+        "cycleCount": { "type": "integer", "minimum": 0 },
+        "boundaryCount": { "type": "integer", "minimum": 0 },
+        "truncated": { "type": "boolean" },
+        "empty": { "type": "boolean" },
+        "metadataPolicies": { "type": "integer", "minimum": 0 },
+        "metadataDecisions": { "type": "integer", "minimum": 0 },
+        "metadataOwnershipHints": { "type": "integer", "minimum": 0 },
+        "metadataDiagnostics": { "type": "integer", "minimum": 0 },
+        "uncertaintyCodes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "cycle",
+              "truncated",
+              "missing-evidence",
+              "diagnostic",
+              "metadata",
+              "empty-result",
+              "unsupported",
+              "resource-limit"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

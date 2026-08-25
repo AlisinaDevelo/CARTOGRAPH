@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query-explanation-evaluation.v0.1.schema.json",
+  "title": "CARTOGRAPH architecture query explanation evaluation v0.1",
+  "description": "Deterministic local evaluation of explanation scenarios and JSON, Markdown, and HTML projections.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "fixtureId",
+    "fixtureDigest",
+    "cases",
+    "overall",
+    "deterministic",
+    "readOnly",
+    "reportDigest"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": {
+      "const": "cartograph.architecture-query-explanation-evaluation"
+    },
+    "fixtureId": { "$ref": "#/definitions/identifier" },
+    "fixtureDigest": { "$ref": "#/definitions/digest" },
+    "cases": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/definitions/case" }
+    },
+    "overall": { "$ref": "#/definitions/overall" },
+    "deterministic": { "const": true },
+    "readOnly": { "const": true },
+    "reportDigest": { "$ref": "#/definitions/digest" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "codeCount": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "count"],
+      "properties": {
+        "code": { "$ref": "#/definitions/identifier" },
+        "count": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "formats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["json", "markdown", "html"],
+      "properties": {
+        "json": { "$ref": "#/definitions/digest" },
+        "markdown": { "$ref": "#/definitions/digest" },
+        "html": { "$ref": "#/definitions/digest" }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "operation",
+        "status",
+        "resultNodes",
+        "resultEdges",
+        "pathCount",
+        "cycleCount",
+        "boundaryCount",
+        "truncated",
+        "empty",
+        "uncertaintyCodes",
+        "formats",
+        "htmlAccessible",
+        "pass"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "operation": { "$ref": "#/definitions/identifier" },
+        "status": { "enum": ["ok", "unsupported", "resource-limit"] },
+        "resultNodes": { "type": "integer", "minimum": 0 },
+        "resultEdges": { "type": "integer", "minimum": 0 },
+        "pathCount": { "type": "integer", "minimum": 0 },
+        "cycleCount": { "type": "integer", "minimum": 0 },
+        "boundaryCount": { "type": "integer", "minimum": 0 },
+        "truncated": { "type": "boolean" },
+        "empty": { "type": "boolean" },
+        "uncertaintyCodes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/codeCount" }
+        },
+        "formats": { "$ref": "#/definitions/formats" },
+        "htmlAccessible": { "const": true },
+        "pass": { "const": true }
+      }
+    },
+    "overall": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cases", "statuses", "uncertaintyCodes", "formatCount"],
+      "properties": {
+        "cases": { "type": "integer", "minimum": 5 },
+        "statuses": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["ok", "unsupported", "resource-limit"] }
+        },
+        "uncertaintyCodes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/codeCount" }
+        },
+        "formatCount": { "const": 3 }
+      }
+    }
+  }
+}

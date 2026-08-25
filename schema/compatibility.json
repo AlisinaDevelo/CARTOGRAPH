@@ -152,6 +152,11 @@
       "supportedReaders": [1],
       "reviewedVersions": [1]
     },
+    "architectureQueryExplanations": {
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
+    },
     "architectureImpacts": {
       "current": 1,
       "supportedReaders": [1],

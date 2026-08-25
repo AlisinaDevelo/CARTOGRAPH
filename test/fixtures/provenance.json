@@ -486,6 +486,15 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "Six bounded graph scenarios exercise reverse callers, policy and runtime boundaries, depth limits, unresolved relationships, unsupported change kinds, edge-kind selection, precision, recall, overreach categories, confidence, evidence IDs, and reviewer-visible uncertainty without source bodies, execution, or network access.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "architecture-query-explanation",
+      "path": "architecture-query-explanation",
+      "source": "CARTOGRAPH repository-authored synthetic query explanation fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Five bounded local requests exercise cycle, truncation, missing-evidence, empty-result, and policy/ADR/ownership metadata explanations across JSON, Markdown, and HTML projections without source bodies, execution, or network access.",
+      "redistribution": "allowed"
     }
   ]
 }

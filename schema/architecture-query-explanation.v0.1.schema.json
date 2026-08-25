@@ -1,0 +1,192 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query-explanation.v0.1.schema.json",
+  "title": "CARTOGRAPH architecture query explanation v0.1",
+  "description": "A deterministic, self-contained explanation joining a normalized local architecture query to its result paths, evidence, metadata context, limits, and explicit uncertainty.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "query",
+    "normalizedPlan",
+    "result",
+    "limits",
+    "summary",
+    "uncertainty",
+    "tool",
+    "deterministic",
+    "readOnly",
+    "network",
+    "sourceBodiesIncluded"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.architecture-query-explanation" },
+    "query": {
+      "$ref": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query.v0.1.schema.json"
+    },
+    "normalizedPlan": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000000
+    },
+    "result": {
+      "$ref": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query-result.v0.1.schema.json"
+    },
+    "limits": { "$ref": "#/definitions/limits" },
+    "summary": { "$ref": "#/definitions/summary" },
+    "uncertainty": {
+      "type": "array",
+      "maxItems": 100000,
+      "items": { "$ref": "#/definitions/uncertainty" }
+    },
+    "tool": { "$ref": "#/definitions/tool" },
+    "deterministic": { "const": true },
+    "readOnly": { "const": true },
+    "network": { "const": false },
+    "sourceBodiesIncluded": { "const": false }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxDepth",
+        "maxNodes",
+        "maxEdges",
+        "maxTimeMs",
+        "maxResultBytes"
+      ],
+      "properties": {
+        "maxDepth": { "type": "integer", "minimum": 0, "maximum": 64 },
+        "maxNodes": { "type": "integer", "minimum": 1, "maximum": 100000 },
+        "maxEdges": { "type": "integer", "minimum": 1, "maximum": 200000 },
+        "maxTimeMs": { "type": "integer", "minimum": 1, "maximum": 120000 },
+        "maxResultBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16777216
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resultNodes",
+        "resultEdges",
+        "pathCount",
+        "cycleCount",
+        "boundaryCount",
+        "diagnosticCount",
+        "evidenceCount",
+        "missingEvidenceEdges",
+        "edgeKinds",
+        "metadataPolicies",
+        "metadataDecisions",
+        "metadataOwnershipHints",
+        "metadataDiagnostics",
+        "truncated",
+        "empty"
+      ],
+      "properties": {
+        "resultNodes": { "type": "integer", "minimum": 0 },
+        "resultEdges": { "type": "integer", "minimum": 0 },
+        "pathCount": { "type": "integer", "minimum": 0 },
+        "cycleCount": { "type": "integer", "minimum": 0 },
+        "boundaryCount": { "type": "integer", "minimum": 0 },
+        "diagnosticCount": { "type": "integer", "minimum": 0 },
+        "evidenceCount": { "type": "integer", "minimum": 0 },
+        "missingEvidenceEdges": { "type": "integer", "minimum": 0 },
+        "edgeKinds": {
+          "type": "array",
+          "maxItems": 12,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "metadataPolicies": { "type": "integer", "minimum": 0 },
+        "metadataDecisions": { "type": "integer", "minimum": 0 },
+        "metadataOwnershipHints": { "type": "integer", "minimum": 0 },
+        "metadataDiagnostics": { "type": "integer", "minimum": 0 },
+        "truncated": { "type": "boolean" },
+        "empty": { "type": "boolean" }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "kind"],
+      "properties": {
+        "from": { "$ref": "#/definitions/identifier" },
+        "to": { "$ref": "#/definitions/identifier" },
+        "kind": { "$ref": "#/definitions/identifier" }
+      }
+    },
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "code", "message", "nodeIds", "evidenceIds"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "code": {
+          "enum": [
+            "cycle",
+            "truncated",
+            "missing-evidence",
+            "diagnostic",
+            "metadata",
+            "empty-result",
+            "unsupported",
+            "resource-limit"
+          ]
+        },
+        "message": { "$ref": "#/definitions/identifier" },
+        "nodeIds": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "edge": { "$ref": "#/definitions/edge" },
+        "evidenceIds": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "querySchemaVersion",
+        "resultSchemaVersion",
+        "capabilityRegistryVersion",
+        "explanationSchemaVersion",
+        "formats"
+      ],
+      "properties": {
+        "name": { "const": "cartograph-cli" },
+        "version": { "$ref": "#/definitions/identifier" },
+        "querySchemaVersion": { "const": 1 },
+        "resultSchemaVersion": { "const": 1 },
+        "capabilityRegistryVersion": { "const": 1 },
+        "explanationSchemaVersion": { "const": 1 },
+        "formats": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": { "enum": ["json", "markdown", "html"] }
+        }
+      }
+    }
+  }
+}

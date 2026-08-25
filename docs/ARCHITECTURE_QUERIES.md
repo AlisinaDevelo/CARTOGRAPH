@@ -118,3 +118,28 @@ CLI query command and hosted query service remain outside this contract.
 Only `source-body-search`, `remote-query`, and `mutation` remain explicit
 unsupported operations; they return a deterministic warning rather than being
 guessed or silently executed.
+
+## Inspectable explanations
+
+Q-005 adds the versioned
+[`cartograph.architecture-query-explanation`](../schema/architecture-query-explanation.v0.1.schema.json)
+contract. `buildArchitectureQueryExplanation` joins one normalized query to
+its already-computed result without executing another query or consulting a
+repository. The portable object carries the canonical query plan, complete
+result nodes and edges, ordered paths/cycles/boundary crossings, projected
+evidence, policy/ADR/ownership metadata, explicit limits, tool and capability
+versions, and uncertainty records for cycles, truncation, missing evidence,
+diagnostics, unsupported metadata, and empty results.
+
+The report projection is available as JSON, Markdown, or a self-contained HTML
+document through `renderArchitectureQueryExplanation`. HTML uses a restrictive
+content-security policy, a keyboard-focusable `<main>` landmark, a skip link,
+semantic headings, and native `<details>` disclosures. All three formats are
+deterministic across repeated runs. Reports remain local, read-only, network-
+free, and source-body-free; evidence locations and IDs are retained, but source
+contents are never copied. The five-case corpus and baseline evaluation cover
+cycles, depth truncation, missing evidence, empty results, and metadata context:
+
+```sh
+npm run query:explanation:validate
+```

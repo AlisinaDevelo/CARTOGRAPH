@@ -133,6 +133,24 @@ export {
   type ArchitectureQueryStatus,
 } from "./query.js";
 export {
+  ARCHITECTURE_QUERY_EXPLANATION_CONTRACT,
+  ARCHITECTURE_QUERY_EXPLANATION_SCHEMA_VERSION,
+  ARCHITECTURE_QUERY_EXPLANATION_TOOL_VERSION,
+  ArchitectureQueryExplanationSchema,
+  ArchitectureQueryExplanationSummarySchema,
+  ArchitectureQueryExplanationToolSchema,
+  ArchitectureQueryExplanationUncertaintyCodeSchema,
+  ArchitectureQueryExplanationUncertaintySchema,
+  buildArchitectureQueryExplanation,
+  explainArchitectureQuery,
+  serializeArchitectureQueryExplanation,
+  type ArchitectureQueryExplanation,
+  type ArchitectureQueryExplanationSummary,
+  type ArchitectureQueryExplanationTool,
+  type ArchitectureQueryExplanationUncertainty,
+  type ArchitectureQueryExplanationUncertaintyCode,
+} from "./query-explanation.js";
+export {
   ARCHITECTURE_QUERY_ADR_DIAGNOSTIC_CODES,
   ARCHITECTURE_QUERY_METADATA_CONTRACT,
   ARCHITECTURE_QUERY_METADATA_SCHEMA_VERSION,

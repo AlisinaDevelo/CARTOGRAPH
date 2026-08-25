@@ -85,6 +85,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/remediation-review.ts" ||
       file === "src/core/remediation-evaluation.ts" ||
       file === "src/core/query.ts" ||
+      file === "src/core/query-explanation.ts" ||
       file === "src/core/impact-model.ts" ||
       file === "src/report/adr.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
@@ -120,6 +121,11 @@ const checkHostedVersionChange = () => {
       file === "schema/remediation-evaluation.v0.1.schema.json" ||
       file === "schema/architecture-query.v0.1.schema.json" ||
       file === "schema/architecture-query-result.v0.1.schema.json" ||
+      file === "schema/architecture-query-explanation.v0.1.schema.json" ||
+      file ===
+        "schema/architecture-query-explanation-fixtures.v0.1.schema.json" ||
+      file ===
+        "schema/architecture-query-explanation-evaluation.v0.1.schema.json" ||
       file === "schema/architecture-impact.v0.1.schema.json" ||
       file === "schema/architecture-impact-fixtures.v0.1.schema.json" ||
       file === "schema/architecture-impact-evaluation.v0.1.schema.json" ||
@@ -176,6 +182,7 @@ const checkCompatibility = () => {
     "src/core/remediation-evaluation.ts",
   );
   const querySource = readText("src/core/query.ts");
+  const queryExplanationSource = readText("src/core/query-explanation.ts");
   const impactSource = readText("src/core/impact-model.ts");
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
   const supportSchema = readJson("schema/support-matrix.v0.1.schema.json");
@@ -249,6 +256,9 @@ const checkCompatibility = () => {
   );
   const architectureQueryResultSchema = readJson(
     "schema/architecture-query-result.v0.1.schema.json",
+  );
+  const architectureQueryExplanationSchema = readJson(
+    "schema/architecture-query-explanation.v0.1.schema.json",
   );
   const architectureImpactSchema = readJson(
     "schema/architecture-impact.v0.1.schema.json",
@@ -356,6 +366,10 @@ const checkCompatibility = () => {
     querySource,
     "ARCHITECTURE_QUERY_SCHEMA_VERSION",
   );
+  const architectureQueryExplanationVersion = sourceVersion(
+    queryExplanationSource,
+    "ARCHITECTURE_QUERY_EXPLANATION_SCHEMA_VERSION",
+  );
   const architectureImpactVersion = sourceVersion(
     impactSource,
     "ARCHITECTURE_IMPACT_SCHEMA_VERSION",
@@ -389,6 +403,7 @@ const checkCompatibility = () => {
     remediationReviewVersion === undefined ||
     remediationEvaluationVersion === undefined ||
     architectureQueryVersion === undefined ||
+    architectureQueryExplanationVersion === undefined ||
     architectureImpactVersion === undefined
   ) {
     throw new Error("runtime schema version constants are missing");
@@ -680,6 +695,16 @@ const checkCompatibility = () => {
     architectureQueryVersion,
   );
   requireEqual(
+    "architecture query explanation runtime/policy",
+    architectureQueryExplanationVersion,
+    contracts.architectureQueryExplanations.current,
+  );
+  requireEqual(
+    "architecture query explanation JSON Schema/runtime",
+    architectureQueryExplanationSchema.properties.schemaVersion.const,
+    architectureQueryExplanationVersion,
+  );
+  requireEqual(
     "architecture impact runtime/policy",
     architectureImpactVersion,
     contracts.architectureImpacts.current,
@@ -725,6 +750,7 @@ const checkCompatibility = () => {
     remediationReviewVersion,
     remediationEvaluationVersion,
     architectureQueryVersion,
+    architectureQueryExplanationVersion,
     architectureImpactVersion,
   };
 };
