@@ -70,6 +70,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Validate documented workflow
+        run: npm run workflow:validate
+
       - name: Verify package contents
         run: npm pack --dry-run --ignore-scripts --json
 
