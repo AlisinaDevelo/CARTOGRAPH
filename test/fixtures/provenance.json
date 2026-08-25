@@ -299,6 +299,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "typescript-async",
+      "path": "typescript-async",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A bounded TypeScript fixture exercises EventEmitter publication and registration, Bull/BullMQ queue bindings, timer and microtask callbacks, local callback passing, and dynamic or unsupported diagnostics.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "language-neutral",
       "path": "language-neutral",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

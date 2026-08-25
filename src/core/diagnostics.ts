@@ -194,6 +194,58 @@ export const DIAGNOSTIC_REGISTRY: DiagnosticRegistry =
         remediation:
           "Use literal Fastify route methods and URLs, or review dynamic registration manually.",
       },
+      {
+        code: "UNSUPPORTED_DYNAMIC_EVENT_NAME",
+        severity: "warning",
+        message:
+          "Event name must be a literal string for a confident event edge.",
+        evidence: { kind: "source", location: "source-span" },
+        remediation:
+          "Use a literal EventEmitter event name or review the runtime dispatch manually.",
+      },
+      {
+        code: "UNSUPPORTED_EVENT_REFLECTION",
+        severity: "warning",
+        message: "Event handler must be a statically resolvable callable.",
+        evidence: { kind: "source", location: "source-span" },
+        remediation:
+          "Pass a local function or statically bound handler instead of a string or reflective event target.",
+      },
+      {
+        code: "UNSUPPORTED_QUEUE_CLIENT",
+        severity: "warning",
+        message:
+          "Queue client is outside the supported Bull and BullMQ registration subset.",
+        evidence: { kind: "source", location: "source-span" },
+        remediation:
+          "Use the supported Bull or BullMQ queue registration pattern, or review the client manually before relying on its edges.",
+      },
+      {
+        code: "UNSUPPORTED_DYNAMIC_QUEUE_NAME",
+        severity: "warning",
+        message:
+          "Queue name must be a literal string for a confident queue edge.",
+        evidence: { kind: "source", location: "source-span" },
+        remediation:
+          "Use a literal queue name or review the runtime queue selection manually.",
+      },
+      {
+        code: "UNSUPPORTED_CALLBACK_REFLECTION",
+        severity: "warning",
+        message:
+          "Asynchronous callback must be a statically resolvable callable.",
+        evidence: { kind: "source", location: "source-span" },
+        remediation:
+          "Pass a local function or statically bound callback instead of a string or reflective target.",
+      },
+      {
+        code: "UNRESOLVED_ASYNC_HANDLER",
+        severity: "warning",
+        message: "Could not resolve an asynchronous event or queue handler.",
+        evidence: { kind: "source", location: "source-span" },
+        remediation:
+          "Keep the asynchronous handler local and statically resolvable, or review the registration manually.",
+      },
     ],
   });
 

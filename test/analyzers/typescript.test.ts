@@ -15,6 +15,10 @@ const fixtureRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
   "../fixtures/typescript-express",
 );
+const asyncFixtureRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../fixtures/typescript-async",
+);
 const exclusionsRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
   "../fixtures/exclusions",
@@ -77,6 +81,62 @@ describe("TypeScript analyzer", () => {
       ].sort(),
     ).toEqual([...new Set(expected.diagnostics)].sort());
     expect(snapshot.diagnostics).toHaveLength(8);
+  });
+
+  it("represents bounded event, queue, timer, and callback relationships", () => {
+    const expected = JSON.parse(
+      readFileSync(resolve(asyncFixtureRoot, "expected.json"), "utf8"),
+    ) as {
+      diagnostics: string[];
+      edges: [string, string, string][];
+    };
+    const snapshot = parseGraphSnapshot(
+      analyzeTypeScriptRepository({ rootDir: asyncFixtureRoot }),
+    );
+    const edges = snapshot.edges.map(
+      (edge) => [edge.kind, edge.from, edge.to] as [string, string, string],
+    );
+
+    expect(
+      [...edges].sort((left, right) =>
+        JSON.stringify(left).localeCompare(JSON.stringify(right)),
+      ),
+    ).toEqual(
+      [...expected.edges].sort((left, right) =>
+        JSON.stringify(left).localeCompare(JSON.stringify(right)),
+      ),
+    );
+    expect(
+      snapshot.diagnostics.map((diagnostic) => diagnostic.code).sort(),
+    ).toEqual(expected.diagnostics);
+    expect(
+      snapshot.nodes.some(
+        (node) => node.stableKey === "queue:event:order.reflected",
+      ),
+    ).toBe(false);
+    expect(snapshot.diagnostics).toHaveLength(5);
+    for (const edge of snapshot.edges.filter(
+      (candidate) =>
+        candidate.kind === "publishes" ||
+        candidate.kind === "subscribes" ||
+        candidate.from.startsWith("queue:"),
+    )) {
+      expect(edge.evidence.length).toBeGreaterThan(0);
+      expect(
+        edge.evidence.every((evidence) =>
+          evidence.detector?.startsWith(
+            "cartograph.typescript-express@1/async/",
+          ),
+        ),
+      ).toBe(true);
+    }
+    expect(JSON.stringify(snapshot)).toBe(
+      JSON.stringify(
+        parseGraphSnapshot(
+          analyzeTypeScriptRepository({ rootDir: asyncFixtureRoot }),
+        ),
+      ),
+    );
   });
 
   it("extracts a local import and a semantically resolved call", () => {

@@ -49,16 +49,17 @@ This matrix is the public boundary of the first analyzer. A construct is support
 
 ## Supported constructs
 
-| Construct                                                                               | Status    | Evidence source                                          | Unknown or excluded behavior                                                                                                     |
-| --------------------------------------------------------------------------------------- | --------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| TypeScript `.ts`, `.tsx`, `.mts`, and `.cts` files                                      | Supported | TypeScript compiler program and normalized source spans  | JavaScript files and declaration files are excluded; generated and dependency directories are excluded                           |
-| Local and external imports, re-exports, literal dynamic imports, and literal `require`  | Supported | Import or export syntax at the source location           | Non-literal module expressions produce an unresolved diagnostic rather than a guessed edge                                       |
-| Node16/NodeNext package `exports` and `imports` maps                                    | Supported | TypeScript resolver outcome plus package-map source span | `import`/`require`/`node`/`types` branches are deterministic; additional environment branches emit `AMBIGUOUS_PACKAGE_CONDITION` |
-| Named functions, class methods, and variable-bound arrow functions                      | Supported | Declaration and symbol spans from the TypeScript program | Anonymous or dynamically-created call targets remain unresolved                                                                  |
-| Statically resolvable calls                                                             | Supported | TypeScript symbol resolution at the call site            | Dynamic dispatch and unresolved symbols do not become confident call edges                                                       |
-| Direct Express `app` or `router` routes and bounded `use` middleware with literal paths | Supported | Express registration call and handler source spans       | Dynamic route registration, computed paths, and framework metaprogramming produce diagnostics                                    |
-| Literal `fetch` and Axios destinations                                                  | Supported | Literal URL argument and request call span               | Computed or runtime-only destinations remain unresolved                                                                          |
-| Conventional Prisma model reads and writes                                              | Supported | Prisma model operation and source span                   | Dynamic model names and unsupported client wrappers remain unresolved                                                            |
+| Construct                                                                               | Status    | Evidence source                                            | Unknown or excluded behavior                                                                                                     |
+| --------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| TypeScript `.ts`, `.tsx`, `.mts`, and `.cts` files                                      | Supported | TypeScript compiler program and normalized source spans    | JavaScript files and declaration files are excluded; generated and dependency directories are excluded                           |
+| Local and external imports, re-exports, literal dynamic imports, and literal `require`  | Supported | Import or export syntax at the source location             | Non-literal module expressions produce an unresolved diagnostic rather than a guessed edge                                       |
+| Node16/NodeNext package `exports` and `imports` maps                                    | Supported | TypeScript resolver outcome plus package-map source span   | `import`/`require`/`node`/`types` branches are deterministic; additional environment branches emit `AMBIGUOUS_PACKAGE_CONDITION` |
+| Named functions, class methods, and variable-bound arrow functions                      | Supported | Declaration and symbol spans from the TypeScript program   | Anonymous or dynamically-created call targets remain unresolved                                                                  |
+| Statically resolvable calls                                                             | Supported | TypeScript symbol resolution at the call site              | Dynamic dispatch and unresolved symbols do not become confident call edges                                                       |
+| Literal EventEmitter events, bounded Bull/BullMQ queues, timers, and local callbacks    | Supported | Registration, publication, queue, and handler source spans | Dynamic event or queue names, reflective handlers, unsupported clients, and unresolved callbacks remain diagnostics              |
+| Direct Express `app` or `router` routes and bounded `use` middleware with literal paths | Supported | Express registration call and handler source spans         | Dynamic route registration, computed paths, and framework metaprogramming produce diagnostics                                    |
+| Literal `fetch` and Axios destinations                                                  | Supported | Literal URL argument and request call span                 | Computed or runtime-only destinations remain unresolved                                                                          |
+| Conventional Prisma model reads and writes                                              | Supported | Prisma model operation and source span                     | Dynamic model names and unsupported client wrappers remain unresolved                                                            |
 
 The X-002 golden fixture covers named re-exports, star re-exports, literal
 dynamic `import()`, literal `require()`, and non-literal dynamic module
@@ -70,6 +71,14 @@ The X-003 golden fixture covers direct `app` and `router` route methods,
 bound global middleware. Middleware registrations are represented as `USE`
 endpoint nodes with handler call edges and source evidence; computed mount paths
 remain explicit `UNSUPPORTED_DYNAMIC_ROUTE` diagnostics.
+
+The X-011 golden fixture covers literal EventEmitter publication and listener
+registration, Bull/BullMQ queue publication and worker/process registration,
+timer and microtask callbacks, and local callback parameters invoked by their
+callee. Registration and handler edges retain separate source evidence.
+Dynamic event or queue names, string-only reflection, unsupported queue clients,
+and unresolved callbacks remain stable diagnostics; no runtime dispatch is
+guessed.
 
 The X-004 diagnostic registry gives every supported unknown case a unique code,
 warning severity, source-span evidence contract, and actionable remediation.
