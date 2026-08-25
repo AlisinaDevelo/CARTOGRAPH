@@ -144,9 +144,7 @@
   ],
   "overall": {
     "cases": 5,
-    "statuses": [
-      "ok"
-    ],
+    "statuses": ["ok"],
     "uncertaintyCodes": [
       {
         "code": "cycle",
