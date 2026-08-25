@@ -209,6 +209,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "claims-audit",
+      "path": "claims-audit",
+      "source": "CARTOGRAPH repository-authored Year 1–3 claims audit fixture",
+      "license": "Apache-2.0",
+      "reference": "M-011 Year 1–3 claims audit; Year 3 strategy gate; Year 4 conditional charter",
+      "transformation": "The audit records material capability, quality, privacy, adoption, and maintenance claims with local evidence paths, reproducible commands, explicit limitations, and Year 4 feed links without source bodies, private data, or network collection.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "review-regressions",
       "path": "review-regressions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

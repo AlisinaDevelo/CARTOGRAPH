@@ -1,0 +1,302 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/claims-audit.v0.1.schema.json",
+  "title": "CARTOGRAPH Year 1–3 claims audit v0.1",
+  "description": "A local, reproducible audit of material Year 1–3 capability, quality, privacy, adoption, and maintenance claims.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "auditId",
+    "asOf",
+    "scope",
+    "sourceInventory",
+    "claims",
+    "year4Charter",
+    "summary",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.claims-audit" },
+    "mediaType": { "const": "application/vnd.cartograph.claims-audit+json" },
+    "auditId": { "const": "claims-audit-year1-3-v0.1" },
+    "asOf": { "$ref": "#/definitions/dateTime" },
+    "scope": { "$ref": "#/definitions/scope" },
+    "sourceInventory": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 48,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/portablePath" }
+    },
+    "claims": {
+      "type": "array",
+      "minItems": 32,
+      "maxItems": 32,
+      "items": { "$ref": "#/definitions/claim" }
+    },
+    "year4Charter": { "$ref": "#/definitions/year4Charter" },
+    "summary": { "$ref": "#/definitions/summary" },
+    "provenance": { "$ref": "#/definitions/provenance" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._/-][a-z0-9]+)*$"
+    },
+    "dateTime": { "type": "string", "format": "date-time" },
+    "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "portablePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!/)(?!~)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)(?!.*\\u0000).+$"
+    },
+    "year": { "enum": [1, 2, 3] },
+    "category": {
+      "enum": ["capability", "quality", "privacy", "adoption", "maintenance"]
+    },
+    "status": {
+      "enum": [
+        "verified",
+        "partial",
+        "unsupported",
+        "negative",
+        "not-observed",
+        "deferred"
+      ]
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "years",
+        "materialClaimRule",
+        "network",
+        "sourceBodiesIncluded",
+        "privateDataIncluded",
+        "collectionMode",
+        "retention"
+      ],
+      "properties": {
+        "years": {
+          "type": "array",
+          "const": [1, 2, 3]
+        },
+        "materialClaimRule": {
+          "const": "roadmap exit-gates and strategy-decision assertions"
+        },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "privateDataIncluded": { "const": false },
+        "collectionMode": { "const": "local-repository-evidence-only" },
+        "retention": { "const": "claims-and-digests-only" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "kind", "command", "locator"],
+      "properties": {
+        "path": { "$ref": "#/definitions/portablePath" },
+        "kind": {
+          "enum": [
+            "document",
+            "fixture",
+            "schema",
+            "validator",
+            "test",
+            "release-record"
+          ]
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^(?:npm run |npx vitest run |node scripts/|git diff --check)"
+        },
+        "locator": { "$ref": "#/definitions/text" }
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "year",
+        "category",
+        "statement",
+        "status",
+        "finding",
+        "evidence",
+        "limitations",
+        "feedsYear4"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "year": { "$ref": "#/definitions/year" },
+        "category": { "$ref": "#/definitions/category" },
+        "statement": { "$ref": "#/definitions/text" },
+        "status": { "$ref": "#/definitions/status" },
+        "finding": { "$ref": "#/definitions/text" },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": { "$ref": "#/definitions/evidence" }
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "feedsYear4": {
+          "type": "array",
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "year4Entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "linkedClaimIds", "action", "gate"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "title": { "$ref": "#/definitions/text" },
+        "linkedClaimIds": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "action": { "$ref": "#/definitions/text" },
+        "gate": { "$ref": "#/definitions/text" }
+      }
+    },
+    "year4Charter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["investmentDecision", "hostedExpansion", "guard", "entries"],
+      "properties": {
+        "investmentDecision": { "const": "conditional-maintenance-first" },
+        "hostedExpansion": { "const": "deferred" },
+        "guard": {
+          "const": "Year 4 work cannot authorize hosted, account, source-upload, or hidden-collection scope without a new public RFC and reviewed ADR."
+        },
+        "entries": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": { "$ref": "#/definitions/year4Entry" }
+        }
+      }
+    },
+    "countMap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verified",
+        "partial",
+        "unsupported",
+        "negative",
+        "notObserved",
+        "deferred"
+      ],
+      "properties": {
+        "verified": { "type": "integer", "minimum": 0 },
+        "partial": { "type": "integer", "minimum": 0 },
+        "unsupported": { "type": "integer", "minimum": 0 },
+        "negative": { "type": "integer", "minimum": 0 },
+        "notObserved": { "type": "integer", "minimum": 0 },
+        "deferred": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claimCount",
+        "yearCounts",
+        "categoryCounts",
+        "statusCounts",
+        "verifiedClaims",
+        "nonVerifiedClaims",
+        "network",
+        "sourceBodiesIncluded",
+        "privateDataIncluded",
+        "hostedExpansion"
+      ],
+      "properties": {
+        "claimCount": { "const": 32 },
+        "yearCounts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["year1", "year2", "year3"],
+          "properties": {
+            "year1": { "type": "integer", "minimum": 0 },
+            "year2": { "type": "integer", "minimum": 0 },
+            "year3": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "categoryCounts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "capability",
+            "quality",
+            "privacy",
+            "adoption",
+            "maintenance"
+          ],
+          "properties": {
+            "capability": { "type": "integer", "minimum": 0 },
+            "quality": { "type": "integer", "minimum": 0 },
+            "privacy": { "type": "integer", "minimum": 0 },
+            "adoption": { "type": "integer", "minimum": 0 },
+            "maintenance": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "statusCounts": { "$ref": "#/definitions/countMap" },
+        "verifiedClaims": { "type": "integer", "minimum": 0 },
+        "nonVerifiedClaims": { "type": "integer", "minimum": 0 },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "privateDataIncluded": { "const": false },
+        "hostedExpansion": { "const": "deferred" }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generatedBy",
+        "sourceBodiesIncluded",
+        "privateDataIncluded",
+        "network",
+        "license",
+        "redistribution"
+      ],
+      "properties": {
+        "generatedBy": {
+          "const": "CARTOGRAPH repository-authored claim register"
+        },
+        "sourceBodiesIncluded": { "const": false },
+        "privateDataIncluded": { "const": false },
+        "network": { "const": false },
+        "license": { "const": "Apache-2.0" },
+        "redistribution": { "const": "allowed" }
+      }
+    }
+  }
+}
