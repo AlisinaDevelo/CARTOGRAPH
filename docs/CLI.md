@@ -82,11 +82,13 @@ command.
 `policy [root] --policy <path> --snapshot <path>` or
 `policy [root] --policy <path> --diff <path>` evaluates a repository-local policy
 against a canonical graph artifact. Exactly one input kind is required. The
-policy file must be a regular repository-relative JSON file; the graph artifact
-is bounded and parsed as a snapshot or GraphDiff. `--mode informational` is the
-non-blocking default when supplied; omitting `--mode` uses the policy file's
-mode. `--mode enforce` is the explicit CI gate and still emits the canonical
-policy-evaluation report before returning its findings status.
+policy file must be a regular repository-relative JSON file; its bounded local
+`includes` are composed deterministically before evaluation, without network or
+remote resolution. The graph artifact is bounded and parsed as a snapshot or
+GraphDiff. `--mode informational` is the non-blocking default when supplied;
+omitting `--mode` uses the composed policy's mode. `--mode enforce` is the
+explicit CI gate and still emits the canonical policy-evaluation report before
+returning its findings status.
 
 ## Output and diagnostic streams
 

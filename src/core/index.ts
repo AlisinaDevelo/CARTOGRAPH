@@ -174,7 +174,9 @@ export {
   PolicyConfigValidationError,
   LocalPolicyDiffSelectorSchema,
   LocalPolicyEdgeSelectorSchema,
+  LocalPolicyIncludeSchema,
   LocalPolicyNodeSelectorSchema,
+  LocalPolicyPathSchema,
   LocalPolicyRuleSchema,
   parsePolicyConfig,
   readPolicyConfig,
@@ -182,6 +184,7 @@ export {
   type PolicyConfig,
   type LocalPolicyDiffSelector,
   type LocalPolicyEdgeSelector,
+  type LocalPolicyInclude,
   type LocalPolicyNodeSelector,
   type LocalPolicyRule,
 } from "./policy.js";
@@ -226,6 +229,22 @@ export {
   type PolicyUnsupported,
   type PolicyViolation,
 } from "./policy-evaluation.js";
+export {
+  composePolicyConfig,
+  POLICY_COMPOSITION_CONTRACT,
+  POLICY_COMPOSITION_MAX_DEPTH,
+  POLICY_COMPOSITION_MAX_FILES,
+  POLICY_COMPOSITION_MAX_OVERRIDES,
+  POLICY_COMPOSITION_MAX_RULES,
+  POLICY_COMPOSITION_SCHEMA_VERSION,
+  PolicyCompositionError,
+  PolicyCompositionSchema,
+  serializePolicyComposition,
+  type PolicyComposition,
+  type PolicyCompositionErrorCode,
+  type PolicyCompositionOverride,
+  type PolicyCompositionSource,
+} from "./policy-composition.js";
 export {
   parsePolicyCiMode,
   policyCiExitCode,

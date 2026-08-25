@@ -31,6 +31,23 @@ const SelectorValueSchema = z
     "must not contain control characters",
   );
 
+export const LocalPolicyPathSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(1_024)
+  .refine((value) => {
+    const normalized = value.replaceAll("\\", "/");
+    return (
+      !normalized.startsWith("/") &&
+      !normalized.startsWith("~") &&
+      !normalized.startsWith("//") &&
+      !normalized.includes("\0") &&
+      !/^[A-Za-z][A-Za-z\d+.-]*:/.test(normalized) &&
+      !normalized.split("/").some((part) => part === "..")
+    );
+  }, "must be a repository-relative local policy path");
+
 const NameSelectorSchema = z
   .string()
   .trim()
@@ -143,6 +160,12 @@ const AssertionSchema = z.enum([
 
 const EffectSchema = z.enum(["informational", "enforce"]);
 
+export const LocalPolicyIncludeSchema = z
+  .object({
+    path: LocalPolicyPathSchema,
+  })
+  .strict();
+
 const ruleInvariant = (
   rule: {
     assertion: z.infer<typeof AssertionSchema>;
@@ -224,6 +247,10 @@ export const PolicyConfigSchema = z
     policyId: IdentifierSchema,
     version: SemverSchema,
     mode: EffectSchema.default("informational"),
+    scope: IdentifierSchema.default("repository"),
+    precedence: z.number().int().nonnegative().max(1_000).default(0),
+    overrideLimit: z.number().int().nonnegative().max(128).default(0),
+    includes: z.array(LocalPolicyIncludeSchema).max(32).default([]),
     rules: z.array(LocalPolicyRuleSchema).min(1).max(256),
   })
   .strict();
@@ -237,6 +264,7 @@ export type LocalPolicyEdgeSelector = z.infer<
 export type LocalPolicyDiffSelector = z.infer<
   typeof LocalPolicyDiffSelectorSchema
 >;
+export type LocalPolicyInclude = z.infer<typeof LocalPolicyIncludeSchema>;
 export type LocalPolicyRule = z.infer<typeof LocalPolicyRuleSchema>;
 export type PolicyConfig = z.infer<typeof PolicyConfigSchema>;
 

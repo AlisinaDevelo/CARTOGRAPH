@@ -1,0 +1,433 @@
+{
+  "$schema": "../../../schema/policy-composition-fixtures.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.policy-composition-fixtures",
+  "fixtureId": "policy-composition-v0-1",
+  "cases": [
+    {
+      "id": "deterministic-override",
+      "expectation": "positive",
+      "root": "root.json",
+      "files": {
+        "root.json": {
+          "schemaVersion": 1,
+          "policyId": "root-composition",
+          "version": "1.0.0",
+          "scope": "repository",
+          "precedence": 100,
+          "includes": [{ "path": "base.json" }, { "path": "child.json" }],
+          "rules": [
+            {
+              "id": "root-sentinel",
+              "target": "node",
+              "selector": { "kind": "module" },
+              "assertion": "exists"
+            }
+          ]
+        },
+        "base.json": {
+          "schemaVersion": 1,
+          "policyId": "base-policy",
+          "version": "1.0.0",
+          "scope": "repository",
+          "precedence": 10,
+          "rules": [
+            {
+              "id": "endpoint-required",
+              "target": "node",
+              "selector": { "kind": "endpoint" },
+              "assertion": "exists"
+            },
+            {
+              "id": "endpoint-limit",
+              "target": "node",
+              "selector": { "kind": "endpoint" },
+              "assertion": "count-at-most",
+              "value": 10
+            }
+          ]
+        },
+        "child.json": {
+          "schemaVersion": 1,
+          "policyId": "child-policy",
+          "version": "1.0.0",
+          "scope": "repository",
+          "precedence": 20,
+          "overrideLimit": 1,
+          "rules": [
+            {
+              "id": "endpoint-required",
+              "target": "node",
+              "selector": { "kind": "endpoint" },
+              "assertion": "exists"
+            },
+            {
+              "id": "endpoint-limit",
+              "target": "node",
+              "selector": { "kind": "endpoint" },
+              "assertion": "count-at-most",
+              "value": 5
+            }
+          ]
+        }
+      },
+      "expectedRules": ["endpoint-limit", "endpoint-required", "root-sentinel"],
+      "expectedOverrides": 1
+    },
+    {
+      "id": "scope-isolation",
+      "expectation": "positive",
+      "root": "root.json",
+      "files": {
+        "root.json": {
+          "schemaVersion": 1,
+          "policyId": "scoped-root",
+          "version": "1.0.0",
+          "includes": [{ "path": "frontend.json" }, { "path": "backend.json" }],
+          "rules": [
+            {
+              "id": "repository-module",
+              "target": "node",
+              "selector": { "kind": "module" },
+              "assertion": "exists"
+            }
+          ]
+        },
+        "frontend.json": {
+          "schemaVersion": 1,
+          "policyId": "frontend-policy",
+          "version": "1.0.0",
+          "scope": "frontend",
+          "precedence": 10,
+          "rules": [
+            {
+              "id": "frontend-endpoint",
+              "target": "node",
+              "selector": { "kind": "endpoint" },
+              "assertion": "exists"
+            }
+          ]
+        },
+        "backend.json": {
+          "schemaVersion": 1,
+          "policyId": "backend-policy",
+          "version": "1.0.0",
+          "scope": "backend",
+          "precedence": 10,
+          "rules": [
+            {
+              "id": "backend-endpoint",
+              "target": "node",
+              "selector": { "kind": "endpoint" },
+              "assertion": "absent"
+            }
+          ]
+        }
+      },
+      "expectedRules": [
+        "backend-endpoint",
+        "frontend-endpoint",
+        "repository-module"
+      ],
+      "expectedOverrides": 0
+    },
+    {
+      "id": "duplicate-id-local",
+      "expectation": "negative",
+      "root": "root.json",
+      "errorCode": "duplicate-rule-id",
+      "evidenceIncludes": [
+        "policy-file:root.json",
+        "policy-rule:duplicate-rule"
+      ],
+      "files": {
+        "root.json": {
+          "schemaVersion": 1,
+          "policyId": "duplicate-local",
+          "version": "1.0.0",
+          "rules": [
+            {
+              "id": "duplicate-rule",
+              "target": "node",
+              "selector": { "kind": "module" },
+              "assertion": "exists"
+            },
+            {
+              "id": "duplicate-rule",
+              "target": "node",
+              "selector": { "kind": "module" },
+              "assertion": "absent"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "override-limit",
+      "expectation": "negative",
+      "root": "root.json",
+      "errorCode": "override-limit",
+      "evidenceIncludes": [
+        "policy-file:child.json",
+        "policy-rule:endpoint-limit",
+        "override-limit:child.json"
+      ],
+      "files": {
+        "root.json": {
+          "schemaVersion": 1,
+          "policyId": "override-root",
+          "version": "1.0.0",
+          "includes": [{ "path": "base.json" }, { "path": "child.json" }],
+          "rules": [
+            {
+              "id": "root-rule",
+              "target": "node",
+              "selector": { "kind": "module" },
+              "assertion": "exists"
+            }
+          ]
+        },
+        "base.json": {
+          "schemaVersion": 1,
+          "policyId": "override-base",
+          "version": "1.0.0",
+          "precedence": 10,
+          "rules": [
+            {
+              "id": "endpoint-limit",
+              "target": "node",
+              "selector": { "kind": "endpoint" },
+              "assertion": "count-at-most",
+              "value": 10
+            }
+          ]
+        },
+        "child.json": {
+          "schemaVersion": 1,
+          "policyId": "override-child",
+          "version": "1.0.0",
+          "precedence": 20,
+          "rules": [
+            {
+              "id": "endpoint-limit",
+              "target": "node",
+              "selector": { "kind": "endpoint" },
+              "assertion": "count-at-most",
+              "value": 5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "precedence-tie",
+      "expectation": "negative",
+      "root": "root.json",
+      "errorCode": "precedence-conflict",
+      "evidenceIncludes": [
+        "policy-file:left.json",
+        "policy-file:right.json",
+        "conflict:rule-id:shared-rule"
+      ],
+      "files": {
+        "root.json": {
+          "schemaVersion": 1,
+          "policyId": "tie-root",
+          "version": "1.0.0",
+          "includes": [{ "path": "left.json" }, { "path": "right.json" }],
+          "rules": [
+            {
+              "id": "root-rule",
+              "target": "node",
+              "selector": { "kind": "module" },
+              "assertion": "exists"
+            }
+          ]
+        },
+        "left.json": {
+          "schemaVersion": 1,
+          "policyId": "left-policy",
+          "version": "1.0.0",
+          "precedence": 10,
+          "rules": [
+            {
+              "id": "shared-rule",
+              "target": "node",
+              "selector": { "kind": "endpoint" },
+              "assertion": "exists"
+            }
+          ]
+        },
+        "right.json": {
+          "schemaVersion": 1,
+          "policyId": "right-policy",
+          "version": "1.0.0",
+          "precedence": 10,
+          "rules": [
+            {
+              "id": "shared-rule",
+              "target": "node",
+              "selector": { "kind": "endpoint" },
+              "assertion": "absent"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "include-cycle",
+      "expectation": "negative",
+      "root": "root.json",
+      "errorCode": "include-cycle",
+      "evidenceIncludes": ["policy-file:root.json", "policy-file:child.json"],
+      "files": {
+        "root.json": {
+          "schemaVersion": 1,
+          "policyId": "cycle-root",
+          "version": "1.0.0",
+          "includes": [{ "path": "child.json" }],
+          "rules": [
+            {
+              "id": "root-rule",
+              "target": "node",
+              "selector": { "kind": "module" },
+              "assertion": "exists"
+            }
+          ]
+        },
+        "child.json": {
+          "schemaVersion": 1,
+          "policyId": "cycle-child",
+          "version": "1.0.0",
+          "includes": [{ "path": "root.json" }],
+          "rules": [
+            {
+              "id": "child-rule",
+              "target": "node",
+              "selector": { "kind": "service" },
+              "assertion": "exists"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "contradictory-outcomes",
+      "expectation": "negative",
+      "root": "root.json",
+      "errorCode": "contradictory-rules",
+      "evidenceIncludes": [
+        "policy-rule:endpoint-required",
+        "policy-rule:endpoint-forbidden",
+        "policy-scope:repository"
+      ],
+      "files": {
+        "root.json": {
+          "schemaVersion": 1,
+          "policyId": "contradiction-root",
+          "version": "1.0.0",
+          "includes": [
+            { "path": "required.json" },
+            { "path": "forbidden.json" }
+          ],
+          "rules": [
+            {
+              "id": "root-rule",
+              "target": "node",
+              "selector": { "kind": "module" },
+              "assertion": "exists"
+            }
+          ]
+        },
+        "required.json": {
+          "schemaVersion": 1,
+          "policyId": "required-policy",
+          "version": "1.0.0",
+          "rules": [
+            {
+              "id": "endpoint-required",
+              "target": "node",
+              "selector": { "kind": "endpoint" },
+              "assertion": "exists"
+            }
+          ]
+        },
+        "forbidden.json": {
+          "schemaVersion": 1,
+          "policyId": "forbidden-policy",
+          "version": "1.0.0",
+          "rules": [
+            {
+              "id": "endpoint-forbidden",
+              "target": "node",
+              "selector": { "kind": "endpoint" },
+              "assertion": "absent"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "duplicate-include",
+      "expectation": "negative",
+      "root": "root.json",
+      "errorCode": "duplicate-include",
+      "evidenceIncludes": [
+        "policy-file:root.json",
+        "conflict:duplicate-include"
+      ],
+      "files": {
+        "root.json": {
+          "schemaVersion": 1,
+          "policyId": "duplicate-include-root",
+          "version": "1.0.0",
+          "includes": [{ "path": "base.json" }, { "path": "base.json" }],
+          "rules": [
+            {
+              "id": "root-rule",
+              "target": "node",
+              "selector": { "kind": "module" },
+              "assertion": "exists"
+            }
+          ]
+        },
+        "base.json": {
+          "schemaVersion": 1,
+          "policyId": "duplicate-include-base",
+          "version": "1.0.0",
+          "rules": [
+            {
+              "id": "base-rule",
+              "target": "node",
+              "selector": { "kind": "service" },
+              "assertion": "exists"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "remote-include-rejected",
+      "expectation": "negative",
+      "root": "root.json",
+      "errorCode": "invalid-source",
+      "evidenceIncludes": ["policy-file:root.json"],
+      "files": {
+        "root.json": {
+          "schemaVersion": 1,
+          "policyId": "remote-include-root",
+          "version": "1.0.0",
+          "includes": [{ "path": "https://example.invalid/policy.json" }],
+          "rules": [
+            {
+              "id": "root-rule",
+              "target": "node",
+              "selector": { "kind": "module" },
+              "assertion": "exists"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

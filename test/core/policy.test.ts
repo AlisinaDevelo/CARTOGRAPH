@@ -58,6 +58,10 @@ describe("local policy configuration", () => {
     });
     expect(parsed.mode).toBe("informational");
     expect(parsed.schemaVersion).toBe(1);
+    expect(parsed.scope).toBe("repository");
+    expect(parsed.precedence).toBe(0);
+    expect(parsed.overrideLimit).toBe(0);
+    expect(parsed.includes).toEqual([]);
 
     expect(
       LocalPolicyRuleSchema.safeParse({

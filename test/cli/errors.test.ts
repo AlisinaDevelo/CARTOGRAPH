@@ -16,6 +16,7 @@ describe("CLI diagnostic safety", () => {
       },
       { name: "ConfigValidationError", expected: "configuration-error" },
       { name: "TypeScriptConfigError", expected: "configuration-error" },
+      { name: "PolicyCompositionError", expected: "configuration-error" },
       { name: "ResourceLimitError", expected: "resource-limit" },
       { name: "CancellationError", expected: "cancelled" },
       { name: "GitCommandError", expected: "git-error" },

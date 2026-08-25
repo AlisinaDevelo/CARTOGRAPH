@@ -157,4 +157,67 @@ describe("policy CLI mode contract", () => {
     expect(missingInput.code).toBe(1);
     expect(missingInput.stderr).toContain("cartograph [cli-input]");
   });
+
+  it("composes repository-local includes before evaluating the graph", async () => {
+    const root = await mkdtemp(
+      join(tmpdir(), "cartograph-policy-cli-composition-"),
+    );
+    temporaryDirectories.push(root);
+    const policyPath = join(root, "policy.json");
+    const includedPath = join(root, "included.json");
+    const snapshotPath = join(root, "snapshot.json");
+    const reportPath = join(root, "report.json");
+    await writeFile(
+      policyPath,
+      JSON.stringify({
+        schemaVersion: 1,
+        policyId: "policy-cli-composition",
+        version: "1.0.0",
+        includes: [{ path: "included.json" }],
+        rules: [
+          {
+            id: "endpoint-forbidden",
+            target: "node",
+            selector: { kind: "endpoint" },
+            assertion: "absent",
+          },
+        ],
+      }),
+    );
+    await writeFile(
+      includedPath,
+      JSON.stringify({
+        schemaVersion: 1,
+        policyId: "included-policy",
+        version: "1.0.0",
+        rules: [
+          {
+            id: "module-required",
+            target: "node",
+            selector: { kind: "module" },
+            assertion: "exists",
+          },
+        ],
+      }),
+    );
+    await writeFile(snapshotPath, JSON.stringify(snapshot));
+
+    const result = await runEntrypoint([
+      "policy",
+      root,
+      "--policy",
+      "policy.json",
+      "--snapshot",
+      snapshotPath,
+      "--output",
+      reportPath,
+    ]);
+
+    expect(result).toMatchObject({ code: 0, stderr: "", stdout: "" });
+    expect(JSON.parse(await readFile(reportPath, "utf8"))).toMatchObject({
+      status: "passed",
+      evaluatedRules: 2,
+      passedRules: 2,
+    });
+  });
 });
