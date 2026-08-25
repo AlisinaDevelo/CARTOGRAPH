@@ -183,6 +183,10 @@ export function createCli(): Command {
       "repository-relative TypeScript configuration path",
     )
     .option("--config <path>", "repository-relative CARTOGRAPH JSON config")
+    .option(
+      "--adr <path>",
+      "repository-relative local ADR reference JSON for report links",
+    )
     .option("-o, --output <path>", "output file; stdout when omitted")
     .option("--force", "replace an existing output file", false)
     .action(
@@ -195,6 +199,7 @@ export function createCli(): Command {
           head: string;
           tsconfig?: string;
           config?: string;
+          adr?: string;
         },
       ): Promise<void> => {
         const config = readConfigOption(root, options.config);
@@ -208,6 +213,7 @@ export function createCli(): Command {
           ...(options.tsconfig === undefined
             ? {}
             : { tsconfigPath: options.tsconfig }),
+          ...(options.adr === undefined ? {} : { adr: options.adr }),
         });
         await emit(report, options);
       },

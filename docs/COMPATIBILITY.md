@@ -37,6 +37,9 @@ Offline remediation evaluation reports use the reviewed `remediationEvaluations`
 contract and [`schema/remediation-evaluation.v0.1.schema.json`](../schema/remediation-evaluation.v0.1.schema.json).
 Local ADR reference indexes use the reviewed `adrReferences` contract and
 [`schema/adr-reference.v0.1.schema.json`](../schema/adr-reference.v0.1.schema.json).
+P-008 adds ADR comparison details only to Markdown and standalone HTML report
+rendering; the canonical GraphDiff v1 JSON shape is unchanged, so existing
+machine readers retain their compatibility boundary.
 Policy evaluation reports use the reviewed `policyEvaluations` contract and
 [`schema/policy-evaluation.v0.1.schema.json`](../schema/policy-evaluation.v0.1.schema.json).
 Composed local policy metadata uses the reviewed `policyCompositions` contract

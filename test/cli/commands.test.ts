@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import {
   mkdtemp,
+  mkdir,
   readFile,
   rm,
   symlink,
@@ -80,6 +81,79 @@ async function createDiffRepository(): Promise<string> {
   );
   await run("git", ["add", "app.ts"], root);
   await run("git", ["commit", "-m", "add payment request"], root);
+  return root;
+}
+
+async function createAdrDiffRepository(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "cartograph-cli-adr-test-"));
+  temporaryDirectories.push(root);
+  await run("git", ["init", "-b", "main"], root);
+  await run("git", ["config", "user.name", "CARTOGRAPH Test"], root);
+  await run("git", ["config", "user.email", "test@example.invalid"], root);
+  await mkdir(join(root, "docs/adr"), { recursive: true });
+  await writeFile(
+    join(root, "tsconfig.json"),
+    JSON.stringify({
+      compilerOptions: { module: "NodeNext", moduleResolution: "NodeNext" },
+    }),
+    "utf8",
+  );
+  await writeFile(
+    join(root, "app.ts"),
+    "export const checkout = (): string => 'ok';\n",
+    "utf8",
+  );
+  await writeFile(
+    join(root, "docs/adr/0001-checkout.md"),
+    "# ADR 0001: Checkout\n\n- Status: proposed\n",
+    "utf8",
+  );
+  await writeFile(
+    join(root, "adr.json"),
+    JSON.stringify({
+      schemaVersion: 1,
+      references: [
+        {
+          id: "ADR-0001",
+          file: "docs/adr/0001-checkout.md",
+          title: "Checkout",
+          status: "proposed",
+          graphIds: ["module:app.ts"],
+        },
+      ],
+    }),
+    "utf8",
+  );
+  await run("git", ["add", "."], root);
+  await run("git", ["commit", "-m", "add checkout ADR"], root);
+  await writeFile(
+    join(root, "app.ts"),
+    "export const checkout = async (): Promise<Response> => await fetch('https://payments.example/check');\n",
+    "utf8",
+  );
+  await writeFile(
+    join(root, "docs/adr/0001-checkout.md"),
+    "# ADR 0001: Checkout\n\n- Status: accepted\n",
+    "utf8",
+  );
+  await writeFile(
+    join(root, "adr.json"),
+    JSON.stringify({
+      schemaVersion: 1,
+      references: [
+        {
+          id: "ADR-0001",
+          file: "docs/adr/0001-checkout.md",
+          title: "Checkout",
+          status: "accepted",
+          graphIds: ["module:app.ts"],
+        },
+      ],
+    }),
+    "utf8",
+  );
+  await run("git", ["add", "."], root);
+  await run("git", ["commit", "-m", "accept checkout ADR"], root);
   return root;
 }
 
@@ -184,6 +258,24 @@ describe("command orchestration", () => {
       to: "external_service:https://payments.example",
     });
     expect(request?.evidence.length).toBeGreaterThan(0);
+  });
+
+  it("adds local ADR titles, states, and graph evidence to revision reports", async () => {
+    const root = await createAdrDiffRepository();
+    const report = await diffRepositoryRevisions({
+      adr: "adr.json",
+      base: "HEAD~1",
+      format: "markdown",
+      head: "HEAD",
+      root,
+    });
+
+    expect(report).toContain("## ADR references");
+    expect(report).toContain("ADR-0001");
+    expect(report).toContain("accepted");
+    expect(report).toContain("docs/adr/0001-checkout.md");
+    expect(report).toContain("module:app.ts");
+    expect(report).toContain("changed");
   });
 
   it("records merge-base pull-request semantics and exact revisions", async () => {

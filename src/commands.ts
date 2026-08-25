@@ -18,6 +18,7 @@ import {
   parseGraphSnapshot,
   parsePolicyConfig,
   readAdrReferenceDocument,
+  AdrReferenceValidationError,
   defaultCartographConfig,
   readCartographConfig,
   createRemediationReview,
@@ -25,6 +26,7 @@ import {
   serializeRemediationReview,
   validateMigrationOutput,
   type CartographConfig,
+  type AdrReferenceDocument,
   type PolicyCiMode,
   type PolicyEvaluation,
   type GraphSnapshot,
@@ -36,6 +38,7 @@ import {
   withMaterializedRevision,
   type RevisionComparisonMode,
 } from "./git/revision.js";
+import { buildAdrReport, type AdrReport } from "./report/adr.js";
 import { renderDiff, type ReportFormat } from "./report/render.js";
 
 const MAX_SNAPSHOT_BYTES = 64 * 1024 * 1024;
@@ -62,6 +65,7 @@ export type RevisionDiffOptions = {
   tsconfigPath?: string;
   config?: CartographConfig;
   configPath?: string;
+  adr?: string;
   signal?: AbortSignal;
 };
 
@@ -176,6 +180,36 @@ const scanMaterializedRevision = async (
     },
   );
 
+const readAdrReferenceAtRoot = (
+  root: string,
+  referencePath: string,
+): AdrReferenceDocument | undefined => {
+  try {
+    return readAdrReferenceDocument(root, referencePath);
+  } catch (error) {
+    if (
+      error instanceof AdrReferenceValidationError &&
+      error.message.startsWith("ADR reference file does not exist:")
+    ) {
+      return undefined;
+    }
+    throw error;
+  }
+};
+
+const revisionMaterializationOptions = (
+  config: CartographConfig,
+  signal: AbortSignal | undefined,
+) => ({
+  resources: {
+    maxArchiveBytes: config.resources.maxArchiveBytes,
+    maxExtractedBytes: config.resources.maxSourceBytes,
+    maxMemoryBytes: config.resources.maxMemoryBytes,
+    maxWallClockMs: config.resources.maxWallClockMs,
+  },
+  ...(signal === undefined ? {} : { signal }),
+});
+
 export async function diffRepositoryRevisions(
   options: RevisionDiffOptions,
 ): Promise<string> {
@@ -208,22 +242,53 @@ export async function diffRepositoryRevisions(
     comparison.headCommitSha,
     options.signal === undefined ? {} : { signal: options.signal },
   );
+  const graphDiff = diffGraphSnapshots(before, after, {
+    comparison: {
+      mode: comparison.mode,
+      baseRef: comparison.baseRef,
+      headRef: comparison.headRef,
+      baseCommitSha: comparison.baseCommitSha,
+      headCommitSha: comparison.headCommitSha,
+      ...(comparison.mergeBaseSha === undefined
+        ? {}
+        : { mergeBaseSha: comparison.mergeBaseSha }),
+    },
+    identity: { pathHistory },
+  });
+  let adrReport: AdrReport | undefined;
+  const adrPath = options.adr;
+  if (adrPath !== undefined) {
+    adrReport = await withMaterializedRevision(
+      repositoryRoot,
+      comparison.fromCommitSha,
+      async (beforeRevision) =>
+        await withMaterializedRevision(
+          repositoryRoot,
+          comparison.headCommitSha,
+          (afterRevision) => {
+            const previous = readAdrReferenceAtRoot(
+              beforeRevision.root,
+              adrPath,
+            );
+            const current = readAdrReferenceAtRoot(afterRevision.root, adrPath);
+            return buildAdrReport(graphDiff, {
+              ...(current === undefined ? {} : { current }),
+              ...(previous === undefined ? {} : { previous }),
+              currentSnapshot: after,
+              previousSnapshot: before,
+              root: afterRevision.root,
+            });
+          },
+          revisionMaterializationOptions(config, options.signal),
+        ),
+      revisionMaterializationOptions(config, options.signal),
+    );
+  }
   return renderDiff(
-    diffGraphSnapshots(before, after, {
-      comparison: {
-        mode: comparison.mode,
-        baseRef: comparison.baseRef,
-        headRef: comparison.headRef,
-        baseCommitSha: comparison.baseCommitSha,
-        headCommitSha: comparison.headCommitSha,
-        ...(comparison.mergeBaseSha === undefined
-          ? {}
-          : { mergeBaseSha: comparison.mergeBaseSha }),
-      },
-      identity: { pathHistory },
-    }),
+    graphDiff,
     options.format,
     config.resources.maxReportItems,
+    adrReport,
   );
 }
 

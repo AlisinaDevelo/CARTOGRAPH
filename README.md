@@ -98,12 +98,12 @@ JavaScript files, generated routes, framework metaprogramming, and complete runt
 
 ```text
 cartograph scan [root]
-cartograph diff [root] --base <ref> [--head <ref>] [--comparison direct|merge-base]
+cartograph diff [root] --base <ref> [--head <ref>] [--comparison direct|merge-base] [--adr <path>]
 cartograph diff-snapshots <before.json> <after.json>
 cartograph migrate-snapshot <input.json> --report <report.json>
 ```
 
-`scan` emits canonical graph JSON. `diff` and `diff-snapshots` support `json`, `markdown`, and self-contained `html` reports. Use `--tsconfig <path>` to select a configuration inside the analyzed repository. Use `--config <path>` to apply the versioned, repository-relative [configuration contract](docs/CONFIGURATION.md); command-line flags override matching invocation settings.
+`scan` emits canonical graph JSON. `diff` and `diff-snapshots` support `json`, `markdown`, and self-contained `html` reports. Add `--adr <path>` to `diff` to compare a repository-local ADR reference index at both revisions; Markdown and HTML reports then include deterministic ADR title/status, graph evidence, added/removed/changed references, and stale-link diagnostics. Use `--tsconfig <path>` to select a configuration inside the analyzed repository. Use `--config <path>` to apply the versioned, repository-relative [configuration contract](docs/CONFIGURATION.md); command-line flags override matching invocation settings.
 
 `migrate-snapshot` rewrites the historical GraphSnapshot v0 fixture to v1 and
 records every changed node or edge identity. Migration output is deterministic

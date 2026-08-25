@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   createGraphSnapshot,
   diffGraphSnapshots,
+  parseAdrReferenceDocument,
 } from "../../src/core/index.js";
+import { buildAdrReport } from "../../src/report/adr.js";
 import {
   renderDiff,
   renderHtmlReport,
@@ -256,6 +258,92 @@ describe("diff reports", () => {
     expect(html).toContain(
       "Remediation: Use a literal value before accepting this edge.",
     );
+  });
+
+  it("renders deterministic ADR change states, graph evidence, and stale links", () => {
+    const previous = parseAdrReferenceDocument({
+      schemaVersion: 1,
+      references: [
+        {
+          id: "ADR-0000",
+          file: "docs/adr/0000-old.md",
+          title: "Old decision",
+          status: "deprecated",
+          graphIds: ["module:src/app.ts"],
+        },
+        {
+          id: "ADR-0001",
+          file: "docs/adr/0001-payments.md",
+          title: "Payments before",
+          status: "proposed",
+          graphIds: ["module:src/app.ts"],
+        },
+      ],
+    });
+    const current = parseAdrReferenceDocument({
+      schemaVersion: 1,
+      references: [
+        {
+          id: "ADR-0001",
+          file: "docs/adr/0001-payments.md",
+          title: "Payments <script>alert(1)</script>",
+          status: "accepted",
+          graphIds: ["external:https://payments.example"],
+        },
+        {
+          id: "ADR-0002",
+          file: "docs/adr/0002-missing.md",
+          title: "Missing graph link",
+          status: "draft",
+          graphIds: ["node:missing"],
+        },
+      ],
+    });
+    const adrReport = buildAdrReport(diff, {
+      current,
+      previous,
+      currentSnapshot: after,
+      previousSnapshot: before,
+    });
+
+    expect(adrReport).toBeDefined();
+    expect(adrReport?.summary).toEqual({
+      added: 1,
+      removed: 1,
+      changed: 1,
+      unchanged: 0,
+      stale: 1,
+    });
+    expect(adrReport?.references).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "ADR-0000", state: "removed" }),
+        expect.objectContaining({
+          id: "ADR-0001",
+          state: "changed",
+          evidence: [
+            expect.objectContaining({
+              graphId: "external:https://payments.example",
+              relation: "added",
+            }),
+          ],
+        }),
+        expect.objectContaining({ id: "ADR-0002", state: "stale" }),
+      ]),
+    );
+
+    const markdown = renderMarkdownReport(diff, adrReport);
+    const html = renderHtmlReport(diff, adrReport);
+    expect(markdown).toContain("## ADR references");
+    expect(markdown).toContain("### Removed ADR references");
+    expect(markdown).toContain("### Stale ADR references");
+    expect(markdown).toContain("external:https://payments.example");
+    expect(markdown).toContain("ADR_REFERENCE_STALE_GRAPH_ID");
+    expect(markdown).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
+    expect(html).toContain('aria-label="Stale ADR references"');
+    expect(html).toContain("ADR_REFERENCE_STALE_GRAPH_ID");
+    expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
+    expect(renderMarkdownReport(diff, adrReport)).toBe(markdown);
+    expect(renderHtmlReport(diff, adrReport)).toBe(html);
   });
 
   it("uses canonical JSON as the machine-readable report", () => {
