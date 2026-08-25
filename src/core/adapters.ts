@@ -203,6 +203,24 @@ export const AdapterResourceLimitsSchema = z
       .positive()
       .max(4 * 1024 * 1024 * 1024)
       .default(64 * 1024 * 1024),
+    maxInputBytes: z
+      .number()
+      .int()
+      .positive()
+      .max(64 * 1024 * 1024)
+      .default(8 * 1024 * 1024),
+    maxOutputBytes: z
+      .number()
+      .int()
+      .positive()
+      .max(256 * 1024 * 1024)
+      .default(32 * 1024 * 1024),
+    maxMemoryBytes: z
+      .number()
+      .int()
+      .min(16 * 1024 * 1024)
+      .max(4 * 1024 * 1024 * 1024)
+      .default(512 * 1024 * 1024),
     maxWallClockMs: z.number().int().positive().max(86_400_000).default(30_000),
   })
   .strict()
@@ -210,6 +228,9 @@ export const AdapterResourceLimitsSchema = z
     maxFiles: 20_000,
     maxFileBytes: 2 * 1024 * 1024,
     maxSourceBytes: 64 * 1024 * 1024,
+    maxInputBytes: 8 * 1024 * 1024,
+    maxOutputBytes: 32 * 1024 * 1024,
+    maxMemoryBytes: 512 * 1024 * 1024,
     maxWallClockMs: 30_000,
   });
 
@@ -252,14 +273,16 @@ export class AdapterValidationError extends Error {
     | "invalid-input"
     | "invalid-manifest"
     | "invalid-output"
-    | "manifest-mismatch";
+    | "manifest-mismatch"
+    | "resource-limit";
 
   constructor(
     code:
       | "invalid-input"
       | "invalid-manifest"
       | "invalid-output"
-      | "manifest-mismatch",
+      | "manifest-mismatch"
+      | "resource-limit",
     message: string,
   ) {
     super(message);
@@ -314,6 +337,104 @@ export const parseAdapterOutput = (value: unknown): AdapterOutput => {
   };
 };
 
+const jsonByteLength = (
+  value: unknown,
+  contract: "input" | "output",
+): number => {
+  try {
+    return Buffer.byteLength(stableStringify(value), "utf8");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new AdapterValidationError(
+      contract === "input" ? "invalid-input" : "invalid-output",
+      `${contract} is not serializable JSON: ${message}`,
+    );
+  }
+};
+
+const assertAdapterInputBudget = (input: AdapterInput): void => {
+  const bytes = jsonByteLength(input, "input");
+  if (bytes > input.resources.maxInputBytes) {
+    throw new AdapterValidationError(
+      "resource-limit",
+      `adapter input is ${bytes} bytes; the ${input.resources.maxInputBytes} byte input ceiling was exceeded`,
+    );
+  }
+};
+
+const assertAdapterOutputBudget = (
+  output: unknown,
+  input: AdapterInput,
+): void => {
+  const bytes = jsonByteLength(output, "output");
+  if (bytes > input.resources.maxOutputBytes) {
+    throw new AdapterValidationError(
+      "resource-limit",
+      `adapter output is ${bytes} bytes; the ${input.resources.maxOutputBytes} byte output ceiling was exceeded`,
+    );
+  }
+};
+
+export const validateAdapterOutputIntegrity = (output: AdapterOutput): void => {
+  const declared = new Map(
+    output.evidence.map((evidence) => [evidence.id, evidence]),
+  );
+  if (declared.size !== output.evidence.length) {
+    throw new AdapterValidationError(
+      "invalid-output",
+      "adapter output contains duplicate top-level evidence IDs",
+    );
+  }
+
+  const references = [
+    ...output.graph.edges.flatMap((edge) => edge.evidence),
+    ...output.graph.diagnostics.flatMap((diagnostic) => diagnostic.evidence),
+    ...output.diagnostics.flatMap((diagnostic) => diagnostic.evidence),
+  ];
+  const referenced = new Set<string>();
+  for (const evidence of references) {
+    const canonical = declared.get(evidence.id);
+    if (canonical === undefined) {
+      throw new AdapterValidationError(
+        "invalid-output",
+        `adapter evidence ${evidence.id} is referenced but not declared at the output boundary`,
+      );
+    }
+    if (stableStringify(canonical) !== stableStringify(evidence)) {
+      throw new AdapterValidationError(
+        "invalid-output",
+        `adapter evidence ${evidence.id} differs between its declaration and reference`,
+      );
+    }
+    referenced.add(evidence.id);
+  }
+  for (const evidence of output.evidence) {
+    if (!referenced.has(evidence.id)) {
+      throw new AdapterValidationError(
+        "invalid-output",
+        `adapter evidence ${evidence.id} is declared but not attached to a graph record or diagnostic`,
+      );
+    }
+  }
+
+  const declaredDiagnosticCodes = new Set(
+    output.capability.capabilities.flatMap(
+      (capability) => capability.diagnosticCodes,
+    ),
+  );
+  for (const diagnostic of [
+    ...output.graph.diagnostics,
+    ...output.diagnostics,
+  ]) {
+    if (!declaredDiagnosticCodes.has(diagnostic.code)) {
+      throw new AdapterValidationError(
+        "invalid-output",
+        `adapter diagnostic ${diagnostic.code} is not declared by a capability`,
+      );
+    }
+  }
+};
+
 export interface CartographAdapter {
   readonly manifest: AdapterCapabilityManifest;
   analyze(input: AdapterInput): AdapterOutput;
@@ -325,7 +446,18 @@ export const runAdapter = (
 ): AdapterOutput => {
   const manifest = parseAdapterManifest(adapter.manifest);
   const parsedInput = parseAdapterInput(input);
-  const output = parseAdapterOutput(adapter.analyze(parsedInput));
+  assertAdapterInputBudget(parsedInput);
+  const startedAt = Date.now();
+  const rawOutput = adapter.analyze(parsedInput);
+  const elapsedMs = Date.now() - startedAt;
+  if (elapsedMs > parsedInput.resources.maxWallClockMs) {
+    throw new AdapterValidationError(
+      "resource-limit",
+      `adapter exceeded the ${parsedInput.resources.maxWallClockMs} ms wall-clock ceiling`,
+    );
+  }
+  assertAdapterOutputBudget(rawOutput, parsedInput);
+  const output = parseAdapterOutput(rawOutput);
   const outputCapability = parseAdapterManifest(output.capability);
   if (
     outputCapability.id !== manifest.id ||
@@ -336,6 +468,7 @@ export const runAdapter = (
       `adapter output capability ${outputCapability.id}@${outputCapability.version} does not match ${manifest.id}@${manifest.version}`,
     );
   }
+  validateAdapterOutputIntegrity(output);
   return output;
 };
 

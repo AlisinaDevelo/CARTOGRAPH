@@ -334,6 +334,7 @@ export {
   serializeAdapterInput,
   serializeAdapterManifest,
   serializeAdapterOutput,
+  validateAdapterOutputIntegrity,
   type AdapterCapabilityDeclaration,
   type AdapterCapabilityManifest,
   type AdapterConfig,
@@ -348,6 +349,14 @@ export {
   type AdapterSourceInput,
   type CartographAdapter,
 } from "./adapters.js";
+export {
+  AdapterIsolationError,
+  runAdapterIsolated,
+  supportsAdapterIsolation,
+  type AdapterIsolationErrorCode,
+  type AdapterIsolationRequest,
+  type IsolatedCartographAdapter,
+} from "./adapter-isolation.js";
 export {
   parseRuntimeTrace,
   parseRuntimeTraceJson,

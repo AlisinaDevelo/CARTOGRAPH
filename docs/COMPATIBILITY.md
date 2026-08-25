@@ -48,6 +48,14 @@ Expiry-bound local policy records use the reviewed `policyExceptions` contract
 and [`schema/policy-exception.v0.1.schema.json`](../schema/policy-exception.v0.1.schema.json).
 Local adapter requests, capability manifests, and graph results use the reviewed
 `adapters` contract and [`schema/adapter.v0.1.schema.json`](../schema/adapter.v0.1.schema.json).
+E-007 adds the additive bounded request schema in
+[`schema/adapter-input.v0.1.schema.json`](../schema/adapter-input.v0.1.schema.json)
+and an opt-in permissioned process host. The new input and output, memory, and
+wall-clock ceilings default conservatively and are enforced before a result is
+accepted; existing v0.1 manifest readers retain their meaning. A third-party
+adapter cannot fall back silently to an unbounded in-process execution path.
+Runtimes without an enforceable network-denial permission are reported as
+unsupported for isolation rather than treated as equivalent.
 Normalized local OTLP JSON traces use the reviewed `runtimeTraces` contract and
 [`schema/runtime-traces.v0.1.schema.json`](../schema/runtime-traces.v0.1.schema.json).
 Static/runtime edge classifications use the reviewed `runtimeReconciliation`

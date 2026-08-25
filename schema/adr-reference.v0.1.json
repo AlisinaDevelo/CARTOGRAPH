@@ -28,6 +28,13 @@
       "title": "Proceed with the local policy and decision drift gate",
       "status": "accepted",
       "graphIds": ["module:scripts/policy-drift-evaluation.mjs"]
+    },
+    {
+      "id": "ADR-0005",
+      "file": "docs/adr/0005-permissioned-adapter-host.md",
+      "title": "Execute third-party adapters behind a permissioned host",
+      "status": "accepted",
+      "graphIds": ["module:src/core/adapter-isolation.ts"]
     }
   ]
 }

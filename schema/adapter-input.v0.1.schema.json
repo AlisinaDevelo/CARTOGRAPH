@@ -1,0 +1,142 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/adapter-input.v0.1.schema.json",
+  "title": "CARTOGRAPH adapter request v0.1",
+  "description": "A bounded JSON-only adapter request. The resource limits are mandatory at the execution boundary and fail closed when exceeded.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "source", "config", "resources"],
+  "properties": {
+    "apiVersion": { "const": 1 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rootDir", "include", "exclude"],
+      "properties": {
+        "rootDir": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "not": {
+            "anyOf": [
+              { "pattern": "^~" },
+              { "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:" },
+              { "pattern": "\\u0000" }
+            ]
+          }
+        },
+        "include": { "$ref": "#/definitions/paths" },
+        "exclude": { "$ref": "#/definitions/paths" },
+        "revision": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["commitSha"],
+          "properties": {
+            "commitSha": { "$ref": "#/definitions/identifier" },
+            "parentSha": { "$ref": "#/definitions/identifier" },
+            "branch": { "$ref": "#/definitions/identifier" },
+            "authoredAt": { "type": "string", "format": "date-time" }
+          }
+        }
+      }
+    },
+    "config": { "$ref": "#/definitions/jsonObject" },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxFiles",
+        "maxFileBytes",
+        "maxSourceBytes",
+        "maxInputBytes",
+        "maxOutputBytes",
+        "maxMemoryBytes",
+        "maxWallClockMs"
+      ],
+      "properties": {
+        "maxFiles": { "type": "integer", "minimum": 1, "maximum": 1000000 },
+        "maxFileBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1073741824
+        },
+        "maxSourceBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967296
+        },
+        "maxInputBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 67108864
+        },
+        "maxOutputBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 268435456
+        },
+        "maxMemoryBytes": {
+          "type": "integer",
+          "minimum": 16777216,
+          "maximum": 4294967296
+        },
+        "maxWallClockMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400000
+        }
+      }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/-]*$"
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "not": {
+        "anyOf": [
+          { "pattern": "^/" },
+          { "pattern": "^~" },
+          { "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:" },
+          { "pattern": "(^|[/\\\\])\\.\\.([/\\\\]|$)" },
+          { "pattern": "\\u0000" }
+        ]
+      }
+    },
+    "paths": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": { "$ref": "#/definitions/path" }
+    },
+    "jsonValue": {
+      "anyOf": [
+        { "type": "null" },
+        { "type": "boolean" },
+        { "type": "number" },
+        { "type": "string", "maxLength": 1024 },
+        {
+          "type": "array",
+          "maxItems": 256,
+          "items": { "$ref": "#/definitions/jsonValue" }
+        },
+        { "$ref": "#/definitions/jsonObject" }
+      ]
+    },
+    "jsonObject": {
+      "type": "object",
+      "maxProperties": 256,
+      "propertyNames": {
+        "not": {
+          "pattern": "^(command|cwd|exec|execute|hook|import|loader|module|require|script)$"
+        }
+      },
+      "additionalProperties": { "$ref": "#/definitions/jsonValue" }
+    }
+  }
+}

@@ -129,6 +129,13 @@ findings, false-positive categories, reviewer minutes and steps, and the Year 2
 Q3 milestone exit decision; `npm run policy-drift:validate` is a local release
 gate.
 
+E-007 adds a permission-boundary corpus for adapters. The isolated host is
+replayed against a valid module, a non-cooperative hang, an oversized response,
+malformed evidence, denied network and child-process requests, and a path
+escape. The validator requires typed fail-closed errors, enforces
+input/output/memory/time ceilings, and waits for terminated child processes to
+close before accepting cleanup.
+
 ## Practical compatibility
 
 R-005 records the first compatibility review in
