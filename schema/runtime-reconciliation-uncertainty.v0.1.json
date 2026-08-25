@@ -1,0 +1,345 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.runtime-reconciliation-uncertainty",
+  "mediaType": "application/vnd.cartograph.runtime-reconciliation-uncertainty+json",
+  "fixtureId": "runtime-reconciliation-uncertainty",
+  "baselineCase": "complete-synchronized",
+  "cases": [
+    {
+      "id": "complete-synchronized",
+      "description": "Complete trace with exact trace-clock ordering and service aliases recorded as metadata only.",
+      "uncertainty": {
+        "sampling": {
+          "strategy": "complete",
+          "expectedSpanCount": 5,
+          "observedSpanCount": 5,
+          "observedRate": 1,
+          "missingIsNotAbsence": true,
+          "rationale": "All five synthetic spans were retained; completeness is scoped to this fixture."
+        },
+        "clock": {
+          "domain": "trace",
+          "offsetNanoseconds": 0,
+          "uncertaintyNanoseconds": 0,
+          "ordering": "exact",
+          "rationale": "Synthetic timestamps share one exact trace clock."
+        },
+        "serviceAliases": [
+          { "canonical": "module:a", "aliases": ["service-a", "svc-a"] }
+        ],
+        "missingParents": [],
+        "confidencePolicy": {
+          "certainWhen": "Every referenced span has a certain explicit binding and the trace clock is exact.",
+          "inferredWhen": "A binding is inferred, an endpoint is ambiguous, or clock precision downgrades an otherwise certain observation.",
+          "unknownWhen": "A modeled edge has no retained trace evidence or a referenced parent/binding is missing."
+        }
+      },
+      "records": [
+        {
+          "id": "ambiguous:module%3Aa=>module%3Ab",
+          "semanticKey": "endpoint:module%3Aa=>module%3Ab",
+          "classification": "ambiguous",
+          "confidence": "inferred",
+          "uncertainty": "ambiguous",
+          "observedCount": 1,
+          "reason": "runtime parent and child spans map to multiple static edges with the same endpoints",
+          "evidenceRefs": [
+            "static-evidence:edge-a-b-calls",
+            "static-evidence:edge-a-b-imports",
+            "trace:0123456789abcdef0123456789abcdef:aaaaaaaaaaaaaaaa",
+            "trace:0123456789abcdef0123456789abcdef:bbbbbbbbbbbbbbbb"
+          ]
+        },
+        {
+          "id": "modeled-not-observed:edge:module:b|calls|module:c",
+          "semanticKey": "edge:edge:module:b|calls|module:c",
+          "classification": "modeled-not-observed",
+          "confidence": "unknown",
+          "uncertainty": "unobserved",
+          "observedCount": 0,
+          "reason": "static edge has no matching mapped runtime parent/child observation",
+          "evidenceRefs": ["static-evidence:edge-b-c"]
+        },
+        {
+          "id": "observed-and-modeled:edge:module:d|calls|module:a",
+          "semanticKey": "edge:edge:module:d|calls|module:a",
+          "classification": "observed-and-modeled",
+          "confidence": "inferred",
+          "uncertainty": "none",
+          "observedCount": 1,
+          "reason": "runtime parent and child spans map to one static edge",
+          "evidenceRefs": [
+            "static-evidence:edge-d-a",
+            "trace:0123456789abcdef0123456789abcdef:dddddddddddddddd",
+            "trace:0123456789abcdef0123456789abcdef:eeeeeeeeeeeeeeee"
+          ]
+        },
+        {
+          "id": "observed-but-unmodeled:module%3Ac=>module%3Ad",
+          "semanticKey": "endpoint:module%3Ac=>module%3Ad",
+          "classification": "observed-but-unmodeled",
+          "confidence": "inferred",
+          "uncertainty": "unmapped",
+          "observedCount": 1,
+          "reason": "runtime parent and child spans map to nodes without a static edge",
+          "evidenceRefs": [
+            "trace:0123456789abcdef0123456789abcdef:cccccccccccccccc",
+            "trace:0123456789abcdef0123456789abcdef:dddddddddddddddd"
+          ]
+        }
+      ],
+      "changes": [],
+      "classificationCounts": {
+        "observed-and-modeled": 1,
+        "modeled-not-observed": 1,
+        "observed-but-unmodeled": 1,
+        "ambiguous": 1
+      },
+      "confidenceCounts": { "certain": 0, "inferred": 3, "unknown": 1 }
+    },
+    {
+      "id": "head-sampled-skewed",
+      "description": "Head sample drops the tail span while a bounded service-local clock records offset uncertainty.",
+      "uncertainty": {
+        "sampling": {
+          "strategy": "head",
+          "expectedSpanCount": 5,
+          "observedSpanCount": 4,
+          "observedRate": 0.8,
+          "missingIsNotAbsence": true,
+          "rationale": "The head sampler retained the first four spans and omitted the tail child."
+        },
+        "clock": {
+          "domain": "service-local",
+          "offsetNanoseconds": 1250000,
+          "uncertaintyNanoseconds": 500000,
+          "ordering": "bounded",
+          "rationale": "Service-local clocks have a bounded offset and cannot establish exact cross-service order."
+        },
+        "serviceAliases": [
+          { "canonical": "module:a", "aliases": ["service-a", "svc-a"] }
+        ],
+        "missingParents": [],
+        "confidencePolicy": {
+          "certainWhen": "Every referenced span has a certain explicit binding and the trace clock is exact.",
+          "inferredWhen": "A binding is inferred, an endpoint is ambiguous, or clock precision downgrades an otherwise certain observation.",
+          "unknownWhen": "A modeled edge has no retained trace evidence or a referenced parent/binding is missing."
+        }
+      },
+      "records": [
+        {
+          "id": "ambiguous:module%3Aa=>module%3Ab",
+          "semanticKey": "endpoint:module%3Aa=>module%3Ab",
+          "classification": "ambiguous",
+          "confidence": "inferred",
+          "uncertainty": "ambiguous",
+          "observedCount": 1,
+          "reason": "runtime parent and child spans map to multiple static edges with the same endpoints",
+          "evidenceRefs": [
+            "static-evidence:edge-a-b-calls",
+            "static-evidence:edge-a-b-imports",
+            "trace:0123456789abcdef0123456789abcdef:aaaaaaaaaaaaaaaa",
+            "trace:0123456789abcdef0123456789abcdef:bbbbbbbbbbbbbbbb"
+          ]
+        },
+        {
+          "id": "modeled-not-observed:edge:module:b|calls|module:c",
+          "semanticKey": "edge:edge:module:b|calls|module:c",
+          "classification": "modeled-not-observed",
+          "confidence": "unknown",
+          "uncertainty": "unobserved",
+          "observedCount": 0,
+          "reason": "static edge has no matching mapped runtime parent/child observation",
+          "evidenceRefs": ["static-evidence:edge-b-c"]
+        },
+        {
+          "id": "modeled-not-observed:edge:module:d|calls|module:a",
+          "semanticKey": "edge:edge:module:d|calls|module:a",
+          "classification": "modeled-not-observed",
+          "confidence": "unknown",
+          "uncertainty": "unobserved",
+          "observedCount": 0,
+          "reason": "static edge has no matching mapped runtime parent/child observation",
+          "evidenceRefs": ["static-evidence:edge-d-a"]
+        },
+        {
+          "id": "observed-but-unmodeled:module%3Ac=>module%3Ad",
+          "semanticKey": "endpoint:module%3Ac=>module%3Ad",
+          "classification": "observed-but-unmodeled",
+          "confidence": "inferred",
+          "uncertainty": "unmapped",
+          "observedCount": 1,
+          "reason": "runtime parent and child spans map to nodes without a static edge",
+          "evidenceRefs": [
+            "trace:0123456789abcdef0123456789abcdef:cccccccccccccccc",
+            "trace:0123456789abcdef0123456789abcdef:dddddddddddddddd"
+          ]
+        }
+      ],
+      "changes": [
+        {
+          "kind": "classification",
+          "subject": "edge:edge:module:d|calls|module:a",
+          "from": "observed-and-modeled",
+          "to": "modeled-not-observed",
+          "reasonCode": "sampling",
+          "explanation": "Sampling changed the retained observations for edge:edge:module:d|calls|module:a; missing spans are not treated as absent, so the report explains the classification change as evidence of limited observation."
+        },
+        {
+          "kind": "confidence",
+          "subject": "edge:edge:module:d|calls|module:a",
+          "from": "inferred",
+          "to": "unknown",
+          "reasonCode": "sampling",
+          "explanation": "Sampling changed the retained observations for edge:edge:module:d|calls|module:a; missing spans are not treated as absent, so the report explains the classification change as evidence of limited observation."
+        }
+      ],
+      "classificationCounts": {
+        "observed-and-modeled": 0,
+        "modeled-not-observed": 2,
+        "observed-but-unmodeled": 1,
+        "ambiguous": 1
+      },
+      "confidenceCounts": { "certain": 0, "inferred": 2, "unknown": 2 }
+    },
+    {
+      "id": "parent-gap-probabilistic",
+      "description": "Probabilistic sampling drops an intermediate parent and preserves its child as an explicit parent gap.",
+      "uncertainty": {
+        "sampling": {
+          "strategy": "probabilistic",
+          "expectedSpanCount": 5,
+          "observedSpanCount": 4,
+          "observedRate": 0.8,
+          "missingIsNotAbsence": true,
+          "rationale": "The probabilistic sampler omitted the intermediate parent while retaining its child."
+        },
+        "clock": {
+          "domain": "unknown",
+          "offsetNanoseconds": 0,
+          "uncertaintyNanoseconds": 0,
+          "ordering": "unknown",
+          "rationale": "No trustworthy shared clock metadata was retained for this sample."
+        },
+        "serviceAliases": [
+          { "canonical": "module:a", "aliases": ["service-a", "svc-a"] }
+        ],
+        "missingParents": [
+          {
+            "traceId": "0123456789abcdef0123456789abcdef",
+            "parentSpanId": "dddddddddddddddd",
+            "childSpanId": "eeeeeeeeeeeeeeee",
+            "reason": "The child was retained but its parent was omitted by probabilistic sampling."
+          }
+        ],
+        "confidencePolicy": {
+          "certainWhen": "Every referenced span has a certain explicit binding and the trace clock is exact.",
+          "inferredWhen": "A binding is inferred, an endpoint is ambiguous, or clock precision downgrades an otherwise certain observation.",
+          "unknownWhen": "A modeled edge has no retained trace evidence or a referenced parent/binding is missing."
+        }
+      },
+      "records": [
+        {
+          "id": "ambiguous:module%3Aa=>module%3Ab",
+          "semanticKey": "endpoint:module%3Aa=>module%3Ab",
+          "classification": "ambiguous",
+          "confidence": "inferred",
+          "uncertainty": "ambiguous",
+          "observedCount": 1,
+          "reason": "runtime parent and child spans map to multiple static edges with the same endpoints",
+          "evidenceRefs": [
+            "static-evidence:edge-a-b-calls",
+            "static-evidence:edge-a-b-imports",
+            "trace:0123456789abcdef0123456789abcdef:aaaaaaaaaaaaaaaa",
+            "trace:0123456789abcdef0123456789abcdef:bbbbbbbbbbbbbbbb"
+          ]
+        },
+        {
+          "id": "modeled-not-observed:edge:module:b|calls|module:c",
+          "semanticKey": "edge:edge:module:b|calls|module:c",
+          "classification": "modeled-not-observed",
+          "confidence": "unknown",
+          "uncertainty": "unobserved",
+          "observedCount": 0,
+          "reason": "static edge has no matching mapped runtime parent/child observation",
+          "evidenceRefs": ["static-evidence:edge-b-c"]
+        },
+        {
+          "id": "modeled-not-observed:edge:module:d|calls|module:a",
+          "semanticKey": "edge:edge:module:d|calls|module:a",
+          "classification": "modeled-not-observed",
+          "confidence": "unknown",
+          "uncertainty": "unobserved",
+          "observedCount": 0,
+          "reason": "static edge has no matching mapped runtime parent/child observation",
+          "evidenceRefs": ["static-evidence:edge-d-a"]
+        },
+        {
+          "id": "observed-but-unmodeled:trace:0123456789abcdef0123456789abcdef:eeeeeeeeeeeeeeee",
+          "semanticKey": "trace:0123456789abcdef0123456789abcdef:eeeeeeeeeeeeeeee",
+          "classification": "observed-but-unmodeled",
+          "confidence": "unknown",
+          "uncertainty": "unmapped",
+          "observedCount": 1,
+          "reason": "runtime parent span is absent from the imported trace",
+          "evidenceRefs": [
+            "trace:0123456789abcdef0123456789abcdef:dddddddddddddddd",
+            "trace:0123456789abcdef0123456789abcdef:eeeeeeeeeeeeeeee"
+          ]
+        }
+      ],
+      "changes": [
+        {
+          "kind": "classification",
+          "subject": "edge:edge:module:d|calls|module:a",
+          "from": "observed-and-modeled",
+          "to": "modeled-not-observed",
+          "reasonCode": "sampling",
+          "explanation": "Sampling changed the retained observations for edge:edge:module:d|calls|module:a; missing spans are not treated as absent, so the report explains the classification change as evidence of limited observation."
+        },
+        {
+          "kind": "confidence",
+          "subject": "edge:edge:module:d|calls|module:a",
+          "from": "inferred",
+          "to": "unknown",
+          "reasonCode": "sampling",
+          "explanation": "Sampling changed the retained observations for edge:edge:module:d|calls|module:a; missing spans are not treated as absent, so the report explains the classification change as evidence of limited observation."
+        },
+        {
+          "kind": "classification",
+          "subject": "endpoint:module%3Ac=>module%3Ad",
+          "from": "observed-but-unmodeled",
+          "to": null,
+          "reasonCode": "sampling",
+          "explanation": "Sampling changed the retained observations for endpoint:module%3Ac=>module%3Ad; missing spans are not treated as absent, so the report explains the classification change as evidence of limited observation."
+        },
+        {
+          "kind": "classification",
+          "subject": "trace:0123456789abcdef0123456789abcdef:eeeeeeeeeeeeeeee",
+          "from": null,
+          "to": "observed-but-unmodeled",
+          "reasonCode": "missing-parent",
+          "explanation": "The sampled trace contains an explicitly missing parent for trace:0123456789abcdef0123456789abcdef:eeeeeeeeeeeeeeee; the resulting unmodeled evidence is not proof that the behavior is absent."
+        }
+      ],
+      "classificationCounts": {
+        "observed-and-modeled": 0,
+        "modeled-not-observed": 2,
+        "observed-but-unmodeled": 1,
+        "ambiguous": 1
+      },
+      "confidenceCounts": { "certain": 0, "inferred": 1, "unknown": 3 }
+    }
+  ],
+  "summary": {
+    "cases": 3,
+    "samplingVariants": 2,
+    "clockVariants": 2,
+    "aliasCases": 3,
+    "missingParentCases": 1,
+    "classificationChanges": 4,
+    "confidenceChanges": 2,
+    "unobservedNeverMeansAbsent": true
+  },
+  "fixtureDigest": "sha256:8c8818d49da46704501cbb903f94f477f6dcc3b840e248c15cb1ecf496d53101"
+}

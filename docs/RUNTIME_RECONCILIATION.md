@@ -93,3 +93,13 @@ Release gating is deliberately disabled in the fixture and report until a
 maintainer reviews the baseline and chooses thresholds. The evaluation is
 offline and does not upload traces, contact a collector, or enable hosted CI
 behavior.
+
+## O-005 uncertainty-aware reconciliation
+
+The additive uncertainty report records sampling, clock, service-alias,
+missing-parent, and confidence metadata without changing the O-002 record
+classifications. Sampling gaps are never treated as absence, and aliases remain
+descriptive rather than binding rules. See
+[`RUNTIME_RECONCILIATION_UNCERTAINTY.md`](RUNTIME_RECONCILIATION_UNCERTAINTY.md)
+for the versioned schemas, synthetic scenarios, change explanations, and local
+validation command.

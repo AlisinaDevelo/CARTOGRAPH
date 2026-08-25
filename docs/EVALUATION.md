@@ -82,6 +82,15 @@ by refactor family. It compares the deterministic quality digest with the
 checked-in baseline and enforces the documented thresholds and expiring
 exception process before release.
 
+O-005 adds an uncertainty-aware runtime reconciliation corpus. Its complete,
+head-sampled, and probabilistic cases preserve the same static/runtime oracle
+while varying sampling metadata, clock precision, service aliases, and an
+explicit missing parent. The local report records confidence separately from
+classification and explains every classification or confidence change; an
+unobserved span is never interpreted as absent behavior. The contract and
+procedure are documented in
+[`RUNTIME_RECONCILIATION_UNCERTAINTY.md`](RUNTIME_RECONCILIATION_UNCERTAINTY.md).
+
 ## Policy configuration evaluation
 
 The policy fixture validates the versioned local contract through both the
