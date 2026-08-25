@@ -34,11 +34,19 @@ describe("release pipeline contract", () => {
     expect(read("scripts/release-artifact.mjs")).toContain(
       "forbiddenPackagePath",
     );
+    expect(read("scripts/release-artifact.mjs")).toContain('"--offline"');
+    expect(read("scripts/release-artifact.mjs")).toContain(
+      "packed artifact package, bin, export, or engine contract drifted",
+    );
+    expect(read("scripts/release-artifact.mjs")).toContain(
+      "from 'cartograph-cli'",
+    );
     expect(workflow).not.toContain("npm publish");
   });
 
   it("keeps the release contract documented and generated output ignored", () => {
     const release = read("docs/RELEASE.md");
+    const distribution = read("docs/DISTRIBUTION_DECISION.md");
     const changelog = read("CHANGELOG.md");
     const ignore = read(".gitignore");
     expect(release).toContain("Rollback and recovery");
@@ -46,6 +54,14 @@ describe("release pipeline contract", () => {
     expect(release).toContain("CycloneDX SBOM");
     expect(release).toContain("SLSA/in-toto provenance");
     expect(release).toContain("gh attestation verify");
+    expect(release).toContain("isolated offline package");
+    expect(release).toContain("consumer smoke test");
+    expect(release).toContain("DISTRIBUTION_DECISION.md");
+    expect(distribution).toContain(
+      "standalone native executable is explicitly deferred",
+    );
+    expect(distribution).toContain("npm install --offline");
+    expect(distribution).toContain("--ignore-scripts");
     expect(changelog).toContain("## [0.1.0]");
     expect(ignore).toContain("dist/");
     expect(ignore).toContain("coverage/");

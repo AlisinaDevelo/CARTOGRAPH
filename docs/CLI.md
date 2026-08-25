@@ -35,8 +35,11 @@ node dist/cli.js --version
 ```
 
 The published file set is limited to the built `dist` tree, package metadata,
-changelog, license, notice, and README. A release check installs the generated tarball in
-an isolated consumer before treating the `cartograph` bin as usable.
+changelog, license, notice, and README. A release check installs the generated
+tarball with `npm install --offline --ignore-scripts` in an isolated consumer,
+validates the package exports, bin, and Node engine contract, and only then
+treats the `cartograph` bin as usable. The standalone distribution deferral is
+recorded in [`DISTRIBUTION_DECISION.md`](DISTRIBUTION_DECISION.md).
 
 `scan` and `diff` accept `--config <path>` for the versioned
 [repository-relative configuration contract](CONFIGURATION.md). The config
