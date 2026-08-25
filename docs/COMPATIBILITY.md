@@ -41,6 +41,8 @@ Policy evaluation reports use the reviewed `policyEvaluations` contract and
 [`schema/policy-evaluation.v0.1.schema.json`](../schema/policy-evaluation.v0.1.schema.json).
 Composed local policy metadata uses the reviewed `policyCompositions` contract
 and [`schema/policy-composition.v0.1.schema.json`](../schema/policy-composition.v0.1.schema.json).
+Expiry-bound local policy records use the reviewed `policyExceptions` contract
+and [`schema/policy-exception.v0.1.schema.json`](../schema/policy-exception.v0.1.schema.json).
 Local adapter requests, capability manifests, and graph results use the reviewed
 `adapters` contract and [`schema/adapter.v0.1.schema.json`](../schema/adapter.v0.1.schema.json).
 Normalized local OTLP JSON traces use the reviewed `runtimeTraces` contract and
@@ -182,6 +184,16 @@ contradictory outcomes are resolved deterministically and fail closed with
 evidence-linked configuration errors. Existing v0.1 policy readers may ignore
 the optional fields and continue to read single-file policies; composition
 writers emit the separate v1 metadata contract and never resolve remote files.
+
+## P-015 policy exceptions
+
+P-015 adds the versioned `policyExceptions` record contract and optional
+`exceptions` policy field. The evaluator reports lifecycle state and evidence
+for every raw record, selects suppression deterministically by precedence, and
+keeps expired or malformed records from suppressing findings. These are
+additive fields and report details; readers that do not consume exceptions
+retain the prior single-policy meaning, while current readers preserve unknown
+records as visible malformed exceptions.
 
 ## P-007 local ADR references
 

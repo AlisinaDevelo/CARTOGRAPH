@@ -231,4 +231,159 @@ describe("policy evaluation", () => {
       ),
     ).toThrow(PolicyEvaluationError);
   });
+
+  it("reports exception lifecycle and applies only the highest-precedence active exception", () => {
+    const result = evaluatePolicyOnSnapshot(
+      {
+        schemaVersion: 1,
+        policyId: "exception-policy",
+        version: "1.0.0",
+        mode: "enforce",
+        rules: [
+          {
+            id: "endpoint-required",
+            target: "node",
+            selector: { kind: "endpoint" },
+            assertion: "exists",
+          },
+        ],
+        exceptions: [
+          {
+            schemaVersion: 1,
+            contract: "cartograph.policy-exception",
+            id: "active-high",
+            ruleId: "endpoint-required",
+            scope: { target: "node", selector: { kind: "endpoint" } },
+            rationale: "migration is scheduled",
+            owner: "architecture-team",
+            createdAt: "2026-08-01T00:00:00.000Z",
+            expiresAt: "2026-12-01T00:00:00.000Z",
+            precedence: 20,
+          },
+          {
+            schemaVersion: 1,
+            contract: "cartograph.policy-exception",
+            id: "expiring-low",
+            ruleId: "endpoint-required",
+            scope: { target: "node", selector: { kind: "endpoint" } },
+            rationale: "migration is scheduled",
+            owner: "architecture-team",
+            createdAt: "2026-08-01T00:00:00.000Z",
+            expiresAt: "2026-08-28T00:00:00.000Z",
+            precedence: 10,
+          },
+          {
+            schemaVersion: 1,
+            contract: "cartograph.policy-exception",
+            id: "expired",
+            ruleId: "endpoint-required",
+            scope: { target: "node", selector: { kind: "endpoint" } },
+            rationale: "old migration",
+            owner: "architecture-team",
+            createdAt: "2026-08-01T00:00:00.000Z",
+            expiresAt: "2026-08-23T00:00:00.000Z",
+            precedence: 50,
+          },
+          {
+            schemaVersion: 1,
+            contract: "cartograph.policy-exception",
+            id: "malformed",
+            ruleId: "endpoint-required",
+            scope: { target: "node", selector: { kind: "endpoint" } },
+            rationale: "missing owner",
+            createdAt: "2026-08-01T00:00:00.000Z",
+            expiresAt: "2026-12-01T00:00:00.000Z",
+          },
+        ],
+      },
+      snapshot({
+        commitSha: "exception-fixture",
+        nodes: [moduleNode("module:a")],
+      }),
+      { asOf: "2026-08-24T00:00:00.000Z", expiringWithinDays: 7 },
+    );
+
+    expect(result).toMatchObject({
+      mode: "enforce",
+      status: "passed",
+      evaluatedRules: 1,
+      passedRules: 1,
+      violations: [],
+      asOf: "2026-08-24T00:00:00.000Z",
+      exceptionWindowDays: 7,
+    });
+    expect(result.exceptions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "exception:active-high",
+          status: "active",
+          suppresses: true,
+        }),
+        expect.objectContaining({
+          id: "exception:expiring-low",
+          status: "expiring",
+          suppresses: false,
+        }),
+        expect.objectContaining({
+          id: "exception:expired",
+          status: "expired",
+          suppresses: false,
+        }),
+        expect.objectContaining({
+          id: "exception:malformed",
+          status: "malformed",
+          suppresses: false,
+        }),
+      ]),
+    );
+  });
+
+  it("keeps expired and malformed exceptions from suppressing enforcing findings", () => {
+    const result = evaluatePolicyOnSnapshot(
+      {
+        policyId: "expired-exception-policy",
+        version: "1.0.0",
+        mode: "enforce",
+        rules: [
+          {
+            id: "endpoint-required",
+            target: "node",
+            selector: { kind: "endpoint" },
+            assertion: "exists",
+          },
+        ],
+        exceptions: [
+          {
+            schemaVersion: 1,
+            contract: "cartograph.policy-exception",
+            id: "expired",
+            ruleId: "endpoint-required",
+            scope: { target: "node", selector: { kind: "endpoint" } },
+            rationale: "old migration",
+            owner: "architecture-team",
+            createdAt: "2026-08-01T00:00:00.000Z",
+            expiresAt: "2026-08-23T00:00:00.000Z",
+          },
+          { id: "malformed", ruleId: "endpoint-required" },
+        ],
+      },
+      snapshot({
+        commitSha: "expired-fixture",
+        nodes: [moduleNode("module:a")],
+      }),
+      { asOf: "2026-08-24T00:00:00.000Z" },
+    );
+
+    expect(result.status).toBe("violations");
+    expect(result.violations.map((violation) => violation.id)).toEqual([
+      "violation:endpoint-required",
+    ]);
+    expect(result.exceptions.map((exception) => exception.status)).toEqual([
+      "expired",
+      "malformed",
+    ]);
+    expect(result.exceptions.every((exception) => !exception.suppresses)).toBe(
+      true,
+    );
+  });
 });

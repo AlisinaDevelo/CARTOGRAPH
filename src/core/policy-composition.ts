@@ -489,6 +489,11 @@ export const composePolicyConfig = (
   const policy = PolicyConfigSchema.parse({
     ...root.policy,
     includes: [],
+    exceptions: loaded
+      .flatMap((source) => source.policy.exceptions)
+      .sort((left, right) =>
+        compareStrings(stableStringify(left), stableStringify(right)),
+      ),
     rules: entries
       .map((entry) => entry.rule)
       .sort((left, right) => compareStrings(left.id, right.id)),

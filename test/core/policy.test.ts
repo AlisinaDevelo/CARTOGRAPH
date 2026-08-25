@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
 
 import {
+  LocalPolicyExceptionSchema,
   LocalPolicyRuleSchema,
   PolicyConfigValidationError,
   parsePolicyConfig,
@@ -17,6 +18,12 @@ const repositoryRoot = resolve(import.meta.dirname, "../..");
 const schema = JSON.parse(
   readFileSync(
     resolve(repositoryRoot, "schema/policy.v0.1.schema.json"),
+    "utf8",
+  ),
+) as object;
+const exceptionSchema = JSON.parse(
+  readFileSync(
+    resolve(repositoryRoot, "schema/policy-exception.v0.1.schema.json"),
     "utf8",
   ),
 ) as object;
@@ -41,6 +48,24 @@ describe("local policy configuration", () => {
       new Set(["node", "edge", "diff"]),
     );
     expect(serializePolicyConfig(parsed)).toBe(serializePolicyConfig(sample));
+
+    const validateException = new Ajv({ allErrors: true }).compile(
+      exceptionSchema,
+    );
+    expect(
+      validateException({
+        schemaVersion: 1,
+        contract: "cartograph.policy-exception",
+        id: "migration-exception",
+        ruleId: "endpoint-count",
+        scope: { target: "node", selector: { kind: "endpoint" } },
+        rationale: "bounded migration",
+        owner: "architecture-team",
+        createdAt: "2026-08-24T00:00:00.000Z",
+        expiresAt: "2026-12-01T00:00:00.000Z",
+      }),
+    ).toBe(true);
+    expect(validateException.errors).toBeNull();
   });
 
   it("defaults to informational and rejects invalid or unbounded rule shapes", () => {
@@ -62,6 +87,21 @@ describe("local policy configuration", () => {
     expect(parsed.precedence).toBe(0);
     expect(parsed.overrideLimit).toBe(0);
     expect(parsed.includes).toEqual([]);
+    expect(parsed.exceptions).toEqual([]);
+
+    expect(
+      LocalPolicyExceptionSchema.parse({
+        schemaVersion: 1,
+        contract: "cartograph.policy-exception",
+        id: "migration-exception",
+        ruleId: "endpoint-presence",
+        scope: { target: "node", selector: { kind: "endpoint" } },
+        rationale: "bounded migration",
+        owner: "architecture-team",
+        createdAt: "2026-08-24T00:00:00.000Z",
+        expiresAt: "2026-12-01T00:00:00.000Z",
+      }).precedence,
+    ).toBe(0);
 
     expect(
       LocalPolicyRuleSchema.safeParse({

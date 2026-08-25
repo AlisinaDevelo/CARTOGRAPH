@@ -8,6 +8,9 @@ import { stableStringify } from "./canonical.js";
 
 export const LOCAL_POLICY_SCHEMA_VERSION = 1 as const;
 export const LOCAL_POLICY_CONTRACT = "cartograph.policy" as const;
+export const LOCAL_POLICY_EXCEPTION_SCHEMA_VERSION = 1 as const;
+export const LOCAL_POLICY_EXCEPTION_CONTRACT =
+  "cartograph.policy-exception" as const;
 export const POLICY_CONFIG_MAX_BYTES = 1024 * 1024;
 
 const IdentifierSchema = z
@@ -166,6 +169,72 @@ export const LocalPolicyIncludeSchema = z
   })
   .strict();
 
+const PolicyDateTimeSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(64)
+  .refine(
+    (value) => Number.isFinite(Date.parse(value)),
+    "must be a parseable date-time",
+  );
+
+const ExceptionRationaleSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(2_048)
+  .refine(
+    (value) =>
+      !value.includes("\0") && !value.includes("\r") && !value.includes("\n"),
+    "must not contain control characters",
+  );
+
+export const LocalPolicyExceptionScopeSchema = z.discriminatedUnion("target", [
+  z
+    .object({
+      target: z.literal("node"),
+      selector: LocalPolicyNodeSelectorSchema,
+    })
+    .strict(),
+  z
+    .object({
+      target: z.literal("edge"),
+      selector: LocalPolicyEdgeSelectorSchema,
+    })
+    .strict(),
+  z
+    .object({
+      target: z.literal("diff"),
+      selector: LocalPolicyDiffSelectorSchema,
+    })
+    .strict(),
+]);
+
+export const LocalPolicyExceptionSchema = z
+  .object({
+    schemaVersion: z.literal(LOCAL_POLICY_EXCEPTION_SCHEMA_VERSION),
+    contract: z.literal(LOCAL_POLICY_EXCEPTION_CONTRACT),
+    id: IdentifierSchema,
+    ruleId: IdentifierSchema,
+    scope: LocalPolicyExceptionScopeSchema,
+    rationale: ExceptionRationaleSchema,
+    owner: IdentifierSchema,
+    createdAt: PolicyDateTimeSchema,
+    expiresAt: PolicyDateTimeSchema,
+    precedence: z.number().int().nonnegative().max(1_000).default(0),
+  })
+  .strict()
+  .superRefine((exception, context) => {
+    if (Date.parse(exception.createdAt) >= Date.parse(exception.expiresAt)) {
+      context.addIssue({
+        code: "custom",
+        path: ["expiresAt"],
+        message: "must be later than createdAt",
+      });
+    }
+  });
+
 const ruleInvariant = (
   rule: {
     assertion: z.infer<typeof AssertionSchema>;
@@ -251,6 +320,11 @@ export const PolicyConfigSchema = z
     precedence: z.number().int().nonnegative().max(1_000).default(0),
     overrideLimit: z.number().int().nonnegative().max(128).default(0),
     includes: z.array(LocalPolicyIncludeSchema).max(32).default([]),
+    // Exception records stay raw at the policy boundary so malformed records
+    // can be reported as visible evaluation findings instead of disappearing
+    // behind a configuration parse error. Valid records use the versioned
+    // LocalPolicyExceptionSchema below.
+    exceptions: z.array(z.unknown()).max(128).default([]),
     rules: z.array(LocalPolicyRuleSchema).min(1).max(256),
   })
   .strict();
@@ -265,6 +339,10 @@ export type LocalPolicyDiffSelector = z.infer<
   typeof LocalPolicyDiffSelectorSchema
 >;
 export type LocalPolicyInclude = z.infer<typeof LocalPolicyIncludeSchema>;
+export type LocalPolicyExceptionScope = z.infer<
+  typeof LocalPolicyExceptionScopeSchema
+>;
+export type LocalPolicyException = z.infer<typeof LocalPolicyExceptionSchema>;
 export type LocalPolicyRule = z.infer<typeof LocalPolicyRuleSchema>;
 export type PolicyConfig = z.infer<typeof PolicyConfigSchema>;
 

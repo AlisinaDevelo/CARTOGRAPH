@@ -96,6 +96,23 @@ const policyMode = (value: string): PolicyCiMode => {
   }
 };
 
+const policyAsOf = (value: string): string => {
+  if (!Number.isFinite(Date.parse(value))) {
+    throw new InvalidArgumentError("as-of must be a parseable date-time");
+  }
+  return value;
+};
+
+const exceptionWindowDays = (value: string): number => {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0 || parsed > 3_650) {
+    throw new InvalidArgumentError(
+      "exception-window-days must be an integer from 0 to 3650",
+    );
+  }
+  return parsed;
+};
+
 const emit = async (content: string, options: OutputOptions): Promise<void> => {
   if (options.output === undefined || options.output === "-") {
     process.stdout.write(content);
@@ -237,6 +254,16 @@ export function createCli(): Command {
       "CI mode: informational or enforce; policy mode when omitted",
       policyMode,
     )
+    .option(
+      "--as-of <date-time>",
+      "evaluation time for expiry-bound policy exceptions",
+      policyAsOf,
+    )
+    .option(
+      "--exception-window-days <days>",
+      "days before expiry to classify an exception as expiring",
+      exceptionWindowDays,
+    )
     .option("-o, --output <path>", "output JSON report; stdout when omitted")
     .option("--force", "replace an existing output file", false)
     .action(
@@ -245,6 +272,8 @@ export function createCli(): Command {
         options: OutputOptions & {
           diff?: string;
           mode?: PolicyCiMode;
+          asOf?: string;
+          exceptionWindowDays?: number;
           policy: string;
           snapshot?: string;
         },
@@ -266,6 +295,10 @@ export function createCli(): Command {
           input,
           inputKind: hasSnapshot ? "snapshot" : "diff",
           ...(options.mode === undefined ? {} : { mode: options.mode }),
+          ...(options.asOf === undefined ? {} : { asOf: options.asOf }),
+          ...(options.exceptionWindowDays === undefined
+            ? {}
+            : { expiringWithinDays: options.exceptionWindowDays }),
           policy: options.policy,
           root,
         });

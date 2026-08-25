@@ -1,0 +1,214 @@
+{
+  "fixtureId": "policy-exceptions-v0.1",
+  "asOf": "2026-08-24T00:00:00.000Z",
+  "expiringWithinDays": 7,
+  "snapshot": {
+    "schemaVersion": 1,
+    "revision": { "commitSha": "policy-exception-fixture" },
+    "nodes": [{ "id": "module:a", "kind": "module", "name": "a" }],
+    "edges": [],
+    "diagnostics": []
+  },
+  "cases": [
+    {
+      "id": "active-enforce",
+      "kind": "positive",
+      "policy": {
+        "schemaVersion": 1,
+        "policyId": "exception-active-enforce",
+        "version": "1.0.0",
+        "mode": "enforce",
+        "rules": [
+          {
+            "id": "endpoint-required",
+            "target": "node",
+            "selector": { "kind": "endpoint" },
+            "assertion": "exists"
+          }
+        ],
+        "exceptions": [
+          {
+            "schemaVersion": 1,
+            "contract": "cartograph.policy-exception",
+            "id": "active-window",
+            "ruleId": "endpoint-required",
+            "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+            "rationale": "bounded migration",
+            "owner": "architecture-team",
+            "createdAt": "2026-08-01T00:00:00.000Z",
+            "expiresAt": "2026-12-01T00:00:00.000Z",
+            "precedence": 10
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "exceptionStatuses": ["active"],
+        "suppressedIds": ["exception:active-window"]
+      }
+    },
+    {
+      "id": "expiring-informational",
+      "kind": "positive",
+      "policy": {
+        "schemaVersion": 1,
+        "policyId": "exception-expiring-informational",
+        "version": "1.0.0",
+        "mode": "informational",
+        "rules": [
+          {
+            "id": "endpoint-required",
+            "target": "node",
+            "selector": { "kind": "endpoint" },
+            "assertion": "exists"
+          }
+        ],
+        "exceptions": [
+          {
+            "schemaVersion": 1,
+            "contract": "cartograph.policy-exception",
+            "id": "expiring-window",
+            "ruleId": "endpoint-required",
+            "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+            "rationale": "migration is almost complete",
+            "owner": "architecture-team",
+            "createdAt": "2026-08-01T00:00:00.000Z",
+            "expiresAt": "2026-08-28T00:00:00.000Z",
+            "precedence": 5
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "exceptionStatuses": ["expiring"],
+        "suppressedIds": ["exception:expiring-window"]
+      }
+    },
+    {
+      "id": "expired-enforce",
+      "kind": "negative",
+      "policy": {
+        "schemaVersion": 1,
+        "policyId": "exception-expired-enforce",
+        "version": "1.0.0",
+        "mode": "enforce",
+        "rules": [
+          {
+            "id": "endpoint-required",
+            "target": "node",
+            "selector": { "kind": "endpoint" },
+            "assertion": "exists"
+          }
+        ],
+        "exceptions": [
+          {
+            "schemaVersion": 1,
+            "contract": "cartograph.policy-exception",
+            "id": "expired-window",
+            "ruleId": "endpoint-required",
+            "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+            "rationale": "old migration",
+            "owner": "architecture-team",
+            "createdAt": "2026-08-01T00:00:00.000Z",
+            "expiresAt": "2026-08-23T00:00:00.000Z",
+            "precedence": 100
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:endpoint-required"],
+        "exceptionStatuses": ["expired"],
+        "suppressedIds": []
+      }
+    },
+    {
+      "id": "malformed-enforce",
+      "kind": "negative",
+      "policy": {
+        "schemaVersion": 1,
+        "policyId": "exception-malformed-enforce",
+        "version": "1.0.0",
+        "mode": "enforce",
+        "rules": [
+          {
+            "id": "endpoint-required",
+            "target": "node",
+            "selector": { "kind": "endpoint" },
+            "assertion": "exists"
+          }
+        ],
+        "exceptions": [
+          {
+            "schemaVersion": 1,
+            "contract": "cartograph.policy-exception",
+            "id": "malformed-window",
+            "ruleId": "endpoint-required",
+            "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+            "rationale": "owner is intentionally absent",
+            "createdAt": "2026-08-01T00:00:00.000Z",
+            "expiresAt": "2026-12-01T00:00:00.000Z"
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:endpoint-required"],
+        "exceptionStatuses": ["malformed"],
+        "suppressedIds": []
+      }
+    },
+    {
+      "id": "precedence-enforce",
+      "kind": "positive",
+      "policy": {
+        "schemaVersion": 1,
+        "policyId": "exception-precedence-enforce",
+        "version": "1.0.0",
+        "mode": "enforce",
+        "rules": [
+          {
+            "id": "endpoint-required",
+            "target": "node",
+            "selector": { "kind": "endpoint" },
+            "assertion": "exists"
+          }
+        ],
+        "exceptions": [
+          {
+            "schemaVersion": 1,
+            "contract": "cartograph.policy-exception",
+            "id": "precedence-low",
+            "ruleId": "endpoint-required",
+            "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+            "rationale": "fallback migration",
+            "owner": "architecture-team",
+            "createdAt": "2026-08-01T00:00:00.000Z",
+            "expiresAt": "2026-12-01T00:00:00.000Z",
+            "precedence": 1
+          },
+          {
+            "schemaVersion": 1,
+            "contract": "cartograph.policy-exception",
+            "id": "precedence-high",
+            "ruleId": "endpoint-required",
+            "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+            "rationale": "reviewed migration",
+            "owner": "architecture-team",
+            "createdAt": "2026-08-01T00:00:00.000Z",
+            "expiresAt": "2026-12-01T00:00:00.000Z",
+            "precedence": 20
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "exceptionStatuses": ["active", "active"],
+        "suppressedIds": ["exception:precedence-high"]
+      }
+    }
+  ]
+}

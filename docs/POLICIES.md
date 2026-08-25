@@ -54,6 +54,29 @@ for the involved policy files, rule IDs, scopes, or composition limit. The
 serialized composition records the root, all sources, and authorized overrides
 so a reviewer can reproduce the result without remote resolution.
 
+## Expiry-bound local exceptions
+
+P-015 adds the versioned `cartograph.policy-exception` record. Each exception
+names one rule and a bounded node, edge, or diff selector, then records a
+single-line rationale, lower-case owner identifier, creation time, mandatory
+expiry, and deterministic precedence. Exceptions are retained in the policy
+input as raw records so malformed records remain visible to evaluation instead
+of becoming an invisible parse failure.
+
+Evaluation classifies every record as `active`, `expiring`, `expired`, or
+`malformed`. Active and expiring exceptions can suppress a matching violation;
+when several apply, the highest precedence wins and ties use the stable
+exception ID. Expired, malformed, unknown-rule, future-created, and
+target-mismatched exceptions never suppress findings. Their report entries
+carry policy, exception, rule, and input evidence references. The same
+exception semantics apply in informational and enforcing modes; mode controls
+the CI exit status, while lifecycle state remains visible in both reports.
+
+The `cartograph policy` command accepts `--as-of <date-time>` for reproducible
+expiry evaluation and `--exception-window-days <days>` (default seven) for the
+expiring classification boundary. No exception grants merge authority or
+performs a policy mutation.
+
 ## Offline loading
 
 `parsePolicyConfig` validates an in-memory value. `readPolicyConfig` accepts only
@@ -94,3 +117,10 @@ IDs, override limits, equal-precedence conflicts, cycles, duplicate includes,
 contradictory outcomes, and rejected remote references. `npm run
 policy-composition:validate` runs every positive and negative scenario through
 both the runtime contract and the published composition schema.
+
+The policy-exception fixture at
+[`policy-exceptions/scenarios.v0.1.json`](../test/fixtures/policy-exceptions/scenarios.v0.1.json)
+covers active, expiring, expired, malformed, and precedence-selected records in
+informational and enforcing modes. `npm run policy-exceptions:validate` checks
+the exception schema, evaluation report schema, evidence, suppression rules,
+and repeated serialization.

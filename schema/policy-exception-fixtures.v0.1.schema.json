@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/policy-exception-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH policy exception fixture corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["fixtureId", "asOf", "expiringWithinDays", "snapshot", "cases"],
+  "properties": {
+    "fixtureId": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "asOf": { "type": "string", "format": "date-time" },
+    "expiringWithinDays": { "type": "integer", "minimum": 0, "maximum": 3650 },
+    "snapshot": { "type": "object" },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "policy", "expected"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "kind": { "enum": ["positive", "negative"] },
+        "policy": { "type": "object" },
+        "expected": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "violationIds",
+            "exceptionStatuses",
+            "suppressedIds"
+          ],
+          "properties": {
+            "status": { "enum": ["passed", "violations", "unsupported"] },
+            "violationIds": { "type": "array", "items": { "type": "string" } },
+            "exceptionStatuses": {
+              "type": "array",
+              "items": {
+                "enum": ["active", "expiring", "expired", "malformed"]
+              }
+            },
+            "suppressedIds": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    }
+  }
+}

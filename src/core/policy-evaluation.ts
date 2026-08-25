@@ -3,7 +3,9 @@ import { z } from "zod";
 import { canonicalizeGraphSnapshot, stableStringify } from "./canonical.js";
 import { canonicalizeGraphDiff } from "./diff.js";
 import {
+  LocalPolicyExceptionSchema,
   parsePolicyConfig,
+  type LocalPolicyException,
   type LocalPolicyRule,
   type PolicyConfig,
 } from "./policy.js";
@@ -20,6 +22,7 @@ import type {
 export const POLICY_EVALUATION_SCHEMA_VERSION = 1 as const;
 export const POLICY_EVALUATION_CONTRACT =
   "cartograph.policy-evaluation" as const;
+export const POLICY_EXCEPTION_EXPIRING_WINDOW_DAYS = 7 as const;
 
 const IdentifierSchema = z
   .string()
@@ -52,6 +55,34 @@ const PolicyAssertionSchema = z.enum([
   "count-at-least",
 ]);
 const PolicyEffectSchema = z.enum(["informational", "enforce"]);
+const PolicyDateTimeSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(64)
+  .refine(
+    (value) => Number.isFinite(Date.parse(value)),
+    "must be a parseable date-time",
+  );
+
+export const PolicyExceptionStatusSchema = z.enum([
+  "active",
+  "expiring",
+  "expired",
+  "malformed",
+]);
+
+export const PolicyExceptionReportSchema = z
+  .object({
+    id: EvaluationIdSchema,
+    ruleId: IdentifierSchema.optional(),
+    status: PolicyExceptionStatusSchema,
+    precedence: z.number().int().nonnegative().max(1_000).optional(),
+    suppresses: z.boolean(),
+    reason: ReasonSchema,
+    evidenceRefs: z.array(EvidenceReferenceSchema).min(1).max(128),
+  })
+  .strict();
 
 export const PolicyViolationSchema = z
   .object({
@@ -103,6 +134,9 @@ export const PolicyEvaluationSchema = z
     unsupportedRules: z.number().int().nonnegative(),
     violations: z.array(PolicyViolationSchema).max(10_000),
     unsupported: z.array(PolicyUnsupportedSchema).max(10_000),
+    asOf: PolicyDateTimeSchema.optional(),
+    exceptionWindowDays: z.number().int().nonnegative().max(3650).optional(),
+    exceptions: z.array(PolicyExceptionReportSchema).max(128).default([]),
   })
   .strict()
   .superRefine((report, context) => {
@@ -141,16 +175,24 @@ export const PolicyEvaluationSchema = z
 
 export type PolicyViolation = z.infer<typeof PolicyViolationSchema>;
 export type PolicyUnsupported = z.infer<typeof PolicyUnsupportedSchema>;
+export type PolicyExceptionReport = z.infer<typeof PolicyExceptionReportSchema>;
 export type PolicyEvaluation = z.infer<typeof PolicyEvaluationSchema>;
 
 export type PolicyEvaluationInput =
   { kind: "snapshot"; snapshot: unknown } | { kind: "diff"; diff: unknown };
 
+export type PolicyEvaluationOptions = {
+  asOf?: string;
+  expiringWithinDays?: number;
+};
+
 export class PolicyEvaluationError extends Error {
-  readonly code: "invalid-input" | "multiple-inputs" | "missing-input";
+  readonly code:
+    "invalid-input" | "multiple-inputs" | "missing-input" | "invalid-options";
 
   constructor(
-    code: "invalid-input" | "multiple-inputs" | "missing-input",
+    code:
+      "invalid-input" | "multiple-inputs" | "missing-input" | "invalid-options",
     message: string,
   ) {
     super(message);
@@ -443,6 +485,244 @@ const matchingCandidates = (
   });
 };
 
+type ExceptionAnalysis = {
+  parsed?: LocalPolicyException;
+  report: PolicyExceptionReport;
+  eligible: boolean;
+};
+
+const exceptionEvidence = (
+  policy: PolicyConfig,
+  index: number,
+  id?: string,
+  ruleId?: string,
+): string[] => [
+  `input:policy`,
+  `policy:${policy.policyId}`,
+  `policy-exception:index:${index}`,
+  ...(id === undefined ? [] : [`policy-exception:${id}`]),
+  ...(ruleId === undefined ? [] : [`policy-rule:${ruleId}`]),
+];
+
+const exceptionIssueText = (error: z.ZodError): string => {
+  const first = error.issues[0];
+  if (first === undefined)
+    return "exception does not match the versioned contract";
+  const path = first.path.length > 0 ? first.path.join(".") : "exception";
+  return `${path}: ${first.message}`;
+};
+
+const exceptionSelectorOverlaps = (
+  left: Record<string, unknown>,
+  right: Record<string, unknown>,
+): boolean =>
+  Object.entries(left).every(
+    ([key, value]) => right[key] === undefined || right[key] === value,
+  );
+
+const matchesExceptionCandidate = (
+  exception: LocalPolicyException,
+  candidate: Candidate,
+): boolean => {
+  if (exception.scope.target !== candidate.target) return false;
+  if (exception.scope.target === "node") {
+    return candidate.node
+      ? matchesNode(candidate.node, exception.scope.selector)
+      : false;
+  }
+  if (exception.scope.target === "edge") {
+    return candidate.edge
+      ? matchesEdge(candidate.edge, exception.scope.selector)
+      : false;
+  }
+  return candidate.diff
+    ? matchesDiff(candidate.diff, exception.scope.selector)
+    : false;
+};
+
+const exceptionAppliesToRule = (
+  exception: LocalPolicyException,
+  rule: LocalPolicyRule,
+  matches: readonly Candidate[],
+): boolean => {
+  if (exception.ruleId !== rule.id || exception.scope.target !== rule.target)
+    return false;
+  if (matches.length > 0)
+    return matches.some((candidate) =>
+      matchesExceptionCandidate(exception, candidate),
+    );
+  return exceptionSelectorOverlaps(exception.scope.selector, rule.selector);
+};
+
+const rawExceptionRecord = (value: unknown): Record<string, unknown> | null => {
+  if (value === null || typeof value !== "object" || Array.isArray(value))
+    return null;
+  return value as Record<string, unknown>;
+};
+
+const safeExceptionIdentifier = (value: unknown): string | undefined => {
+  if (
+    typeof value !== "string" ||
+    value.length === 0 ||
+    value.length > 160 ||
+    !/^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$/u.test(value)
+  )
+    return undefined;
+  return value;
+};
+
+const analyzeExceptions = (
+  policy: PolicyConfig,
+  asOf: number,
+  expiringWithinDays: number,
+): ExceptionAnalysis[] => {
+  const parsed = policy.exceptions.map((raw, index) => ({
+    index,
+    result: LocalPolicyExceptionSchema.safeParse(raw),
+  }));
+  const duplicateIds = new Set<string>();
+  const seenIds = new Set<string>();
+  for (const item of parsed) {
+    if (!item.result.success) continue;
+    if (seenIds.has(item.result.data.id)) duplicateIds.add(item.result.data.id);
+    seenIds.add(item.result.data.id);
+  }
+  const ruleById = new Map(policy.rules.map((rule) => [rule.id, rule]));
+  const expiringWindow = expiringWithinDays * 24 * 60 * 60 * 1_000;
+
+  return parsed.map(({ index, result }) => {
+    const baseEvidence = exceptionEvidence(policy, index);
+    if (!result.success) {
+      const rawRecord =
+        rawExceptionRecord(policy.exceptions[index]) ?? undefined;
+      const rawId = safeExceptionIdentifier(rawRecord?.id);
+      const rawRuleId = safeExceptionIdentifier(rawRecord?.ruleId);
+      return {
+        eligible: false,
+        report: {
+          id:
+            rawId === undefined
+              ? `malformed-exception:${index}`
+              : `exception:${rawId}`,
+          ...(rawRuleId === undefined ? {} : { ruleId: rawRuleId }),
+          status: "malformed",
+          suppresses: false,
+          reason: `exception is malformed: ${exceptionIssueText(result.error)}`,
+          evidenceRefs: [
+            ...baseEvidence,
+            ...(rawId === undefined ? [] : [`policy-exception:${rawId}`]),
+            ...(rawRuleId === undefined ? [] : [`policy-rule:${rawRuleId}`]),
+          ],
+        },
+      } satisfies ExceptionAnalysis;
+    }
+
+    const exception = result.data;
+    const evidenceRefs = exceptionEvidence(
+      policy,
+      index,
+      exception.id,
+      exception.ruleId,
+    );
+    const rule = ruleById.get(exception.ruleId);
+    if (duplicateIds.has(exception.id)) {
+      return {
+        eligible: false,
+        parsed: exception,
+        report: {
+          id: `exception:${exception.id}`,
+          ruleId: exception.ruleId,
+          status: "malformed",
+          precedence: exception.precedence,
+          suppresses: false,
+          reason: `exception ID ${exception.id} is duplicated`,
+          evidenceRefs,
+        },
+      } satisfies ExceptionAnalysis;
+    }
+    if (rule === undefined) {
+      return {
+        eligible: false,
+        parsed: exception,
+        report: {
+          id: `exception:${exception.id}`,
+          ruleId: exception.ruleId,
+          status: "malformed",
+          precedence: exception.precedence,
+          suppresses: false,
+          reason: `exception references unknown policy rule ${exception.ruleId}`,
+          evidenceRefs,
+        },
+      } satisfies ExceptionAnalysis;
+    }
+    if (rule.target !== exception.scope.target) {
+      return {
+        eligible: false,
+        parsed: exception,
+        report: {
+          id: `exception:${exception.id}`,
+          ruleId: exception.ruleId,
+          status: "malformed",
+          precedence: exception.precedence,
+          suppresses: false,
+          reason: `exception scope target ${exception.scope.target} does not match rule target ${rule.target}`,
+          evidenceRefs,
+        },
+      } satisfies ExceptionAnalysis;
+    }
+
+    const createdAt = Date.parse(exception.createdAt);
+    const expiresAt = Date.parse(exception.expiresAt);
+    if (createdAt > asOf) {
+      return {
+        eligible: false,
+        parsed: exception,
+        report: {
+          id: `exception:${exception.id}`,
+          ruleId: exception.ruleId,
+          status: "malformed",
+          precedence: exception.precedence,
+          suppresses: false,
+          reason: `exception ${exception.id} is not effective before its creation date`,
+          evidenceRefs,
+        },
+      } satisfies ExceptionAnalysis;
+    }
+    if (expiresAt <= asOf) {
+      return {
+        eligible: false,
+        parsed: exception,
+        report: {
+          id: `exception:${exception.id}`,
+          ruleId: exception.ruleId,
+          status: "expired",
+          precedence: exception.precedence,
+          suppresses: false,
+          reason: `exception ${exception.id} expired at ${exception.expiresAt}`,
+          evidenceRefs,
+        },
+      } satisfies ExceptionAnalysis;
+    }
+    const status = expiresAt - asOf <= expiringWindow ? "expiring" : "active";
+    return {
+      eligible: true,
+      parsed: exception,
+      report: {
+        id: `exception:${exception.id}`,
+        ruleId: exception.ruleId,
+        status,
+        precedence: exception.precedence,
+        suppresses: false,
+        reason:
+          status === "expiring"
+            ? `exception ${exception.id} expires within ${expiringWithinDays} day(s)`
+            : `exception ${exception.id} is active`,
+        evidenceRefs,
+      },
+    } satisfies ExceptionAnalysis;
+  });
+};
+
 const ruleViolation = (
   policy: PolicyConfig,
   rule: LocalPolicyRule,
@@ -541,9 +821,32 @@ const parseInput = (
 export const evaluatePolicy = (
   policyInput: unknown,
   input: PolicyEvaluationInput,
+  options: PolicyEvaluationOptions = {},
 ): PolicyEvaluation => {
   const policy = parsePolicyConfig(policyInput);
   const parsedInput = parseInput(input);
+  const hasExceptionContext =
+    policy.exceptions.length > 0 || Object.keys(options).length > 0;
+  const asOfText = options.asOf ?? new Date().toISOString();
+  const asOf = Date.parse(asOfText);
+  if (!Number.isFinite(asOf)) {
+    throw new PolicyEvaluationError(
+      "invalid-options",
+      "policy exception as-of must be a parseable date-time",
+    );
+  }
+  const expiringWithinDays =
+    options.expiringWithinDays ?? POLICY_EXCEPTION_EXPIRING_WINDOW_DAYS;
+  if (
+    !Number.isInteger(expiringWithinDays) ||
+    expiringWithinDays < 0 ||
+    expiringWithinDays > 3_650
+  ) {
+    throw new PolicyEvaluationError(
+      "invalid-options",
+      "policy exception expiring window must be an integer from 0 to 3650 days",
+    );
+  }
   const candidates =
     parsedInput.kind === "snapshot"
       ? (() => {
@@ -551,6 +854,9 @@ export const evaluatePolicy = (
           return { ...snapshot, diffs: [] };
         })()
       : diffCandidates(parsedInput.graph);
+  const exceptionAnalyses = hasExceptionContext
+    ? analyzeExceptions(policy, asOf, expiringWithinDays)
+    : [];
   const violations: PolicyViolation[] = [];
   const unsupported: PolicyUnsupported[] = [];
 
@@ -566,7 +872,35 @@ export const evaluatePolicy = (
       parsedInput.kind,
       matchingCandidates(rule, candidates),
     );
-    if (violation) violations.push(violation);
+    if (violation) {
+      const matches = matchingCandidates(rule, candidates);
+      const applicable = exceptionAnalyses
+        .filter(
+          (analysis) =>
+            analysis.eligible &&
+            analysis.parsed !== undefined &&
+            exceptionAppliesToRule(analysis.parsed, rule, matches),
+        )
+        .sort((left, right) => {
+          const precedence =
+            (right.parsed?.precedence ?? 0) - (left.parsed?.precedence ?? 0);
+          if (precedence !== 0) return precedence;
+          return compareStrings(left.report.id, right.report.id);
+        });
+      const winner = applicable[0];
+      if (winner !== undefined) {
+        winner.report.suppresses = true;
+        winner.report.reason =
+          winner.report.status === "expiring"
+            ? `expiring exception ${winner.parsed?.id ?? "unknown"} suppresses the matching violation`
+            : `active exception ${winner.parsed?.id ?? "unknown"} suppresses the matching violation`;
+        for (const shadowed of applicable.slice(1)) {
+          shadowed.report.reason = `exception was not selected because a higher-precedence exception matched`;
+        }
+        continue;
+      }
+      violations.push(violation);
+    }
   }
 
   violations.sort((left, right) => compareStrings(left.id, right.id));
@@ -589,6 +923,10 @@ export const evaluatePolicy = (
     unsupportedRules: unsupported.length,
     violations,
     unsupported,
+    exceptions: exceptionAnalyses.map((analysis) => analysis.report),
+    ...(hasExceptionContext
+      ? { asOf: asOfText, exceptionWindowDays: expiringWithinDays }
+      : {}),
   } satisfies PolicyEvaluation;
   return PolicyEvaluationSchema.parse(report);
 };
@@ -596,13 +934,16 @@ export const evaluatePolicy = (
 export const evaluatePolicyOnSnapshot = (
   policyInput: unknown,
   snapshot: unknown,
+  options?: PolicyEvaluationOptions,
 ): PolicyEvaluation =>
-  evaluatePolicy(policyInput, { kind: "snapshot", snapshot });
+  evaluatePolicy(policyInput, { kind: "snapshot", snapshot }, options);
 
 export const evaluatePolicyOnDiff = (
   policyInput: unknown,
   diff: unknown,
-): PolicyEvaluation => evaluatePolicy(policyInput, { kind: "diff", diff });
+  options?: PolicyEvaluationOptions,
+): PolicyEvaluation =>
+  evaluatePolicy(policyInput, { kind: "diff", diff }, options);
 
 export const evaluatePolicyConfig = evaluatePolicy;
 

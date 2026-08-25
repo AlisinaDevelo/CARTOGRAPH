@@ -220,4 +220,89 @@ describe("policy CLI mode contract", () => {
       passedRules: 2,
     });
   });
+
+  it("uses an explicit as-of date for expiry-bound exceptions", async () => {
+    const root = await mkdtemp(
+      join(tmpdir(), "cartograph-policy-cli-exception-"),
+    );
+    temporaryDirectories.push(root);
+    const policyPath = join(root, "policy.json");
+    const snapshotPath = join(root, "snapshot.json");
+    const activeReportPath = join(root, "active.json");
+    const expiredReportPath = join(root, "expired.json");
+    await writeFile(
+      policyPath,
+      JSON.stringify({
+        schemaVersion: 1,
+        policyId: "policy-cli-exception",
+        version: "1.0.0",
+        mode: "enforce",
+        rules: [
+          {
+            id: "endpoint-required",
+            target: "node",
+            selector: { kind: "endpoint" },
+            assertion: "exists",
+          },
+        ],
+        exceptions: [
+          {
+            schemaVersion: 1,
+            contract: "cartograph.policy-exception",
+            id: "migration-window",
+            ruleId: "endpoint-required",
+            scope: { target: "node", selector: { kind: "endpoint" } },
+            rationale: "bounded migration",
+            owner: "architecture-team",
+            createdAt: "2026-08-01T00:00:00.000Z",
+            expiresAt: "2026-09-01T00:00:00.000Z",
+            precedence: 5,
+          },
+        ],
+      }),
+    );
+    await writeFile(snapshotPath, JSON.stringify(snapshot));
+
+    const active = await runEntrypoint([
+      "policy",
+      root,
+      "--policy",
+      "policy.json",
+      "--snapshot",
+      snapshotPath,
+      "--as-of",
+      "2026-08-24T00:00:00.000Z",
+      "--output",
+      activeReportPath,
+    ]);
+    const expired = await runEntrypoint([
+      "policy",
+      root,
+      "--policy",
+      "policy.json",
+      "--snapshot",
+      snapshotPath,
+      "--as-of",
+      "2026-09-02T00:00:00.000Z",
+      "--output",
+      expiredReportPath,
+    ]);
+
+    expect(active).toMatchObject({ code: 0, stderr: "", stdout: "" });
+    expect(expired).toMatchObject({ code: 2, stderr: "", stdout: "" });
+    expect(JSON.parse(await readFile(activeReportPath, "utf8"))).toMatchObject({
+      status: "passed",
+      exceptions: [
+        expect.objectContaining({ status: "active", suppresses: true }),
+      ],
+    });
+    expect(JSON.parse(await readFile(expiredReportPath, "utf8"))).toMatchObject(
+      {
+        status: "violations",
+        exceptions: [
+          expect.objectContaining({ status: "expired", suppresses: false }),
+        ],
+      },
+    );
+  });
 });

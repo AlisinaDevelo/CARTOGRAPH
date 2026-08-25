@@ -88,7 +88,11 @@ remote resolution. The graph artifact is bounded and parsed as a snapshot or
 GraphDiff. `--mode informational` is the non-blocking default when supplied;
 omitting `--mode` uses the composed policy's mode. `--mode enforce` is the
 explicit CI gate and still emits the canonical policy-evaluation report before
-returning its findings status.
+returning its findings status. `--as-of` fixes the evaluation time for local
+policy exceptions, and `--exception-window-days` controls when a valid exception
+is reported as expiring (the default is seven days). Active and expiring
+exceptions can suppress only their matching rule violation; expired and
+malformed exceptions remain visible and never suppress findings.
 
 ## Output and diagnostic streams
 
