@@ -300,6 +300,19 @@ O-002 is a local, inert contract layered on the O-001 normalized input. It adds
 no collector, upload, network access, retention, redaction, CLI, report, or
 automatic binding behavior.
 
+## O-005 uncertainty-aware reconciliation
+
+O-005 adds the versioned
+`cartograph.runtime-reconciliation-uncertainty` report around O-002. It is
+additive: readers that only understand O-002 may continue consuming the
+original reconciliation artifact. The new report preserves O-002
+classifications while adding sampling, clock, service-alias, missing-parent,
+and confidence metadata. Sampling gaps are not absence claims, aliases do not
+create bindings, and change explanations identify whether a difference comes
+from sampling, clock precision, a missing parent, or binding confidence. The
+offline validator and schemas are documented in
+[`RUNTIME_RECONCILIATION_UNCERTAINTY.md`](RUNTIME_RECONCILIATION_UNCERTAINTY.md).
+
 ## O-003 runtime trace safety
 
 O-003 publishes runtime trace safety schema version `1` in

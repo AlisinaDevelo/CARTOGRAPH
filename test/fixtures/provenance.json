@@ -369,6 +369,15 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "A digest-bound language-expansion gate compares bounded Rust conformance, semantic coverage, unknown behavior, quality, performance, maintenance, demand, ownership, and evidence thresholds before recording a conservative public decision.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "runtime-reconciliation-uncertainty",
+      "path": "runtime-reconciliation-uncertainty",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A complete trace and deterministic head/probabilistic samples exercise sampling metadata, clock uncertainty, service aliases, missing parents, confidence propagation, and classification-change explanations without network access or hosted collection.",
+      "redistribution": "allowed"
     }
   ]
 }

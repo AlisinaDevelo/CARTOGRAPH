@@ -1,0 +1,207 @@
+{
+  "$schema": "../../../schema/runtime-reconciliation-uncertainty-fixtures.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.runtime-reconciliation-uncertainty-fixtures",
+  "fixtureId": "runtime-reconciliation-uncertainty",
+  "evaluatedAt": "2026-08-25T00:00:00Z",
+  "baseInput": "schema/runtime-reconciliation-fixture.v0.1.json",
+  "limitations": [
+    "The oracle uses a hand-authored four-node graph and a five-span trace; it is not representative of production workloads.",
+    "Uncertainty metadata is synthetic and describes what the local evaluator knows about sampling and clocks; it does not reconstruct omitted production spans.",
+    "Explicit span bindings are supplied by the fixture, so binding discovery quality is outside this evaluation."
+  ],
+  "samplingCaveats": [
+    "A missing span is retained as an observation gap and never treated as evidence that the corresponding behavior is absent.",
+    "A missing parent creates an explicit unmodeled record for the retained child; it does not silently repair the trace or infer a static edge.",
+    "Sampling rates describe this synthetic trace only and are not population estimates."
+  ],
+  "cases": [
+    {
+      "id": "complete-synchronized",
+      "description": "Complete trace with exact trace-clock ordering and service aliases recorded as metadata only.",
+      "dropSpanIds": [],
+      "dropBindingSpanIds": [],
+      "uncertainty": {
+        "sampling": {
+          "strategy": "complete",
+          "expectedSpanCount": 5,
+          "observedSpanCount": 5,
+          "observedRate": 1,
+          "missingIsNotAbsence": true,
+          "rationale": "All five synthetic spans were retained; completeness is scoped to this fixture."
+        },
+        "clock": {
+          "domain": "trace",
+          "offsetNanoseconds": 0,
+          "uncertaintyNanoseconds": 0,
+          "ordering": "exact",
+          "rationale": "Synthetic timestamps share one exact trace clock."
+        },
+        "serviceAliases": [
+          { "canonical": "module:a", "aliases": ["service-a", "svc-a"] }
+        ],
+        "missingParents": [],
+        "confidencePolicy": {
+          "certainWhen": "Every referenced span has a certain explicit binding and the trace clock is exact.",
+          "inferredWhen": "A binding is inferred, an endpoint is ambiguous, or clock precision downgrades an otherwise certain observation.",
+          "unknownWhen": "A modeled edge has no retained trace evidence or a referenced parent/binding is missing."
+        }
+      },
+      "expected": {
+        "classificationCounts": {
+          "observed-and-modeled": 1,
+          "modeled-not-observed": 1,
+          "observed-but-unmodeled": 1,
+          "ambiguous": 1
+        },
+        "confidenceCounts": { "certain": 0, "inferred": 3, "unknown": 1 },
+        "changes": []
+      }
+    },
+    {
+      "id": "head-sampled-skewed",
+      "description": "Head sample drops the tail span while a bounded service-local clock records offset uncertainty.",
+      "dropSpanIds": ["0123456789abcdef0123456789abcdef:eeeeeeeeeeeeeeee"],
+      "dropBindingSpanIds": [
+        "0123456789abcdef0123456789abcdef:eeeeeeeeeeeeeeee"
+      ],
+      "uncertainty": {
+        "sampling": {
+          "strategy": "head",
+          "expectedSpanCount": 5,
+          "observedSpanCount": 4,
+          "observedRate": 0.8,
+          "missingIsNotAbsence": true,
+          "rationale": "The head sampler retained the first four spans and omitted the tail child."
+        },
+        "clock": {
+          "domain": "service-local",
+          "offsetNanoseconds": 1250000,
+          "uncertaintyNanoseconds": 500000,
+          "ordering": "bounded",
+          "rationale": "Service-local clocks have a bounded offset and cannot establish exact cross-service order."
+        },
+        "serviceAliases": [
+          { "canonical": "module:a", "aliases": ["service-a", "svc-a"] }
+        ],
+        "missingParents": [],
+        "confidencePolicy": {
+          "certainWhen": "Every referenced span has a certain explicit binding and the trace clock is exact.",
+          "inferredWhen": "A binding is inferred, an endpoint is ambiguous, or clock precision downgrades an otherwise certain observation.",
+          "unknownWhen": "A modeled edge has no retained trace evidence or a referenced parent/binding is missing."
+        }
+      },
+      "expected": {
+        "classificationCounts": {
+          "observed-and-modeled": 0,
+          "modeled-not-observed": 2,
+          "observed-but-unmodeled": 1,
+          "ambiguous": 1
+        },
+        "confidenceCounts": { "certain": 0, "inferred": 2, "unknown": 2 },
+        "changes": [
+          {
+            "kind": "classification",
+            "subject": "edge:edge:module:d|calls|module:a",
+            "from": "observed-and-modeled",
+            "to": "modeled-not-observed",
+            "reasonCode": "sampling",
+            "explanation": "Sampling changed the retained observations for edge:edge:module:d|calls|module:a; missing spans are not treated as absent, so the report explains the classification change as evidence of limited observation."
+          },
+          {
+            "kind": "confidence",
+            "subject": "edge:edge:module:d|calls|module:a",
+            "from": "inferred",
+            "to": "unknown",
+            "reasonCode": "sampling",
+            "explanation": "Sampling changed the retained observations for edge:edge:module:d|calls|module:a; missing spans are not treated as absent, so the report explains the classification change as evidence of limited observation."
+          }
+        ]
+      }
+    },
+    {
+      "id": "parent-gap-probabilistic",
+      "description": "Probabilistic sampling drops an intermediate parent and preserves its child as an explicit parent gap.",
+      "dropSpanIds": ["0123456789abcdef0123456789abcdef:dddddddddddddddd"],
+      "dropBindingSpanIds": [
+        "0123456789abcdef0123456789abcdef:dddddddddddddddd"
+      ],
+      "uncertainty": {
+        "sampling": {
+          "strategy": "probabilistic",
+          "expectedSpanCount": 5,
+          "observedSpanCount": 4,
+          "observedRate": 0.8,
+          "missingIsNotAbsence": true,
+          "rationale": "The probabilistic sampler omitted the intermediate parent while retaining its child."
+        },
+        "clock": {
+          "domain": "unknown",
+          "offsetNanoseconds": 0,
+          "uncertaintyNanoseconds": 0,
+          "ordering": "unknown",
+          "rationale": "No trustworthy shared clock metadata was retained for this sample."
+        },
+        "serviceAliases": [
+          { "canonical": "module:a", "aliases": ["service-a", "svc-a"] }
+        ],
+        "missingParents": [
+          {
+            "traceId": "0123456789abcdef0123456789abcdef",
+            "parentSpanId": "dddddddddddddddd",
+            "childSpanId": "eeeeeeeeeeeeeeee",
+            "reason": "The child was retained but its parent was omitted by probabilistic sampling."
+          }
+        ],
+        "confidencePolicy": {
+          "certainWhen": "Every referenced span has a certain explicit binding and the trace clock is exact.",
+          "inferredWhen": "A binding is inferred, an endpoint is ambiguous, or clock precision downgrades an otherwise certain observation.",
+          "unknownWhen": "A modeled edge has no retained trace evidence or a referenced parent/binding is missing."
+        }
+      },
+      "expected": {
+        "classificationCounts": {
+          "observed-and-modeled": 0,
+          "modeled-not-observed": 2,
+          "observed-but-unmodeled": 1,
+          "ambiguous": 1
+        },
+        "confidenceCounts": { "certain": 0, "inferred": 1, "unknown": 3 },
+        "changes": [
+          {
+            "kind": "classification",
+            "subject": "edge:edge:module:d|calls|module:a",
+            "from": "observed-and-modeled",
+            "to": "modeled-not-observed",
+            "reasonCode": "sampling",
+            "explanation": "Sampling changed the retained observations for edge:edge:module:d|calls|module:a; missing spans are not treated as absent, so the report explains the classification change as evidence of limited observation."
+          },
+          {
+            "kind": "confidence",
+            "subject": "edge:edge:module:d|calls|module:a",
+            "from": "inferred",
+            "to": "unknown",
+            "reasonCode": "sampling",
+            "explanation": "Sampling changed the retained observations for edge:edge:module:d|calls|module:a; missing spans are not treated as absent, so the report explains the classification change as evidence of limited observation."
+          },
+          {
+            "kind": "classification",
+            "subject": "endpoint:module%3Ac=>module%3Ad",
+            "from": "observed-but-unmodeled",
+            "to": null,
+            "reasonCode": "sampling",
+            "explanation": "Sampling changed the retained observations for endpoint:module%3Ac=>module%3Ad; missing spans are not treated as absent, so the report explains the classification change as evidence of limited observation."
+          },
+          {
+            "kind": "classification",
+            "subject": "trace:0123456789abcdef0123456789abcdef:eeeeeeeeeeeeeeee",
+            "from": null,
+            "to": "observed-but-unmodeled",
+            "reasonCode": "missing-parent",
+            "explanation": "The sampled trace contains an explicitly missing parent for trace:0123456789abcdef0123456789abcdef:eeeeeeeeeeeeeeee; the resulting unmodeled evidence is not proof that the behavior is absent."
+          }
+        ]
+      }
+    }
+  ]
+}

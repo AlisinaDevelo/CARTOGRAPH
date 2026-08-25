@@ -1,0 +1,257 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/runtime-reconciliation-uncertainty.v0.1.schema.json",
+  "title": "CARTOGRAPH uncertainty-aware runtime reconciliation v0.1",
+  "description": "Local reconciliation classifications with sampling, clock, service-alias, missing-parent, and confidence metadata.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "fixtureId",
+    "baselineCase",
+    "cases",
+    "summary",
+    "fixtureDigest"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.runtime-reconciliation-uncertainty" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.runtime-reconciliation-uncertainty+json"
+    },
+    "fixtureId": { "$ref": "#/definitions/identifier" },
+    "baselineCase": { "$ref": "#/definitions/identifier" },
+    "fixtureDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "cases": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/definitions/case" }
+    },
+    "summary": { "$ref": "#/definitions/summary" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "text": { "type": "string", "minLength": 1, "maxLength": 2048 },
+    "sampling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strategy",
+        "expectedSpanCount",
+        "observedSpanCount",
+        "observedRate",
+        "missingIsNotAbsence",
+        "rationale"
+      ],
+      "properties": {
+        "strategy": { "enum": ["complete", "head", "tail", "probabilistic"] },
+        "expectedSpanCount": { "type": "integer", "minimum": 0 },
+        "observedSpanCount": { "type": "integer", "minimum": 0 },
+        "observedRate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "missingIsNotAbsence": { "const": true },
+        "rationale": { "$ref": "#/definitions/text" }
+      }
+    },
+    "clock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "domain",
+        "offsetNanoseconds",
+        "uncertaintyNanoseconds",
+        "ordering",
+        "rationale"
+      ],
+      "properties": {
+        "domain": { "enum": ["trace", "service-local", "unknown"] },
+        "offsetNanoseconds": { "type": "integer" },
+        "uncertaintyNanoseconds": { "type": "integer", "minimum": 0 },
+        "ordering": { "enum": ["exact", "bounded", "unknown"] },
+        "rationale": { "$ref": "#/definitions/text" }
+      }
+    },
+    "serviceAlias": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonical", "aliases"],
+      "properties": {
+        "canonical": { "$ref": "#/definitions/identifier" },
+        "aliases": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "missingParent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["traceId", "parentSpanId", "childSpanId", "reason"],
+      "properties": {
+        "traceId": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+        "parentSpanId": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+        "childSpanId": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+        "reason": { "$ref": "#/definitions/text" }
+      }
+    },
+    "confidencePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["certainWhen", "inferredWhen", "unknownWhen"],
+      "properties": {
+        "certainWhen": { "$ref": "#/definitions/text" },
+        "inferredWhen": { "$ref": "#/definitions/text" },
+        "unknownWhen": { "$ref": "#/definitions/text" }
+      }
+    },
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sampling",
+        "clock",
+        "serviceAliases",
+        "missingParents",
+        "confidencePolicy"
+      ],
+      "properties": {
+        "sampling": { "$ref": "#/definitions/sampling" },
+        "clock": { "$ref": "#/definitions/clock" },
+        "serviceAliases": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/serviceAlias" }
+        },
+        "missingParents": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/missingParent" }
+        },
+        "confidencePolicy": { "$ref": "#/definitions/confidencePolicy" }
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "semanticKey",
+        "classification",
+        "confidence",
+        "uncertainty",
+        "observedCount",
+        "reason",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/text" },
+        "semanticKey": { "$ref": "#/definitions/text" },
+        "classification": {
+          "enum": [
+            "observed-and-modeled",
+            "modeled-not-observed",
+            "observed-but-unmodeled",
+            "ambiguous"
+          ]
+        },
+        "confidence": { "enum": ["certain", "inferred", "unknown"] },
+        "uncertainty": {
+          "enum": ["none", "unobserved", "unmapped", "ambiguous"]
+        },
+        "observedCount": { "type": "integer", "minimum": 0 },
+        "reason": { "$ref": "#/definitions/text" },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/text" }
+        }
+      }
+    },
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "subject",
+        "from",
+        "to",
+        "reasonCode",
+        "explanation"
+      ],
+      "properties": {
+        "kind": { "enum": ["classification", "confidence"] },
+        "subject": { "$ref": "#/definitions/text" },
+        "from": { "type": ["string", "null"] },
+        "to": { "type": ["string", "null"] },
+        "reasonCode": {
+          "enum": ["sampling", "clock", "missing-parent", "binding-confidence"]
+        },
+        "explanation": { "$ref": "#/definitions/text" }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "uncertainty",
+        "records",
+        "changes",
+        "classificationCounts",
+        "confidenceCounts"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "description": { "$ref": "#/definitions/text" },
+        "uncertainty": { "$ref": "#/definitions/uncertainty" },
+        "records": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/record" }
+        },
+        "changes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/change" }
+        },
+        "classificationCounts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "confidenceCounts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cases",
+        "samplingVariants",
+        "clockVariants",
+        "aliasCases",
+        "missingParentCases",
+        "classificationChanges",
+        "confidenceChanges",
+        "unobservedNeverMeansAbsent"
+      ],
+      "properties": {
+        "cases": { "type": "integer", "minimum": 0 },
+        "samplingVariants": { "type": "integer", "minimum": 0 },
+        "clockVariants": { "type": "integer", "minimum": 0 },
+        "aliasCases": { "type": "integer", "minimum": 0 },
+        "missingParentCases": { "type": "integer", "minimum": 0 },
+        "classificationChanges": { "type": "integer", "minimum": 0 },
+        "confidenceChanges": { "type": "integer", "minimum": 0 },
+        "unobservedNeverMeansAbsent": { "const": true }
+      }
+    }
+  }
+}
