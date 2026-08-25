@@ -10,7 +10,7 @@ Pass it to `scan` or `diff` with `--config <path>`.
   "schemaVersion": 1,
   "include": ["src/**"],
   "exclude": ["src/generated/**"],
-  "extractors": ["typescript", "express"],
+  "extractors": ["typescript", "express", "fastify"],
   "resources": {
     "maxFiles": 20000,
     "maxFileBytes": 2097152,
@@ -26,8 +26,9 @@ Pass it to `scan` or `diff` with `--config <path>`.
 ```
 
 Omitted fields use deterministic defaults: `include` is `["."]`, built-in
-safe exclusions remain active, both current extractors are selected, and the
-resource ceilings above apply. Revision archives default to 128 MiB while
+safe exclusions remain active, and the TypeScript/Express extractors remain
+selected by default. Add `fastify` explicitly to opt into the bounded Fastify
+route extractor. The resource ceilings above apply. Revision archives default to 128 MiB while
 extracted source defaults to 64 MiB; `tsconfigPath` is optional and remains
 repository-relative.
 

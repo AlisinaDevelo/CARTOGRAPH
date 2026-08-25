@@ -24,6 +24,7 @@ import {
   createSampleAdapter,
   SAMPLE_ADAPTER_MANIFEST,
 } from "../src/adapters/sample.ts";
+import { createFastifyAdapter } from "../src/adapters/fastify.ts";
 
 const repositoryRoot = resolve(process.cwd());
 const readJson = (relativePath) =>
@@ -46,6 +47,30 @@ const adapterInput = (fixture, commitSha = "sample-fixture") => ({
     maxOutputBytes: 32_768,
     maxMemoryBytes: 256 * 1024 * 1024,
     maxWallClockMs: 1_000,
+  },
+});
+
+const fastifyFixtureRoot = resolve(
+  repositoryRoot,
+  "test/fixtures/typescript-fastify",
+);
+const fastifyInput = () => ({
+  apiVersion: ADAPTER_API_VERSION,
+  source: {
+    rootDir: fastifyFixtureRoot,
+    include: ["."],
+    exclude: [],
+    revision: { commitSha: "fastify-fixture" },
+  },
+  config: {},
+  resources: {
+    maxFiles: 32,
+    maxFileBytes: 16_384,
+    maxSourceBytes: 65_536,
+    maxInputBytes: 16_384,
+    maxOutputBytes: 2 * 1024 * 1024,
+    maxMemoryBytes: 512 * 1024 * 1024,
+    maxWallClockMs: 5_000,
   },
 });
 
@@ -251,6 +276,23 @@ const validate = async () => {
     repetitions: 2,
     maxDurationMs: 1_000,
   });
+  const fastifyAdapter = createFastifyAdapter();
+  const fastifyOutput = runAdapter(fastifyAdapter, fastifyInput());
+  const fastifyConformance = runAdapterConformance(fastifyAdapter, {
+    cases: [
+      {
+        id: "fastify-bounded-routes",
+        input: fastifyInput(),
+        expect: {
+          minNodes: 8,
+          minEdges: 5,
+          unsupportedDiagnosticCodes: ["UNSUPPORTED_DYNAMIC_FASTIFY_ROUTE"],
+        },
+      },
+    ],
+    repetitions: 2,
+    maxDurationMs: 5_000,
+  });
   const isolation = await validateIsolation();
 
   return {
@@ -269,6 +311,23 @@ const validate = async () => {
       evidenceComplete: conformance.evidenceComplete,
       identity: conformance.identity,
       performance: conformance.performance,
+    },
+    fastify: {
+      adapterId: fastifyAdapter.manifest.id,
+      cases: fastifyConformance.cases.length,
+      deterministic: fastifyConformance.deterministic,
+      evidenceComplete: fastifyConformance.evidenceComplete,
+      routeEdges: fastifyOutput.graph.edges.filter((edge) =>
+        edge.from.startsWith("endpoint:"),
+      ).length,
+      unknownDiagnostics: fastifyOutput.graph.diagnostics.length,
+      unsupportedDiagnostics: fastifyOutput.graph.diagnostics.filter(
+        (diagnostic) => diagnostic.code === "UNSUPPORTED_DYNAMIC_FASTIFY_ROUTE",
+      ).length,
+      unresolvedHandlers: fastifyOutput.graph.diagnostics.filter(
+        (diagnostic) => diagnostic.code === "UNRESOLVED_FASTIFY_HANDLER",
+      ).length,
+      performance: fastifyConformance.performance,
     },
     isolation,
   };

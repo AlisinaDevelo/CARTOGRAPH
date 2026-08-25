@@ -23,8 +23,13 @@ import {
   createSampleAdapter,
   SAMPLE_ADAPTER_MANIFEST,
 } from "../../src/adapters/index.js";
+import { createFastifyAdapter } from "../../src/adapters/index.js";
 
 const repositoryRoot = resolve(import.meta.dirname, "../..");
+const fastifyFixtureRoot = resolve(
+  repositoryRoot,
+  "test/fixtures/typescript-fastify",
+);
 const schema = JSON.parse(
   readFileSync(
     resolve(repositoryRoot, "schema/adapter.v0.1.schema.json"),
@@ -49,6 +54,27 @@ const request = (overrides: Record<string, unknown> = {}) => ({
     maxFileBytes: 1_024,
     maxSourceBytes: 1_024,
     maxWallClockMs: 1_000,
+  },
+  ...overrides,
+});
+
+const fastifyRequest = (overrides: Record<string, unknown> = {}) => ({
+  apiVersion: ADAPTER_API_VERSION,
+  source: {
+    rootDir: fastifyFixtureRoot,
+    include: ["."],
+    exclude: [],
+    revision: { commitSha: "fastify-fixture" },
+  },
+  config: {},
+  resources: {
+    maxFiles: 32,
+    maxFileBytes: 16_384,
+    maxSourceBytes: 65_536,
+    maxInputBytes: 16_384,
+    maxOutputBytes: 2 * 1024 * 1024,
+    maxMemoryBytes: 512 * 1024 * 1024,
+    maxWallClockMs: 30_000,
   },
   ...overrides,
 });
@@ -236,5 +262,51 @@ describe("adapter contract", () => {
         apiVersion: 2,
       }),
     ).toThrow(AdapterValidationError);
+  });
+
+  it("runs the bounded Fastify adapter and publishes unsupported metrics", () => {
+    const adapter = createFastifyAdapter();
+    const output = runAdapter(adapter, fastifyRequest());
+    const routeEdges = output.graph.edges.filter((edge) =>
+      edge.from.startsWith("endpoint:"),
+    );
+    expect(adapter.manifest.id).toBe("cartograph.fastify");
+    expect(routeEdges).toHaveLength(5);
+    expect(
+      output.graph.diagnostics.filter(
+        (diagnostic) => diagnostic.code === "UNSUPPORTED_DYNAMIC_FASTIFY_ROUTE",
+      ),
+    ).toHaveLength(3);
+    expect(
+      output.graph.diagnostics.filter(
+        (diagnostic) => diagnostic.code === "UNRESOLVED_FASTIFY_HANDLER",
+      ),
+    ).toHaveLength(1);
+
+    const report = runAdapterConformance(adapter, {
+      cases: [
+        {
+          id: "fastify-bounded-routes",
+          input: fastifyRequest(),
+          expect: {
+            minNodes: 8,
+            minEdges: 5,
+            unsupportedDiagnosticCodes: ["UNSUPPORTED_DYNAMIC_FASTIFY_ROUTE"],
+          },
+        },
+      ],
+      repetitions: 2,
+      maxDurationMs: 30_000,
+    });
+    expect(report).toMatchObject({
+      ok: true,
+      adapterId: "cartograph.fastify",
+      deterministic: true,
+      evidenceComplete: true,
+      performance: { repetitions: 2, maxDurationMs: 30_000 },
+    });
+    expect(report.cases[0]?.diagnosticCodes).toContain(
+      "UNSUPPORTED_DYNAMIC_FASTIFY_ROUTE",
+    );
   });
 });

@@ -47,6 +47,7 @@ import {
   analyzeExpressRouteCall,
   isPotentialExpressReceiver,
 } from "./express.js";
+import { analyzeFastifyRouteCall, isFastifyRouteMethod } from "./fastify.js";
 import { createResourceBudget, ResourceLimitError } from "../resources.js";
 
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts"]);
@@ -132,13 +133,16 @@ const FRAMEWORK_CALL_ROOTS = new Set([
 ]);
 
 const DETECTOR_VERSION = "cartograph.typescript-express@1";
+const FASTIFY_DETECTOR_VERSION = "cartograph.typescript-fastify@1";
+
+export type TypeScriptExtractor = "typescript" | "express" | "fastify";
 
 export interface TypeScriptAnalyzerOptions {
   rootDir: string;
   tsconfigPath?: string;
   include?: readonly string[];
   exclude?: readonly string[];
-  extractors?: readonly ("typescript" | "express")[];
+  extractors?: readonly TypeScriptExtractor[];
   resources?: Partial<ResourceLimits>;
   revision?: Partial<Revision>;
   signal?: AbortSignal;
@@ -180,7 +184,7 @@ interface AnalyzerContext {
   rootDir: string;
   sourcePaths: Set<string>;
   sourceFiles: SourceFile[];
-  extractors: ReadonlySet<"typescript" | "express">;
+  extractors: ReadonlySet<TypeScriptExtractor>;
   checkBudget: () => void;
 }
 
@@ -2107,12 +2111,78 @@ const isVerifiedExpressReceiver = (
   return /(?:express\.)?(?:Application|Router|IRouter|Express)/u.test(typeText);
 };
 
+const fastifyFactoryNamesByFile = new WeakMap<
+  SourceFile,
+  ReadonlySet<string>
+>();
+
+const isImportedFastifyFactory = (
+  context: AnalyzerContext,
+  expression: Expression,
+): boolean => {
+  const root = expressionRootNode(expression);
+  if (!Node.isIdentifier(root) || isBlockedImportedReference(context, root))
+    return false;
+  const sourceFile = root.getSourceFile();
+  let names = fastifyFactoryNamesByFile.get(sourceFile);
+  if (!names) {
+    const imported = new Set<string>();
+    for (const declaration of sourceFile.getImportDeclarations()) {
+      if (declaration.getModuleSpecifierValue() !== "fastify") continue;
+      const defaultImport = declaration.getDefaultImport()?.getText();
+      if (defaultImport) imported.add(defaultImport);
+      const namespaceImport = declaration.getNamespaceImport()?.getText();
+      if (namespaceImport) imported.add(namespaceImport);
+      for (const specifier of declaration.getNamedImports())
+        imported.add(
+          specifier.getAliasNode()?.getText() ?? specifier.getName(),
+        );
+    }
+    names = imported;
+    fastifyFactoryNamesByFile.set(sourceFile, names);
+  }
+  return names.has(root.getText());
+};
+
+const isVerifiedFastifyReceiver = (
+  context: AnalyzerContext,
+  receiver: Expression,
+): boolean => {
+  const root = expressionRootNode(receiver);
+  if (isBlockedImportedReference(context, root)) return false;
+  const declarations = declarationsFor(context, root);
+  for (const declaration of declarations) {
+    if (!Node.isVariableDeclaration(declaration)) continue;
+    const initializer = declaration.getInitializer();
+    if (
+      initializer &&
+      Node.isCallExpression(initializer) &&
+      isImportedFastifyFactory(context, initializer.getExpression())
+    )
+      return true;
+  }
+  const typeText = receiver.getType().getText();
+  if (/FastifyInstance/u.test(typeText)) return true;
+  return (
+    !hasLocalImplementation(context, root) &&
+    Node.isIdentifier(root) &&
+    /^(?:app|server|fastify)$/iu.test(root.getText())
+  );
+};
+
 const isFrameworkCall = (
   context: AnalyzerContext,
   call: CallExpression,
 ): boolean => {
   const expression = call.getExpression();
   if (isVerifiedFetch(context, expression)) return true;
+  if (isImportedFastifyFactory(context, expression)) return true;
+  if (Node.isElementAccessExpression(expression)) {
+    return (
+      isVerifiedExpressReceiver(context, expression.getExpression()) ||
+      isVerifiedFastifyReceiver(context, expression.getExpression())
+    );
+  }
   if (!Node.isPropertyAccessExpression(expression)) return false;
 
   const receiver = expression.getExpression();
@@ -2127,6 +2197,12 @@ const isFrameworkCall = (
     return true;
   }
   if (method === "route" && isVerifiedExpressReceiver(context, receiver)) {
+    return true;
+  }
+  if (
+    (isFastifyRouteMethod(method) || method === "register") &&
+    isVerifiedFastifyReceiver(context, receiver)
+  ) {
     return true;
   }
   return false;
@@ -2466,6 +2542,90 @@ const addRouteEdges = (
   return true;
 };
 
+const addFastifyRouteEdges = (
+  context: AnalyzerContext,
+  call: CallExpression,
+): boolean => {
+  const routeResult = analyzeFastifyRouteCall(call, {
+    isFastifyReceiver: (receiver) =>
+      isVerifiedFastifyReceiver(context, receiver),
+  });
+  if (!routeResult) return false;
+
+  for (const diagnostic of routeResult.diagnostics) {
+    addDiagnostic(
+      context,
+      diagnostic.code,
+      diagnostic.message,
+      diagnostic.node,
+    );
+  }
+
+  for (const registration of routeResult.registrations) {
+    const endpoint = addNode(
+      context,
+      `endpoint:${registration.method}:${registration.path}`,
+      "endpoint",
+      `${registration.method} ${registration.path}`,
+      sourcePosition(context.rootDir, call),
+    );
+
+    for (const handler of registration.handlers) {
+      const callable = resolveCallable(context, handler);
+      if (callable) {
+        addEdge(
+          context,
+          endpoint,
+          callable.graphNode,
+          "calls",
+          evidenceFor(
+            context,
+            call,
+            `${FASTIFY_DETECTOR_VERSION}/fastify-route`,
+          ),
+          "inferred",
+        );
+        continue;
+      }
+
+      if (
+        Node.isArrowFunction(handler) ||
+        Node.isFunctionExpression(handler) ||
+        Node.isFunctionDeclaration(handler)
+      ) {
+        const inline = registerInlineRouteCallable(
+          context,
+          handler,
+          registration.method,
+          registration.path,
+        );
+        addEdge(
+          context,
+          endpoint,
+          inline.graphNode,
+          "calls",
+          evidenceFor(
+            context,
+            call,
+            `${FASTIFY_DETECTOR_VERSION}/fastify-route`,
+          ),
+          "inferred",
+        );
+        continue;
+      }
+
+      addDiagnostic(
+        context,
+        "UNRESOLVED_FASTIFY_HANDLER",
+        "Could not resolve a Fastify route handler.",
+        handler,
+      );
+    }
+  }
+
+  return true;
+};
+
 const analyzeCalls = (context: AnalyzerContext): void => {
   for (const sourceFile of context.sourceFiles) {
     context.checkBudget();
@@ -2473,6 +2633,11 @@ const analyzeCalls = (context: AnalyzerContext): void => {
       SyntaxKind.CallExpression,
     )) {
       context.checkBudget();
+      if (
+        context.extractors.has("fastify") &&
+        addFastifyRouteEdges(context, call)
+      )
+        continue;
       if (context.extractors.has("express") && addRouteEdges(context, call))
         continue;
       if (addHttpEdge(context, call)) continue;
@@ -2491,6 +2656,13 @@ const analyzeCalls = (context: AnalyzerContext): void => {
           context,
           "UNSUPPORTED_DYNAMIC_ROUTE",
           "Express route method must be a statically named property.",
+          elementAccess,
+        );
+      } else if (isVerifiedFastifyReceiver(context, receiver)) {
+        addDiagnostic(
+          context,
+          "UNSUPPORTED_DYNAMIC_FASTIFY_ROUTE",
+          "Fastify route method must be a statically named property.",
           elementAccess,
         );
       } else if (
@@ -2521,7 +2693,7 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
   }
   const rootDir = realpathSync(requestedRootDir);
 
-  const extractors = new Set<"typescript" | "express">(
+  const extractors = new Set<TypeScriptExtractor>(
     options.extractors ?? ["typescript", "express"],
   );
   if (!extractors.has("typescript")) {

@@ -1,0 +1,15 @@
+{
+  "routes": [
+    ["GET", "/users", "function:src/handlers.ts:listUsers"],
+    ["POST", "/users", "function:src/handlers.ts:createUser"],
+    ["GET", "/users/:id", "function:src/handlers.ts:listUsers"],
+    ["HEAD", "/health", "function:src/handlers.ts:health"],
+    ["OPTIONS", "/health", "function:src/handlers.ts:health"]
+  ],
+  "unsupportedDiagnostics": [
+    "UNSUPPORTED_DYNAMIC_FASTIFY_ROUTE",
+    "UNSUPPORTED_DYNAMIC_FASTIFY_ROUTE",
+    "UNSUPPORTED_DYNAMIC_FASTIFY_ROUTE"
+  ],
+  "unresolvedDiagnostics": ["UNRESOLVED_FASTIFY_HANDLER"]
+}

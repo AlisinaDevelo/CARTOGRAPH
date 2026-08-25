@@ -106,3 +106,20 @@ blocking validation error rather than a warning; adapters may add new
 capabilities only with new fixtures and a reviewed compatibility decision.
 Framework and language-specific adapters remain separate implementations behind
 this boundary.
+
+### Fastify adapter
+
+The bounded Fastify adapter is exported as `createFastifyAdapter()` from
+[`src/adapters/fastify.ts`](../src/adapters/fastify.ts). Its selection was
+recorded in the public [E-003 RFC](https://github.com/AlisinaDevelo/CARTOGRAPH/issues/270).
+The adapter recognizes literal `get`, `post`, `put`, `patch`, `delete`, `head`,
+and `options` registrations plus object-form `route({ method, url, handler })`
+declarations. A literal method array produces one endpoint per method. Named
+and inline local handlers are linked with source evidence.
+
+Plugin execution, hooks, decorators, schemas, runtime-generated paths, dynamic
+methods, and unresolved handlers are outside this first slice. They produce
+`UNSUPPORTED_DYNAMIC_FASTIFY_ROUTE` or `UNRESOLVED_FASTIFY_HANDLER` diagnostics;
+the adapter never guesses an endpoint. `npm run adapter:validate` reports the
+bounded corpus' route count, unsupported count, unresolved-handler count,
+deterministic serialization, evidence completeness, and timing.

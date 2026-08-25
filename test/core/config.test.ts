@@ -30,13 +30,18 @@ describe("configuration contract", () => {
       schemaVersion: 1,
       include: ["src/**"],
       exclude: ["src/generated/**"],
-      extractors: ["typescript", "express"],
+      extractors: ["typescript", "express", "fastify"],
       resources: { maxFiles: 50 },
       policyRefs: [".cartograph/policy.json"],
       unknownFields: "error",
     };
 
     expect(validate(input)).toBe(true);
+    expect(parseCartographConfig(input).config.extractors).toEqual([
+      "typescript",
+      "express",
+      "fastify",
+    ]);
     expect(defaultCartographConfig()).toMatchObject({
       schemaVersion: 1,
       include: ["."],

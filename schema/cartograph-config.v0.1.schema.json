@@ -32,7 +32,7 @@
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
-      "items": { "enum": ["typescript", "express"] },
+      "items": { "enum": ["typescript", "express", "fastify"] },
       "default": ["typescript", "express"]
     },
     "output": {

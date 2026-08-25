@@ -288,6 +288,15 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "A compact TypeScript/Express/Prisma-shaped project with expected relationships and unsupported dynamic constructs.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "typescript-fastify",
+      "path": "typescript-fastify",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A compact TypeScript/Fastify-shaped project with literal routes, object-form routes, dynamic registration, and an unresolved handler.",
+      "redistribution": "allowed"
     }
   ]
 }
