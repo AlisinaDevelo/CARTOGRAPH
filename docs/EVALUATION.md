@@ -144,6 +144,16 @@ The adapter publishes route coverage and unknown diagnostics while keeping
 plugin execution, hooks, decorators, and runtime-generated registration
 explicitly unsupported.
 
+E-004 adds the
+[`language-neutral/compatibility.v0.1.json`](../test/fixtures/language-neutral/compatibility.v0.1.json)
+fixture. Its Rust and Python snapshots exercise opaque language metadata,
+portable one-based source coordinates, SHA-256-bound source evidence, an edge
+with an explicit unresolved reason, and registered unknown diagnostics. The
+language-neutral test also moves a Rust node to a Python path to prove identity
+matching uses generic semantic signals rather than a TypeScript assumption,
+then checks the existing sample and Fastify adapters under the same graph
+contract.
+
 ## Practical compatibility
 
 R-005 records the first compatibility review in

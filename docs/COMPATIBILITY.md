@@ -358,3 +358,18 @@ edges, and reports dynamic methods/URLs or unresolved handlers as diagnostics.
 The `fastify` extractor is opt-in in repository configuration; existing
 TypeScript/Express defaults remain unchanged. Plugin execution, hooks,
 decorators, schemas, and runtime-generated registration are not claimed.
+
+## E-004 language-neutral semantic contract
+
+E-004 documents the GraphSnapshot v1 contract independently of TypeScript in
+[`LANGUAGE_NEUTRAL_SEMANTICS.md`](LANGUAGE_NEUTRAL_SEMANTICS.md). The
+language-neutral boundary keeps node and edge kinds, stable-key identity,
+portable one-based source coordinates, evidence requirements, and explicit
+unknown semantics unchanged while adapters provide optional opaque language
+metadata. The `languageNeutralSemantics` entry in
+[`schema/compatibility.json`](../schema/compatibility.json) and the
+`language-neutral` fixture provide a reviewed Rust/Python compatibility sample.
+
+This is an additive documentation and fixture contract. Existing GraphSnapshot,
+GraphDiff, capability, diagnostic, Express, and Fastify reader boundaries stay
+at version `1`; no migration or runtime schema bump is required.

@@ -297,6 +297,15 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "A compact TypeScript/Fastify-shaped project with literal routes, object-form routes, dynamic registration, and an unresolved handler.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "language-neutral",
+      "path": "language-neutral",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Non-TypeScript graph snapshots exercise opaque language metadata, portable source coordinates, evidence-backed and unresolved edges, and registered unknown diagnostics without source execution or remote authority.",
+      "redistribution": "allowed"
     }
   ]
 }

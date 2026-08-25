@@ -12,6 +12,11 @@
       "supportedReaders": [1],
       "reviewedVersions": [1]
     },
+    "languageNeutralSemantics": {
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
+    },
     "diff": {
       "current": 1,
       "supportedReaders": [1],

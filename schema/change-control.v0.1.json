@@ -27,6 +27,18 @@
       "removalGate": null
     },
     {
+      "id": "schema.language-neutral-semantics-v1",
+      "kind": "schema",
+      "status": "active",
+      "introducedVersion": "0.1.0",
+      "owner": "core-maintainers",
+      "reviewDate": "2027-06-30",
+      "replacement": null,
+      "deprecationReason": null,
+      "deprecatedSince": null,
+      "removalGate": null
+    },
+    {
       "id": "schema.capability-registry-v1",
       "kind": "schema",
       "status": "active",
