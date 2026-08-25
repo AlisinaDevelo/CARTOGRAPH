@@ -1,0 +1,447 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.identity-corpus",
+  "seed": 12648430,
+  "generator": {
+    "algorithm": "xorshift32-v1",
+    "iterations": 56,
+    "maxCandidates": 512,
+    "maxNodesPerSnapshot": 16
+  },
+  "invariants": [
+    "line moves preserve exact stable-key matches without added or removed nodes",
+    "file moves match unique same-kind/name nodes without guessing",
+    "supported renames require a unique unchanged neighborhood",
+    "duplicate names and overloads never collapse equal candidates silently",
+    "path aliases require an explicit normalized path-history record",
+    "ambiguous transformations remain conservative added/removed records",
+    "reconciliation is deterministic under node and edge reordering"
+  ],
+  "regressions": [
+    {
+      "id": "line-move-minimal",
+      "category": "line-move",
+      "before": [
+        {
+          "id": "before-line",
+          "stableKey": "function:src/line.ts:load",
+          "kind": "function",
+          "name": "load",
+          "language": "typescript",
+          "location": { "path": "src/line.ts", "line": 4 }
+        }
+      ],
+      "after": [
+        {
+          "id": "after-line",
+          "stableKey": "function:src/line.ts:load",
+          "kind": "function",
+          "name": "load",
+          "language": "typescript",
+          "location": { "path": "src/line.ts", "line": 19 }
+        }
+      ],
+      "expected": {
+        "matches": 1,
+        "added": 0,
+        "removed": 0,
+        "ambiguous": 0,
+        "unsupported": 0,
+        "methods": ["stable-key"]
+      }
+    },
+    {
+      "id": "file-move-minimal",
+      "category": "file-move",
+      "before": [
+        {
+          "id": "before-file",
+          "stableKey": "function:src/old.ts:load",
+          "kind": "function",
+          "name": "load",
+          "language": "typescript",
+          "location": { "path": "src/old.ts", "line": 4 }
+        }
+      ],
+      "after": [
+        {
+          "id": "after-file",
+          "stableKey": "function:src/new.ts:load",
+          "kind": "function",
+          "name": "load",
+          "language": "typescript",
+          "location": { "path": "src/new.ts", "line": 4 }
+        }
+      ],
+      "expected": {
+        "matches": 1,
+        "added": 0,
+        "removed": 0,
+        "ambiguous": 0,
+        "unsupported": 0,
+        "methods": ["same-name"]
+      }
+    },
+    {
+      "id": "supported-rename-minimal",
+      "category": "supported-rename",
+      "before": [
+        {
+          "id": "caller",
+          "stableKey": "function:src/caller.ts:run",
+          "kind": "function",
+          "name": "run",
+          "language": "typescript",
+          "location": { "path": "src/caller.ts", "line": 1 }
+        },
+        {
+          "id": "before-target",
+          "stableKey": "function:src/target.ts:load",
+          "kind": "function",
+          "name": "load",
+          "language": "typescript",
+          "location": { "path": "src/target.ts", "line": 4 }
+        }
+      ],
+      "after": [
+        {
+          "id": "caller",
+          "stableKey": "function:src/caller.ts:run",
+          "kind": "function",
+          "name": "run",
+          "language": "typescript",
+          "location": { "path": "src/caller.ts", "line": 1 }
+        },
+        {
+          "id": "after-target",
+          "stableKey": "function:src/target.ts:loadAll",
+          "kind": "function",
+          "name": "loadAll",
+          "language": "typescript",
+          "location": { "path": "src/target.ts", "line": 4 }
+        }
+      ],
+      "beforeEdges": [
+        {
+          "from": "caller",
+          "to": "before-target",
+          "kind": "calls",
+          "confidence": "certain",
+          "evidence": [
+            {
+              "id": "rename-edge",
+              "kind": "source",
+              "path": "src/caller.ts",
+              "line": 1,
+              "detector": "cartograph.identity-corpus@1",
+              "contentHash": "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          ]
+        }
+      ],
+      "afterEdges": [
+        {
+          "from": "caller",
+          "to": "after-target",
+          "kind": "calls",
+          "confidence": "certain",
+          "evidence": [
+            {
+              "id": "rename-edge",
+              "kind": "source",
+              "path": "src/caller.ts",
+              "line": 1,
+              "detector": "cartograph.identity-corpus@1",
+              "contentHash": "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "matches": 2,
+        "added": 0,
+        "removed": 0,
+        "ambiguous": 0,
+        "unsupported": 0,
+        "methods": ["neighborhood", "stable-key"]
+      }
+    },
+    {
+      "id": "duplicate-names-minimal",
+      "category": "duplicate-names",
+      "before": [
+        {
+          "id": "before-a",
+          "stableKey": "function:src/a.ts:load",
+          "kind": "function",
+          "name": "load",
+          "language": "typescript",
+          "location": { "path": "src/a.ts", "line": 1 }
+        },
+        {
+          "id": "before-b",
+          "stableKey": "function:src/b.ts:load",
+          "kind": "function",
+          "name": "load",
+          "language": "typescript",
+          "location": { "path": "src/b.ts", "line": 1 }
+        }
+      ],
+      "after": [
+        {
+          "id": "after-a",
+          "stableKey": "function:src/c.ts:load",
+          "kind": "function",
+          "name": "load",
+          "language": "typescript",
+          "location": { "path": "src/c.ts", "line": 1 }
+        },
+        {
+          "id": "after-b",
+          "stableKey": "function:src/d.ts:load",
+          "kind": "function",
+          "name": "load",
+          "language": "typescript",
+          "location": { "path": "src/d.ts", "line": 1 }
+        }
+      ],
+      "expected": {
+        "matches": 0,
+        "added": 2,
+        "removed": 2,
+        "ambiguous": 2,
+        "unsupported": 0,
+        "ambiguityReasons": ["equal-score", "equal-score"]
+      }
+    },
+    {
+      "id": "overloads-minimal",
+      "category": "overloads",
+      "before": [
+        {
+          "id": "caller-string",
+          "stableKey": "function:src/caller-string.ts:run",
+          "kind": "function",
+          "name": "runString",
+          "language": "typescript",
+          "location": { "path": "src/caller-string.ts", "line": 1 }
+        },
+        {
+          "id": "caller-number",
+          "stableKey": "function:src/caller-number.ts:run",
+          "kind": "function",
+          "name": "runNumber",
+          "language": "typescript",
+          "location": { "path": "src/caller-number.ts", "line": 1 }
+        },
+        {
+          "id": "before-string",
+          "stableKey": "function:src/old.ts:parse#string",
+          "kind": "function",
+          "name": "parse",
+          "language": "typescript",
+          "location": { "path": "src/old.ts", "line": 4 }
+        },
+        {
+          "id": "before-number",
+          "stableKey": "function:src/old.ts:parse#number",
+          "kind": "function",
+          "name": "parse",
+          "language": "typescript",
+          "location": { "path": "src/old.ts", "line": 8 }
+        }
+      ],
+      "after": [
+        {
+          "id": "caller-string",
+          "stableKey": "function:src/caller-string.ts:run",
+          "kind": "function",
+          "name": "runString",
+          "language": "typescript",
+          "location": { "path": "src/caller-string.ts", "line": 1 }
+        },
+        {
+          "id": "caller-number",
+          "stableKey": "function:src/caller-number.ts:run",
+          "kind": "function",
+          "name": "runNumber",
+          "language": "typescript",
+          "location": { "path": "src/caller-number.ts", "line": 1 }
+        },
+        {
+          "id": "after-string",
+          "stableKey": "function:src/new.ts:parse#string",
+          "kind": "function",
+          "name": "parse",
+          "language": "typescript",
+          "location": { "path": "src/new.ts", "line": 4 }
+        },
+        {
+          "id": "after-number",
+          "stableKey": "function:src/new.ts:parse#number",
+          "kind": "function",
+          "name": "parse",
+          "language": "typescript",
+          "location": { "path": "src/new.ts", "line": 8 }
+        }
+      ],
+      "beforeEdges": [
+        {
+          "from": "caller-string",
+          "to": "before-string",
+          "kind": "calls",
+          "confidence": "certain",
+          "evidence": [
+            {
+              "id": "overload-string-edge",
+              "kind": "source",
+              "path": "src/caller-string.ts",
+              "line": 1,
+              "detector": "cartograph.identity-corpus@1",
+              "contentHash": "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          ]
+        },
+        {
+          "from": "caller-number",
+          "to": "before-number",
+          "kind": "calls",
+          "confidence": "certain",
+          "evidence": [
+            {
+              "id": "overload-number-edge",
+              "kind": "source",
+              "path": "src/caller-number.ts",
+              "line": 1,
+              "detector": "cartograph.identity-corpus@1",
+              "contentHash": "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          ]
+        }
+      ],
+      "afterEdges": [
+        {
+          "from": "caller-string",
+          "to": "after-string",
+          "kind": "calls",
+          "confidence": "certain",
+          "evidence": [
+            {
+              "id": "overload-string-edge",
+              "kind": "source",
+              "path": "src/caller-string.ts",
+              "line": 1,
+              "detector": "cartograph.identity-corpus@1",
+              "contentHash": "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          ]
+        },
+        {
+          "from": "caller-number",
+          "to": "after-number",
+          "kind": "calls",
+          "confidence": "certain",
+          "evidence": [
+            {
+              "id": "overload-number-edge",
+              "kind": "source",
+              "path": "src/caller-number.ts",
+              "line": 1,
+              "detector": "cartograph.identity-corpus@1",
+              "contentHash": "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "matches": 4,
+        "added": 0,
+        "removed": 0,
+        "ambiguous": 0,
+        "unsupported": 0,
+        "methods": ["same-name", "same-name", "stable-key", "stable-key"]
+      }
+    },
+    {
+      "id": "path-alias-minimal",
+      "category": "path-alias",
+      "before": [
+        {
+          "id": "before-alias",
+          "stableKey": "function:packages/legacy/src/resolve.ts:resolve",
+          "kind": "function",
+          "name": "resolveLegacy",
+          "language": "typescript",
+          "location": {
+            "path": "packages/legacy/src/resolve.ts",
+            "line": 4
+          }
+        }
+      ],
+      "after": [
+        {
+          "id": "after-alias",
+          "stableKey": "function:src/resolve.ts:resolve",
+          "kind": "function",
+          "name": "resolveCurrent",
+          "language": "typescript",
+          "location": { "path": "src/resolve.ts", "line": 4 }
+        }
+      ],
+      "pathHistory": [
+        {
+          "beforePath": "packages\\legacy\\src\\resolve.ts",
+          "afterPath": "src/resolve.ts"
+        }
+      ],
+      "expected": {
+        "matches": 1,
+        "added": 0,
+        "removed": 0,
+        "ambiguous": 0,
+        "unsupported": 0,
+        "methods": ["path-history"]
+      }
+    },
+    {
+      "id": "destination-collision-minimal",
+      "category": "ambiguous",
+      "before": [
+        {
+          "id": "before-collision-a",
+          "stableKey": "function:src/a.ts:load",
+          "kind": "function",
+          "name": "load",
+          "language": "typescript",
+          "location": { "path": "src/a.ts", "line": 1 }
+        },
+        {
+          "id": "before-collision-b",
+          "stableKey": "function:src/b.ts:load",
+          "kind": "function",
+          "name": "load",
+          "language": "typescript",
+          "location": { "path": "src/b.ts", "line": 1 }
+        }
+      ],
+      "after": [
+        {
+          "id": "after-collision",
+          "stableKey": "function:src/new.ts:load",
+          "kind": "function",
+          "name": "load",
+          "language": "typescript",
+          "location": { "path": "src/new.ts", "line": 1 }
+        }
+      ],
+      "expected": {
+        "matches": 0,
+        "added": 1,
+        "removed": 2,
+        "ambiguous": 2,
+        "unsupported": 0,
+        "ambiguityReasons": ["non-mutual-best", "non-mutual-best"]
+      }
+    }
+  ]
+}
