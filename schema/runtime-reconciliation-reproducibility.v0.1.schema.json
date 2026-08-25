@@ -1,0 +1,150 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/runtime-reconciliation-reproducibility.v0.1.schema.json",
+  "title": "CARTOGRAPH runtime reconciliation reproducibility report v0.1",
+  "description": "Digest-only variance and invariant results from a controlled offline runtime reconciliation study.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "studyId",
+    "evaluatedAt",
+    "corpusDigest",
+    "methodDigest",
+    "repetitions",
+    "nonGuarantees",
+    "perturbations",
+    "summary",
+    "reportDigest"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": {
+      "const": "cartograph.runtime-reconciliation-reproducibility"
+    },
+    "mediaType": {
+      "const": "application/vnd.cartograph.runtime-reconciliation-reproducibility+json"
+    },
+    "studyId": { "$ref": "#/definitions/identifier" },
+    "evaluatedAt": { "$ref": "#/definitions/dateTime" },
+    "corpusDigest": { "$ref": "#/definitions/digest" },
+    "methodDigest": { "$ref": "#/definitions/digest" },
+    "repetitions": { "type": "integer", "minimum": 3, "maximum": 32 },
+    "nonGuarantees": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/text" }
+    },
+    "perturbations": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/perturbationResult" }
+    },
+    "summary": { "$ref": "#/definitions/summary" },
+    "reportDigest": { "$ref": "#/definitions/digest" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "dateTime": { "type": "string", "format": "date-time" },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "text": { "type": "string", "minLength": 1, "maxLength": 1600 },
+    "kind": { "enum": ["ordering", "missingness", "redaction"] },
+    "digestVariance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["distinctResultDigests", "stable"],
+      "properties": {
+        "distinctResultDigests": { "type": "integer", "minimum": 1 },
+        "stable": { "type": "boolean" }
+      }
+    },
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum", "maximum"],
+      "properties": {
+        "minimum": { "type": "integer", "minimum": 0 },
+        "maximum": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "variance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "classificationChanges",
+        "missingRuntimeSpanEdges",
+        "missingParentRecords"
+      ],
+      "properties": {
+        "classificationChanges": { "$ref": "#/definitions/range" },
+        "missingRuntimeSpanEdges": { "$ref": "#/definitions/range" },
+        "missingParentRecords": { "$ref": "#/definitions/range" }
+      }
+    },
+    "perturbationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "caseId",
+        "runs",
+        "baselineResultDigest",
+        "digestVariance",
+        "variance",
+        "redactionInvariant"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "kind": { "$ref": "#/definitions/kind" },
+        "caseId": { "$ref": "#/definitions/identifier" },
+        "runs": { "type": "integer", "minimum": 1, "maximum": 32 },
+        "baselineResultDigest": { "$ref": "#/definitions/digest" },
+        "digestVariance": { "$ref": "#/definitions/digestVariance" },
+        "variance": { "$ref": "#/definitions/variance" },
+        "redactionInvariant": { "type": "boolean" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "perturbations",
+        "totalRuns",
+        "stableRuns",
+        "stabilityRate",
+        "classificationChanges",
+        "missingRuntimeSpanEdges",
+        "missingParentRecords",
+        "redactionInvariantCases",
+        "network",
+        "liveTraces",
+        "exporter"
+      ],
+      "properties": {
+        "perturbations": { "type": "integer", "minimum": 0 },
+        "totalRuns": { "type": "integer", "minimum": 0 },
+        "stableRuns": { "type": "integer", "minimum": 0 },
+        "stabilityRate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "classificationChanges": { "type": "integer", "minimum": 0 },
+        "missingRuntimeSpanEdges": { "type": "integer", "minimum": 0 },
+        "missingParentRecords": { "type": "integer", "minimum": 0 },
+        "redactionInvariantCases": { "type": "integer", "minimum": 0 },
+        "network": { "const": false },
+        "liveTraces": { "const": false },
+        "exporter": { "const": false }
+      }
+    }
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "$schema": "../schema/runtime-reconciliation-reproducibility.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.runtime-reconciliation-reproducibility",
+  "mediaType": "application/vnd.cartograph.runtime-reconciliation-reproducibility+json",
+  "studyId": "runtime-reconciliation-reproducibility",
+  "evaluatedAt": "2026-08-25T00:00:00Z",
+  "corpusDigest": "sha256:06d8e1d7cc508b5c06753522c1bad0d097b403e14044a5c43203e107890b25ab",
+  "methodDigest": "sha256:63328aec736ea223596b17a1dcf5eb6147fd5068aac8a1f902f0b97ace6c2ac6",
+  "repetitions": 5,
+  "nonGuarantees": [
+    "Five repetitions over eight repository-authored traces do not estimate production workload variance or exporter behavior.",
+    "The study evaluates explicit bindings only and does not measure automatic service-to-node binding quality.",
+    "A stable digest under these perturbations does not prove semantic correctness, completeness, or absence of unobserved behavior.",
+    "Redaction invariants cover the enumerated normalized free-text fields and do not authorize retaining payloads, headers, arbitrary attributes, or live user traces."
+  ],
+  "perturbations": [
+    {
+      "id": "ordering-permutation",
+      "kind": "ordering",
+      "caseId": "messaging-observed",
+      "runs": 5,
+      "baselineResultDigest": "sha256:6bdc246e2598a9397f00ba7581f3dc845615b110ea48d315a10fa57fa6c9bc07",
+      "digestVariance": {
+        "distinctResultDigests": 1,
+        "stable": true
+      },
+      "variance": {
+        "classificationChanges": { "minimum": 0, "maximum": 0 },
+        "missingRuntimeSpanEdges": { "minimum": 0, "maximum": 0 },
+        "missingParentRecords": { "minimum": 0, "maximum": 0 }
+      },
+      "redactionInvariant": true
+    },
+    {
+      "id": "parent-gap",
+      "kind": "missingness",
+      "caseId": "http-ambiguous",
+      "runs": 5,
+      "baselineResultDigest": "sha256:5efbbd0df26e231491346bbb8b5934957c9b29c4ea9b2acc197ac1251eb067e8",
+      "digestVariance": {
+        "distinctResultDigests": 1,
+        "stable": true
+      },
+      "variance": {
+        "classificationChanges": { "minimum": 4, "maximum": 4 },
+        "missingRuntimeSpanEdges": { "minimum": 0, "maximum": 0 },
+        "missingParentRecords": { "minimum": 1, "maximum": 1 }
+      },
+      "redactionInvariant": true
+    },
+    {
+      "id": "redaction-boundary",
+      "kind": "redaction",
+      "caseId": "http-ambiguous",
+      "runs": 5,
+      "baselineResultDigest": "sha256:5efbbd0df26e231491346bbb8b5934957c9b29c4ea9b2acc197ac1251eb067e8",
+      "digestVariance": {
+        "distinctResultDigests": 1,
+        "stable": true
+      },
+      "variance": {
+        "classificationChanges": { "minimum": 0, "maximum": 0 },
+        "missingRuntimeSpanEdges": { "minimum": 0, "maximum": 0 },
+        "missingParentRecords": { "minimum": 0, "maximum": 0 }
+      },
+      "redactionInvariant": true
+    },
+    {
+      "id": "sampled-child",
+      "kind": "missingness",
+      "caseId": "database-observed",
+      "runs": 5,
+      "baselineResultDigest": "sha256:e0ac4d297239fa1fa5e3e42fc31268a0dbb75d7795f2e2a30422643008957d9d",
+      "digestVariance": {
+        "distinctResultDigests": 1,
+        "stable": true
+      },
+      "variance": {
+        "classificationChanges": { "minimum": 1, "maximum": 1 },
+        "missingRuntimeSpanEdges": { "minimum": 1, "maximum": 1 },
+        "missingParentRecords": { "minimum": 0, "maximum": 0 }
+      },
+      "redactionInvariant": true
+    }
+  ],
+  "summary": {
+    "perturbations": 4,
+    "totalRuns": 20,
+    "stableRuns": 20,
+    "stabilityRate": 1,
+    "classificationChanges": 5,
+    "missingRuntimeSpanEdges": 1,
+    "missingParentRecords": 1,
+    "redactionInvariantCases": 1,
+    "network": false,
+    "liveTraces": false,
+    "exporter": false
+  },
+  "reportDigest": "sha256:8bd5a2da6fbef2fceee9a0318365202b3d0f76b8cde72ac4c9376b6439947e54"
+}

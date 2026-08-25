@@ -1,0 +1,164 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/runtime-reconciliation-reproducibility-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH runtime reconciliation reproducibility fixtures v0.1",
+  "description": "Controlled, offline perturbations for measuring runtime reconciliation stability, missingness, and redaction invariants.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "studyId",
+    "evaluatedAt",
+    "corpusFixture",
+    "repetitions",
+    "method",
+    "nonGuarantees",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": {
+      "const": "cartograph.runtime-reconciliation-reproducibility-fixtures"
+    },
+    "mediaType": {
+      "const": "application/vnd.cartograph.runtime-reconciliation-reproducibility-fixtures+json"
+    },
+    "studyId": { "$ref": "#/definitions/identifier" },
+    "evaluatedAt": { "$ref": "#/definitions/dateTime" },
+    "corpusFixture": { "$ref": "#/definitions/path" },
+    "repetitions": {
+      "type": "integer",
+      "minimum": 3,
+      "maximum": 32
+    },
+    "method": { "$ref": "#/definitions/method" },
+    "nonGuarantees": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/text" }
+    },
+    "provenance": { "$ref": "#/definitions/provenance" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "dateTime": { "type": "string", "format": "date-time" },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?:[a-zA-Z0-9_.-]+/)*[a-zA-Z0-9_.-]+$"
+    },
+    "text": { "type": "string", "minLength": 1, "maxLength": 1600 },
+    "spanKey": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}:[0-9a-f]{16}$"
+    },
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fields", "replacement"],
+      "properties": {
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "span.name",
+              "span.serviceName",
+              "span.scopeName",
+              "span.scopeVersion"
+            ]
+          }
+        },
+        "replacement": { "type": "string", "minLength": 1, "maxLength": 64 }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["invariant"],
+      "properties": {
+        "invariant": {
+          "enum": ["stable-result", "missingness-delta", "redaction-no-leak"]
+        }
+      }
+    },
+    "perturbation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "caseId", "description", "expected"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "kind": { "enum": ["ordering", "missingness", "redaction"] },
+        "caseId": { "$ref": "#/definitions/identifier" },
+        "description": { "$ref": "#/definitions/text" },
+        "dropSpanIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/spanKey" }
+        },
+        "dropBindingSpanIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/spanKey" }
+        },
+        "redaction": { "$ref": "#/definitions/redaction" },
+        "expected": { "$ref": "#/definitions/expected" }
+      }
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "description", "offlineBoundary", "perturbations"],
+      "properties": {
+        "name": { "$ref": "#/definitions/identifier" },
+        "description": { "$ref": "#/definitions/text" },
+        "offlineBoundary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["network", "liveTraces", "exporter"],
+          "properties": {
+            "network": { "const": false },
+            "liveTraces": { "const": false },
+            "exporter": { "const": false }
+          }
+        },
+        "perturbations": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 16,
+          "items": { "$ref": "#/definitions/perturbation" }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "license",
+        "reference",
+        "transformation",
+        "redistribution"
+      ],
+      "properties": {
+        "source": { "$ref": "#/definitions/text" },
+        "license": { "const": "Apache-2.0" },
+        "reference": { "$ref": "#/definitions/text" },
+        "transformation": { "$ref": "#/definitions/text" },
+        "redistribution": { "const": "allowed" }
+      }
+    }
+  }
+}

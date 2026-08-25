@@ -173,6 +173,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "runtime-reconciliation-reproducibility",
+      "path": "runtime-reconciliation-reproducibility",
+      "source": "CARTOGRAPH repository-authored reproducibility study fixture",
+      "license": "Apache-2.0",
+      "reference": "O-010 local runtime reconciliation corpus; no external source",
+      "transformation": "Controlled local perturbations measure ordering stability, sampled and missing-parent effects, and redaction invariants without collecting live traces or contacting an exporter.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "review-regressions",
       "path": "review-regressions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",
