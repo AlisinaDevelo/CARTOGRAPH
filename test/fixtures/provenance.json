@@ -468,6 +468,15 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "A complete trace and deterministic head/probabilistic samples exercise sampling metadata, clock uncertainty, service aliases, missing parents, confidence propagation, and classification-change explanations without network access or hosted collection.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "architecture-query",
+      "path": "architecture-query",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Positive, negative, malformed, unsupported, and over-limit query requests exercise selector predicates, canonical output ordering, evidence projection, diagnostics, and fail-closed local resource bounds without source execution or network access.",
+      "redistribution": "allowed"
     }
   ]
 }

@@ -1,0 +1,269 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query-result.v0.1.schema.json",
+  "title": "CARTOGRAPH architecture query result v0.1",
+  "description": "A deterministic, evidence-aware result or explicit unsupported/resource-limit response for one local architecture query.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "queryId",
+    "operation",
+    "status",
+    "ordering",
+    "projection",
+    "limits",
+    "nodes",
+    "edges",
+    "diagnostics"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.architecture-query" },
+    "queryId": { "$ref": "#/definitions/selectorValue" },
+    "operation": { "$ref": "#/definitions/operation" },
+    "status": { "enum": ["ok", "unsupported", "resource-limit"] },
+    "ordering": { "$ref": "#/definitions/ordering" },
+    "projection": { "$ref": "#/definitions/projection" },
+    "limits": { "$ref": "#/definitions/limits" },
+    "nodes": { "type": "array", "items": { "$ref": "#/definitions/node" } },
+    "edges": { "type": "array", "items": { "$ref": "#/definitions/edge" } },
+    "diagnostics": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/diagnostic" }
+    },
+    "unsupportedOperation": { "$ref": "#/definitions/operation" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "unsupported" } } },
+      "then": { "required": ["unsupportedOperation"] }
+    },
+    {
+      "if": {
+        "properties": { "status": { "enum": ["ok", "resource-limit"] } }
+      },
+      "then": { "not": { "required": ["unsupportedOperation"] } }
+    }
+  ],
+  "definitions": {
+    "selectorValue": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "portablePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!/)(?!~)(?!\\\\)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\u0000)(?!.*[\\r\\n]).+$"
+    },
+    "portableReference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!/)(?!\\\\)(?!~)(?![A-Za-z]:)(?!file:)(?!.*\\u0000)(?!.*[\\r\\n]).+$"
+    },
+    "contentHash": {
+      "type": "string",
+      "pattern": "^(?:sha256:)?[0-9a-fA-F]{64}$"
+    },
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "operation": {
+      "enum": [
+        "select-nodes",
+        "select-edges",
+        "reachability",
+        "dependency-path",
+        "boundary-crossing",
+        "cycles",
+        "source-body-search",
+        "remote-query",
+        "mutation"
+      ]
+    },
+    "nodeKind": {
+      "enum": [
+        "endpoint",
+        "module",
+        "service",
+        "function",
+        "database_table",
+        "queue",
+        "external_service",
+        "file",
+        "unknown"
+      ]
+    },
+    "edgeKind": {
+      "enum": [
+        "calls",
+        "imports",
+        "reads",
+        "writes",
+        "publishes",
+        "subscribes",
+        "requests",
+        "contains",
+        "routes_to",
+        "depends_on",
+        "implements",
+        "unknown"
+      ]
+    },
+    "confidence": {
+      "enum": ["certain", "inferred", "observed", "user_confirmed"]
+    },
+    "sourceLocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "line"],
+      "properties": {
+        "path": { "$ref": "#/definitions/portablePath" },
+        "line": { "type": "integer", "minimum": 1 },
+        "column": { "type": "integer", "minimum": 1 },
+        "endLine": { "type": "integer", "minimum": 1 },
+        "endColumn": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "stableKey", "kind", "name"],
+      "properties": {
+        "id": { "$ref": "#/definitions/selectorValue" },
+        "stableKey": { "$ref": "#/definitions/selectorValue" },
+        "kind": { "$ref": "#/definitions/nodeKind" },
+        "name": { "$ref": "#/definitions/selectorValue" },
+        "language": { "$ref": "#/definitions/selectorValue" },
+        "location": { "$ref": "#/definitions/sourceLocation" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind"],
+      "properties": {
+        "id": { "$ref": "#/definitions/selectorValue" },
+        "kind": { "enum": ["source", "runtime", "git", "user"] },
+        "path": { "$ref": "#/definitions/portablePath" },
+        "line": { "type": "integer", "minimum": 1 },
+        "column": { "type": "integer", "minimum": 1 },
+        "endLine": { "type": "integer", "minimum": 1 },
+        "endColumn": { "type": "integer", "minimum": 1 },
+        "location": { "$ref": "#/definitions/sourceLocation" },
+        "revision": { "$ref": "#/definitions/selectorValue" },
+        "reference": { "$ref": "#/definitions/portableReference" },
+        "observedAt": { "$ref": "#/definitions/selectorValue" },
+        "observedCount": { "type": "integer", "minimum": 0 },
+        "detector": { "$ref": "#/definitions/selectorValue" },
+        "contentHash": { "$ref": "#/definitions/contentHash" }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "kind", "confidence", "evidence"],
+      "properties": {
+        "from": { "$ref": "#/definitions/selectorValue" },
+        "to": { "$ref": "#/definitions/selectorValue" },
+        "kind": { "$ref": "#/definitions/edgeKind" },
+        "confidence": { "$ref": "#/definitions/confidence" },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/evidence" }
+        },
+        "unresolvedReason": { "$ref": "#/definitions/selectorValue" }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "code",
+        "severity",
+        "message",
+        "source",
+        "evidenceIds"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/selectorValue" },
+        "code": { "$ref": "#/definitions/selectorValue" },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "message": { "$ref": "#/definitions/selectorValue" },
+        "remediation": { "$ref": "#/definitions/selectorValue" },
+        "source": { "enum": ["query", "snapshot"] },
+        "operation": { "$ref": "#/definitions/operation" },
+        "limit": {
+          "enum": ["maxDepth", "maxNodes", "maxEdges", "maxResultBytes"]
+        },
+        "nodeId": { "$ref": "#/definitions/selectorValue" },
+        "edge": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["from", "to", "kind"],
+          "properties": {
+            "from": { "$ref": "#/definitions/selectorValue" },
+            "to": { "$ref": "#/definitions/selectorValue" },
+            "kind": { "$ref": "#/definitions/edgeKind" }
+          }
+        },
+        "evidenceIds": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/selectorValue" }
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxDepth", "maxNodes", "maxEdges", "maxResultBytes"],
+      "properties": {
+        "maxDepth": { "type": "integer", "minimum": 0, "maximum": 64 },
+        "maxNodes": { "type": "integer", "minimum": 1, "maximum": 100000 },
+        "maxEdges": { "type": "integer", "minimum": 1, "maximum": 200000 },
+        "maxResultBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16777216
+        }
+      }
+    },
+    "projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence",
+        "includeNodes",
+        "includeEdges",
+        "includeDiagnostics"
+      ],
+      "properties": {
+        "evidence": { "enum": ["full", "summary", "none"] },
+        "includeNodes": { "type": "boolean" },
+        "includeEdges": { "type": "boolean" },
+        "includeDiagnostics": { "type": "boolean" }
+      }
+    },
+    "ordering": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "edges", "diagnostics", "evidence"],
+      "properties": {
+        "nodes": { "const": "stableKey,id" },
+        "edges": { "const": "from,to,kind" },
+        "diagnostics": { "const": "id" },
+        "evidence": { "const": "id" }
+      }
+    }
+  }
+}

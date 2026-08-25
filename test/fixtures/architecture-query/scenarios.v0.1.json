@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.architecture-query-fixtures",
+  "fixtureId": "q001-v0.1",
+  "scope": {
+    "network": false,
+    "filesystemWrites": false,
+    "sourceBodiesIncluded": false,
+    "execution": false,
+    "deterministic": true
+  },
+  "cases": [
+    {
+      "id": "positive-node-selection",
+      "scenario": "positive",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q001-positive-node-selection",
+        "operation": "select-nodes",
+        "selectors": { "nodes": [{ "kind": "function" }] }
+      },
+      "expected": { "status": "ok", "nodes": 3, "edges": 0 }
+    },
+    {
+      "id": "positive-edge-selection",
+      "scenario": "positive",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q001-positive-edge-selection",
+        "operation": "select-edges",
+        "selectors": { "edges": [{ "kind": "calls", "hasEvidence": true }] },
+        "projection": { "evidence": "summary" }
+      },
+      "expected": { "status": "ok", "nodes": 2, "edges": 1 }
+    },
+    {
+      "id": "negative-node-selection",
+      "scenario": "negative",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q001-negative-node-selection",
+        "operation": "select-nodes",
+        "selectors": { "nodes": [{ "kind": "queue" }] }
+      },
+      "expected": { "status": "ok", "nodes": 0, "edges": 0 }
+    },
+    {
+      "id": "unsupported-reachability",
+      "scenario": "unsupported",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q001-unsupported-reachability",
+        "operation": "reachability",
+        "selectors": { "nodes": [{ "id": "node-a" }] }
+      },
+      "expected": {
+        "status": "unsupported",
+        "diagnosticCode": "QUERY_OPERATION_UNSUPPORTED"
+      }
+    },
+    {
+      "id": "malformed-unknown-field",
+      "scenario": "malformed",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q001-malformed-unknown-field",
+        "operation": "select-nodes",
+        "selectors": { "nodes": [{ "kind": "function" }] },
+        "network": true
+      },
+      "expected": { "status": "invalid", "errorIncludes": "unrecognized" }
+    },
+    {
+      "id": "over-limit-nodes",
+      "scenario": "resource-limit",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q001-over-limit-nodes",
+        "operation": "select-nodes",
+        "selectors": { "nodes": [{ "kind": "function" }] },
+        "limits": { "maxNodes": 1 }
+      },
+      "expected": {
+        "status": "resource-limit",
+        "diagnosticCode": "QUERY_RESOURCE_LIMIT"
+      }
+    }
+  ]
+}

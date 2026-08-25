@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH architecture query fixtures v0.1",
+  "description": "Positive, negative, malformed, unsupported, and over-limit scenarios for the local architecture query contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "contract", "fixtureId", "scope", "cases"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.architecture-query-fixtures" },
+    "fixtureId": { "$ref": "#/definitions/identifier" },
+    "scope": { "$ref": "#/definitions/scope" },
+    "cases": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "network",
+        "filesystemWrites",
+        "sourceBodiesIncluded",
+        "execution",
+        "deterministic"
+      ],
+      "properties": {
+        "network": { "const": false },
+        "filesystemWrites": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "execution": { "const": false },
+        "deterministic": { "const": true }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "scenario", "query", "expected"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "scenario": {
+          "enum": [
+            "positive",
+            "negative",
+            "unsupported",
+            "malformed",
+            "resource-limit"
+          ]
+        },
+        "query": { "type": ["object", "null"] },
+        "expected": { "$ref": "#/definitions/expected" }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "enum": ["ok", "unsupported", "resource-limit", "invalid"]
+        },
+        "nodes": { "type": "integer", "minimum": 0 },
+        "edges": { "type": "integer", "minimum": 0 },
+        "diagnosticCode": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_.:-]*$"
+        },
+        "errorIncludes": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
