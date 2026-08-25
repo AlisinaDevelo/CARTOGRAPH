@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.identity-quality-baseline",
+  "corpusContract": "cartograph.identity-corpus",
+  "corpusVersion": "v0.1",
+  "qualityDigest": "sha256:fb4c16e96b5e3a8b014665184232df4c62adf222e1310bcd82dc1cffe7345792",
+  "summary": {
+    "curated": {
+      "cases": 7,
+      "preservationRate": 1,
+      "falseMatchRate": 0,
+      "ambiguityRate": 0.3077,
+      "unmatchedRate": 0,
+      "unsupportedRate": 0
+    },
+    "generated": {
+      "cases": 56,
+      "preservationRate": 1,
+      "falseMatchRate": 0,
+      "ambiguityRate": 0.3333,
+      "unmatchedRate": 0,
+      "unsupportedRate": 0
+    }
+  },
+  "thresholds": {
+    "preservationRateMin": 1,
+    "falseMatchRateMax": 0,
+    "unmatchedRateMax": 0,
+    "unsupportedRateMax": 0
+  },
+  "exceptionPolicy": {
+    "active": false,
+    "requiredFields": ["issue", "owner", "rationale", "expiresAt"],
+    "maximumDays": 90
+  }
+}
