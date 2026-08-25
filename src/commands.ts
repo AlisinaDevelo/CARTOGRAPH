@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import { constants, realpathSync } from "node:fs";
 import { lstat, open, readFile, stat } from "node:fs/promises";
 import { dirname, relative, resolve, sep } from "node:path";
@@ -9,15 +10,22 @@ import {
 import { assertReportItemLimit } from "./resources.js";
 import {
   diffGraphSnapshots,
+  evaluatePolicyOnDiff,
+  evaluatePolicyOnSnapshot,
   migrateGraphSnapshot,
+  parseGraphDiff,
   parseGraphSnapshot,
+  parsePolicyConfig,
   defaultCartographConfig,
   readCartographConfig,
+  readPolicyConfig,
   createRemediationReview,
   serializeGraphSnapshot,
   serializeRemediationReview,
   validateMigrationOutput,
   type CartographConfig,
+  type PolicyCiMode,
+  type PolicyEvaluation,
   type GraphSnapshot,
   type SnapshotMigrationResult,
 } from "./core/index.js";
@@ -30,6 +38,7 @@ import {
 import { renderDiff, type ReportFormat } from "./report/render.js";
 
 const MAX_SNAPSHOT_BYTES = 64 * 1024 * 1024;
+const MAX_POLICY_INPUT_BYTES = 64 * 1024 * 1024;
 const MAX_REMEDIATION_REVIEW_BYTES = 2 * 1024 * 1024;
 // macOS exposes these root-owned aliases for /private/{tmp,var}; they are not
 // user-controlled path components and must remain usable for normal temp paths.
@@ -240,6 +249,54 @@ export async function loadSnapshot(path: string): Promise<GraphSnapshot> {
     });
   }
   return parseGraphSnapshot(value);
+}
+
+export async function loadDiff(path: string) {
+  const inputPath = resolve(path);
+  const metadata = await stat(inputPath);
+  if (!metadata.isFile())
+    throw new Error(`diff is not a regular file: ${path}`);
+  if (metadata.size > MAX_POLICY_INPUT_BYTES)
+    throw new Error(`diff exceeds the 64 MiB input limit: ${path}`);
+
+  let value: unknown;
+  try {
+    const source = await readFile(inputPath, "utf8");
+    if (Buffer.byteLength(source, "utf8") > MAX_POLICY_INPUT_BYTES)
+      throw new Error("diff exceeds the 64 MiB input limit");
+    value = JSON.parse(source) as unknown;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "invalid JSON";
+    throw new Error(`could not parse diff ${path}: ${detail}`, {
+      cause: error,
+    });
+  }
+  return parseGraphDiff(value);
+}
+
+export type PolicyInputKind = "snapshot" | "diff";
+
+export type PolicyEvaluationOptions = {
+  input: string;
+  inputKind: PolicyInputKind;
+  mode?: PolicyCiMode;
+  policy: string;
+  root: string;
+};
+
+export async function evaluatePolicyFile(
+  options: PolicyEvaluationOptions,
+): Promise<PolicyEvaluation> {
+  const root = realpathSync(resolve(options.root));
+  const parsedPolicy = readPolicyConfig(root, options.policy);
+  const policy =
+    options.mode === undefined
+      ? parsedPolicy
+      : parsePolicyConfig({ ...parsedPolicy, mode: options.mode });
+  if (options.inputKind === "snapshot") {
+    return evaluatePolicyOnSnapshot(policy, await loadSnapshot(options.input));
+  }
+  return evaluatePolicyOnDiff(policy, await loadDiff(options.input));
 }
 
 export async function diffSnapshotFiles(

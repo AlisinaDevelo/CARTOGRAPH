@@ -9,8 +9,10 @@ representative example in [`schema/policy.v0.1.json`](../schema/policy.v0.1.json
 
 A policy has a lower-case `policyId`, semantic `version`, optional `mode`, and
 at least one rule. `mode` defaults to `informational`; the evaluator reports
-violations with this effective mode, while CI exit behavior remains a separate
-P-005 contract.
+violations with this effective mode. The `cartograph policy` command and the
+GitHub Action expose the same explicit CI modes: informational reports findings
+and returns 0, while enforce returns 2 for violations or unsupported rules and
+reserves 1 for tool or configuration errors.
 
 Rules are deliberately data-only. Each rule has an identifier, a target, a
 selector, and an assertion:
@@ -46,6 +48,7 @@ node/edge records and diff records. A diff-target rule on a snapshot is
 reported as explicit `unsupported-target` rather than silently ignored.
 Every violation has a stable rule-based ID, deterministic reason, matched IDs,
 and graph/evidence references. The evaluator never fetches a policy, opens a
-network connection, executes a selector, or changes a graph. CI exit-mode
-behavior remains the separate P-005 contract; a valid configuration or report
-is not by itself authorization to merge.
+network connection, executes a selector, or changes a graph. The Action is
+disabled unless a policy path is supplied; its default policy mode is
+informational and enforcement is opt-in. A valid configuration or report is not
+by itself authorization to merge.

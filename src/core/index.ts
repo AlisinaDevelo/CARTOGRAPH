@@ -227,6 +227,13 @@ export {
   type PolicyViolation,
 } from "./policy-evaluation.js";
 export {
+  parsePolicyCiMode,
+  policyCiExitCode,
+  POLICY_CI_EXIT_CODES,
+  POLICY_CI_MODES,
+  type PolicyCiMode,
+} from "./policy-ci.js";
+export {
   ADAPTER_API_VERSION,
   ADAPTER_CONTRACT,
   ADAPTER_MEDIA_TYPE,

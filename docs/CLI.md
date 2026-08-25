@@ -79,6 +79,15 @@ rejected, stale, failed-validation, and applied-externally states, but never
 applies a patch, merges a pull request, changes policy, or invokes a repository
 command.
 
+`policy [root] --policy <path> --snapshot <path>` or
+`policy [root] --policy <path> --diff <path>` evaluates a repository-local policy
+against a canonical graph artifact. Exactly one input kind is required. The
+policy file must be a regular repository-relative JSON file; the graph artifact
+is bounded and parsed as a snapshot or GraphDiff. `--mode informational` is the
+non-blocking default when supplied; omitting `--mode` uses the policy file's
+mode. `--mode enforce` is the explicit CI gate and still emits the canonical
+policy-evaluation report before returning its findings status.
+
 ## Output and diagnostic streams
 
 Successful commands write exactly one artifact to stdout when `--output` is
@@ -105,6 +114,10 @@ only; it does not change the canonical artifact or the library error object.
   path, an analysis error, or an output failure. The top-level handler writes a
   stable boundary-coded `cartograph [...]` diagnostic to stderr and does not
   report success.
+- **Exit code 2** is reserved for `policy --mode enforce` when a valid report
+  contains violations or unsupported rules. Informational policy checks return
+  exit code 0 for the same findings; malformed policy/input and other tool
+  failures use exit code 1.
 
 The CLI does not promise a separate numeric code for each input failure. New
 failure classes preserve the nonzero contract and add a human-readable

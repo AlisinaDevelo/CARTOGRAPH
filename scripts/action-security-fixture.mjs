@@ -82,6 +82,7 @@ const validatePolicy = (candidateWorkflow, candidateAction) => {
   }
   requireText(candidateAction, 'default: "7"', "retention default");
   requireText(candidateAction, 'default: "true"', "report upload default");
+  requireText(candidateAction, "default: informational", "policy mode default");
   requireText(
     candidateAction,
     "npm ci --ignore-scripts",
@@ -96,6 +97,19 @@ const validatePolicy = (candidateWorkflow, candidateAction) => {
     candidateAction,
     "CARTOGRAPH_UPLOAD_REPORT",
     "report opt-out validation",
+  );
+  requireText(candidateAction, "CARTOGRAPH_POLICY_PATH", "policy path opt-in");
+  requireText(
+    candidateAction,
+    "CARTOGRAPH_POLICY_MODE",
+    "policy mode validation",
+  );
+  requireText(candidateAction, "--mode", "policy mode forwarding");
+  requireText(candidateAction, "policy-exit-code", "policy status handoff");
+  requireText(
+    candidateAction,
+    "Apply policy exit status",
+    "policy status gate",
   );
   requireText(
     candidateAction,
@@ -160,6 +174,11 @@ expectPolicyRejection(
   "secret-dependent analysis",
   `${workflow}\nenv:\n  CARTOGRAPH_TOKEN: \${{ secrets.BAD }}\n`,
   action,
+);
+expectPolicyRejection(
+  "enforcing policy default",
+  workflow,
+  action.replace("default: informational", "default: enforce"),
 );
 requireText(docs, "Fork pull requests and permissions", "Action docs");
 requireText(docs, "Pin and update policy", "Action docs");

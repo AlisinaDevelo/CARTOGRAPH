@@ -25,6 +25,11 @@ describe("read-only GitHub Action contract", () => {
     expect(action).toContain("default: merge-base");
     expect(action).toContain('default: "7"');
     expect(action).toContain('default: "true"');
+    expect(action).toContain("default: informational");
+    expect(action).toContain("CARTOGRAPH_POLICY_PATH");
+    expect(action).toContain("CARTOGRAPH_POLICY_MODE");
+    expect(action).toContain("--mode");
+    expect(action).toContain("Upload policy evaluation");
     expect(action).toContain("if: inputs.upload-report == 'true'");
     expect(action).toContain("architecture-diff.json");
     expect(action).toContain("architecture-diff.html");
@@ -59,7 +64,7 @@ describe("read-only GitHub Action contract", () => {
     const fixture = read("scripts/action-fixture.mjs");
     const securityFixture = read("scripts/action-security-fixture.mjs");
 
-    expect(docs).toContain("does not comment, label, merge, change issues");
+    expect(docs).toContain("never comments, labels, merges, changes issues");
     expect(docs).toContain("npm run action:validate");
     expect(docs).toContain("Fork pull requests and permissions");
     expect(docs).toContain("npm run action:security:validate");
@@ -81,5 +86,6 @@ describe("read-only GitHub Action contract", () => {
     expect(securityFixture).toContain("unpin");
     expect(securityFixture).toContain("write permission");
     expect(securityFixture).toContain("npm ci --ignore-scripts");
+    expect(securityFixture).toContain("policy mode default");
   });
 });

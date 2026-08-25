@@ -156,9 +156,9 @@ P-003 publishes the versioned local policy contract in
 `schema/policy.v0.1.schema.json` and `src/core/policy.ts`. It is intentionally
 data-only: bounded node, edge, and diff selectors, four assertions, and an
 informational-by-default mode. Unknown fields, executable expressions, URLs,
-and out-of-repository policy paths fail closed. The runtime parser and local
-reader are deterministic and offline; policy evaluation and enforcing exit
-behavior remain additive follow-on contracts.
+and out-of-repository policy paths fail closed. The runtime parser, local
+evaluation command, and CI exit boundary are deterministic and offline; policy
+composition, exceptions, and hosted export remain additive follow-on contracts.
 
 ## P-004 policy evaluation
 

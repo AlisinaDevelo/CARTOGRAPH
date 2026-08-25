@@ -42,6 +42,24 @@ const run = async (binary, args, cwd) => {
   }
 };
 
+const runExitCode = async (binary, args, cwd) => {
+  try {
+    await execFileAsync(binary, args, {
+      cwd,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        GIT_CONFIG_NOSYSTEM: "1",
+        GIT_TERMINAL_PROMPT: "0",
+      },
+    });
+    return 0;
+  } catch (error) {
+    if (typeof error?.code === "number") return error.code;
+    throw error;
+  }
+};
+
 const git = async (args, cwd) => (await run("git", args, cwd)).stdout.trim();
 
 const expectFailure = async (label, callback, pattern) => {
@@ -100,7 +118,27 @@ const runFixture = async () => {
       "architecture-diff-no-upload.html",
     );
     const noUploadSummaryPath = join(outputDir, "summary-no-upload.md");
+    const policyPath = join(outputDir, "policy.json");
+    const policyReportPath = join(outputDir, "policy-evaluation.json");
     const cliPath = resolve(repositoryRoot, "dist/cli.js");
+    await writeFile(
+      policyPath,
+      JSON.stringify({
+        schemaVersion: 1,
+        policyId: "action-fixture-policy",
+        version: "1.0.0",
+        mode: "informational",
+        rules: [
+          {
+            id: "never-present-diagnostic",
+            target: "diff",
+            selector: { kind: "diagnostic-added", code: "never-present" },
+            assertion: "exists",
+          },
+        ],
+      }),
+      "utf8",
+    );
 
     await run(
       process.execPath,
@@ -122,6 +160,48 @@ const runFixture = async () => {
       ],
       repositoryRoot,
     );
+    const informationalPolicyExit = await runExitCode(
+      process.execPath,
+      [
+        cliPath,
+        "policy",
+        root,
+        "--policy",
+        ".cartograph/policy.json",
+        "--diff",
+        jsonPath,
+        "--mode",
+        "informational",
+        "--output",
+        policyReportPath,
+        "--force",
+      ],
+      repositoryRoot,
+    );
+    const enforcingPolicyExit = await runExitCode(
+      process.execPath,
+      [
+        cliPath,
+        "policy",
+        root,
+        "--policy",
+        ".cartograph/policy.json",
+        "--diff",
+        jsonPath,
+        "--mode",
+        "enforce",
+        "--output",
+        join(outputDir, "policy-evaluation-enforce.json"),
+        "--force",
+      ],
+      repositoryRoot,
+    );
+    if (informationalPolicyExit !== 0)
+      throw new Error("informational policy mode unexpectedly blocked");
+    if (enforcingPolicyExit !== 2)
+      throw new Error(
+        `enforcing policy mode returned ${enforcingPolicyExit} instead of 2`,
+      );
     await run(
       process.execPath,
       [
@@ -130,6 +210,8 @@ const runFixture = async () => {
         htmlPath,
         summaryPath,
         "cartograph-fixture-report",
+        "true",
+        policyReportPath,
       ],
       repositoryRoot,
     );
@@ -142,6 +224,7 @@ const runFixture = async () => {
         noUploadSummaryPath,
         "cartograph-fixture-report",
         "false",
+        policyReportPath,
       ],
       repositoryRoot,
     );
@@ -150,11 +233,12 @@ const runFixture = async () => {
     const html = await readFile(htmlPath, "utf8");
     const summary = await readFile(summaryPath, "utf8");
     const noUploadSummary = await readFile(noUploadSummaryPath, "utf8");
+    const policyReport = JSON.parse(await readFile(policyReportPath, "utf8"));
     const serializedDiff = JSON.stringify(diff);
     const reportBytes = Buffer.byteLength(serializedDiff, "utf8");
     const htmlBytes = Buffer.byteLength(html, "utf8");
     const forbiddenValues = [privateSourceSnippet, privateToken, root];
-    const reportPayload = `${serializedDiff}\n${html}\n${summary}`;
+    const reportPayload = `${serializedDiff}\n${html}\n${summary}\n${JSON.stringify(policyReport)}`;
     if (forbiddenValues.some((value) => reportPayload.includes(value)))
       throw new Error(
         "fixture report leaked an absolute path, source snippet, or token",
@@ -180,6 +264,12 @@ const runFixture = async () => {
       throw new Error("fixture report is not a CARTOGRAPH static HTML report");
     if (!summary.includes("### CARTOGRAPH architecture diff"))
       throw new Error("fixture summary was not emitted");
+    if (
+      policyReport.mode !== "informational" ||
+      policyReport.status !== "violations" ||
+      !summary.includes("Policy mode: `informational`")
+    )
+      throw new Error("informational policy report was not summarized");
     if (
       !noUploadSummary.includes("Static report upload: disabled by policy") ||
       noUploadSummary.includes("Static report: artifact")
@@ -327,6 +417,10 @@ const runFixture = async () => {
         reportBytes: htmlBytes,
         jsonBytes: reportBytes,
         summaryBytes: Buffer.byteLength(summary, "utf8"),
+        policyMode: policyReport.mode,
+        policyStatus: policyReport.status,
+        informationalPolicyExit,
+        enforcingPolicyExit,
         securityFixtures: [
           "fork-pull-request",
           "malicious-package-script",
