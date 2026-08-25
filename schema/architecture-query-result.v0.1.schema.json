@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query-result.v0.1.schema.json",
   "title": "CARTOGRAPH architecture query result v0.1",
-  "description": "A deterministic, evidence-aware result or explicit unsupported/resource-limit response for one local architecture query.",
+  "description": "A deterministic, evidence-aware result or explicit unsupported/resource-limit response for one local architecture query, including bounded traversal, path, boundary, cycle, and truncation details.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -32,6 +32,27 @@
     "diagnostics": {
       "type": "array",
       "items": { "$ref": "#/definitions/diagnostic" }
+    },
+    "paths": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/path" }
+    },
+    "cycles": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/cycle" }
+    },
+    "boundaries": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/boundary" }
+    },
+    "nodeDepths": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/nodeDepth" }
+    },
+    "truncated": { "type": "boolean" },
+    "truncatedEdges": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/edge" }
     },
     "unsupportedOperation": { "$ref": "#/definitions/operation" }
   },
@@ -80,6 +101,7 @@
       "enum": [
         "select-nodes",
         "select-edges",
+        "neighbors",
         "reachability",
         "dependency-path",
         "boundary-crossing",
@@ -203,7 +225,13 @@
         "source": { "enum": ["query", "snapshot"] },
         "operation": { "$ref": "#/definitions/operation" },
         "limit": {
-          "enum": ["maxDepth", "maxNodes", "maxEdges", "maxResultBytes"]
+          "enum": [
+            "maxDepth",
+            "maxNodes",
+            "maxEdges",
+            "maxTimeMs",
+            "maxResultBytes"
+          ]
         },
         "nodeId": { "$ref": "#/definitions/selectorValue" },
         "edge": {
@@ -223,14 +251,80 @@
         }
       }
     },
+    "path": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "edges", "length"],
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/selectorValue" }
+        },
+        "edges": {
+          "type": "array",
+          "maxItems": 200000,
+          "items": { "$ref": "#/definitions/edge" }
+        },
+        "length": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "cycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "edges"],
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/selectorValue" }
+        },
+        "edges": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 200000,
+          "items": { "$ref": "#/definitions/edge" }
+        }
+      }
+    },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["insideNodeId", "outsideNodeId", "direction", "edge"],
+      "properties": {
+        "insideNodeId": { "$ref": "#/definitions/selectorValue" },
+        "outsideNodeId": { "$ref": "#/definitions/selectorValue" },
+        "direction": { "enum": ["outbound", "inbound"] },
+        "edge": { "$ref": "#/definitions/edge" }
+      }
+    },
+    "nodeDepth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeId", "depth", "root"],
+      "properties": {
+        "nodeId": { "$ref": "#/definitions/selectorValue" },
+        "depth": { "type": "integer", "minimum": 0 },
+        "root": { "type": "boolean" }
+      }
+    },
     "limits": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["maxDepth", "maxNodes", "maxEdges", "maxResultBytes"],
+      "required": [
+        "maxDepth",
+        "maxNodes",
+        "maxEdges",
+        "maxTimeMs",
+        "maxResultBytes"
+      ],
       "properties": {
         "maxDepth": { "type": "integer", "minimum": 0, "maximum": 64 },
         "maxNodes": { "type": "integer", "minimum": 1, "maximum": 100000 },
         "maxEdges": { "type": "integer", "minimum": 1, "maximum": 200000 },
+        "maxTimeMs": { "type": "integer", "minimum": 1, "maximum": 120000 },
         "maxResultBytes": {
           "type": "integer",
           "minimum": 1,

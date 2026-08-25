@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+import { performance } from "node:perf_hooks";
 
 import { ZodError, z } from "zod";
 
@@ -17,6 +18,12 @@ import {
   type GraphNode,
   type GraphSnapshot,
 } from "./schemas.js";
+import {
+  computeImpactSubgraph,
+  type ImpactDirection,
+  type ImpactSubgraph,
+} from "./impact.js";
+import { createResourceBudget, ResourceLimitError } from "../resources.js";
 
 export const ARCHITECTURE_QUERY_SCHEMA_VERSION = 1 as const;
 export const ARCHITECTURE_QUERY_CONTRACT =
@@ -25,13 +32,14 @@ export const ARCHITECTURE_QUERY_CONTRACT =
 export const ARCHITECTURE_QUERY_SUPPORTED_OPERATIONS = [
   "select-nodes",
   "select-edges",
-] as const;
-
-export const ARCHITECTURE_QUERY_UNSUPPORTED_OPERATIONS = [
+  "neighbors",
   "reachability",
   "dependency-path",
   "boundary-crossing",
   "cycles",
+] as const;
+
+export const ARCHITECTURE_QUERY_UNSUPPORTED_OPERATIONS = [
   "source-body-search",
   "remote-query",
   "mutation",
@@ -108,7 +116,7 @@ const QueryContentHashSchema = z
   .trim()
   .regex(/^(?:sha256:)?[0-9a-f]{64}$/iu, "must be a SHA-256 content hash");
 
-const NodeKindSchema = z.enum([
+const NODE_KINDS = [
   "endpoint",
   "module",
   "service",
@@ -118,9 +126,10 @@ const NodeKindSchema = z.enum([
   "external_service",
   "file",
   "unknown",
-]);
+] as const;
+const NodeKindSchema = z.enum(NODE_KINDS);
 
-const EdgeKindSchema = z.enum([
+const EDGE_KINDS = [
   "calls",
   "imports",
   "reads",
@@ -133,7 +142,8 @@ const EdgeKindSchema = z.enum([
   "depends_on",
   "implements",
   "unknown",
-]);
+] as const;
+const EdgeKindSchema = z.enum(EDGE_KINDS);
 
 const ConfidenceSchema = z.enum([
   "certain",
@@ -188,21 +198,14 @@ export const ArchitectureQuerySelectorSchema = z
       .max(MAX_SELECTOR_PREDICATES)
       .default([]),
   })
-  .strict()
-  .superRefine((selector, context) => {
-    if (selector.nodes.length === 0 && selector.edges.length === 0) {
-      context.addIssue({
-        code: "custom",
-        message: "selector must contain a node or edge predicate",
-      });
-    }
-  });
+  .strict();
 
 export const ArchitectureQueryLimitsSchema = z
   .object({
     maxDepth: z.number().int().nonnegative().max(64).default(8),
     maxNodes: z.number().int().positive().max(100_000).default(10_000),
     maxEdges: z.number().int().positive().max(200_000).default(20_000),
+    maxTimeMs: z.number().int().positive().max(120_000).default(5_000),
     maxResultBytes: z
       .number()
       .int()
@@ -215,6 +218,7 @@ export const ArchitectureQueryLimitsSchema = z
     maxDepth: 8,
     maxNodes: 10_000,
     maxEdges: 20_000,
+    maxTimeMs: 5_000,
     maxResultBytes: 4 * 1024 * 1024,
   });
 
@@ -248,6 +252,78 @@ export const ArchitectureQueryOrderingSchema = z
     evidence: "id",
   });
 
+const QueryTraversalDirectionSchema = z.enum([
+  "forward",
+  "reverse",
+  "both",
+  "downstream",
+  "upstream",
+]);
+
+const QueryEdgeKindsSchema = z
+  .array(EdgeKindSchema)
+  .min(1)
+  .max(EDGE_KINDS.length)
+  .refine(
+    (edgeKinds) => new Set(edgeKinds).size === edgeKinds.length,
+    "edgeKinds must not contain duplicates",
+  )
+  .default([...EDGE_KINDS]);
+
+export const ArchitectureQueryTraversalSchema = z
+  .object({
+    direction: QueryTraversalDirectionSchema.default("forward"),
+    edgeKinds: QueryEdgeKindsSchema,
+    includeUnresolved: z.boolean().default(true),
+  })
+  .strict()
+  .default({
+    direction: "forward",
+    edgeKinds: [...EDGE_KINDS],
+    includeUnresolved: true,
+  });
+
+const QueryNodeReferenceObjectSchema = z
+  .object({
+    id: SelectorValueSchema.optional(),
+    stableKey: SelectorValueSchema.optional(),
+  })
+  .strict()
+  .superRefine((reference, context) => {
+    if (reference.id === undefined && reference.stableKey === undefined) {
+      context.addIssue({
+        code: "custom",
+        message: "node reference must contain id or stableKey",
+      });
+    }
+  });
+
+export const ArchitectureQueryNodeReferenceSchema = z.union([
+  SelectorValueSchema,
+  QueryNodeReferenceObjectSchema,
+]);
+
+const QueryPathDirectionSchema = z.enum(["forward", "reverse"]);
+const QueryPathEdgeKindsSchema = z
+  .array(EdgeKindSchema)
+  .min(1)
+  .max(EDGE_KINDS.length)
+  .refine(
+    (edgeKinds) => new Set(edgeKinds).size === edgeKinds.length,
+    "edgeKinds must not contain duplicates",
+  )
+  .default(["depends_on"]);
+
+export const ArchitectureQueryPathSchema = z
+  .object({
+    from: ArchitectureQueryNodeReferenceSchema,
+    to: ArchitectureQueryNodeReferenceSchema,
+    direction: QueryPathDirectionSchema.default("forward"),
+    edgeKinds: QueryPathEdgeKindsSchema,
+    includeUnresolved: z.boolean().default(true),
+  })
+  .strict();
+
 export const ArchitectureQuerySchema = z
   .object({
     schemaVersion: z.literal(ARCHITECTURE_QUERY_SCHEMA_VERSION),
@@ -255,10 +331,15 @@ export const ArchitectureQuerySchema = z
     queryId: QueryIdentifierSchema,
     operation: ArchitectureQueryOperationSchema,
     snapshotSchemaVersion: z.literal(1).default(1),
-    selectors: ArchitectureQuerySelectorSchema,
+    selectors: ArchitectureQuerySelectorSchema.default({
+      nodes: [],
+      edges: [],
+    }),
     limits: ArchitectureQueryLimitsSchema,
     projection: ArchitectureQueryProjectionSchema,
     ordering: ArchitectureQueryOrderingSchema,
+    traversal: ArchitectureQueryTraversalSchema,
+    path: ArchitectureQueryPathSchema.optional(),
   })
   .strict()
   .superRefine((query, context) => {
@@ -280,6 +361,32 @@ export const ArchitectureQuerySchema = z
         code: "custom",
         path: ["selectors", "edges"],
         message: "select-edges requires at least one edge predicate",
+      });
+    }
+    if (
+      ["neighbors", "reachability", "boundary-crossing", "cycles"].includes(
+        query.operation,
+      ) &&
+      query.selectors.nodes.length === 0
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["selectors", "nodes"],
+        message: `${query.operation} requires at least one node predicate`,
+      });
+    }
+    if (query.operation === "dependency-path" && query.path === undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["path"],
+        message: "dependency-path requires a from/to path specification",
+      });
+    }
+    if (query.operation !== "dependency-path" && query.path !== undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["path"],
+        message: "path is only valid for dependency-path queries",
       });
     }
   });
@@ -334,11 +441,43 @@ export const ArchitectureQueryDiagnosticSchema = z
     source: z.enum(["query", "snapshot"]).default("query"),
     operation: ArchitectureQueryOperationSchema.optional(),
     limit: z
-      .enum(["maxDepth", "maxNodes", "maxEdges", "maxResultBytes"])
+      .enum(["maxDepth", "maxNodes", "maxEdges", "maxTimeMs", "maxResultBytes"])
       .optional(),
     nodeId: SelectorValueSchema.optional(),
     edge: QueryDiagnosticEdgeSchema.optional(),
     evidenceIds: z.array(SelectorValueSchema).max(64).default([]),
+  })
+  .strict();
+
+export const ArchitectureQueryPathResultSchema = z
+  .object({
+    nodes: z.array(SelectorValueSchema).min(1).max(100_000),
+    edges: z.array(ArchitectureQueryEdgeSchema).max(200_000),
+    length: z.number().int().nonnegative(),
+  })
+  .strict();
+
+export const ArchitectureQueryCycleSchema = z
+  .object({
+    nodes: z.array(SelectorValueSchema).min(2).max(100_000),
+    edges: z.array(ArchitectureQueryEdgeSchema).min(1).max(200_000),
+  })
+  .strict();
+
+export const ArchitectureQueryBoundarySchema = z
+  .object({
+    insideNodeId: SelectorValueSchema,
+    outsideNodeId: SelectorValueSchema,
+    direction: z.enum(["outbound", "inbound"]),
+    edge: ArchitectureQueryEdgeSchema,
+  })
+  .strict();
+
+export const ArchitectureQueryNodeDepthSchema = z
+  .object({
+    nodeId: SelectorValueSchema,
+    depth: z.number().int().nonnegative(),
+    root: z.boolean(),
   })
   .strict();
 
@@ -355,6 +494,12 @@ export const ArchitectureQueryResultSchema = z
     nodes: z.array(GraphNodeSchema).default([]),
     edges: z.array(ArchitectureQueryEdgeSchema).default([]),
     diagnostics: z.array(ArchitectureQueryDiagnosticSchema).default([]),
+    paths: z.array(ArchitectureQueryPathResultSchema).default([]),
+    cycles: z.array(ArchitectureQueryCycleSchema).default([]),
+    boundaries: z.array(ArchitectureQueryBoundarySchema).default([]),
+    nodeDepths: z.array(ArchitectureQueryNodeDepthSchema).default([]),
+    truncated: z.boolean().default(false),
+    truncatedEdges: z.array(ArchitectureQueryEdgeSchema).default([]),
     unsupportedOperation: ArchitectureQueryOperationSchema.optional(),
   })
   .strict()
@@ -393,6 +538,10 @@ export type ArchitectureQueryNodePredicate = z.infer<
 export type ArchitectureQueryEdgePredicate = z.infer<
   typeof ArchitectureQueryEdgePredicateSchema
 >;
+export type ArchitectureQueryNodeReference = z.infer<
+  typeof ArchitectureQueryNodeReferenceSchema
+>;
+export type ArchitectureQueryPath = z.infer<typeof ArchitectureQueryPathSchema>;
 export type ArchitectureQuery = z.infer<typeof ArchitectureQuerySchema>;
 export type ArchitectureQueryEvidence = z.infer<
   typeof ArchitectureQueryEvidenceSchema
@@ -400,6 +549,18 @@ export type ArchitectureQueryEvidence = z.infer<
 export type ArchitectureQueryEdge = z.infer<typeof ArchitectureQueryEdgeSchema>;
 export type ArchitectureQueryDiagnostic = z.infer<
   typeof ArchitectureQueryDiagnosticSchema
+>;
+export type ArchitectureQueryPathResult = z.infer<
+  typeof ArchitectureQueryPathResultSchema
+>;
+export type ArchitectureQueryCycle = z.infer<
+  typeof ArchitectureQueryCycleSchema
+>;
+export type ArchitectureQueryBoundary = z.infer<
+  typeof ArchitectureQueryBoundarySchema
+>;
+export type ArchitectureQueryNodeDepth = z.infer<
+  typeof ArchitectureQueryNodeDepthSchema
 >;
 export type ArchitectureQueryResult = z.infer<
   typeof ArchitectureQueryResultSchema
@@ -554,7 +715,10 @@ const queryDiagnostic = (
   message: string,
   severity: ArchitectureQueryDiagnostic["severity"],
   options: Partial<
-    Pick<ArchitectureQueryDiagnostic, "limit" | "operation" | "remediation">
+    Pick<
+      ArchitectureQueryDiagnostic,
+      "limit" | "operation" | "remediation" | "nodeId" | "edge" | "evidenceIds"
+    >
   > = {},
 ): ArchitectureQueryDiagnostic => ({
   id: `query:${query.queryId}:${code.toLowerCase()}`,
@@ -567,6 +731,18 @@ const queryDiagnostic = (
   ...options,
 });
 
+type QueryResultDetails = Partial<
+  Pick<
+    ArchitectureQueryResult,
+    | "paths"
+    | "cycles"
+    | "boundaries"
+    | "nodeDepths"
+    | "truncated"
+    | "truncatedEdges"
+  >
+>;
+
 const buildResult = (
   query: ArchitectureQuery,
   status: ArchitectureQueryStatus,
@@ -574,6 +750,7 @@ const buildResult = (
   edges: readonly ArchitectureQueryEdge[],
   diagnostics: readonly ArchitectureQueryDiagnostic[],
   unsupportedOperation?: ArchitectureQueryOperation,
+  details: QueryResultDetails = {},
 ): ArchitectureQueryResult => {
   const result = {
     schemaVersion: ARCHITECTURE_QUERY_SCHEMA_VERSION,
@@ -587,6 +764,19 @@ const buildResult = (
     nodes: [...nodes].sort(compareNodes),
     edges: [...edges].sort((left, right) => compareEdges(left, right)),
     diagnostics: [...diagnostics].sort(compareDiagnostics),
+    paths: details.paths ?? [],
+    cycles: details.cycles ?? [],
+    boundaries: details.boundaries ?? [],
+    nodeDepths: [...(details.nodeDepths ?? [])].sort((left, right) => {
+      const depthOrder = left.depth - right.depth;
+      return depthOrder !== 0
+        ? depthOrder
+        : compareStrings(left.nodeId, right.nodeId);
+    }),
+    truncated: details.truncated ?? false,
+    truncatedEdges: [...(details.truncatedEdges ?? [])].sort((left, right) =>
+      compareEdges(left, right),
+    ),
     ...(unsupportedOperation === undefined ? {} : { unsupportedOperation }),
   };
   return parseQueryContract(
@@ -633,11 +823,510 @@ const limitResult = (
     ],
   );
 
-/**
- * Execute the contract's currently supported selector operations. Traversal,
- * path, boundary, cycle, source-body, remote, and mutation operations remain
- * explicit unsupported results until their dedicated roadmap work lands.
- */
+const normalizeTraversalDirection = (
+  direction: ArchitectureQuery["traversal"]["direction"],
+): "forward" | "reverse" | "both" => {
+  if (direction === "downstream") return "forward";
+  if (direction === "upstream") return "reverse";
+  return direction;
+};
+
+const nodeReferenceParts = (
+  reference: ArchitectureQueryNodeReference,
+): { id: string | undefined; stableKey: string | undefined } =>
+  typeof reference === "string"
+    ? { id: reference, stableKey: reference }
+    : { id: reference.id, stableKey: reference.stableKey };
+
+const resolveNodeReference = (
+  snapshot: GraphSnapshot,
+  reference: ArchitectureQueryNodeReference,
+): GraphNode | undefined => {
+  const parts = nodeReferenceParts(reference);
+  const byId = new Map(snapshot.nodes.map((node) => [node.id, node]));
+  const byStableKey = new Map(
+    snapshot.nodes.map((node) => [node.stableKey, node]),
+  );
+  return (
+    (parts.id === undefined ? undefined : byId.get(parts.id)) ??
+    (parts.stableKey === undefined
+      ? undefined
+      : byStableKey.get(parts.stableKey))
+  );
+};
+
+const selectQueryNodes = (
+  snapshot: GraphSnapshot,
+  predicates: readonly ArchitectureQueryNodePredicate[],
+): GraphNode[] =>
+  snapshot.nodes
+    .filter((node) =>
+      predicates.some((predicate) => matchesNode(node, predicate)),
+    )
+    .sort(compareNodes);
+
+const filteredTraversalSnapshot = (
+  snapshot: GraphSnapshot,
+  edgeKinds: readonly GraphEdge["kind"][],
+): GraphSnapshot => {
+  if (edgeKinds.length === EDGE_KINDS.length) return snapshot;
+  const allowed = new Set(edgeKinds);
+  return {
+    ...snapshot,
+    edges: snapshot.edges.filter((edge) => allowed.has(edge.kind)),
+  };
+};
+
+const edgeResultKey = (edge: Pick<GraphEdge, "from" | "to" | "kind">): string =>
+  `${edge.from}\0${edge.to}\0${edge.kind}`;
+
+type TraversalAggregate = {
+  nodes: GraphNode[];
+  nodeDepths: ArchitectureQueryNodeDepth[];
+  edges: GraphEdge[];
+  cycles: ArchitectureQueryCycle[];
+  truncatedEdges: GraphEdge[];
+  truncated: boolean;
+};
+
+const stripImpactNode = (node: ImpactSubgraph["nodes"][number]): GraphNode => ({
+  id: node.id,
+  stableKey: node.stableKey,
+  kind: node.kind,
+  name: node.name,
+  ...(node.language === undefined ? {} : { language: node.language }),
+  ...(node.location === undefined ? {} : { location: node.location }),
+});
+
+const aggregateImpacts = (
+  impacts: readonly ImpactSubgraph[],
+  evidenceProjection: ArchitectureQuery["projection"]["evidence"],
+): TraversalAggregate => {
+  const nodes = new Map<
+    string,
+    { node: GraphNode; depth: number; root: boolean }
+  >();
+  const edges = new Map<string, GraphEdge>();
+  const truncatedEdges = new Map<string, GraphEdge>();
+  const cycles = new Map<string, ArchitectureQueryCycle>();
+
+  for (const impact of impacts) {
+    for (const node of impact.nodes) {
+      const graphNode = stripImpactNode(node);
+      const existing = nodes.get(node.id);
+      if (existing === undefined || node.depth < existing.depth) {
+        nodes.set(node.id, {
+          node: graphNode,
+          depth: node.depth,
+          root: existing?.root === true || node.root,
+        });
+      } else if (node.root) {
+        existing.root = true;
+      }
+    }
+    for (const edge of impact.edges) edges.set(edgeResultKey(edge), edge);
+    for (const edge of impact.depthLimitedEdges)
+      truncatedEdges.set(edgeResultKey(edge), edge);
+    for (const cycle of impact.cycles) {
+      const projected: ArchitectureQueryCycle = {
+        nodes: [...cycle.nodes],
+        edges: cycle.edges.map((edge) => projectEdge(edge, evidenceProjection)),
+      };
+      const identity = stableStringify([
+        projected.nodes,
+        projected.edges.map(edgeResultKey),
+      ]);
+      cycles.set(identity, projected);
+    }
+  }
+
+  const nodeDepths = [...nodes.values()].map(({ node, depth, root }) => ({
+    nodeId: node.id,
+    depth,
+    root,
+  }));
+  return {
+    nodes: [...nodes.values()].map(({ node }) => node).sort(compareNodes),
+    nodeDepths,
+    edges: [...edges.values()].sort(compareEdges),
+    cycles: [...cycles.values()].sort((left, right) =>
+      compareStrings(
+        stableStringify([left.nodes, left.edges.map(edgeResultKey)]),
+        stableStringify([right.nodes, right.edges.map(edgeResultKey)]),
+      ),
+    ),
+    truncatedEdges: [...truncatedEdges.values()].sort(compareEdges),
+    truncated: truncatedEdges.size > 0,
+  };
+};
+
+const truncationDiagnostics = (
+  query: ArchitectureQuery,
+  edges: readonly GraphEdge[],
+): ArchitectureQueryDiagnostic[] =>
+  edges.map((edge) =>
+    queryDiagnostic(
+      query,
+      "QUERY_TRUNCATED",
+      `traversal stopped at maxDepth ${query.limits.maxDepth}; edge ${edge.from} -> ${edge.to} remains outside the returned node set`,
+      "warning",
+      {
+        limit: "maxDepth",
+        edge: { from: edge.from, to: edge.to, kind: edge.kind },
+        evidenceIds: edge.evidence.map((evidence) => evidence.id),
+      },
+    ),
+  );
+
+const resourceLimitFromError = (
+  error: unknown,
+): { limit: ArchitectureQueryDiagnostic["limit"]; message: string } => {
+  const message = error instanceof Error ? error.message : String(error);
+  if (/node ceiling/iu.test(message)) return { limit: "maxNodes", message };
+  if (/edge ceiling/iu.test(message)) return { limit: "maxEdges", message };
+  if (/wall-clock|time ceiling|timed out/iu.test(message))
+    return { limit: "maxTimeMs", message };
+  return { limit: "maxTimeMs", message };
+};
+
+const resultWithByteLimit = (
+  query: ArchitectureQuery,
+  result: ArchitectureQueryResult,
+): ArchitectureQueryResult =>
+  Buffer.byteLength(stableStringify(result), "utf8") >
+  query.limits.maxResultBytes
+    ? limitResult(
+        query,
+        "maxResultBytes",
+        `query result exceeds the ${query.limits.maxResultBytes} byte output ceiling`,
+      )
+    : result;
+
+const pathResult = (
+  query: ArchitectureQuery,
+  snapshot: GraphSnapshot,
+  budget: () => void,
+): {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  paths: ArchitectureQueryPathResult[];
+  diagnostics: ArchitectureQueryDiagnostic[];
+  truncated: boolean;
+} => {
+  const path = query.path;
+  if (path === undefined)
+    throw new Error("validated dependency path is missing");
+  const from = resolveNodeReference(snapshot, path.from);
+  const to = resolveNodeReference(snapshot, path.to);
+  if (from === undefined || to === undefined) {
+    const missing = from === undefined ? path.from : path.to;
+    return {
+      nodes: [],
+      edges: [],
+      paths: [],
+      diagnostics: [
+        queryDiagnostic(
+          query,
+          "QUERY_NODE_NOT_FOUND",
+          `dependency path node does not match the snapshot: ${typeof missing === "string" ? missing : JSON.stringify(missing)}`,
+          "error",
+        ),
+      ],
+      truncated: false,
+    };
+  }
+  if (from.id === to.id) {
+    return {
+      nodes: [from],
+      edges: [],
+      paths: [{ nodes: [from.id], edges: [], length: 0 }],
+      diagnostics: [],
+      truncated: false,
+    };
+  }
+
+  const allowed = new Set(path.edgeKinds);
+  const direction = path.direction;
+  const adjacency = new Map<string, GraphEdge[]>();
+  for (const edge of snapshot.edges) {
+    if (!allowed.has(edge.kind)) continue;
+    const key = direction === "forward" ? edge.from : edge.to;
+    const outgoing = adjacency.get(key) ?? [];
+    outgoing.push(edge);
+    adjacency.set(key, outgoing);
+  }
+  for (const outgoing of adjacency.values()) outgoing.sort(compareEdges);
+
+  const queue = [from.id];
+  const depthByNode = new Map([[from.id, 0]]);
+  const predecessor = new Map<string, { nodeId: string; edge: GraphEdge }>();
+  let traversedEdges = 0;
+  let truncated = false;
+  while (queue.length > 0) {
+    budget();
+    const current = queue.shift();
+    if (current === undefined) break;
+    const depth = depthByNode.get(current) ?? 0;
+    if (depth >= query.limits.maxDepth) {
+      if ((adjacency.get(current) ?? []).length > 0) truncated = true;
+      continue;
+    }
+    for (const edge of adjacency.get(current) ?? []) {
+      budget();
+      traversedEdges += 1;
+      if (traversedEdges > query.limits.maxEdges) {
+        throw new ResourceLimitError(
+          `dependency path exceeds the ${query.limits.maxEdges.toLocaleString("en-US")} edge ceiling`,
+        );
+      }
+      if (edge.evidence.length === 0 && !path.includeUnresolved) continue;
+      const next = direction === "forward" ? edge.to : edge.from;
+      if (depthByNode.has(next)) continue;
+      depthByNode.set(next, depth + 1);
+      predecessor.set(next, { nodeId: current, edge });
+      if (depthByNode.size > query.limits.maxNodes) {
+        throw new ResourceLimitError(
+          `dependency path exceeds the ${query.limits.maxNodes.toLocaleString("en-US")} node ceiling`,
+        );
+      }
+      if (next === to.id) {
+        queue.length = 0;
+        break;
+      }
+      queue.push(next);
+    }
+  }
+
+  const targetDepth = depthByNode.get(to.id);
+  if (targetDepth === undefined) {
+    const diagnostics = [
+      queryDiagnostic(
+        query,
+        "QUERY_PATH_NOT_FOUND",
+        `no dependency path was found from ${from.id} to ${to.id}`,
+        "info",
+      ),
+    ];
+    if (truncated)
+      diagnostics.push(
+        queryDiagnostic(
+          query,
+          "QUERY_TRUNCATED",
+          `dependency path search reached maxDepth ${query.limits.maxDepth} before finding a target`,
+          "warning",
+          { limit: "maxDepth" },
+        ),
+      );
+    return {
+      nodes: [],
+      edges: [],
+      paths: [],
+      diagnostics,
+      truncated,
+    };
+  }
+
+  const pathNodes = [to.id];
+  const pathEdges: GraphEdge[] = [];
+  let current = to.id;
+  while (current !== from.id) {
+    const previous = predecessor.get(current);
+    if (previous === undefined) break;
+    pathNodes.push(previous.nodeId);
+    pathEdges.push(previous.edge);
+    current = previous.nodeId;
+  }
+  pathNodes.reverse();
+  pathEdges.reverse();
+  const nodeById = new Map(snapshot.nodes.map((node) => [node.id, node]));
+  return {
+    nodes: pathNodes
+      .map((nodeId) => nodeById.get(nodeId))
+      .filter((node): node is GraphNode => node !== undefined),
+    edges: pathEdges,
+    paths: [
+      {
+        nodes: pathNodes,
+        edges: pathEdges.map((edge) =>
+          projectEdge(edge, query.projection.evidence),
+        ),
+        length: targetDepth,
+      },
+    ],
+    diagnostics: [],
+    truncated: false,
+  };
+};
+
+const boundaryResult = (
+  query: ArchitectureQuery,
+  snapshot: GraphSnapshot,
+  budget: () => void,
+): {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  boundaries: ArchitectureQueryBoundary[];
+} => {
+  const inside = new Set(
+    selectQueryNodes(snapshot, query.selectors.nodes).map((node) => node.id),
+  );
+  const allowed = new Set(query.traversal.edgeKinds);
+  const direction = normalizeTraversalDirection(query.traversal.direction);
+  const boundaries = new Map<string, ArchitectureQueryBoundary>();
+  for (const edge of snapshot.edges) {
+    budget();
+    if (!allowed.has(edge.kind)) continue;
+    if (edge.evidence.length === 0 && !query.traversal.includeUnresolved)
+      continue;
+    const fromInside = inside.has(edge.from);
+    const toInside = inside.has(edge.to);
+    if (fromInside === toInside) continue;
+    const crossingDirection = fromInside ? "outbound" : "inbound";
+    if (
+      (direction === "forward" && crossingDirection !== "outbound") ||
+      (direction === "reverse" && crossingDirection !== "inbound")
+    )
+      continue;
+    const boundary: ArchitectureQueryBoundary = {
+      insideNodeId: fromInside ? edge.from : edge.to,
+      outsideNodeId: fromInside ? edge.to : edge.from,
+      direction: crossingDirection,
+      edge: projectEdge(edge, query.projection.evidence),
+    };
+    boundaries.set(
+      `${boundary.insideNodeId}\0${boundary.outsideNodeId}\0${edge.kind}`,
+      boundary,
+    );
+  }
+  const sortedBoundaries = [...boundaries.values()].sort((left, right) =>
+    compareStrings(
+      stableStringify([left.insideNodeId, left.outsideNodeId, left.edge.kind]),
+      stableStringify([
+        right.insideNodeId,
+        right.outsideNodeId,
+        right.edge.kind,
+      ]),
+    ),
+  );
+  const edgeValues = sortedBoundaries.map((boundary) => boundary.edge);
+  const nodeIds = new Set(edgeValues.flatMap((edge) => [edge.from, edge.to]));
+  return {
+    nodes: snapshot.nodes
+      .filter((node) => nodeIds.has(node.id))
+      .sort(compareNodes),
+    edges: snapshot.edges
+      .filter((edge) => nodeIds.has(edge.from) && nodeIds.has(edge.to))
+      .filter(
+        (edge) =>
+          boundaries.has(`${edge.from}\0${edge.to}\0${edge.kind}`) ||
+          boundaries.has(`${edge.to}\0${edge.from}\0${edge.kind}`),
+      )
+      .sort(compareEdges),
+    boundaries: sortedBoundaries,
+  };
+};
+
+const executeTraversal = (
+  query: ArchitectureQuery,
+  snapshot: GraphSnapshot,
+  budget: () => void,
+): {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  diagnostics: ArchitectureQueryDiagnostic[];
+  details: QueryResultDetails;
+} => {
+  if (query.operation === "dependency-path") {
+    const result = pathResult(query, snapshot, budget);
+    return {
+      nodes: result.nodes,
+      edges: result.edges,
+      diagnostics: result.diagnostics,
+      details: {
+        paths: result.paths,
+        truncated: result.truncated,
+      },
+    };
+  }
+  if (query.operation === "boundary-crossing") {
+    const result = boundaryResult(query, snapshot, budget);
+    if (result.nodes.length > query.limits.maxNodes)
+      throw new ResourceLimitError(
+        `boundary crossing exceeds the ${query.limits.maxNodes.toLocaleString("en-US")} node ceiling`,
+      );
+    if (result.edges.length > query.limits.maxEdges)
+      throw new ResourceLimitError(
+        `boundary crossing exceeds the ${query.limits.maxEdges.toLocaleString("en-US")} edge ceiling`,
+      );
+    return {
+      nodes: result.nodes,
+      edges: result.edges,
+      diagnostics: [],
+      details: { boundaries: result.boundaries },
+    };
+  }
+
+  const rootNodes = selectQueryNodes(snapshot, query.selectors.nodes);
+  const direction = normalizeTraversalDirection(query.traversal.direction);
+  const directions: ImpactDirection[] =
+    direction === "both" ? ["forward", "reverse"] : [direction];
+  const traversalSnapshot = filteredTraversalSnapshot(
+    snapshot,
+    query.traversal.edgeKinds,
+  );
+  const impacts: ImpactSubgraph[] = [];
+  for (const traversalDirection of directions) {
+    budget();
+    if (rootNodes.length === 0) break;
+    impacts.push(
+      computeImpactSubgraph(traversalSnapshot, {
+        roots: rootNodes.map((node) => node.id),
+        direction: traversalDirection,
+        maxDepth:
+          query.operation === "neighbors"
+            ? Math.min(1, query.limits.maxDepth)
+            : query.limits.maxDepth,
+        maxNodes: query.limits.maxNodes,
+        maxEdges: query.limits.maxEdges,
+        includeUnresolved: query.traversal.includeUnresolved,
+      }),
+    );
+    budget();
+  }
+  const aggregate = aggregateImpacts(impacts, query.projection.evidence);
+  if (aggregate.nodes.length > query.limits.maxNodes)
+    throw new ResourceLimitError(
+      `query traversal exceeds the ${query.limits.maxNodes.toLocaleString("en-US")} node ceiling`,
+    );
+  if (aggregate.edges.length > query.limits.maxEdges)
+    throw new ResourceLimitError(
+      `query traversal exceeds the ${query.limits.maxEdges.toLocaleString("en-US")} edge ceiling`,
+    );
+  const truncatedEdgeKeys = new Set(
+    aggregate.truncatedEdges.map((edge) => edgeResultKey(edge)),
+  );
+  const resultEdges =
+    query.operation === "neighbors"
+      ? aggregate.edges.filter(
+          (edge) => !truncatedEdgeKeys.has(edgeResultKey(edge)),
+        )
+      : aggregate.edges;
+  return {
+    nodes: aggregate.nodes,
+    edges: resultEdges,
+    diagnostics: truncationDiagnostics(query, aggregate.truncatedEdges),
+    details: {
+      cycles: aggregate.cycles,
+      nodeDepths: aggregate.nodeDepths,
+      truncated: aggregate.truncated,
+      truncatedEdges: aggregate.truncatedEdges.map((edge) =>
+        projectEdge(edge, query.projection.evidence),
+      ),
+    },
+  };
+};
+
+/** Execute a local, read-only architecture query with bounded traversal. */
 export const executeArchitectureQuery = (
   snapshotInput: unknown,
   queryInput: unknown,
@@ -669,6 +1358,76 @@ export const executeArchitectureQuery = (
       ],
       query.operation,
     );
+  }
+
+  const startedAt = performance.now();
+  const budget = createResourceBudget({
+    maxWallClockMs: query.limits.maxTimeMs,
+    subject: `architecture query ${query.queryId}`,
+  });
+  const enforceBudget = (): void => {
+    budget();
+    if (performance.now() - startedAt > query.limits.maxTimeMs) {
+      throw new ResourceLimitError(
+        `architecture query exceeded the ${query.limits.maxTimeMs} ms time ceiling`,
+      );
+    }
+  };
+
+  const traversalOperation = [
+    "neighbors",
+    "reachability",
+    "dependency-path",
+    "boundary-crossing",
+    "cycles",
+  ].includes(query.operation);
+  if (traversalOperation) {
+    try {
+      const execution = executeTraversal(query, snapshot, enforceBudget);
+      const nodeIds = new Set(execution.nodes.map((node) => node.id));
+      const resultDiagnostics = [
+        ...(query.projection.includeDiagnostics
+          ? selectedSnapshotDiagnostics(snapshot, nodeIds, execution.edges)
+          : []),
+        ...execution.diagnostics,
+      ];
+      const detailProjection: QueryResultDetails = { ...execution.details };
+      if (execution.details.paths !== undefined) {
+        detailProjection.paths = execution.details.paths.map((path) => ({
+          ...path,
+          edges: query.projection.includeEdges ? path.edges : [],
+        }));
+      }
+      if (execution.details.cycles !== undefined) {
+        detailProjection.cycles = execution.details.cycles;
+      }
+      if (execution.details.truncatedEdges !== undefined) {
+        detailProjection.truncatedEdges = query.projection.includeEdges
+          ? execution.details.truncatedEdges
+          : [];
+      }
+      const result = buildResult(
+        query,
+        "ok",
+        query.projection.includeNodes ? execution.nodes : [],
+        query.projection.includeEdges
+          ? execution.edges.map((edge) =>
+              projectEdge(edge, query.projection.evidence),
+            )
+          : [],
+        resultDiagnostics,
+        undefined,
+        detailProjection,
+      );
+      enforceBudget();
+      return resultWithByteLimit(query, result);
+    } catch (error) {
+      if (error instanceof ResourceLimitError) {
+        const resource = resourceLimitFromError(error);
+        return limitResult(query, resource.limit, resource.message);
+      }
+      throw error;
+    }
   }
 
   const selectedNodes =
@@ -725,16 +1484,7 @@ export const executeArchitectureQuery = (
       : [],
     diagnostics,
   );
-  if (
-    Buffer.byteLength(stableStringify(result), "utf8") >
-    query.limits.maxResultBytes
-  )
-    return limitResult(
-      query,
-      "maxResultBytes",
-      `query result exceeds the ${query.limits.maxResultBytes} byte output ceiling`,
-    );
-  return result;
+  return resultWithByteLimit(query, result);
 };
 
 export const serializeArchitectureQueryResult = (input: unknown): string =>

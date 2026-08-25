@@ -146,14 +146,16 @@ actionable resource diagnostic rather than truncating the result.
 
 ## Architecture query contract
 
-The Q-001 query contract wraps bounded, local questions in a versioned request
-and result shape. v0.1 supports deterministic node and edge selection with
-exact predicates, canonical ordering, explicit evidence projection, and
-selected snapshot diagnostics. It names traversal, dependency-path,
-boundary-crossing, cycle, source-body, remote, and mutation operations as
-unsupported until their dedicated roadmap work is reviewed; callers receive a
-stable unsupported diagnostic rather than an inferred answer. See the
-[architecture query contract](ARCHITECTURE_QUERIES.md) for selector, limit,
+The Q-001/Q-002 query contract wraps bounded, local questions in a versioned
+request and result shape. v0.1 supports deterministic node and edge selection,
+direct neighbors, upstream/downstream reachability, shortest dependency paths,
+boundary crossings, and cycle reporting. Traversal is restricted to declared
+edge kinds and explicit depth, node, edge, time, and output ceilings. Results
+carry canonical ordering, complete projected evidence, node depths, path/cycle
+details, and explicit depth-truncation diagnostics. Only source-body search,
+remote, and mutation operations remain unsupported; callers receive a stable
+unsupported diagnostic rather than an inferred answer. See the [architecture
+query contract](ARCHITECTURE_QUERIES.md) for selector, traversal, limit,
 privacy, and result semantics.
 
 ## Identity
