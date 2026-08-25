@@ -56,6 +56,16 @@ and `IDENTITY_FALLBACK_MATCH` diagnostics, with one evidence record per
 candidate or contributing signal and reviewer remediation text. P-001 is the
 core primitive; D-010 and P-010 consume its matches in the graph-diff pipeline.
 
+P-011 adds the bounded seeded corpus at
+[`identity-corpus/scenarios.v0.1.json`](../test/fixtures/identity-corpus/scenarios.v0.1.json).
+The xorshift32 seed is checked in alongside minimized regressions for line
+moves, file moves, supported renames, duplicate names, overloads, normalized
+path aliases, and ambiguous destination transformations. Each generated case
+asserts one-to-one accounting, conservative ambiguity, and order-independent
+serialization. `npm run identity:validate` publishes the seed, generated-case
+count, match rate, ambiguity rate, and minimized-failure count; in CI it also
+adds the result to the GitHub step summary.
+
 ## Policy configuration evaluation
 
 The policy fixture validates the versioned local contract through both the

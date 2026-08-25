@@ -209,6 +209,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "identity-corpus",
+      "path": "identity-corpus",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A bounded seeded xorshift corpus and minimized regression cases exercise line moves, file moves, supported renames, duplicate names, overloads, normalized path aliases, and ambiguous destination transformations without source execution or remote authority.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "snapshots",
       "path": "snapshots",
       "source": "CARTOGRAPH repository-authored synthetic fixture",
