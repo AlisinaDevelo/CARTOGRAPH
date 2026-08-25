@@ -58,6 +58,9 @@ jobs:
       - name: Validate support matrix
         run: npm run support:validate
 
+      - name: Validate upgrade policy
+        run: npm run upgrade:validate
+
       - name: Validate benchmark baseline
         run: npm run benchmark:validate
 

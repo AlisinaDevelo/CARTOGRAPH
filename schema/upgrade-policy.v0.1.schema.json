@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/upgrade-policy.v0.1.schema.json",
+  "title": "CARTOGRAPH upgrade and maintenance policy v0.1",
+  "description": "Machine-readable support, semantic-versioning, deprecation, compatibility, and ownership policy for the public package.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "policyId",
+    "support",
+    "compatibility",
+    "semver",
+    "deprecation",
+    "maintenance"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.upgrade-policy" },
+    "policyId": { "$ref": "#/definitions/identifier" },
+    "support": { "$ref": "#/definitions/support" },
+    "compatibility": { "$ref": "#/definitions/compatibility" },
+    "semver": { "$ref": "#/definitions/semverPolicy" },
+    "deprecation": { "$ref": "#/definitions/deprecation" },
+    "maintenance": { "$ref": "#/definitions/maintenance" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "support": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodeMinimum",
+        "nodeLts",
+        "platforms",
+        "ciPlatforms",
+        "typescript",
+        "tsMorph"
+      ],
+      "properties": {
+        "nodeMinimum": { "$ref": "#/definitions/semver" },
+        "nodeLts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[0-9]+\\.x$" }
+        },
+        "platforms": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["darwin", "linux", "win32"] }
+        },
+        "ciPlatforms": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "typescript": { "$ref": "#/definitions/semver" },
+        "tsMorph": { "$ref": "#/definitions/semver" }
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshot",
+        "diff",
+        "capabilities",
+        "diagnostics",
+        "adapters",
+        "adapterApi",
+        "adapterCompatibility"
+      ],
+      "properties": {
+        "snapshot": { "type": "integer", "minimum": 1 },
+        "diff": { "type": "integer", "minimum": 1 },
+        "capabilities": { "type": "integer", "minimum": 1 },
+        "diagnostics": { "type": "integer", "minimum": 1 },
+        "adapters": { "type": "integer", "minimum": 1 },
+        "adapterApi": { "type": "integer", "minimum": 1 },
+        "adapterCompatibility": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "semverPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["patch", "minor", "major", "pre1"],
+      "properties": {
+        "patch": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "minor": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "major": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "pre1": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "deprecation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["notice", "removal", "migration"],
+      "properties": {
+        "notice": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "removal": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "migration": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "maintenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner", "reviewCadence", "supportRoute", "requiredChecks"],
+      "properties": {
+        "owner": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "reviewCadence": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "supportRoute": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "requiredChecks": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 200 }
+        }
+      }
+    }
+  }
+}
