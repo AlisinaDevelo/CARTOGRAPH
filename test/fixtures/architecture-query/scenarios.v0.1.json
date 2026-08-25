@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "contract": "cartograph.architecture-query-fixtures",
-  "fixtureId": "q001-v0.1",
+  "fixtureId": "q002-v0.1",
   "scope": {
     "network": false,
     "filesystemWrites": false,
@@ -16,7 +16,7 @@
       "query": {
         "schemaVersion": 1,
         "contract": "cartograph.architecture-query",
-        "queryId": "q001-positive-node-selection",
+        "queryId": "q002-positive-node-selection",
         "operation": "select-nodes",
         "selectors": { "nodes": [{ "kind": "function" }] }
       },
@@ -28,33 +28,122 @@
       "query": {
         "schemaVersion": 1,
         "contract": "cartograph.architecture-query",
-        "queryId": "q001-positive-edge-selection",
+        "queryId": "q002-positive-edge-selection",
         "operation": "select-edges",
         "selectors": { "edges": [{ "kind": "calls", "hasEvidence": true }] },
         "projection": { "evidence": "summary" }
       },
+      "expected": { "status": "ok", "nodes": 3, "edges": 2 }
+    },
+    {
+      "id": "positive-neighbors",
+      "scenario": "positive",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q002-positive-neighbors",
+        "operation": "neighbors",
+        "selectors": { "nodes": [{ "id": "node-a" }] },
+        "traversal": { "direction": "forward", "edgeKinds": ["calls"] }
+      },
       "expected": { "status": "ok", "nodes": 2, "edges": 1 }
     },
     {
-      "id": "negative-node-selection",
+      "id": "positive-reachability",
+      "scenario": "positive",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q002-positive-reachability",
+        "operation": "reachability",
+        "selectors": { "nodes": [{ "id": "node-a" }] },
+        "limits": { "maxDepth": 8 },
+        "traversal": {
+          "direction": "downstream",
+          "edgeKinds": ["calls", "imports", "depends_on"]
+        }
+      },
+      "expected": { "status": "ok", "nodes": 4, "edges": 6, "cycles": 1 }
+    },
+    {
+      "id": "positive-dependency-path",
+      "scenario": "positive",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q002-positive-dependency-path",
+        "operation": "dependency-path",
+        "selectors": {},
+        "path": {
+          "from": "node-a",
+          "to": "module-d",
+          "edgeKinds": ["depends_on"]
+        }
+      },
+      "expected": { "status": "ok", "nodes": 4, "edges": 3, "pathLength": 3 }
+    },
+    {
+      "id": "positive-boundary-crossing",
+      "scenario": "positive",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q002-positive-boundary-crossing",
+        "operation": "boundary-crossing",
+        "selectors": { "nodes": [{ "kind": "function" }] },
+        "traversal": {
+          "direction": "both",
+          "edgeKinds": ["depends_on", "calls"]
+        }
+      },
+      "expected": { "status": "ok", "nodes": 3, "edges": 2, "boundaries": 2 }
+    },
+    {
+      "id": "positive-cycle-report",
+      "scenario": "positive",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q002-positive-cycle-report",
+        "operation": "cycles",
+        "selectors": { "nodes": [{ "id": "node-a" }] },
+        "traversal": {
+          "direction": "forward",
+          "edgeKinds": ["calls", "imports", "depends_on"]
+        }
+      },
+      "expected": { "status": "ok", "nodes": 4, "edges": 6, "cycles": 1 }
+    },
+    {
+      "id": "negative-no-path",
       "scenario": "negative",
       "query": {
         "schemaVersion": 1,
         "contract": "cartograph.architecture-query",
-        "queryId": "q001-negative-node-selection",
-        "operation": "select-nodes",
-        "selectors": { "nodes": [{ "kind": "queue" }] }
+        "queryId": "q002-negative-no-path",
+        "operation": "dependency-path",
+        "selectors": {},
+        "path": {
+          "from": "module-d",
+          "to": "node-c",
+          "edgeKinds": ["depends_on"]
+        }
       },
-      "expected": { "status": "ok", "nodes": 0, "edges": 0 }
+      "expected": {
+        "status": "ok",
+        "nodes": 0,
+        "edges": 0,
+        "diagnosticCode": "QUERY_PATH_NOT_FOUND"
+      }
     },
     {
-      "id": "unsupported-reachability",
+      "id": "unsupported-source-body-search",
       "scenario": "unsupported",
       "query": {
         "schemaVersion": 1,
         "contract": "cartograph.architecture-query",
-        "queryId": "q001-unsupported-reachability",
-        "operation": "reachability",
+        "queryId": "q002-unsupported-source-body-search",
+        "operation": "source-body-search",
         "selectors": { "nodes": [{ "id": "node-a" }] }
       },
       "expected": {
@@ -68,7 +157,7 @@
       "query": {
         "schemaVersion": 1,
         "contract": "cartograph.architecture-query",
-        "queryId": "q001-malformed-unknown-field",
+        "queryId": "q002-malformed-unknown-field",
         "operation": "select-nodes",
         "selectors": { "nodes": [{ "kind": "function" }] },
         "network": true
@@ -76,15 +165,39 @@
       "expected": { "status": "invalid", "errorIncludes": "unrecognized" }
     },
     {
+      "id": "over-limit-depth",
+      "scenario": "positive",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q002-over-limit-depth",
+        "operation": "reachability",
+        "selectors": { "nodes": [{ "id": "node-a" }] },
+        "limits": { "maxDepth": 1 },
+        "traversal": {
+          "direction": "forward",
+          "edgeKinds": ["calls", "imports", "depends_on"]
+        }
+      },
+      "expected": {
+        "status": "ok",
+        "nodes": 2,
+        "edges": 4,
+        "truncated": true,
+        "diagnosticCode": "QUERY_TRUNCATED"
+      }
+    },
+    {
       "id": "over-limit-nodes",
       "scenario": "resource-limit",
       "query": {
         "schemaVersion": 1,
         "contract": "cartograph.architecture-query",
-        "queryId": "q001-over-limit-nodes",
-        "operation": "select-nodes",
-        "selectors": { "nodes": [{ "kind": "function" }] },
-        "limits": { "maxNodes": 1 }
+        "queryId": "q002-over-limit-nodes",
+        "operation": "reachability",
+        "selectors": { "nodes": [{ "id": "node-a" }] },
+        "limits": { "maxNodes": 1 },
+        "traversal": { "direction": "forward", "edgeKinds": ["calls"] }
       },
       "expected": {
         "status": "resource-limit",

@@ -19,44 +19,75 @@ canonical snapshot already held by the caller. It does not fetch a repository,
 read source bodies, execute repository code, write files, contact a network, or
 send data to a provider. The executor does not mutate its snapshot input.
 
-The current v0.1 executor supports two operations:
+The v0.1 executor supports these operations:
 
 - `select-nodes` applies one or more bounded node predicates;
 - `select-edges` applies one or more bounded edge predicates and returns the
-  selected endpoints when node projection is enabled.
+  selected endpoints when node projection is enabled;
+- `neighbors` returns direct forward, reverse, or both-direction neighbors;
+- `reachability` returns bounded downstream (`forward`) or upstream (`reverse`)
+  impact, with `both` available for a combined view;
+- `dependency-path` returns the deterministic shortest path between two exact
+  node references, defaulting to `depends_on` edges;
+- `boundary-crossing` returns edges with exactly one endpoint in the selected
+  node boundary, classified as inbound or outbound;
+- `cycles` reports closed paths discovered during bounded traversal.
 
 Predicates within one selector list are ORed; fields within one predicate are
 ANDed. Node selectors can match exact IDs, stable keys, kinds, names,
 languages, or repository-relative location prefixes. Edge selectors can match
 endpoints, declared edge kinds, confidence, and whether evidence is present.
-An empty selector and an unknown field are invalid.
+Traversal operations use selected node predicates as roots. A dependency path
+uses `path.from` and `path.to` references (an ID string or an `{id}` /
+`{stableKey}` object) and may select a declared edge-kind list explicitly.
+Selectors and path references cannot contain absolute paths, source bodies, or
+remote references.
 
-`reachability`, `dependency-path`, `boundary-crossing`, `cycles`,
-`source-body-search`, `remote-query`, and `mutation` are named in the contract
-as unsupported operations. They return a deterministic warning result rather
-than being guessed or silently executed. Q-002 is the separate roadmap item
-for bounded traversal and path operations.
+## Traversal semantics
+
+`traversal.direction` accepts `forward`/`downstream`, `reverse`/`upstream`, or
+`both`. Forward follows an edge's `from` to `to`; reverse follows the same
+edge records backwards without rewriting their evidence. `edgeKinds` is an
+explicit, bounded allow-list. Unresolved edges remain visible as unresolved
+evidence and are traversed only when `includeUnresolved` is true.
+
+Reachability and cycle results include canonical `nodeDepths` records. Cycle
+records contain a closed node sequence and every traversed edge with its
+projected evidence. Dependency-path records preserve path order in `paths`;
+the top-level `nodes` and `edges` arrays remain canonically ordered for stable
+serialization. Boundary records include the inside and outside node IDs, the
+crossing direction, and the complete projected edge.
 
 ## Bounds and output
 
-Every request carries limits for depth, nodes, edges, and serialized result
-bytes. The v0.1 selector executor does not traverse, but it still validates and
-echoes the traversal ceiling so later operations cannot bypass the contract.
-When a result would exceed a ceiling, the executor returns no partial result
-and emits `QUERY_RESOURCE_LIMIT` with the affected limit.
+Every request carries limits for depth, nodes, edges, wall-clock time, and
+serialized result bytes. The ceilings are `maxDepth <= 64`, `maxNodes <= 100,000`,
+`maxEdges <= 200,000`, `maxTimeMs <= 120,000`, and `maxResultBytes <= 16 MiB`.
+Defaults are depth 8, 10,000 nodes, 20,000 edges, 5,000 ms, and 4 MiB.
+
+Depth boundaries do not silently discard evidence. They return `truncated: true`,
+the canonical `truncatedEdges` list, and a `QUERY_TRUNCATED` diagnostic for
+each withheld continuation edge. Node, edge, time, and output ceilings fail
+closed with no partial result and a `QUERY_RESOURCE_LIMIT` diagnostic naming
+the affected limit.
 
 Results use canonical ordering: nodes by `stableKey,id`, edges by
-`from,to,kind`, diagnostics by `id`, and evidence by `id`. Evidence projection
-is explicit: `full` preserves the safe evidence fields, `summary` keeps the
-review location and detector/hash identity, and `none` keeps only the evidence
-ID and kind. The projection never permits source bodies or absolute paths.
+`from,to,kind`, diagnostics by `id`, evidence by `id`, boundary records by
+inside/outside/edge identity, and cycle records by their closed path identity.
+Evidence projection is explicit: `full` preserves the safe evidence fields,
+`summary` keeps the review location and detector/hash identity, and `none`
+keeps only the evidence ID and kind. The projection never permits source
+bodies or absolute paths.
 
 Snapshot diagnostics selected by returned nodes or edges are projected with
 their code, severity, remediation, and evidence IDs. Contract diagnostics are
 stable and actionable: malformed requests fail validation, unsupported
-operations return `QUERY_OPERATION_UNSUPPORTED`, and resource breaches return
-`QUERY_RESOURCE_LIMIT`.
+operations return `QUERY_OPERATION_UNSUPPORTED`, missing path endpoints return
+`QUERY_NODE_NOT_FOUND`, absent paths return `QUERY_PATH_NOT_FOUND`, and
+resource breaches return `QUERY_RESOURCE_LIMIT`.
 
 The query API is exported from the core package for local callers. A dedicated
-CLI query command and traversal/path execution remain follow-on work under
-Q-002; the v0.1 contract does not imply a hosted query service.
+CLI query command and hosted query service remain outside this contract.
+Only `source-body-search`, `remote-query`, and `mutation` remain explicit
+unsupported operations; they return a deterministic warning rather than being
+guessed or silently executed.

@@ -91,6 +91,34 @@ const snapshot = (createGraphSnapshot) =>
         confidence: "inferred",
         evidence: [evidence("edge-bc", "src/b.ts", 2)],
       },
+      {
+        from: "node-c",
+        to: "module-d",
+        kind: "depends_on",
+        confidence: "inferred",
+        evidence: [evidence("edge-cd", "src/c.ts", 3)],
+      },
+      {
+        from: "module-d",
+        to: "node-a",
+        kind: "calls",
+        confidence: "observed",
+        evidence: [evidence("edge-da", "src/d.ts", 4)],
+      },
+      {
+        from: "node-a",
+        to: "node-b",
+        kind: "depends_on",
+        confidence: "certain",
+        evidence: [evidence("edge-ab-dependency", "src/a.ts", 5)],
+      },
+      {
+        from: "node-b",
+        to: "node-c",
+        kind: "depends_on",
+        confidence: "certain",
+        evidence: [evidence("edge-bc-dependency", "src/b.ts", 6)],
+      },
     ],
     diagnostics: [],
   });
@@ -180,6 +208,34 @@ const validate = async () => {
       )
     )
       fail(`${scenario.id} is missing ${scenario.expected.diagnosticCode}`);
+    if (
+      scenario.expected.pathLength !== undefined &&
+      result.paths[0]?.length !== scenario.expected.pathLength
+    )
+      fail(
+        `${scenario.id} expected path length ${scenario.expected.pathLength}, found ${result.paths[0]?.length ?? "none"}`,
+      );
+    if (
+      scenario.expected.cycles !== undefined &&
+      result.cycles.length !== scenario.expected.cycles
+    )
+      fail(
+        `${scenario.id} expected ${scenario.expected.cycles} cycles, found ${result.cycles.length}`,
+      );
+    if (
+      scenario.expected.boundaries !== undefined &&
+      result.boundaries.length !== scenario.expected.boundaries
+    )
+      fail(
+        `${scenario.id} expected ${scenario.expected.boundaries} boundaries, found ${result.boundaries.length}`,
+      );
+    if (
+      scenario.expected.truncated !== undefined &&
+      result.truncated !== scenario.expected.truncated
+    )
+      fail(
+        `${scenario.id} expected truncated=${scenario.expected.truncated}, found ${result.truncated}`,
+      );
     statuses.add(result.status);
 
     const repeated = executeArchitectureQuery(graph, scenario.query);

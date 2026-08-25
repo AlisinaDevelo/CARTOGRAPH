@@ -81,6 +81,86 @@ const graph = createGraphSnapshot({
   ],
 });
 
+const traversalGraph = createGraphSnapshot({
+  schemaVersion: 1,
+  revision: { commitSha: "query-traversal-test" },
+  nodes: [
+    {
+      id: "node-a",
+      stableKey: "function:node-a",
+      kind: "function",
+      name: "alpha",
+      language: "typescript",
+    },
+    {
+      id: "node-b",
+      stableKey: "function:node-b",
+      kind: "function",
+      name: "beta",
+      language: "typescript",
+    },
+    {
+      id: "node-c",
+      stableKey: "function:node-c",
+      kind: "function",
+      name: "gamma",
+      language: "typescript",
+    },
+    {
+      id: "module-d",
+      stableKey: "module:module-d",
+      kind: "module",
+      name: "delta",
+      language: "typescript",
+    },
+  ],
+  edges: [
+    {
+      from: "node-a",
+      to: "node-b",
+      kind: "calls",
+      confidence: "certain",
+      evidence: [evidence("traversal-edge-ab", "src/a.ts", 1)],
+    },
+    {
+      from: "node-b",
+      to: "node-c",
+      kind: "imports",
+      confidence: "inferred",
+      evidence: [evidence("traversal-edge-bc", "src/b.ts", 2)],
+    },
+    {
+      from: "node-c",
+      to: "module-d",
+      kind: "depends_on",
+      confidence: "inferred",
+      evidence: [evidence("traversal-edge-cd", "src/c.ts", 3)],
+    },
+    {
+      from: "module-d",
+      to: "node-a",
+      kind: "calls",
+      confidence: "observed",
+      evidence: [evidence("traversal-edge-da", "src/d.ts", 4)],
+    },
+    {
+      from: "node-a",
+      to: "node-b",
+      kind: "depends_on",
+      confidence: "certain",
+      evidence: [evidence("traversal-edge-ab-dependency", "src/a.ts", 5)],
+    },
+    {
+      from: "node-b",
+      to: "node-c",
+      kind: "depends_on",
+      confidence: "certain",
+      evidence: [evidence("traversal-edge-bc-dependency", "src/b.ts", 6)],
+    },
+  ],
+  diagnostics: [],
+});
+
 describe("architecture query contract", () => {
   it("normalizes defaults and preserves canonical request ordering", () => {
     const first = serializeArchitectureQuery({
@@ -151,8 +231,8 @@ describe("architecture query contract", () => {
     const unsupported = executeArchitectureQuery(graph, {
       schemaVersion: 1,
       contract: ARCHITECTURE_QUERY_CONTRACT,
-      queryId: "future-reachability",
-      operation: "reachability",
+      queryId: "future-source-search",
+      operation: "source-body-search",
       selectors: { nodes: [{ id: "node-a" }] },
     });
     const limited = executeArchitectureQuery(graph, {
@@ -166,7 +246,7 @@ describe("architecture query contract", () => {
 
     expect(unsupported).toMatchObject({
       status: "unsupported",
-      unsupportedOperation: "reachability",
+      unsupportedOperation: "source-body-search",
     });
     expect(unsupported.diagnostics[0]?.code).toBe(
       "QUERY_OPERATION_UNSUPPORTED",
@@ -180,6 +260,118 @@ describe("architecture query contract", () => {
       code: "QUERY_RESOURCE_LIMIT",
       limit: "maxNodes",
     });
+  });
+
+  it("supports direct neighbors and bounded upstream/downstream reachability", () => {
+    const neighbors = executeArchitectureQuery(traversalGraph, {
+      schemaVersion: 1,
+      contract: ARCHITECTURE_QUERY_CONTRACT,
+      queryId: "neighbors",
+      operation: "neighbors",
+      selectors: { nodes: [{ id: "node-a" }] },
+      traversal: { direction: "forward", edgeKinds: ["calls"] },
+    });
+    expect(neighbors.nodes.map((node) => node.id)).toEqual([
+      "node-a",
+      "node-b",
+    ]);
+    expect(neighbors.edges).toHaveLength(1);
+    expect(neighbors.nodeDepths).toEqual([
+      { nodeId: "node-a", depth: 0, root: true },
+      { nodeId: "node-b", depth: 1, root: false },
+    ]);
+
+    const upstream = executeArchitectureQuery(traversalGraph, {
+      schemaVersion: 1,
+      contract: ARCHITECTURE_QUERY_CONTRACT,
+      queryId: "upstream",
+      operation: "reachability",
+      selectors: { nodes: [{ id: "module-d" }] },
+      traversal: {
+        direction: "upstream",
+        edgeKinds: ["calls", "imports", "depends_on"],
+      },
+    });
+    expect(upstream.nodes.map((node) => node.id)).toEqual([
+      "node-a",
+      "node-b",
+      "node-c",
+      "module-d",
+    ]);
+    expect(upstream.truncated).toBe(false);
+  });
+
+  it("returns shortest dependency paths with complete evidence", () => {
+    const result = executeArchitectureQuery(traversalGraph, {
+      schemaVersion: 1,
+      contract: ARCHITECTURE_QUERY_CONTRACT,
+      queryId: "dependency-path",
+      operation: "dependency-path",
+      selectors: {},
+      path: {
+        from: { stableKey: "function:node-a" },
+        to: "module-d",
+        edgeKinds: ["depends_on"],
+      },
+    });
+    expect(result.paths).toHaveLength(1);
+    expect(result.paths[0]).toMatchObject({
+      nodes: ["node-a", "node-b", "node-c", "module-d"],
+      length: 3,
+    });
+    expect(result.paths[0]?.edges.map((edge) => edge.evidence[0]?.id)).toEqual([
+      "traversal-edge-ab-dependency",
+      "traversal-edge-bc-dependency",
+      "traversal-edge-cd",
+    ]);
+  });
+
+  it("reports boundaries, cycles, and explicit depth truncation", () => {
+    const boundary = executeArchitectureQuery(traversalGraph, {
+      schemaVersion: 1,
+      contract: ARCHITECTURE_QUERY_CONTRACT,
+      queryId: "boundary",
+      operation: "boundary-crossing",
+      selectors: { nodes: [{ kind: "function" }] },
+      traversal: { direction: "both", edgeKinds: ["calls", "depends_on"] },
+    });
+    expect(boundary.boundaries).toHaveLength(2);
+    expect(
+      boundary.boundaries.map((item) => item.edge.evidence[0]?.id),
+    ).toEqual(["traversal-edge-da", "traversal-edge-cd"]);
+
+    const cycles = executeArchitectureQuery(traversalGraph, {
+      schemaVersion: 1,
+      contract: ARCHITECTURE_QUERY_CONTRACT,
+      queryId: "cycles",
+      operation: "cycles",
+      selectors: { nodes: [{ id: "node-a" }] },
+      traversal: {
+        direction: "forward",
+        edgeKinds: ["calls", "imports", "depends_on"],
+      },
+    });
+    expect(cycles.cycles).toHaveLength(1);
+    expect(
+      cycles.cycles[0]?.edges.every((edge) => edge.evidence.length > 0),
+    ).toBe(true);
+
+    const truncated = executeArchitectureQuery(traversalGraph, {
+      schemaVersion: 1,
+      contract: ARCHITECTURE_QUERY_CONTRACT,
+      queryId: "truncated",
+      operation: "reachability",
+      selectors: { nodes: [{ id: "node-a" }] },
+      limits: { maxDepth: 1 },
+      traversal: {
+        direction: "forward",
+        edgeKinds: ["calls", "imports", "depends_on"],
+      },
+    });
+    expect(truncated.truncated).toBe(true);
+    expect(
+      truncated.diagnostics.some((item) => item.code === "QUERY_TRUNCATED"),
+    ).toBe(true);
   });
 
   it("rejects malformed requests and keeps execution read-only and byte-stable", () => {

@@ -2,16 +2,10 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query.v0.1.schema.json",
   "title": "CARTOGRAPH architecture query request v0.1",
-  "description": "A local, read-only, deterministic, resource-bounded query request over one canonical GraphSnapshot. It contains selectors and execution bounds, never source bodies or remote references.",
+  "description": "A local, read-only, deterministic, resource-bounded query request over one canonical GraphSnapshot. It supports selection, bounded traversal, shortest dependency paths, boundary crossings, and cycle reporting without source bodies or remote references.",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schemaVersion",
-    "contract",
-    "queryId",
-    "operation",
-    "selectors"
-  ],
+  "required": ["schemaVersion", "contract", "queryId", "operation"],
   "properties": {
     "schemaVersion": { "const": 1 },
     "contract": { "const": "cartograph.architecture-query" },
@@ -21,7 +15,9 @@
     "selectors": { "$ref": "#/definitions/selectors" },
     "limits": { "$ref": "#/definitions/limits" },
     "projection": { "$ref": "#/definitions/projection" },
-    "ordering": { "$ref": "#/definitions/ordering" }
+    "ordering": { "$ref": "#/definitions/ordering" },
+    "traversal": { "$ref": "#/definitions/traversal" },
+    "path": { "$ref": "#/definitions/path" }
   },
   "definitions": {
     "identifier": {
@@ -78,6 +74,7 @@
       "enum": [
         "select-nodes",
         "select-edges",
+        "neighbors",
         "reachability",
         "dependency-path",
         "boundary-crossing",
@@ -126,11 +123,7 @@
           "maxItems": 32,
           "items": { "$ref": "#/definitions/edgePredicate" }
         }
-      },
-      "anyOf": [
-        { "required": ["nodes"], "properties": { "nodes": { "minItems": 1 } } },
-        { "required": ["edges"], "properties": { "edges": { "minItems": 1 } } }
-      ]
+      }
     },
     "limits": {
       "type": "object",
@@ -153,6 +146,12 @@
           "minimum": 1,
           "maximum": 200000,
           "default": 20000
+        },
+        "maxTimeMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120000,
+          "default": 5000
         },
         "maxResultBytes": {
           "type": "integer",
@@ -180,6 +179,54 @@
         "edges": { "const": "from,to,kind", "default": "from,to,kind" },
         "diagnostics": { "const": "id", "default": "id" },
         "evidence": { "const": "id", "default": "id" }
+      }
+    },
+    "traversalDirection": {
+      "enum": ["forward", "reverse", "both", "downstream", "upstream"]
+    },
+    "edgeKinds": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/edgeKind" }
+    },
+    "traversal": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "direction": {
+          "$ref": "#/definitions/traversalDirection",
+          "default": "forward"
+        },
+        "edgeKinds": { "$ref": "#/definitions/edgeKinds" },
+        "includeUnresolved": { "type": "boolean", "default": true }
+      }
+    },
+    "nodeReference": {
+      "oneOf": [
+        { "$ref": "#/definitions/selectorValue" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "id": { "$ref": "#/definitions/selectorValue" },
+            "stableKey": { "$ref": "#/definitions/selectorValue" }
+          }
+        }
+      ]
+    },
+    "path": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "from": { "$ref": "#/definitions/nodeReference" },
+        "to": { "$ref": "#/definitions/nodeReference" },
+        "direction": { "enum": ["forward", "reverse"], "default": "forward" },
+        "edgeKinds": { "$ref": "#/definitions/edgeKinds" },
+        "includeUnresolved": { "type": "boolean", "default": true }
       }
     }
   }

@@ -40,11 +40,11 @@ Local architecture query requests and results use the reviewed
 [`schema/architecture-query.v0.1.schema.json`](../schema/architecture-query.v0.1.schema.json)
 with result details in
 [`schema/architecture-query-result.v0.1.schema.json`](../schema/architecture-query-result.v0.1.schema.json).
-The v0.1 executor supports only deterministic node and edge selection;
-reachability, dependency paths, boundary crossing, cycle enumeration, source
-body search, remote queries, and mutation are explicit unsupported operations
-until their roadmap contracts are reviewed. Query artifacts remain local,
-read-only, source-body-free, and resource-bounded.
+The v0.1 executor supports deterministic node and edge selection, direct
+neighbors, bounded upstream/downstream reachability, shortest dependency paths,
+boundary crossing, and cycle enumeration. Source-body search, remote queries,
+and mutation remain explicit unsupported operations. Query artifacts remain
+local, read-only, source-body-free, deterministic, and resource-bounded.
 Local ADR reference indexes use the reviewed `adrReferences` contract and
 [`schema/adr-reference.v0.1.schema.json`](../schema/adr-reference.v0.1.schema.json).
 P-008 adds ADR comparison details only to Markdown and standalone HTML report

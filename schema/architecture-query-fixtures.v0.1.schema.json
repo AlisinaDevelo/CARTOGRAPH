@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query-fixtures.v0.1.schema.json",
   "title": "CARTOGRAPH architecture query fixtures v0.1",
-  "description": "Positive, negative, malformed, unsupported, and over-limit scenarios for the local architecture query contract.",
+  "description": "Positive, negative, malformed, unsupported, and over-limit scenarios for the local architecture query contract, including bounded traversal, paths, boundaries, cycles, and truncation.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "contract", "fixtureId", "scope", "cases"],
@@ -71,6 +71,10 @@
         },
         "nodes": { "type": "integer", "minimum": 0 },
         "edges": { "type": "integer", "minimum": 0 },
+        "pathLength": { "type": "integer", "minimum": 0 },
+        "cycles": { "type": "integer", "minimum": 0 },
+        "boundaries": { "type": "integer", "minimum": 0 },
+        "truncated": { "type": "boolean" },
         "diagnosticCode": {
           "type": "string",
           "pattern": "^[A-Z][A-Z0-9_.:-]*$"
