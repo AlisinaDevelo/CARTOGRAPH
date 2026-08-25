@@ -10,16 +10,16 @@ Adapter and language expansion decisions are governed by the public
 [adapter selection RFC](ADAPTER_SELECTION.md) and its machine-readable
 [support matrix](../schema/adapter-support-matrix.v0.1.json). The current
 matrix is `cartograph-adapter-support-v0.1` with digest
-`sha256:43a88a895f18053aa7a44369bd97bd2987cd0b94bebee61e388cc34f1354530f`.
+`sha256:a27a1f5b82c1f9f52c435186d8e69698de93deaf3a81e94743284c1120fb59c1`.
 Run `npm run adapter:support:validate` to check schema conformance, status
 coverage, shipped manifests, repository references, and documentation.
 
-| Status         | Current entries                           | Support boundary                                                        |
-| -------------- | ----------------------------------------- | ----------------------------------------------------------------------- |
-| `implemented`  | `cartograph.sample`, `cartograph.fastify` | Named bounded capabilities and fixtures only.                           |
-| `experimental` | `cartograph.starter.example`              | Contributor preview; no stable support promise.                         |
-| `deferred`     | `language.rust`                           | Candidate recorded for a future bounded pilot; no implementation claim. |
-| `unsupported`  | `language.python`                         | Outside the current adapter boundary; no graph is inferred.             |
+| Status         | Current entries                                              | Support boundary                                                           |
+| -------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| `implemented`  | `cartograph.sample`, `cartograph.fastify`, `cartograph.rust` | Named bounded capabilities and fixtures only.                              |
+| `experimental` | `cartograph.starter.example`                                 | Contributor preview; no stable support promise.                            |
+| `deferred`     | `language.rust`                                              | Rust constructs beyond the bounded E-005 pilot; no broader language claim. |
+| `unsupported`  | `language.python`                                            | Outside the current adapter boundary; no graph is inferred.                |
 
 The matrix names a primary owner, backup, review cadence, compatibility
 dimensions, and retirement triggers for every promoted entry. A language or
@@ -60,6 +60,9 @@ This matrix is the public boundary of the first analyzer. A construct is support
 | Direct Express `app` or `router` routes and bounded `use` middleware with literal paths | Supported | Express registration call and handler source spans         | Dynamic route registration, computed paths, and framework metaprogramming produce diagnostics                                    |
 | Literal `fetch` and Axios destinations                                                  | Supported | Literal URL argument and request call span                 | Computed or runtime-only destinations remain unresolved                                                                          |
 | Conventional Prisma model reads and writes                                              | Supported | Prisma model operation and source span                     | Dynamic model names and unsupported client wrappers remain unresolved                                                            |
+| Rust `.rs` modules, functions, local `mod`/`use`, and unique local calls                | Pilot     | Declaration or call source span                            | Macros, traits, generics, compiler resolution, and ambiguous names remain outside the claim                                      |
+| Literal Rust `reqwest`/client HTTP origins                                              | Pilot     | Literal URL argument and request call span                 | Runtime-selected destinations remain `UNSUPPORTED_RUST_DYNAMIC_HTTP_DESTINATION`                                                 |
+| Literal Rust `sqlx` table reads and writes                                              | Pilot     | Literal SQL query call and source span                     | Dynamic or table-less SQL remains `UNSUPPORTED_RUST_DYNAMIC_QUERY`                                                               |
 
 The X-002 golden fixture covers named re-exports, star re-exports, literal
 dynamic `import()`, literal `require()`, and non-literal dynamic module
@@ -79,6 +82,12 @@ callee. Registration and handler edges retain separate source evidence.
 Dynamic event or queue names, string-only reflection, unsupported queue clients,
 and unresolved callbacks remain stable diagnostics; no runtime dispatch is
 guessed.
+
+The E-005 Rust pilot fixture covers two `.rs` modules, local module imports and
+calls, a literal `reqwest` request, a literal `sqlx` read, and dynamic HTTP and
+query forms. The fixture reports 9/9 supported edge matches (precision 1.00,
+recall 1.00) and retains both dynamic forms as explicit diagnostics. These
+numbers apply only to this bounded synthetic construct slice.
 
 The X-004 diagnostic registry gives every supported unknown case a unique code,
 warning severity, source-span evidence contract, and actionable remediation.

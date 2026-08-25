@@ -386,6 +386,19 @@ metadata. The `languageNeutralSemantics` entry in
 [`schema/compatibility.json`](../schema/compatibility.json) and the
 `language-neutral` fixture provide a reviewed Rust/Python compatibility sample.
 
+## E-005 bounded Rust adapter pilot
+
+E-005 adds `cartograph.rust@0.1.0` without changing the adapter API, capability
+registry version, or GraphSnapshot schema. The pilot is source-only and
+regex-bounded: it recognizes Rust modules/functions, local `mod`/`use` imports
+and unique local calls, literal `reqwest`/client HTTP origins, and literal
+`sqlx` table reads/writes. Dynamic destinations, dynamic queries, unresolved
+local modules, and qualified calls are stable diagnostics rather than guessed
+edges. The support matrix therefore promotes `cartograph.rust` while keeping
+the broader `language.rust` claim deferred. The fixture and local conformance
+report record exact 1.00 precision and recall for the nine expected supported
+edges; this result is not a universal Rust compatibility claim.
+
 This is an additive documentation and fixture contract. Existing GraphSnapshot,
 GraphDiff, capability, diagnostic, Express, and Fastify reader boundaries stay
 at version `1`; no migration or runtime schema bump is required.

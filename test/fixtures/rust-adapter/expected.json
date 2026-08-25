@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "supportedEdgeKeys": [
+    "function:src/lib.rs:entry|function:src/lib.rs:load_orders|calls",
+    "function:src/lib.rs:load_orders|database_table:orders|reads",
+    "function:src/lib.rs:load_orders|external_service:https://payments.example|requests",
+    "function:src/lib.rs:load_orders|function:src/payments.rs:charge|calls",
+    "module:src/lib.rs|function:src/lib.rs:entry|contains",
+    "module:src/lib.rs|function:src/lib.rs:load_orders|contains",
+    "module:src/lib.rs|module:external:<redacted-module>|imports",
+    "module:src/lib.rs|module:src/payments.rs|imports",
+    "module:src/payments.rs|function:src/payments.rs:charge|contains"
+  ],
+  "unsupportedDiagnosticCodes": [
+    "UNSUPPORTED_RUST_DYNAMIC_HTTP_DESTINATION",
+    "UNSUPPORTED_RUST_DYNAMIC_QUERY"
+  ],
+  "precisionRecall": {
+    "expectedEdgeCount": 9,
+    "expectedDiagnosticCount": 2
+  }
+}

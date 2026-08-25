@@ -135,6 +135,39 @@ export const CAPABILITY_REGISTRY: CapabilityRegistry =
           },
         ],
       },
+      {
+        id: "cartograph.rust",
+        version: "1",
+        capabilities: [
+          {
+            id: "rust.modules",
+            diagnosticCodes: ["UNRESOLVED_RUST_IMPORT", "UNRESOLVED_RUST_CALL"],
+            confidence: ["certain", "inferred"],
+            examples: [
+              "Rust mod/use declarations and function declarations produce portable module and function relationships.",
+              "Missing local modules and calls outside the bounded symbol set remain explicit diagnostics.",
+            ],
+          },
+          {
+            id: "rust.http",
+            diagnosticCodes: ["UNSUPPORTED_RUST_DYNAMIC_HTTP_DESTINATION"],
+            confidence: ["inferred"],
+            examples: [
+              "A literal reqwest or client URL produces an evidence-backed request edge to an origin node.",
+              "A runtime-selected URL remains an explicit diagnostic and never becomes a guessed edge.",
+            ],
+          },
+          {
+            id: "rust.sql",
+            diagnosticCodes: ["UNSUPPORTED_RUST_DYNAMIC_QUERY"],
+            confidence: ["inferred"],
+            examples: [
+              "Literal sqlx SELECT, INSERT, UPDATE, and DELETE statements produce database table relationships.",
+              "Dynamic SQL strings or statements without a recognizable table remain diagnostics.",
+            ],
+          },
+        ],
+      },
     ],
   });
 

@@ -25,6 +25,10 @@ import {
   SAMPLE_ADAPTER_MANIFEST,
 } from "../src/adapters/sample.ts";
 import { createFastifyAdapter } from "../src/adapters/fastify.ts";
+import {
+  createRustAdapter,
+  RUST_ADAPTER_MANIFEST,
+} from "../src/adapters/rust.ts";
 
 const repositoryRoot = resolve(process.cwd());
 const readJson = (relativePath) =>
@@ -73,6 +77,59 @@ const fastifyInput = () => ({
     maxWallClockMs: 5_000,
   },
 });
+
+const rustFixtureRoot = resolve(repositoryRoot, "test/fixtures/rust-adapter");
+const rustInput = () => ({
+  apiVersion: ADAPTER_API_VERSION,
+  source: {
+    rootDir: rustFixtureRoot,
+    include: ["."],
+    exclude: [],
+    revision: { commitSha: "rust-fixture" },
+  },
+  config: {},
+  resources: {
+    maxFiles: 32,
+    maxFileBytes: 16_384,
+    maxSourceBytes: 65_536,
+    maxInputBytes: 16_384,
+    maxOutputBytes: 2 * 1024 * 1024,
+    maxMemoryBytes: 512 * 1024 * 1024,
+    maxWallClockMs: 5_000,
+  },
+});
+
+const graphEdgeKey = (edge) => `${edge.from}|${edge.to}|${edge.kind}`;
+
+const validateRustQuality = (output) => {
+  const expected = readJson("test/fixtures/rust-adapter/expected.json");
+  const predicted = new Set(output.graph.edges.map(graphEdgeKey));
+  const expectedEdges = new Set(expected.supportedEdgeKeys);
+  const truePositives = [...predicted].filter((key) => expectedEdges.has(key));
+  if (
+    JSON.stringify([...predicted].sort()) !==
+    JSON.stringify([...expectedEdges].sort())
+  )
+    throw new Error(
+      "Rust fixture edge set drifted from expected bounded slice",
+    );
+  const diagnosticCodes = output.graph.diagnostics
+    .map((diagnostic) => diagnostic.code)
+    .sort();
+  if (
+    JSON.stringify(diagnosticCodes) !==
+    JSON.stringify([...expected.unsupportedDiagnosticCodes].sort())
+  )
+    throw new Error("Rust fixture unsupported diagnostic set drifted");
+  return {
+    expectedEdges: expectedEdges.size,
+    predictedEdges: predicted.size,
+    truePositives: truePositives.length,
+    precision: truePositives.length / predicted.size,
+    recall: truePositives.length / expectedEdges.size,
+    unsupportedDiagnostics: diagnosticCodes,
+  };
+};
 
 const isolationInput = (fixture, overrides = {}) => ({
   apiVersion: ADAPTER_API_VERSION,
@@ -276,6 +333,27 @@ const validate = async () => {
     repetitions: 2,
     maxDurationMs: 1_000,
   });
+  const rustAdapter = createRustAdapter();
+  const rustOutput = runAdapter(rustAdapter, rustInput());
+  const rustQuality = validateRustQuality(rustOutput);
+  const rustConformance = runAdapterConformance(rustAdapter, {
+    cases: [
+      {
+        id: "rust-bounded",
+        input: rustInput(),
+        expect: {
+          minNodes: 8,
+          minEdges: 9,
+          unsupportedDiagnosticCodes: [
+            "UNSUPPORTED_RUST_DYNAMIC_HTTP_DESTINATION",
+            "UNSUPPORTED_RUST_DYNAMIC_QUERY",
+          ],
+        },
+      },
+    ],
+    repetitions: 2,
+    maxDurationMs: 5_000,
+  });
   const fastifyAdapter = createFastifyAdapter();
   const fastifyOutput = runAdapter(fastifyAdapter, fastifyInput());
   const fastifyConformance = runAdapterConformance(fastifyAdapter, {
@@ -330,6 +408,18 @@ const validate = async () => {
         (diagnostic) => diagnostic.code === "UNRESOLVED_FASTIFY_HANDLER",
       ).length,
       performance: fastifyConformance.performance,
+    },
+    rust: {
+      adapterId: RUST_ADAPTER_MANIFEST.id,
+      compatibility: rustOutput.compatibility?.state,
+      cases: rustConformance.cases.length,
+      deterministic: rustConformance.deterministic,
+      evidenceComplete: rustConformance.evidenceComplete,
+      nodes: rustOutput.graph.nodes.length,
+      edges: rustOutput.graph.edges.length,
+      diagnostics: rustOutput.graph.diagnostics.length,
+      quality: rustQuality,
+      performance: rustConformance.performance,
     },
     isolation,
   };

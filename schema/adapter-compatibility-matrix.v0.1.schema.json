@@ -166,7 +166,11 @@
         "module": { "$ref": "#/definitions/repositoryPath" },
         "sourceRoot": {
           "type": "string",
-          "enum": ["repository", "test/fixtures/typescript-fastify"]
+          "enum": [
+            "repository",
+            "test/fixtures/typescript-fastify",
+            "test/fixtures/rust-adapter"
+          ]
         },
         "maxDurationMs": {
           "type": "integer",

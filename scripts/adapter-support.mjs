@@ -10,6 +10,7 @@ import Ajv from "ajv";
 
 import {
   FASTIFY_ADAPTER_MANIFEST,
+  RUST_ADAPTER_MANIFEST,
   SAMPLE_ADAPTER_MANIFEST,
 } from "../src/adapters/index.ts";
 
@@ -195,6 +196,7 @@ const validate = async () => {
   const runtimeManifests = new Map([
     [SAMPLE_ADAPTER_MANIFEST.id, SAMPLE_ADAPTER_MANIFEST],
     [FASTIFY_ADAPTER_MANIFEST.id, FASTIFY_ADAPTER_MANIFEST],
+    [RUST_ADAPTER_MANIFEST.id, RUST_ADAPTER_MANIFEST],
   ]);
   const starterModule = await import(
     pathToFileURL(
@@ -206,6 +208,7 @@ const validate = async () => {
   const runtimeRows = [
     "cartograph.sample",
     "cartograph.fastify",
+    "cartograph.rust",
     "cartograph.starter.example",
   ];
   for (const adapterId of runtimeRows) {

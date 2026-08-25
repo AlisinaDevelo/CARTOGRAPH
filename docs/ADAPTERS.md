@@ -149,7 +149,7 @@ not grant execution authority or reinterpret graph evidence. Experimental
 adapters are rejected unless `allowExperimental` is explicitly true. The
 fixture corpus at
 [`test/fixtures/adapter-compatibility/scenarios.v0.1.json`](../test/fixtures/adapter-compatibility/scenarios.v0.1.json)
-covers both shipped adapters and every negotiation state.
+covers all shipped adapters and every negotiation state.
 
 The runtime/compiler and capability-fixture Cartesian gate is recorded in the
 [adapter compatibility matrix](ADAPTER_COMPATIBILITY_MATRIX.md). It runs
@@ -173,3 +173,26 @@ methods, and unresolved handlers are outside this first slice. They produce
 the adapter never guesses an endpoint. `npm run adapter:validate` reports the
 bounded corpus' route count, unsupported count, unresolved-handler count,
 deterministic serialization, evidence completeness, and timing.
+
+### Rust adapter pilot
+
+The bounded Rust pilot is exported as `createRustAdapter()` from
+[`src/adapters/rust.ts`](../src/adapters/rust.ts). E-005 selects Rust as a
+non-TypeScript pilot because a small source-only slice maps cleanly to the
+language-neutral graph without requiring a compiler or repository execution.
+The adapter scans only `.rs` files under the declared source root and supports:
+
+- module and function declarations, local `mod`/`use` imports, and unique local
+  function calls;
+- literal `reqwest` or bounded client HTTP destinations represented by origin
+  `requests` edges; and
+- literal `sqlx` `SELECT`, `INSERT`, `UPDATE`, and `DELETE` table relationships.
+
+Dynamic HTTP destinations and SQL queries remain the explicit
+`UNSUPPORTED_RUST_DYNAMIC_HTTP_DESTINATION` and
+`UNSUPPORTED_RUST_DYNAMIC_QUERY` diagnostics. Missing local modules and
+qualified calls remain `UNRESOLVED_RUST_IMPORT` and `UNRESOLVED_RUST_CALL`.
+Macros, traits, generics, compiler resolution, ownership semantics, runtime
+behavior, and all other Rust constructs are outside the support claim. The
+checked-in fixture reports 9/9 supported edge matches with precision and recall
+of 1.00; those metrics apply only to this bounded synthetic slice.
