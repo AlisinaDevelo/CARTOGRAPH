@@ -4,6 +4,24 @@ Owner: `CARTOGRAPH maintainers`
 
 Review cadence: at least once per quarter and before every minor release; review immediately when a security boundary, parser dependency, or supported-construct claim changes.
 
+## Runtime and toolchain boundary
+
+The machine-readable declaration is
+[`schema/support-matrix.v0.1.json`](../schema/support-matrix.v0.1.json), checked
+by `npm run support:validate` against `package.json`, `package-lock.json`, and
+the CI workflow. The declared Node.js LTS window is 22.x and 24.x, with a
+minimum of Node 22.13.0. CI covers `ubuntu-latest` and `macos-latest`; Linux
+and macOS are the supported operating systems. The pinned analysis toolchain
+is TypeScript 6.0.3 with ts-morph 28.0.0. Local runs on a newer compatible
+Node (such as Node 26) are useful compatibility evidence but do not expand the
+declared LTS window.
+
+The CLI checks this boundary before parsing commands. An unsupported operating
+system or Node version fails closed with the stable
+`SUPPORT_MATRIX_UNSUPPORTED_ENVIRONMENT` diagnostic instead of producing
+architecture evidence under an unreviewed runtime. The matrix validator also
+requires the CI workflow to keep the declared OS and Node entries in sync.
+
 This matrix is the public boundary of the first analyzer. A construct is supported only when the evaluator has a positive fixture, a negative or ambiguity fixture where relevant, complete evidence coverage, and a documented result. A plausible graph outside this table is not a support claim.
 
 ## Supported constructs

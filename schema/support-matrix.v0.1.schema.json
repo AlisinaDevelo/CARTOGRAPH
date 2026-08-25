@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/support-matrix.v0.1.schema.json",
+  "title": "CARTOGRAPH runtime support matrix v0.1",
+  "description": "The declared Node.js, operating-system, and compiler support boundary checked against package and workflow metadata.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "node",
+    "platforms",
+    "toolchain",
+    "diagnosticCode"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.support-matrix" },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum", "lts", "ci"],
+      "properties": {
+        "minimum": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "lts": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^[0-9]+\\.x$" }
+        },
+        "ci": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^[0-9]+\\.x$" }
+        }
+      }
+    },
+    "platforms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supported", "ci"],
+      "properties": {
+        "supported": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "enum": ["darwin", "linux"] }
+        },
+        "ci": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "toolchain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["typescript", "tsMorph"],
+      "properties": {
+        "typescript": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "tsMorph": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" }
+      }
+    },
+    "diagnosticCode": { "const": "SUPPORT_MATRIX_UNSUPPORTED_ENVIRONMENT" }
+  }
+}

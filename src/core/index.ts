@@ -122,6 +122,21 @@ export {
   type SnapshotMigrationResult,
 } from "./migrations.js";
 export {
+  assertSupportedEnvironment,
+  currentSupportEnvironment,
+  SUPPORT_MATRIX_CONTRACT,
+  SUPPORT_MATRIX_DIAGNOSTIC_CODE,
+  SUPPORT_MATRIX_SCHEMA_VERSION,
+  SUPPORTED_NODE_LTS,
+  SUPPORTED_NODE_MINIMUM,
+  SUPPORTED_PLATFORMS,
+  UnsupportedEnvironmentError,
+  type SupportEnvironment,
+  type SupportEnvironmentReport,
+  type SupportedNodeLts,
+  type SupportedPlatform,
+} from "./support.js";
+export {
   createPolicyBundle,
   CURRENT_POLICY_BUNDLE_COMPATIBILITY,
   importPolicyBundle,

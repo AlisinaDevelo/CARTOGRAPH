@@ -88,6 +88,7 @@ export const classifyCliError = (value: unknown): CliDiagnosticCode => {
     name === "ConfigValidationError" ||
     name === "TypeScriptConfigError" ||
     name === "PolicyConfigValidationError" ||
+    name === "UnsupportedEnvironmentError" ||
     name === "PolicyCompositionError"
   )
     return "configuration-error";

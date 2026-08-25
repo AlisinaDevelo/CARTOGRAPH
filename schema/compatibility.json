@@ -67,6 +67,11 @@
       "supportedReaders": [1],
       "reviewedVersions": [1]
     },
+    "supportMatrix": {
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
+    },
     "adapters": {
       "current": 1,
       "supportedReaders": [1],

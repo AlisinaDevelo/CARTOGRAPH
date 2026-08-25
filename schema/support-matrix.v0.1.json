@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.support-matrix",
+  "node": {
+    "minimum": "22.13.0",
+    "lts": ["22.x", "24.x"],
+    "ci": ["22.x", "24.x"]
+  },
+  "platforms": {
+    "supported": ["darwin", "linux"],
+    "ci": ["ubuntu-latest", "macos-latest"]
+  },
+  "toolchain": {
+    "typescript": "6.0.3",
+    "tsMorph": "28.0.0"
+  },
+  "diagnosticCode": "SUPPORT_MATRIX_UNSUPPORTED_ENVIRONMENT"
+}

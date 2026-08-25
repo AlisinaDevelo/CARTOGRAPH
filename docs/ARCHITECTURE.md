@@ -34,6 +34,11 @@ repository or materialized Git revision
 - `src/report`: deterministic JSON, Markdown, and standalone HTML rendering.
 - `src/cli.ts`: argument parsing, config warning reporting, exit behavior, and orchestration only.
 
+The runtime support boundary is defined in `src/core/support.ts` and
+`schema/support-matrix.v0.1.json`. CLI entrypoints fail closed before parsing
+on unsupported operating systems or Node versions; the validator checks the
+declared compiler, package, and CI metadata together.
+
 The report layer can receive an optional local ADR index for a revision diff.
 It compares the index at the two materialized revisions, validates referenced
 files and graph IDs against the head snapshot, and renders title/status/file,

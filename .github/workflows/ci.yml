@@ -17,12 +17,15 @@ concurrency:
 
 jobs:
   validate:
-    name: Node ${{ matrix.node-version }}
-    runs-on: ubuntu-latest
+    name: ${{ matrix.os }} · Node ${{ matrix.node-version }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
         node-version:
           - "22.x"
           - "24.x"
@@ -51,6 +54,9 @@ jobs:
 
       - name: Type-check
         run: npm run typecheck
+
+      - name: Validate support matrix
+        run: npm run support:validate
 
       - name: Validate benchmark baseline
         run: npm run benchmark:validate
