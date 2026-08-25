@@ -1,0 +1,170 @@
+{
+  "$schema": "./adapter-support-matrix.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.adapter-support",
+  "matrixId": "cartograph-adapter-support-v0.1",
+  "review": {
+    "owner": "CARTOGRAPH maintainers",
+    "backup": "extractor-maintainers",
+    "cadence": "quarterly and before every minor release",
+    "nextReview": "2026-11-30"
+  },
+  "statusDefinitions": [
+    {
+      "id": "implemented",
+      "meaning": "Reviewed, shipped, versioned, conformance-tested, and owned.",
+      "claim": "Only the named bounded capabilities and fixtures."
+    },
+    {
+      "id": "experimental",
+      "meaning": "A reviewable preview exists without a stable support promise.",
+      "claim": "Explicit opt-in or contributor-preview use only."
+    },
+    {
+      "id": "deferred",
+      "meaning": "A plausible candidate lacks sufficient demand, evidence, ownership, or capacity for a pilot.",
+      "claim": "No implementation or quality claim."
+    },
+    {
+      "id": "unsupported",
+      "meaning": "No adapter or safe boundary is provided by the project.",
+      "claim": "The input remains outside the support claim and must not be guessed."
+    }
+  ],
+  "criteria": [
+    {
+      "id": "demand",
+      "title": "Demand and problem fit",
+      "threshold": "Name users, architecture questions, independent demand signals, and the gap the bounded adapter closes.",
+      "requiredEvidence": "A public proposal with demand signals and competing-workflow analysis."
+    },
+    {
+      "id": "semantic-fit",
+      "title": "Graph and evidence mapping",
+      "threshold": "Map the first construct slice to nodes, edges, identity, source spans, evidence, and unknown diagnostics.",
+      "requiredEvidence": "A language-neutral mapping and intentional non-equivalence record."
+    },
+    {
+      "id": "quality",
+      "title": "Measurable correctness",
+      "threshold": "Target at least 0.90 precision, 0.85 recall, and complete evidence or an explicit unresolved reason.",
+      "requiredEvidence": "Positive, negative, ambiguity, conformance, precision, and recall fixtures."
+    },
+    {
+      "id": "reproducibility",
+      "title": "Deterministic bounded execution",
+      "threshold": "Repeated canonical output is byte-identical under finite resource and declared toolchain limits.",
+      "requiredEvidence": "Repeated local runs, resource budgets, compiler/runtime versions, and fixture provenance."
+    },
+    {
+      "id": "security",
+      "title": "Authority and isolation",
+      "threshold": "Source reads are scoped; network, child processes, dynamic loading, and repository execution are denied.",
+      "requiredEvidence": "A manifest, isolation result or documented refusal, and hostile-boundary fixtures."
+    },
+    {
+      "id": "ownership",
+      "title": "Maintainers and response",
+      "threshold": "A primary owner and backup accept dependency, quality, compatibility, and security responsibility.",
+      "requiredEvidence": "Named owner groups, review date, and a security/retirement response path."
+    },
+    {
+      "id": "compatibility",
+      "title": "Public contract cost",
+      "threshold": "Adapter API, compatibility, capability, graph-schema, Node, and compiler dimensions are explicit.",
+      "requiredEvidence": "Versioned manifest, matrix row, migration or rejection decision, and schema review."
+    },
+    {
+      "id": "maintenance",
+      "title": "Sustainable scope",
+      "threshold": "The pilot has a bounded construct list, fixture cost, review cadence, and retirement trigger.",
+      "requiredEvidence": "A scope note, ownership estimate, and a public transition or retirement record."
+    }
+  ],
+  "entries": [
+    {
+      "id": "cartograph.sample",
+      "kind": "reference-adapter",
+      "name": "Sample reference adapter",
+      "status": "implemented",
+      "version": "0.1.0",
+      "capabilities": ["sample.fixture"],
+      "owner": "extractor-maintainers",
+      "backup": "core-maintainers",
+      "supportBoundary": "Deterministic reference fixtures only; not a production language or framework support claim.",
+      "references": [
+        "src/adapters/sample.ts",
+        "schema/adapter.v0.1.json",
+        "docs/ADAPTERS.md",
+        "docs/ADAPTER_COMPATIBILITY_MATRIX.md"
+      ],
+      "rationale": "The reference adapter is the public conformance boundary used to test evidence, identity, unsupported diagnostics, and compatibility negotiation."
+    },
+    {
+      "id": "cartograph.fastify",
+      "kind": "framework-adapter",
+      "name": "Bounded Fastify adapter",
+      "status": "implemented",
+      "version": "0.1.0",
+      "capabilities": ["fastify.routes", "typescript.graph"],
+      "owner": "extractor-maintainers",
+      "backup": "core-maintainers",
+      "supportBoundary": "Literal Fastify methods, object-form routes, local handlers, and the existing bounded TypeScript graph; dynamic registration remains diagnostic.",
+      "references": [
+        "src/adapters/fastify.ts",
+        "docs/ADAPTERS.md",
+        "docs/ADAPTER_COMPATIBILITY_MATRIX.md",
+        "test/fixtures/typescript-fastify"
+      ],
+      "rationale": "Fastify is the reviewed second TypeScript framework slice; its dynamic and unresolved cases are intentionally retained as diagnostics."
+    },
+    {
+      "id": "cartograph.starter.example",
+      "kind": "starter",
+      "name": "Adapter starter example",
+      "status": "experimental",
+      "version": "0.1.0",
+      "capabilities": ["starter.example"],
+      "owner": "extractor-maintainers",
+      "backup": "core-maintainers",
+      "supportBoundary": "Contributor-preview package for learning and review; copying it does not create a stable support promise.",
+      "references": [
+        "examples/adapter-starter/package.json",
+        "docs/ADAPTER_REVIEW_PLAYBOOK.md",
+        "docs/ADAPTER_REVIEW_DRY_RUN.md",
+        "docs/ADAPTERS.md"
+      ],
+      "rationale": "The starter is intentionally experimental until an independent adapter review graduates a contributor implementation."
+    },
+    {
+      "id": "language.rust",
+      "kind": "language",
+      "name": "Rust adapter candidate",
+      "status": "deferred",
+      "owner": "extractor-maintainers",
+      "backup": "core-maintainers",
+      "supportBoundary": "No Rust source analysis or language-level support claim is made; any future pilot must pass the selection and E-005 gates.",
+      "references": [
+        "docs/ADAPTER_SELECTION.md",
+        "docs/LANGUAGE_NEUTRAL_SEMANTICS.md",
+        "docs/ROADMAP.md"
+      ],
+      "rationale": "Rust is a plausible language-neutral pilot, but demand, bounded construct scope, and maintenance ownership are intentionally deferred to a future public proposal."
+    },
+    {
+      "id": "language.python",
+      "kind": "language",
+      "name": "Python adapter",
+      "status": "unsupported",
+      "owner": "extractor-maintainers",
+      "backup": "core-maintainers",
+      "supportBoundary": "Python repositories are outside the current adapter boundary; no Python graph is inferred or advertised.",
+      "references": [
+        "docs/ADAPTER_SELECTION.md",
+        "docs/SUPPORT_MATRIX.md",
+        "docs/LANGUAGE_NEUTRAL_SEMANTICS.md"
+      ],
+      "rationale": "No maintained Python adapter, pilot evidence, or security/ownership review exists, so the project must not imply support from language-neutral types alone."
+    }
+  ]
+}

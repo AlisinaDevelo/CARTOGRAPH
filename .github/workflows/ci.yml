@@ -78,6 +78,9 @@ jobs:
         env:
           CARTOGRAPH_MATRIX_NODE: ${{ matrix.node-version }}
 
+      - name: Validate adapter support matrix
+        run: npm run adapter:support:validate
+
       - name: Validate Action fixture
         run: npm run action:validate
 

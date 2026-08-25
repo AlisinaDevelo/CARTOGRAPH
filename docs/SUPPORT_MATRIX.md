@@ -4,6 +4,29 @@ Owner: `CARTOGRAPH maintainers`
 
 Review cadence: at least once per quarter and before every minor release; review immediately when a security boundary, parser dependency, or supported-construct claim changes.
 
+## Adapter selection boundary
+
+Adapter and language expansion decisions are governed by the public
+[adapter selection RFC](ADAPTER_SELECTION.md) and its machine-readable
+[support matrix](../schema/adapter-support-matrix.v0.1.json). The current
+matrix is `cartograph-adapter-support-v0.1` with digest
+`sha256:43a88a895f18053aa7a44369bd97bd2987cd0b94bebee61e388cc34f1354530f`.
+Run `npm run adapter:support:validate` to check schema conformance, status
+coverage, shipped manifests, repository references, and documentation.
+
+| Status         | Current entries                           | Support boundary                                                        |
+| -------------- | ----------------------------------------- | ----------------------------------------------------------------------- |
+| `implemented`  | `cartograph.sample`, `cartograph.fastify` | Named bounded capabilities and fixtures only.                           |
+| `experimental` | `cartograph.starter.example`              | Contributor preview; no stable support promise.                         |
+| `deferred`     | `language.rust`                           | Candidate recorded for a future bounded pilot; no implementation claim. |
+| `unsupported`  | `language.python`                         | Outside the current adapter boundary; no graph is inferred.             |
+
+The matrix names a primary owner, backup, review cadence, compatibility
+dimensions, and retirement triggers for every promoted entry. A language or
+framework is never promoted because a parser produced a plausible graph: it
+must pass the criteria, security boundary, evidence, and compatibility gates
+in the RFC.
+
 ## Runtime and toolchain boundary
 
 The machine-readable declaration is

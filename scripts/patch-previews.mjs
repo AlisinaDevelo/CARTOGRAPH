@@ -2,6 +2,7 @@
 /* global console, process */
 
 import { Buffer } from "node:buffer";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -52,12 +53,17 @@ const validate = async () => {
     previewPatch,
     serializePatchPreviewReport,
   } = await import("../src/core/index.ts");
-  const source = readFileSync(resolve(repositoryRoot, "README.md"), "utf8");
+  const sourceRef = "HEAD";
+  const source = execFileSync(
+    "git",
+    ["-C", repositoryRoot, "show", `${sourceRef}:README.md`],
+    { encoding: "utf8", maxBuffer: 512 * 1024 },
+  );
   const request = {
     schemaVersion: PATCH_PREVIEW_SCHEMA_VERSION,
     contract: PATCH_PREVIEW_CONTRACT,
     previewId: "validator-preview",
-    sourceRef: "HEAD",
+    sourceRef,
     operations: [
       {
         path: "README.md",
