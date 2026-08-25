@@ -1,0 +1,83 @@
+{
+  "$schema": "./release-compatibility-matrix.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.release-compatibility-matrix",
+  "matrixId": "cartograph-release-compatibility-v0.1",
+  "runtime": {
+    "node": ["22.x", "24.x"],
+    "os": ["ubuntu-latest", "macos-latest"],
+    "actionNode": "24.x"
+  },
+  "contracts": {
+    "snapshot": 1,
+    "diff": 1,
+    "policy": 1,
+    "adapterApi": 1,
+    "adapterCompatibility": 1,
+    "action": "0.1.0"
+  },
+  "actions": [
+    {
+      "id": "actions/checkout",
+      "version": "v7.0.1",
+      "ref": "3d3c42e5aac5ba805825da76410c181273ba90b1"
+    },
+    {
+      "id": "actions/setup-node",
+      "version": "v7.0.0",
+      "ref": "820762786026740c76f36085b0efc47a31fe5020"
+    },
+    {
+      "id": "actions/upload-artifact",
+      "version": "v4.6.2",
+      "ref": "ea165f8d65b6e75b540449e92b4886f43607fa02"
+    }
+  ],
+  "combinations": [
+    {
+      "os": "ubuntu-latest",
+      "node": "22.x",
+      "snapshot": 1,
+      "diff": 1,
+      "policy": 1,
+      "adapterApi": 1,
+      "adapterCompatibility": 1,
+      "action": "0.1.0"
+    },
+    {
+      "os": "ubuntu-latest",
+      "node": "24.x",
+      "snapshot": 1,
+      "diff": 1,
+      "policy": 1,
+      "adapterApi": 1,
+      "adapterCompatibility": 1,
+      "action": "0.1.0"
+    },
+    {
+      "os": "macos-latest",
+      "node": "22.x",
+      "snapshot": 1,
+      "diff": 1,
+      "policy": 1,
+      "adapterApi": 1,
+      "adapterCompatibility": 1,
+      "action": "0.1.0"
+    },
+    {
+      "os": "macos-latest",
+      "node": "24.x",
+      "snapshot": 1,
+      "diff": 1,
+      "policy": 1,
+      "adapterApi": 1,
+      "adapterCompatibility": 1,
+      "action": "0.1.0"
+    }
+  ],
+  "release": {
+    "recordFile": "compatibility-matrix.json",
+    "recordSchema": "schema/release-compatibility-record.v0.1.schema.json",
+    "validatorCommand": "npm run release-compatibility:validate"
+  }
+}
