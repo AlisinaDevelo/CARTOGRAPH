@@ -134,3 +134,27 @@ trace schema version, and bounded capability limitations. Static diagnostics,
 incomplete sampling, and the explicit-only span-binding policy remain visible
 as stable limitation codes. Fixed inputs produce stable records and coverage
 counts; processing-time measurements may vary independently.
+
+## O-010 local fixture corpus
+
+The versioned
+[`runtime-reconciliation-corpus/scenarios.v0.1.json`](../test/fixtures/runtime-reconciliation-corpus/scenarios.v0.1.json)
+corpus provides eight isolated, repository-authored cases for HTTP, database,
+messaging, error status, missing parents, sampling, redaction, and
+static/runtime disagreement. Each case declares its selected trace and static
+edges, sampling and redaction boundary, provenance, and exact expected record
+IDs/classifications. The base input is explicit and local; no exporter,
+collector, credential, source payload, or network path is involved.
+
+Run the digest-only corpus gate with:
+
+```sh
+npm run runtime-reconciliation:corpus:validate
+```
+
+The published
+[`runtime-reconciliation-corpus.v0.1.json`](../schema/runtime-reconciliation-corpus.v0.1.json)
+contains only fixture, trace, input, and reconciliation-result digests plus
+classification counts. Raw spans and reconciliation records remain in the
+local fixture/evaluator boundary and are not copied into the report. Release
+gating is disabled until a maintainer reviews the synthetic baseline.

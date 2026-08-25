@@ -1,0 +1,155 @@
+{
+  "$schema": "../schema/runtime-reconciliation-corpus.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.runtime-reconciliation-corpus",
+  "mediaType": "application/vnd.cartograph.runtime-reconciliation-corpus+json",
+  "fixtureId": "runtime-reconciliation-corpus",
+  "evaluatedAt": "2026-08-25T00:00:00Z",
+  "fixtureDigest": "sha256:06d8e1d7cc508b5c06753522c1bad0d097b403e14044a5c43203e107890b25ab",
+  "releaseGating": {
+    "enabled": false,
+    "reason": "The corpus is a reviewed synthetic baseline; it does not set production release thresholds."
+  },
+  "limitations": [
+    "All graph nodes, spans, bindings, and expected classifications are repository-authored synthetic data; the cases are not a production workload estimate.",
+    "Bindings are explicit and certain in the positive cases, so automatic service-to-node binding quality is outside this corpus.",
+    "Digest-only reports prove reproducibility and classification stability but intentionally retain no raw runtime payload, exporter data, or source body."
+  ],
+  "cases": [
+    {
+      "id": "database-observed",
+      "families": ["database"],
+      "inputDigest": "sha256:4c27cc25c276d080e992e6c4c8e78989288ec0f8b175ce61baf5ea54cb6c2923",
+      "traceDigest": "sha256:fabbaa37f9b05bc162111ea4c5da7a92f64a2ec0b1c4fc9b2c720cb85e7b1da4",
+      "resultDigest": "sha256:e0ac4d297239fa1fa5e3e42fc31268a0dbb75d7795f2e2a30422643008957d9d",
+      "classificationCounts": {
+        "observedAndModeled": 1,
+        "modeledNotObserved": 0,
+        "observedButUnmodeled": 0,
+        "ambiguous": 0
+      },
+      "redactionApplied": false
+    },
+    {
+      "id": "error-observed",
+      "families": ["errors"],
+      "inputDigest": "sha256:2457a591b65810150f3bbd395ab4ca15e9e740de93a3faff38b138e0e7217bf9",
+      "traceDigest": "sha256:556653890ebbf4f0858d82601565e518a3c56e697d2d1a58a46337194b1ba523",
+      "resultDigest": "sha256:d16abe3de68285c2110c1c7e218b352fc74117ddf4baa19b29fa0fc5e6f5b315",
+      "classificationCounts": {
+        "observedAndModeled": 1,
+        "modeledNotObserved": 0,
+        "observedButUnmodeled": 0,
+        "ambiguous": 0
+      },
+      "redactionApplied": false
+    },
+    {
+      "id": "http-ambiguous",
+      "families": ["http", "static-runtime-disagreement"],
+      "inputDigest": "sha256:667b01acd11b12dfd78fe7593ab948eeaaf818e4a660f88f425f7f4390b07f2b",
+      "traceDigest": "sha256:72bb848061a7b71bec20323d08419a014a882cfbfc5da9b19dce7ee227fd0d0f",
+      "resultDigest": "sha256:5efbbd0df26e231491346bbb8b5934957c9b29c4ea9b2acc197ac1251eb067e8",
+      "classificationCounts": {
+        "observedAndModeled": 0,
+        "modeledNotObserved": 0,
+        "observedButUnmodeled": 0,
+        "ambiguous": 1
+      },
+      "redactionApplied": false
+    },
+    {
+      "id": "messaging-observed",
+      "families": ["messaging"],
+      "inputDigest": "sha256:97685564b5ad207484403cd9116c914fc9b51c6d3593cde0844d0da25c552119",
+      "traceDigest": "sha256:1afc25cd70992f563b9ba8a572bb64204ce63564734a3d7c35edb6c15cddb669",
+      "resultDigest": "sha256:6bdc246e2598a9397f00ba7581f3dc845615b110ea48d315a10fa57fa6c9bc07",
+      "classificationCounts": {
+        "observedAndModeled": 2,
+        "modeledNotObserved": 0,
+        "observedButUnmodeled": 0,
+        "ambiguous": 0
+      },
+      "redactionApplied": false
+    },
+    {
+      "id": "missing-parent",
+      "families": ["missing-parents", "static-runtime-disagreement"],
+      "inputDigest": "sha256:50f3109fa5a225b75b14721c4b1f29da8a5e28286f8a1811f8fe672a4a174a83",
+      "traceDigest": "sha256:0f06f812c1334521b7153dac7b156b03018e4300b17e38e469b1ac60e0fc8989",
+      "resultDigest": "sha256:d722efcfdef3a8e49ac45f6463bb86e632e5cf06301ecde2c62e7c0c47739ab2",
+      "classificationCounts": {
+        "observedAndModeled": 0,
+        "modeledNotObserved": 1,
+        "observedButUnmodeled": 1,
+        "ambiguous": 0
+      },
+      "redactionApplied": false
+    },
+    {
+      "id": "redacted-http",
+      "families": ["http", "redaction", "static-runtime-disagreement"],
+      "inputDigest": "sha256:b13674dd4666520d2775fcd8cf9474192a2c82557be654814de664ecc23a670c",
+      "traceDigest": "sha256:f193ee50d37c9377b2800c7d538bd5cd63049e4d789608fdf00d429496cbb361",
+      "resultDigest": "sha256:5efbbd0df26e231491346bbb8b5934957c9b29c4ea9b2acc197ac1251eb067e8",
+      "classificationCounts": {
+        "observedAndModeled": 0,
+        "modeledNotObserved": 0,
+        "observedButUnmodeled": 0,
+        "ambiguous": 1
+      },
+      "redactionApplied": true
+    },
+    {
+      "id": "runtime-only-disagreement",
+      "families": ["static-runtime-disagreement"],
+      "inputDigest": "sha256:bbd783f64e1e6ab6ef53123c588c58c9cb3a9563758b65e09a3383c0df1c2b3c",
+      "traceDigest": "sha256:8b4aedc4f228fc54ec2f1713d10e73e730f2845e89a1b811b5f63dcc90d05415",
+      "resultDigest": "sha256:f807c95b4c07135aaa9ca292e5d75a791cf6d86b5c745a9ef3ed2fde808e7f8d",
+      "classificationCounts": {
+        "observedAndModeled": 0,
+        "modeledNotObserved": 1,
+        "observedButUnmodeled": 1,
+        "ambiguous": 0
+      },
+      "redactionApplied": false
+    },
+    {
+      "id": "sampling-gap",
+      "families": ["database", "sampling"],
+      "inputDigest": "sha256:6122f959e7baa9649d83a4cf86e5e6135714540c44c5ff8b0d802330e8666b57",
+      "traceDigest": "sha256:1777d6734da047a805208c5d56a82e806fc77f36186e957567d38b01c35c08da",
+      "resultDigest": "sha256:5777b288d0f70d9fffc148f9046b70310d40f586609e437f477f9b8844be28c1",
+      "classificationCounts": {
+        "observedAndModeled": 0,
+        "modeledNotObserved": 1,
+        "observedButUnmodeled": 0,
+        "ambiguous": 0
+      },
+      "redactionApplied": false
+    }
+  ],
+  "summary": {
+    "cases": 8,
+    "families": [
+      "http",
+      "database",
+      "messaging",
+      "errors",
+      "missing-parents",
+      "sampling",
+      "redaction",
+      "static-runtime-disagreement"
+    ],
+    "classificationCounts": {
+      "observedAndModeled": 4,
+      "modeledNotObserved": 3,
+      "observedButUnmodeled": 2,
+      "ambiguous": 2
+    },
+    "redactedCases": 1,
+    "network": false,
+    "exporter": false
+  },
+  "reportDigest": "sha256:fe09f61e747a9c96a0de2f3dec9f78217e1fd3ecbcc547e1cabf8db6f39f701b"
+}

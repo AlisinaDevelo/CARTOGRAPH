@@ -75,6 +75,14 @@ and
 They are not runtime inputs or outputs and do not change the O-002
 `runtimeReconciliation` reader boundary; a future evaluation revision must
 publish a new fixture/report version or an explicit migration review.
+The O-010 corpus is likewise a versioned, local test artifact: its fixture and
+digest-only report are defined by
+[`schema/runtime-reconciliation-corpus-fixtures.v0.1.schema.json`](../schema/runtime-reconciliation-corpus-fixtures.v0.1.schema.json)
+and
+[`schema/runtime-reconciliation-corpus.v0.1.schema.json`](../schema/runtime-reconciliation-corpus.v0.1.schema.json).
+It adds no runtime input fields, automatic binding behavior, exporter access, or
+release threshold, and any future corpus contract revision must publish a new
+version or an explicit review.
 
 ## Change categories
 

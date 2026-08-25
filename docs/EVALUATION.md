@@ -91,6 +91,17 @@ unobserved span is never interpreted as absent behavior. The contract and
 procedure are documented in
 [`RUNTIME_RECONCILIATION_UNCERTAINTY.md`](RUNTIME_RECONCILIATION_UNCERTAINTY.md).
 
+O-010 adds a separate family-labeled local runtime reconciliation corpus. Its
+eight synthetic cases cover HTTP ambiguity, database reads, messaging
+publication/subscription, error status, missing parents, sampling loss,
+redaction, and static/runtime disagreement. Every case carries provenance and
+exact expected classification IDs. `npm run runtime-reconciliation:corpus:validate`
+replays the selected local spans and edges twice, checks deterministic
+classifications and redaction, and publishes only input/trace/result digests;
+the report explicitly records `network: false` and `exporter: false`. The
+corpus is a controlled regression baseline, not a production workload or a
+release threshold.
+
 ## Policy configuration evaluation
 
 The policy fixture validates the versioned local contract through both the
