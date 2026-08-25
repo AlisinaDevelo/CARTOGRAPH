@@ -741,3 +741,10 @@ export function renderDiff(
       return renderMarkdownReport(diff, adrReport);
   }
 }
+
+export {
+  renderArchitectureQueryExplanation,
+  renderArchitectureQueryExplanationHtml,
+  renderArchitectureQueryExplanationMarkdown,
+  type QueryExplanationReportFormat,
+} from "./query-explanation.js";

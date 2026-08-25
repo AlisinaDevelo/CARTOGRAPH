@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.architecture-query-explanation-fixtures",
+  "fixtureId": "q005-v0.1",
+  "scope": {
+    "network": false,
+    "filesystemWrites": false,
+    "sourceBodiesIncluded": false,
+    "execution": false,
+    "deterministic": true
+  },
+  "cases": [
+    {
+      "id": "cycle-reachability",
+      "scenario": "cycle",
+      "description": "Reachability explanations retain the closed cycle, edge kinds, and evidence IDs.",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q005-cycle-reachability",
+        "operation": "reachability",
+        "selectors": { "nodes": [{ "id": "node-a" }] },
+        "traversal": {
+          "direction": "downstream",
+          "edgeKinds": ["calls", "imports", "depends_on", "publishes"]
+        }
+      },
+      "expected": {
+        "status": "ok",
+        "cycleCount": 1,
+        "uncertaintyCodes": ["cycle", "missing-evidence"]
+      }
+    },
+    {
+      "id": "depth-truncation",
+      "scenario": "truncation",
+      "description": "A small depth budget explains both the explicit limit and omitted edges.",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q005-depth-truncation",
+        "operation": "reachability",
+        "selectors": { "nodes": [{ "id": "node-a" }] },
+        "limits": { "maxDepth": 1 },
+        "traversal": {
+          "direction": "downstream",
+          "edgeKinds": ["calls", "imports", "depends_on", "publishes"]
+        }
+      },
+      "expected": {
+        "status": "ok",
+        "truncated": true,
+        "uncertaintyCodes": ["diagnostic", "truncated", "missing-evidence"]
+      }
+    },
+    {
+      "id": "missing-publish-evidence",
+      "scenario": "missing-evidence",
+      "description": "An unresolved publication edge is shown with its missing-evidence reason.",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q005-missing-publish-evidence",
+        "operation": "select-edges",
+        "selectors": {
+          "edges": [{ "kind": "publishes", "hasEvidence": false }]
+        },
+        "projection": { "evidence": "full" }
+      },
+      "expected": {
+        "status": "ok",
+        "resultEdges": 1,
+        "uncertaintyCodes": ["missing-evidence"]
+      }
+    },
+    {
+      "id": "empty-selection",
+      "scenario": "empty",
+      "description": "An empty selection explains that no result was inferred.",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q005-empty-selection",
+        "operation": "select-nodes",
+        "selectors": { "nodes": [{ "name": "does-not-exist" }] }
+      },
+      "expected": {
+        "status": "ok",
+        "resultNodes": 0,
+        "empty": true,
+        "uncertaintyCodes": ["empty-result"]
+      }
+    },
+    {
+      "id": "metadata-context",
+      "scenario": "metadata",
+      "description": "A node explanation carries projected policy, ADR, ownership, and unsupported metadata context.",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "q005-metadata-context",
+        "operation": "select-nodes",
+        "selectors": { "nodes": [{ "id": "node-a" }] },
+        "projection": { "metadata": "full" }
+      },
+      "metadata": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query-metadata",
+        "policies": [
+          {
+            "source": ".cartograph/policy.json",
+            "config": {
+              "schemaVersion": 1,
+              "policyId": "fixture-policy",
+              "version": "1.0.0",
+              "mode": "enforce",
+              "rules": [
+                {
+                  "id": "node-a-required",
+                  "target": "node",
+                  "selector": { "id": "node-a" },
+                  "assertion": "exists",
+                  "effect": "enforce"
+                }
+              ]
+            },
+            "evaluation": {
+              "schemaVersion": 1,
+              "contract": "cartograph.policy-evaluation",
+              "policyId": "fixture-policy",
+              "policyVersion": "1.0.0",
+              "inputKind": "snapshot",
+              "mode": "enforce",
+              "status": "passed",
+              "evaluatedRules": 1,
+              "passedRules": 1,
+              "unsupportedRules": 0,
+              "violations": [],
+              "unsupported": [],
+              "exceptions": []
+            }
+          }
+        ],
+        "decisions": {
+          "source": ".cartograph/adr.json",
+          "document": {
+            "schemaVersion": 1,
+            "references": [
+              {
+                "id": "adr-fixture",
+                "file": "docs/adr/fixture.md",
+                "title": "Fixture decision",
+                "status": "accepted",
+                "graphIds": ["node:node-a"]
+              }
+            ]
+          }
+        },
+        "ownership": {
+          "source": ".cartograph/ownership.json",
+          "hints": [
+            {
+              "id": "owner-fixture",
+              "target": { "kind": "node", "graphId": "node:node-a" },
+              "owners": ["team-architecture"],
+              "source": ".cartograph/ownership.json",
+              "evidenceRefs": ["ownership:owner-fixture"]
+            }
+          ]
+        },
+        "unsupported": [
+          {
+            "id": "remote-catalog",
+            "category": "ownership",
+            "code": "REMOTE_METADATA_UNSUPPORTED",
+            "message": "remote ownership catalog is outside the local contract",
+            "evidenceRefs": ["metadata:remote-catalog"]
+          }
+        ]
+      },
+      "expected": {
+        "status": "ok",
+        "resultNodes": 1,
+        "metadataPolicies": 1,
+        "metadataDecisions": 1,
+        "metadataOwnershipHints": 1,
+        "metadataDiagnostics": 1,
+        "uncertaintyCodes": ["metadata"]
+      }
+    }
+  ]
+}

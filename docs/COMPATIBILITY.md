@@ -64,6 +64,17 @@ They add no GraphSnapshot or GraphDiff fields: callers opt into explicit
 change kinds, traversal allow-lists, boundary stops, evidence-linked reasons,
 and visible unknowns. A future impact-model revision requires a new version or
 an explicit migration review.
+Inspectable query explanations use the separately reviewed
+`architectureQueryExplanations` contract and
+[`schema/architecture-query-explanation.v0.1.schema.json`](../schema/architecture-query-explanation.v0.1.schema.json).
+The v0.1 explanation embeds query and result v1 records, normalized plans,
+limits, evidence-aware paths, policy/ADR/ownership context, and explicit
+uncertainty. JSON, Markdown, and HTML are projections of the same deterministic
+object; changing its meaning requires a new explanation version or an explicit
+migration review. The five-case fixture and evaluation schemas are
+[`architecture-query-explanation-fixtures.v0.1.schema.json`](../schema/architecture-query-explanation-fixtures.v0.1.schema.json)
+and
+[`architecture-query-explanation-evaluation.v0.1.schema.json`](../schema/architecture-query-explanation-evaluation.v0.1.schema.json).
 Local ADR reference indexes use the reviewed `adrReferences` contract and
 [`schema/adr-reference.v0.1.schema.json`](../schema/adr-reference.v0.1.schema.json).
 P-008 adds ADR comparison details only to Markdown and standalone HTML report
