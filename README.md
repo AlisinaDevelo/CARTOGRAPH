@@ -215,6 +215,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Public community feedback and RFC process](docs/COMMUNITY_FEEDBACK.md)
 - [Adopter feedback template](docs/ADOPTER_FEEDBACK_TEMPLATE.md)
 - [OSS health and traction scorecard](docs/OSS_HEALTH_SCORECARD.md)
+- [Repository adoption evaluation](docs/ADOPTION_EVALUATION.md)
 - [Sustainability and cost model](docs/SUSTAINABILITY_COST_MODEL.md)
 - [Year 1–3 claims audit](docs/CLAIMS_AUDIT.md)
 - [Strategy-branch privacy and security review](docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md)

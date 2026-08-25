@@ -1,0 +1,249 @@
+{
+  "$schema": "../../schema/adoption-evaluation.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.repository-adoption-evaluation",
+  "mediaType": "application/vnd.cartograph.repository-adoption-evaluation+json",
+  "evaluationId": "r017-v0.1",
+  "reviewedAt": "2026-08-25T17:00:00Z",
+  "tool": {
+    "version": "0.1.0",
+    "commit": "3e473962c96e9738863e6e91573bc5b6c4eceec7",
+    "runtime": "Node.js 26.7.0",
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "method": {
+    "replayMode": "aggregate-fixture",
+    "rerunnable": true,
+    "command": "npm run adoption-evaluation:validate",
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "credentialsUsed": false,
+    "hiddenTelemetry": false,
+    "userDataIncluded": false,
+    "sourceAcquisition": "not-run",
+    "limitations": [
+      "Replay validates the checked-in aggregate records and pinned metadata; it does not fetch a repository or rerun a live scan.",
+      "The R-005 record did not retain repository byte or file counts, scan duration, framework inventory, or an external reviewer study.",
+      "A fresh public-repository run requires a separately reviewed checkout boundary and must not retain source, credentials, telemetry, or user data."
+    ]
+  },
+  "runs": [
+    {
+      "id": "hono",
+      "repository": "honojs/hono",
+      "url": "https://github.com/honojs/hono",
+      "license": "MIT",
+      "commit": "017000d6ad5bc6a65dd0f9215a4fdfea6ea80aea",
+      "languages": {
+        "status": "observed",
+        "values": ["TypeScript"],
+        "reason": "The pinned R-005 run selected a TypeScript build configuration; no other language is asserted."
+      },
+      "frameworks": {
+        "status": "not-observed",
+        "values": [],
+        "reason": "R-005 retained repository identity and aggregate analyzer output, not a framework inventory."
+      },
+      "scanRevision": {
+        "toolCommit": "3e473962c96e9738863e6e91573bc5b6c4eceec7",
+        "runtime": "Node.js 26.7.0",
+        "platform": "darwin",
+        "architecture": "arm64",
+        "tsconfig": "tsconfig.build.json"
+      },
+      "repositorySize": {
+        "status": "not-observed",
+        "files": null,
+        "sourceLines": null,
+        "sourceBytes": null,
+        "reason": "The aggregate R-005 record did not retain source-tree size measurements."
+      },
+      "coverage": {
+        "status": "aggregate-observed",
+        "graphNodes": 802,
+        "graphEdges": 1186,
+        "supportedEdges": 1186,
+        "diagnostics": 392,
+        "unknownDiagnostics": 392,
+        "reason": "Counts are replayed from the pinned R-005 compatibility record; they are not precision or recall measurements."
+      },
+      "unknowns": {
+        "UNRESOLVED_CALL": 377,
+        "UNSUPPORTED_DYNAMIC_HTTP_DESTINATION": 1,
+        "UNSUPPORTED_DYNAMIC_IMPORT": 1,
+        "UNSUPPORTED_DYNAMIC_ROUTE": 13
+      },
+      "timing": {
+        "status": "not-observed",
+        "durationMs": null,
+        "reason": "R-005 did not retain a scan-duration measurement."
+      },
+      "reviewerUsefulness": {
+        "status": "not-observed",
+        "reviewerCount": 0,
+        "rating": null,
+        "reason": "No external reviewer record or usefulness study was collected."
+      },
+      "snapshotSha256": "sha256:1b9a2ccd3fbd4e1a47767b6c5ebda1e6fb3fe7f4174050c74e1545aea0ecd045",
+      "feedback": "Import and call edges are emitted at scale; unresolved calls dominate the unknown output, while dynamic route and import behavior remains explicit.",
+      "limitations": [
+        "This is an aggregate compatibility observation, not an adoption, certification, or support claim.",
+        "The run does not publish repository size, timing, framework inventory, or external reviewer usefulness.",
+        "Unknown diagnostics and supported edges are retained as counts without source bodies or graph snapshots."
+      ],
+      "replayFixture": "test/fixtures/compatibility-review/scenarios.v0.1.json#hono",
+      "replayCommand": "npm run adoption-evaluation:validate"
+    },
+    {
+      "id": "tsyringe",
+      "repository": "microsoft/tsyringe",
+      "url": "https://github.com/microsoft/tsyringe",
+      "license": "MIT",
+      "commit": "e033769d97cfb6cc4a8569e2b50eb32015453302",
+      "languages": {
+        "status": "observed",
+        "values": ["TypeScript"],
+        "reason": "The pinned R-005 run selected a TypeScript build configuration; no other language is asserted."
+      },
+      "frameworks": {
+        "status": "not-observed",
+        "values": [],
+        "reason": "R-005 retained repository identity and aggregate analyzer output, not a framework inventory."
+      },
+      "scanRevision": {
+        "toolCommit": "3e473962c96e9738863e6e91573bc5b6c4eceec7",
+        "runtime": "Node.js 26.7.0",
+        "platform": "darwin",
+        "architecture": "arm64",
+        "tsconfig": "tsconfig.json"
+      },
+      "repositorySize": {
+        "status": "not-observed",
+        "files": null,
+        "sourceLines": null,
+        "sourceBytes": null,
+        "reason": "The aggregate R-005 record did not retain source-tree size measurements."
+      },
+      "coverage": {
+        "status": "aggregate-observed",
+        "graphNodes": 102,
+        "graphEdges": 225,
+        "supportedEdges": 225,
+        "diagnostics": 30,
+        "unknownDiagnostics": 30,
+        "reason": "Counts are replayed from the pinned R-005 compatibility record; they are not precision or recall measurements."
+      },
+      "unknowns": {
+        "UNRESOLVED_CALL": 30
+      },
+      "timing": {
+        "status": "not-observed",
+        "durationMs": null,
+        "reason": "R-005 did not retain a scan-duration measurement."
+      },
+      "reviewerUsefulness": {
+        "status": "not-observed",
+        "reviewerCount": 0,
+        "rating": null,
+        "reason": "No external reviewer record or usefulness study was collected."
+      },
+      "snapshotSha256": "sha256:7ad0e1afa6f1d863348495ee14df969dcafe7a36f1acd55cd5039566d7184764",
+      "feedback": "The bounded library scan is reproducible and import-rich; dependency-injection and factory indirection produce explicit unresolved-call diagnostics rather than guessed edges.",
+      "limitations": [
+        "This is an aggregate compatibility observation, not an adoption, certification, or support claim.",
+        "The run does not publish repository size, timing, framework inventory, or external reviewer usefulness.",
+        "Unknown diagnostics and supported edges are retained as counts without source bodies or graph snapshots."
+      ],
+      "replayFixture": "test/fixtures/compatibility-review/scenarios.v0.1.json#tsyringe",
+      "replayCommand": "npm run adoption-evaluation:validate"
+    },
+    {
+      "id": "zustand",
+      "repository": "pmndrs/zustand",
+      "url": "https://github.com/pmndrs/zustand",
+      "license": "MIT",
+      "commit": "b57db4f86ef179285da216eeb291266da82c361c",
+      "languages": {
+        "status": "observed",
+        "values": ["TypeScript"],
+        "reason": "The pinned R-005 run selected a TypeScript build configuration; no other language is asserted."
+      },
+      "frameworks": {
+        "status": "not-observed",
+        "values": [],
+        "reason": "R-005 retained repository identity and aggregate analyzer output, not a framework inventory."
+      },
+      "scanRevision": {
+        "toolCommit": "3e473962c96e9738863e6e91573bc5b6c4eceec7",
+        "runtime": "Node.js 26.7.0",
+        "platform": "darwin",
+        "architecture": "arm64",
+        "tsconfig": "tsconfig.json"
+      },
+      "repositorySize": {
+        "status": "not-observed",
+        "files": null,
+        "sourceLines": null,
+        "sourceBytes": null,
+        "reason": "The aggregate R-005 record did not retain source-tree size measurements."
+      },
+      "coverage": {
+        "status": "aggregate-observed",
+        "graphNodes": 219,
+        "graphEdges": 145,
+        "supportedEdges": 145,
+        "diagnostics": 2721,
+        "unknownDiagnostics": 2721,
+        "reason": "Counts are replayed from the pinned R-005 compatibility record; they are not precision or recall measurements."
+      },
+      "unknowns": {
+        "UNRESOLVED_CALL": 2721
+      },
+      "timing": {
+        "status": "not-observed",
+        "durationMs": null,
+        "reason": "R-005 did not retain a scan-duration measurement."
+      },
+      "reviewerUsefulness": {
+        "status": "not-observed",
+        "reviewerCount": 0,
+        "rating": null,
+        "reason": "No external reviewer record or usefulness study was collected."
+      },
+      "snapshotSha256": "sha256:c6ad0159acca51c0a419fe73216fdfa37c0f229bdd79b8f0d742ac77cb46fe65",
+      "feedback": "The scan remains deterministic, but higher-order store composition creates a high unresolved-call volume; this repository should not be used as a universal call-graph accuracy claim.",
+      "limitations": [
+        "This is an aggregate compatibility observation, not an adoption, certification, or support claim.",
+        "The run does not publish repository size, timing, framework inventory, or external reviewer usefulness.",
+        "The high unresolved-call count is retained as a negative result rather than converted into an accuracy claim."
+      ],
+      "replayFixture": "test/fixtures/compatibility-review/scenarios.v0.1.json#zustand",
+      "replayCommand": "npm run adoption-evaluation:validate"
+    }
+  ],
+  "summary": {
+    "runCount": 3,
+    "pinnedRevisionCount": 3,
+    "rerunnableRunCount": 3,
+    "aggregateObservedCount": 3,
+    "notObservedSizeCount": 3,
+    "notObservedTimingCount": 3,
+    "notObservedReviewerUsefulnessCount": 3,
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "credentialsUsed": false,
+    "hiddenTelemetry": false,
+    "userDataIncluded": false,
+    "certificationClaim": "deferred",
+    "supportGuaranteeClaim": "deferred",
+    "adoptionClaim": "deferred"
+  },
+  "provenance": {
+    "source": "CARTOGRAPH repository-authored aggregate adoption-evaluation report",
+    "license": "Apache-2.0",
+    "reference": "R-017 repository adoption evaluation; R-005 compatibility review; no third-party source retained",
+    "transformation": "The report projects three pinned R-005 public-repository records into an evaluation template and retains aggregate counts, digests, limitations, and explicit not-observed fields without source bodies, graph snapshots, credentials, telemetry, or user data.",
+    "redistribution": "allowed"
+  }
+}

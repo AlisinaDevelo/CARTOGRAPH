@@ -236,6 +236,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "adoption-evaluation",
+      "path": "adoption-evaluation",
+      "source": "CARTOGRAPH repository-authored aggregate adoption-evaluation report",
+      "license": "Apache-2.0",
+      "reference": "R-017 repository adoption evaluation; R-005 compatibility review; no third-party source retained",
+      "transformation": "The report projects three pinned R-005 public-repository records into an evaluation template and retains aggregate counts, digests, limitations, and explicit not-observed fields without source bodies, graph snapshots, credentials, telemetry, or user data.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "review-regressions",
       "path": "review-regressions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",
