@@ -93,6 +93,22 @@ rejected, stale, failed-validation, and applied-externally states, but never
 applies a patch, merges a pull request, changes policy, or invokes a repository
 command.
 
+## Explicit local CLI integration
+
+`reconcile-runtime --snapshot <path> --trace <path> --bindings <path>` is the
+explicit opt-in runtime boundary. All three inputs must be local regular JSON
+files: a GraphSnapshot, an OTLP JSON trace export, and an explicit
+`RuntimeSpanBinding[]` list. The command never discovers bindings, contacts a
+collector, uploads data, resolves credentials, reads source payloads, or uses
+network paths. It redacts runtime free text, keeps static/runtime/binding
+digests in separate provenance sections, emits reconciliation uncertainty and
+diagnostics, and reports bounded input, processing, output, and
+`discard-after-read` retention metadata. `--max-input-bytes`, `--max-spans`, `--max-traces`,
+`--max-analysis-ms`, `--max-report-bytes`, and `--max-report-items` only lower
+the documented ceilings; every overflow fails closed before a partial report
+is emitted. The JSON report contract is
+[`runtime-reconciliation-report.v0.1.schema.json`](../schema/runtime-reconciliation-report.v0.1.schema.json).
+
 `policy [root] --policy <path> --snapshot <path>` or
 `policy [root] --policy <path> --diff <path>` evaluates a repository-local policy
 against a canonical graph artifact. Exactly one input kind is required. The

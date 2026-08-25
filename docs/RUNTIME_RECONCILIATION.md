@@ -103,3 +103,19 @@ descriptive rather than binding rules. See
 [`RUNTIME_RECONCILIATION_UNCERTAINTY.md`](RUNTIME_RECONCILIATION_UNCERTAINTY.md)
 for the versioned schemas, synthetic scenarios, change explanations, and local
 validation command.
+
+## O-006 explicit local CLI integration
+
+The `reconcile-runtime` command joins three caller-selected local files:
+`--snapshot`, `--trace`, and `--bindings`. The static GraphSnapshot, normalized
+redacted runtime trace, and explicit binding list remain separate provenance
+artifacts in the report. No collector, upload, credential, source payload,
+automatic binding, or network path is available to the command.
+
+The command applies the O-001/O-003/O-013 bounds and an output-cardinality
+ceiling, measures end-to-end processing time, and uses discard-after-read
+retention. It fails closed on an input, span, trace, processing, output, or
+report-cardinality limit. Runtime free text is redacted before the report is
+serialized; uncertainty, budget diagnostics, and reconciliation reasons remain
+as bounded structured metadata. Validate the report schema at
+[`schema/runtime-reconciliation-report.v0.1.schema.json`](../schema/runtime-reconciliation-report.v0.1.schema.json).

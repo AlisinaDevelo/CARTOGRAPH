@@ -1,0 +1,362 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/runtime-reconciliation-report.v0.1.schema.json",
+  "title": "CARTOGRAPH explicit local runtime reconciliation report v0.1",
+  "description": "A bounded, redacted, offline report joining explicit local static and runtime artifacts without merging their provenance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "localOnly",
+    "static",
+    "runtime",
+    "bindings",
+    "reconciliation",
+    "uncertainty",
+    "diagnostics",
+    "limits",
+    "retention"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.runtime-reconciliation-report" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.runtime-reconciliation-report+json"
+    },
+    "localOnly": { "const": true },
+    "static": { "$ref": "#/definitions/staticProvenance" },
+    "runtime": { "$ref": "#/definitions/runtimeProvenance" },
+    "bindings": { "$ref": "#/definitions/bindingProvenance" },
+    "reconciliation": { "$ref": "#/definitions/reconciliation" },
+    "uncertainty": { "$ref": "#/definitions/uncertainty" },
+    "diagnostics": {
+      "type": "array",
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/diagnostic" }
+    },
+    "limits": { "$ref": "#/definitions/limits" },
+    "retention": { "$ref": "#/definitions/retention" }
+  },
+  "definitions": {
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "revision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commitSha"],
+      "properties": {
+        "commitSha": { "type": "string", "minLength": 1 },
+        "parentSha": { "type": "string", "minLength": 1 },
+        "branch": { "type": "string", "minLength": 1 },
+        "authoredAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "staticProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "artifact",
+        "schemaVersion",
+        "digest",
+        "revision",
+        "nodes",
+        "edges",
+        "diagnostics"
+      ],
+      "properties": {
+        "source": { "const": "explicit-local-file" },
+        "artifact": { "const": "GraphSnapshot" },
+        "schemaVersion": { "const": 1 },
+        "digest": { "$ref": "#/definitions/digest" },
+        "revision": { "$ref": "#/definitions/revision" },
+        "nodes": { "type": "integer", "minimum": 0 },
+        "edges": { "type": "integer", "minimum": 0 },
+        "diagnostics": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "complete",
+        "truncated",
+        "inputTraces",
+        "retainedTraces",
+        "droppedTraces",
+        "inputSpans",
+        "retainedSpans",
+        "droppedSpans"
+      ],
+      "properties": {
+        "complete": { "type": "boolean" },
+        "truncated": { "type": "boolean" },
+        "inputTraces": { "type": "integer", "minimum": 0 },
+        "retainedTraces": { "type": "integer", "minimum": 0 },
+        "droppedTraces": { "type": "integer", "minimum": 0 },
+        "inputSpans": { "type": "integer", "minimum": 0 },
+        "retainedSpans": { "type": "integer", "minimum": 0 },
+        "droppedSpans": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "runtimeProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "artifact",
+        "schemaVersion",
+        "format",
+        "digest",
+        "coverage",
+        "redacted"
+      ],
+      "properties": {
+        "source": { "const": "explicit-local-file" },
+        "artifact": { "const": "cartograph.runtime-traces" },
+        "schemaVersion": { "const": 1 },
+        "format": { "const": "otlp-json" },
+        "digest": { "$ref": "#/definitions/digest" },
+        "coverage": { "$ref": "#/definitions/coverage" },
+        "redacted": { "const": true }
+      }
+    },
+    "bindingProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "artifact", "count", "digest"],
+      "properties": {
+        "source": { "const": "explicit-local-file" },
+        "artifact": { "const": "RuntimeSpanBinding[]" },
+        "count": { "type": "integer", "minimum": 0 },
+        "digest": { "$ref": "#/definitions/digest" }
+      }
+    },
+    "reconciliationRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "classification",
+        "staticEdgeIds",
+        "staticEvidenceRefs",
+        "traceRefs",
+        "evidenceRefs",
+        "observedCount",
+        "uncertainty",
+        "reason"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "classification": {
+          "enum": [
+            "observed-and-modeled",
+            "modeled-not-observed",
+            "observed-but-unmodeled",
+            "ambiguous"
+          ]
+        },
+        "staticEdgeIds": { "type": "array", "items": { "type": "string" } },
+        "staticEvidenceRefs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "traceRefs": { "type": "array", "items": { "type": "string" } },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "observedCount": { "type": "integer", "minimum": 0 },
+        "uncertainty": {
+          "enum": ["none", "unobserved", "unmapped", "ambiguous"]
+        },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "reconciliation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "mediaType",
+        "runtimeTraceSchemaVersion",
+        "staticRevision",
+        "records",
+        "summary"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.runtime-reconciliation" },
+        "mediaType": {
+          "const": "application/vnd.cartograph.runtime-reconciliation+json"
+        },
+        "runtimeTraceSchemaVersion": { "const": 1 },
+        "staticRevision": { "$ref": "#/definitions/revision" },
+        "records": {
+          "type": "array",
+          "maxItems": 200000,
+          "items": { "$ref": "#/definitions/reconciliationRecord" }
+        },
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "staticEdges",
+            "runtimeSpanEdges",
+            "mappedSpans",
+            "observedAndModeled",
+            "modeledNotObserved",
+            "observedButUnmodeled",
+            "ambiguous"
+          ],
+          "properties": {
+            "staticEdges": { "type": "integer", "minimum": 0 },
+            "runtimeSpanEdges": { "type": "integer", "minimum": 0 },
+            "mappedSpans": { "type": "integer", "minimum": 0 },
+            "observedAndModeled": { "type": "integer", "minimum": 0 },
+            "modeledNotObserved": { "type": "integer", "minimum": 0 },
+            "observedButUnmodeled": { "type": "integer", "minimum": 0 },
+            "ambiguous": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["none", "unobserved", "unmapped", "ambiguous"],
+      "properties": {
+        "none": { "type": "integer", "minimum": 0 },
+        "unobserved": { "type": "integer", "minimum": 0 },
+        "unmapped": { "type": "integer", "minimum": 0 },
+        "ambiguous": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "code", "message"],
+      "properties": {
+        "source": { "enum": ["runtime-budget", "reconciliation", "input"] },
+        "code": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "message": { "type": "string", "minLength": 1, "maxLength": 2048 }
+      }
+    },
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fields", "replacement"],
+      "properties": {
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "replacement": { "type": "string", "minLength": 1, "maxLength": 64 }
+      }
+    },
+    "tracePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxInputBytes",
+        "maxResourceSpans",
+        "maxScopeSpans",
+        "maxSpans",
+        "maxAttributesPerRecord",
+        "maxTraces",
+        "maxAnalysisMs",
+        "maxReportBytes",
+        "overflow",
+        "redaction"
+      ],
+      "properties": {
+        "maxInputBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 67108864
+        },
+        "maxResourceSpans": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "maxScopeSpans": { "type": "integer", "minimum": 1, "maximum": 100000 },
+        "maxSpans": { "type": "integer", "minimum": 1, "maximum": 1000000 },
+        "maxAttributesPerRecord": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "maxTraces": { "type": "integer", "minimum": 1, "maximum": 100000 },
+        "maxAnalysisMs": { "type": "integer", "minimum": 1, "maximum": 300000 },
+        "maxReportBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 67108864
+        },
+        "overflow": { "const": "fail-closed" },
+        "redaction": { "$ref": "#/definitions/redaction" }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tracePolicy", "maxReportItems", "observed", "bounded"],
+      "properties": {
+        "tracePolicy": { "$ref": "#/definitions/tracePolicy" },
+        "maxReportItems": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200000
+        },
+        "observed": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "staticInputBytes",
+            "runtimeInputBytes",
+            "bindingsInputBytes",
+            "totalInputBytes",
+            "processingMs",
+            "outputRecords",
+            "outputBytes"
+          ],
+          "properties": {
+            "staticInputBytes": { "type": "integer", "minimum": 0 },
+            "runtimeInputBytes": { "type": "integer", "minimum": 0 },
+            "bindingsInputBytes": { "type": "integer", "minimum": 0 },
+            "totalInputBytes": { "type": "integer", "minimum": 0 },
+            "processingMs": { "type": "integer", "minimum": 0 },
+            "outputRecords": { "type": "integer", "minimum": 0 },
+            "outputBytes": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "bounded": { "const": true }
+      }
+    },
+    "retention": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "persisted",
+        "retainedTracesAfterRead",
+        "maxTraces",
+        "maxBytes"
+      ],
+      "properties": {
+        "mode": { "const": "discard-after-read" },
+        "persisted": { "const": false },
+        "retainedTracesAfterRead": { "const": 0 },
+        "maxTraces": { "type": "integer", "minimum": 1, "maximum": 100000 },
+        "maxBytes": { "type": "integer", "minimum": 1, "maximum": 67108864 }
+      }
+    }
+  }
+}

@@ -18,6 +18,7 @@ import {
   diffSnapshotFiles,
   evaluatePolicyFile,
   migrateSnapshotFile,
+  reconcileRuntimeFiles,
   reviewRemediationFile,
   scanRepository,
   serializeScan,
@@ -109,6 +110,20 @@ const exceptionWindowDays = (value: string): number => {
   if (!Number.isInteger(parsed) || parsed < 0 || parsed > 3_650) {
     throw new InvalidArgumentError(
       "exception-window-days must be an integer from 0 to 3650",
+    );
+  }
+  return parsed;
+};
+
+const runtimeLimit = (
+  value: string,
+  label: string,
+  maximum: number,
+): number => {
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed < 1 || parsed > maximum) {
+    throw new InvalidArgumentError(
+      `${label} must be an integer from 1 to ${maximum}`,
     );
   }
   return parsed;
@@ -217,6 +232,100 @@ export function createCli(): Command {
           ...(options.adr === undefined ? {} : { adr: options.adr }),
         });
         await emit(report, options);
+      },
+    );
+
+  program
+    .command("reconcile-runtime")
+    .description(
+      "reconcile an explicit local GraphSnapshot, OTLP trace, and span bindings",
+    )
+    .requiredOption(
+      "--snapshot <path>",
+      "local GraphSnapshot JSON input; no remote resolution",
+    )
+    .requiredOption(
+      "--trace <path>",
+      "local OTLP JSON trace input; no collector or upload",
+    )
+    .requiredOption(
+      "--bindings <path>",
+      "local explicit RuntimeSpanBinding[] JSON input",
+    )
+    .option(
+      "--max-input-bytes <bytes>",
+      "runtime trace input-byte ceiling",
+      (value: string) =>
+        runtimeLimit(value, "max-input-bytes", 64 * 1024 * 1024),
+    )
+    .option(
+      "--max-spans <count>",
+      "normalized runtime span ceiling",
+      (value: string) => runtimeLimit(value, "max-spans", 1_000_000),
+    )
+    .option(
+      "--max-traces <count>",
+      "runtime trace identity ceiling",
+      (value: string) => runtimeLimit(value, "max-traces", 100_000),
+    )
+    .option(
+      "--max-analysis-ms <milliseconds>",
+      "end-to-end processing-time ceiling",
+      (value: string) => runtimeLimit(value, "max-analysis-ms", 300_000),
+    )
+    .option(
+      "--max-report-bytes <bytes>",
+      "serialized report-byte ceiling",
+      (value: string) =>
+        runtimeLimit(value, "max-report-bytes", 64 * 1024 * 1024),
+    )
+    .option(
+      "--max-report-items <count>",
+      "reconciliation output-cardinality ceiling",
+      (value: string) => runtimeLimit(value, "max-report-items", 200_000),
+    )
+    .option("-o, --output <path>", "output report file; stdout when omitted")
+    .option("--force", "replace an existing output file", false)
+    .action(
+      async (
+        options: OutputOptions & {
+          snapshot: string;
+          trace: string;
+          bindings: string;
+          maxInputBytes?: number;
+          maxSpans?: number;
+          maxTraces?: number;
+          maxAnalysisMs?: number;
+          maxReportBytes?: number;
+          maxReportItems?: number;
+        },
+      ): Promise<void> => {
+        await emit(
+          await reconcileRuntimeFiles({
+            snapshot: options.snapshot,
+            trace: options.trace,
+            bindings: options.bindings,
+            ...(options.maxInputBytes === undefined
+              ? {}
+              : { maxInputBytes: options.maxInputBytes }),
+            ...(options.maxSpans === undefined
+              ? {}
+              : { maxSpans: options.maxSpans }),
+            ...(options.maxTraces === undefined
+              ? {}
+              : { maxTraces: options.maxTraces }),
+            ...(options.maxAnalysisMs === undefined
+              ? {}
+              : { maxAnalysisMs: options.maxAnalysisMs }),
+            ...(options.maxReportBytes === undefined
+              ? {}
+              : { maxReportBytes: options.maxReportBytes }),
+            ...(options.maxReportItems === undefined
+              ? {}
+              : { maxReportItems: options.maxReportItems }),
+          }),
+          options,
+        );
       },
     );
 

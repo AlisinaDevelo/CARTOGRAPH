@@ -188,6 +188,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Local runtime trace import](docs/RUNTIME_TRACES.md)
 - [Runtime trace sampling and cost budgets](docs/RUNTIME_TRACE_BUDGETS.md)
 - [Local static/runtime reconciliation](docs/RUNTIME_RECONCILIATION.md)
+- [Explicit local runtime reconciliation CLI](docs/CLI.md#explicit-local-cli-integration)
 - [Runtime trace safety policy](docs/RUNTIME_TRACE_SAFETY.md)
 - [Fixture provenance](docs/FIXTURES.md)
 - [Architecture](docs/ARCHITECTURE.md)

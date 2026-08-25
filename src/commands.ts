@@ -1,13 +1,15 @@
 import { Buffer } from "node:buffer";
+import { createHash } from "node:crypto";
 import { constants, realpathSync } from "node:fs";
 import { lstat, open, readFile, stat } from "node:fs/promises";
+import { performance } from "node:perf_hooks";
 import { dirname, relative, resolve, sep } from "node:path";
 
 import {
   analyzeTypeScriptRepository,
   type TypeScriptAnalyzerOptions,
 } from "./analyzers/index.js";
-import { assertReportItemLimit } from "./resources.js";
+import { ResourceLimitError, assertReportItemLimit } from "./resources.js";
 import {
   diffGraphSnapshots,
   composePolicyConfig,
@@ -22,9 +24,22 @@ import {
   defaultCartographConfig,
   readCartographConfig,
   createRemediationReview,
+  createRuntimeReconciliationReport,
+  DEFAULT_RUNTIME_TRACE_SAFETY_POLICY,
+  DEFAULT_RUNTIME_TRACE_BUDGET_POLICY,
+  importRuntimeTraceWithBudget,
+  reconcileRuntimeTrace,
+  RuntimeReconciliationInputSchema,
+  RuntimeTraceBudgetPolicySchema,
+  RuntimeSpanBindingSchema,
+  RuntimeTraceRetentionStore,
+  RuntimeTraceSafetyPolicySchema,
+  serializeRuntimeReconciliationReport,
+  serializeRuntimeTrace,
   serializeGraphSnapshot,
   serializeRemediationReview,
   validateMigrationOutput,
+  stableStringify,
   type CartographConfig,
   type AdrReferenceDocument,
   type PolicyCiMode,
@@ -44,6 +59,10 @@ import { renderDiff, type ReportFormat } from "./report/render.js";
 const MAX_SNAPSHOT_BYTES = 64 * 1024 * 1024;
 const MAX_POLICY_INPUT_BYTES = 64 * 1024 * 1024;
 const MAX_REMEDIATION_REVIEW_BYTES = 2 * 1024 * 1024;
+const MAX_RUNTIME_BINDINGS_BYTES = 16 * 1024 * 1024;
+const MAX_RUNTIME_TRACE_INPUT_BYTES = 64 * 1024 * 1024;
+const MAX_RUNTIME_TOTAL_INPUT_BYTES = 128 * 1024 * 1024;
+const MAX_RUNTIME_REPORT_ITEMS = 200_000;
 // macOS exposes these root-owned aliases for /private/{tmp,var}; they are not
 // user-controlled path components and must remain usable for normal temp paths.
 const MACOS_ROOT_SYMLINKS = new Set(["/tmp", "/var"]);
@@ -400,6 +419,297 @@ export async function evaluatePolicyFile(
     await loadDiff(options.input),
     evaluationOptions,
   );
+}
+
+export type RuntimeReconciliationFileOptions = {
+  snapshot: string;
+  trace: string;
+  bindings: string;
+  maxInputBytes?: number;
+  maxSpans?: number;
+  maxTraces?: number;
+  maxAnalysisMs?: number;
+  maxReportBytes?: number;
+  maxReportItems?: number;
+};
+
+type BoundedJsonInput = {
+  readonly value: unknown;
+  readonly bytes: number;
+};
+
+const readBoundedJsonInput = async (
+  inputPath: string,
+  maximumBytes: number,
+  label: string,
+): Promise<BoundedJsonInput> => {
+  const resolvedInput = resolve(inputPath);
+  const metadata = await stat(resolvedInput);
+  if (!metadata.isFile())
+    throw new Error(`${label} is not a regular file: ${inputPath}`);
+  if (metadata.size > maximumBytes) {
+    throw new ResourceLimitError(
+      `${label} exceeds the ${maximumBytes} byte input limit`,
+    );
+  }
+  const source = await readFile(resolvedInput, "utf8");
+  const bytes = Buffer.byteLength(source, "utf8");
+  if (bytes > maximumBytes) {
+    throw new ResourceLimitError(
+      `${label} exceeds the ${maximumBytes} byte input limit`,
+    );
+  }
+  try {
+    return { value: JSON.parse(source) as unknown, bytes };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "invalid JSON";
+    throw new Error(`could not parse ${label}: ${detail}`, { cause: error });
+  }
+};
+
+const sha256 = (value: string): string =>
+  `sha256:${createHash("sha256").update(value, "utf8").digest("hex")}`;
+
+const runtimeReconciliationDiagnostics = (
+  staticSnapshot: GraphSnapshot,
+  budgetDiagnostics: readonly { code: string; message: string }[],
+  reconciliation: ReturnType<typeof reconcileRuntimeTrace>,
+) =>
+  [
+    ...budgetDiagnostics.map((diagnostic) => ({
+      source: "runtime-budget" as const,
+      code: diagnostic.code,
+      message: diagnostic.message,
+    })),
+    ...staticSnapshot.diagnostics.map((diagnostic) => ({
+      source: "input" as const,
+      code: /^[A-Za-z0-9._:-]+$/u.test(diagnostic.code)
+        ? diagnostic.code
+        : "input:diagnostic",
+      message: diagnostic.message,
+    })),
+    ...reconciliation.records
+      .filter((record) => record.uncertainty !== "none")
+      .map((record) => ({
+        source: "reconciliation" as const,
+        code: `uncertainty:${record.uncertainty}`,
+        message: `${record.id}: ${record.reason}`,
+      })),
+  ].slice(0, 16);
+
+const runtimeReconciliationUncertainty = (
+  reconciliation: ReturnType<typeof reconcileRuntimeTrace>,
+) => {
+  const summary = { none: 0, unobserved: 0, unmapped: 0, ambiguous: 0 };
+  for (const record of reconciliation.records) summary[record.uncertainty] += 1;
+  return summary;
+};
+
+export async function reconcileRuntimeFiles(
+  options: RuntimeReconciliationFileOptions,
+): Promise<string> {
+  const tracePolicy = RuntimeTraceBudgetPolicySchema.parse({
+    ...DEFAULT_RUNTIME_TRACE_BUDGET_POLICY,
+    ...(options.maxInputBytes === undefined
+      ? {}
+      : { maxInputBytes: options.maxInputBytes }),
+    ...(options.maxSpans === undefined ? {} : { maxSpans: options.maxSpans }),
+    ...(options.maxTraces === undefined
+      ? {}
+      : { maxTraces: options.maxTraces }),
+    ...(options.maxAnalysisMs === undefined
+      ? {}
+      : { maxAnalysisMs: options.maxAnalysisMs }),
+    ...(options.maxReportBytes === undefined
+      ? {}
+      : { maxReportBytes: options.maxReportBytes }),
+    overflow: "fail-closed",
+  });
+  if (tracePolicy.maxInputBytes > MAX_RUNTIME_TRACE_INPUT_BYTES) {
+    throw new ResourceLimitError(
+      `runtime trace maxInputBytes must not exceed ${MAX_RUNTIME_TRACE_INPUT_BYTES} bytes`,
+    );
+  }
+  const maxReportItems = options.maxReportItems ?? MAX_RUNTIME_REPORT_ITEMS;
+  if (
+    !Number.isInteger(maxReportItems) ||
+    maxReportItems < 1 ||
+    maxReportItems > MAX_RUNTIME_REPORT_ITEMS
+  ) {
+    throw new ResourceLimitError(
+      `runtime reconciliation maxReportItems must be between 1 and ${MAX_RUNTIME_REPORT_ITEMS}`,
+    );
+  }
+
+  const startedAt = performance.now();
+  const staticInput = await readBoundedJsonInput(
+    options.snapshot,
+    MAX_SNAPSHOT_BYTES,
+    "static snapshot",
+  );
+  const staticSnapshot = parseGraphSnapshot(staticInput.value);
+  const bindingsInput = await readBoundedJsonInput(
+    options.bindings,
+    MAX_RUNTIME_BINDINGS_BYTES,
+    "runtime bindings",
+  );
+  const parsedBindings = RuntimeSpanBindingSchema.array()
+    .max(1_000_000)
+    .safeParse(bindingsInput.value);
+  if (!parsedBindings.success) {
+    throw new Error(
+      parsedBindings.error.issues
+        .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+        .join("; "),
+    );
+  }
+  const traceInput = await readBoundedJsonInput(
+    options.trace,
+    tracePolicy.maxInputBytes,
+    "runtime trace",
+  );
+  const runtimeText = JSON.stringify(traceInput.value);
+  const budget = importRuntimeTraceWithBudget(runtimeText, tracePolicy, () =>
+    performance.now(),
+  );
+  const retentionPolicy = RuntimeTraceSafetyPolicySchema.parse({
+    ...DEFAULT_RUNTIME_TRACE_SAFETY_POLICY,
+    redaction: tracePolicy.redaction,
+    retention: {
+      ...DEFAULT_RUNTIME_TRACE_SAFETY_POLICY.retention,
+      mode: "discard-after-read",
+      maxTraces: Math.min(tracePolicy.maxTraces, 10_000),
+      maxBytes: tracePolicy.maxInputBytes,
+    },
+  });
+  const retention = new RuntimeTraceRetentionStore(retentionPolicy, () =>
+    performance.now(),
+  );
+  retention.put("runtime-input", budget.trace);
+  const runtimeTrace = retention.get("runtime-input");
+  if (!runtimeTrace) {
+    throw new Error(
+      "runtime trace was unavailable after bounded local retention",
+    );
+  }
+  if (retention.size !== 0) {
+    throw new Error("runtime trace retention did not discard the local trace");
+  }
+
+  const totalInputBytes =
+    staticInput.bytes + traceInput.bytes + bindingsInput.bytes;
+  if (totalInputBytes > MAX_RUNTIME_TOTAL_INPUT_BYTES) {
+    throw new ResourceLimitError(
+      `runtime reconciliation inputs exceed the ${MAX_RUNTIME_TOTAL_INPUT_BYTES} byte total limit`,
+    );
+  }
+  assertReportItemLimit(
+    staticSnapshot.nodes.length +
+      staticSnapshot.edges.length +
+      staticSnapshot.diagnostics.length +
+      parsedBindings.data.length,
+    maxReportItems,
+  );
+  const input = RuntimeReconciliationInputSchema.parse({
+    staticSnapshot,
+    runtimeTrace,
+    bindings: parsedBindings.data,
+  });
+  const reconciliation = reconcileRuntimeTrace(input);
+  assertReportItemLimit(reconciliation.records.length, maxReportItems);
+  const processingMs = Math.max(0, Math.ceil(performance.now() - startedAt));
+  if (processingMs > tracePolicy.maxAnalysisMs) {
+    throw new ResourceLimitError(
+      `runtime reconciliation exceeded the ${tracePolicy.maxAnalysisMs} ms processing limit`,
+    );
+  }
+
+  const serializedRuntimeTrace = serializeRuntimeTrace(runtimeTrace);
+  const baseObserved = {
+    staticInputBytes: staticInput.bytes,
+    runtimeInputBytes: traceInput.bytes,
+    bindingsInputBytes: bindingsInput.bytes,
+    totalInputBytes,
+    processingMs,
+    outputRecords: reconciliation.records.length,
+    outputBytes: 0,
+  };
+  const createReport = (outputBytes: number) =>
+    createRuntimeReconciliationReport({
+      static: {
+        source: "explicit-local-file",
+        artifact: "GraphSnapshot",
+        schemaVersion: staticSnapshot.schemaVersion,
+        digest: sha256(stableStringify(staticSnapshot)),
+        revision: staticSnapshot.revision,
+        nodes: staticSnapshot.nodes.length,
+        edges: staticSnapshot.edges.length,
+        diagnostics: staticSnapshot.diagnostics.length,
+      },
+      runtime: {
+        source: "explicit-local-file",
+        artifact: "cartograph.runtime-traces",
+        schemaVersion: runtimeTrace.schemaVersion,
+        format: runtimeTrace.format,
+        digest: sha256(serializedRuntimeTrace),
+        coverage: budget.coverage,
+        redacted: true,
+      },
+      bindings: {
+        source: "explicit-local-file",
+        artifact: "RuntimeSpanBinding[]",
+        count: parsedBindings.data.length,
+        digest: sha256(stableStringify(parsedBindings.data)),
+      },
+      reconciliation,
+      uncertainty: runtimeReconciliationUncertainty(reconciliation),
+      diagnostics: runtimeReconciliationDiagnostics(
+        staticSnapshot,
+        budget.diagnostics,
+        reconciliation,
+      ),
+      limits: {
+        tracePolicy,
+        maxReportItems,
+        observed: { ...baseObserved, outputBytes },
+        bounded: true,
+      },
+      retention: {
+        mode: "discard-after-read",
+        persisted: false,
+        retainedTracesAfterRead: 0,
+        maxTraces: retentionPolicy.retention.maxTraces,
+        maxBytes: retentionPolicy.retention.maxBytes,
+      },
+    });
+  let report = createReport(0);
+  let serialized = `${serializeRuntimeReconciliationReport(report)}\n`;
+  let sizeConverged = false;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const outputBytes = Buffer.byteLength(serialized, "utf8");
+    if (outputBytes > tracePolicy.maxReportBytes) {
+      throw new ResourceLimitError(
+        `runtime reconciliation report exceeds the ${tracePolicy.maxReportBytes} byte output limit`,
+      );
+    }
+    report = createReport(outputBytes);
+    serialized = `${serializeRuntimeReconciliationReport(report)}\n`;
+    if (Buffer.byteLength(serialized, "utf8") === outputBytes) {
+      sizeConverged = true;
+      break;
+    }
+  }
+  if (!sizeConverged) {
+    throw new Error(
+      "runtime reconciliation report size did not stabilize deterministically",
+    );
+  }
+  if (Buffer.byteLength(serialized, "utf8") > tracePolicy.maxReportBytes) {
+    throw new ResourceLimitError(
+      `runtime reconciliation report exceeds the ${tracePolicy.maxReportBytes} byte output limit`,
+    );
+  }
+  return serialized;
 }
 
 export async function diffSnapshotFiles(
