@@ -1,0 +1,907 @@
+{
+  "$schema": "../../../schema/strategy-privacy-security-review.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.strategy-privacy-security-review",
+  "mediaType": "application/vnd.cartograph.strategy-privacy-security-review+json",
+  "reviewId": "strategy-privacy-security-review-v0.1",
+  "asOf": "2026-08-25T00:00:00Z",
+  "selectedBranch": {
+    "id": "oss-local-first",
+    "status": "accepted",
+    "description": "Maintain a complete local-first Apache-2.0 analyzer, report, policy, adapter, and read-only CI loop without adding a hosted or account boundary.",
+    "rationale": "The scorecard has one bounded technical observation and seven not-observed dimensions, so no evidence justifies a new hosted, team, or collection boundary.",
+    "evidenceRefs": [
+      "docs/PRODUCT.md:1-35",
+      "docs/OSS_HEALTH_SCORECARD.md:20-66",
+      "docs/adr/0007-local-first-investment-boundary.md:27-50"
+    ]
+  },
+  "decision": {
+    "id": "oss-only-no-new-boundary",
+    "hostedExpansion": "deferred",
+    "newTrustBoundaryRequired": false,
+    "rationale": "The selected OSS-only branch keeps source processing and evidence review local; a future hosted or team proposal would change authorization, retention, tenancy, incident response, and operational ownership and must pass a new public RFC and ADR.",
+    "revisitTriggers": [
+      "A public RFC proposes hosted source processing, accounts, team storage, or automatic collection.",
+      "The scorecard gains consented, reproducible privacy, security, capacity, funding, and adopter evidence for a materially different trust boundary."
+    ],
+    "evidenceRefs": [
+      "docs/adr/0007-local-first-investment-boundary.md:43-50",
+      "docs/ROADMAP.md:102-105"
+    ]
+  },
+  "scope": {
+    "network": false,
+    "sourceUpload": false,
+    "hiddenTelemetry": false,
+    "hostedService": false,
+    "accountRequired": false,
+    "multiTenantStorage": false,
+    "repositoryCodeExecution": false,
+    "collectionMode": "local-explicit-inputs-only"
+  },
+  "assets": [
+    {
+      "id": "source-input",
+      "classification": "confidential",
+      "description": "Caller-authorized repository source, configuration, package metadata, and Git history supplied to a local scan or revision comparison.",
+      "integrityControl": "Read source through the TypeScript parser and fixed Git/archive arguments; never import repository modules or run lifecycle scripts.",
+      "retention": "Source bodies remain in the caller repository or temporary revision tree and are not placed in canonical snapshots or reports.",
+      "evidenceRefs": [
+        "SECURITY.md:1-8",
+        "docs/ARCHITECTURE.md:5-18",
+        "docs/THREAT_MODEL.md:84-96"
+      ]
+    },
+    {
+      "id": "graph-diff-integrity",
+      "classification": "internal",
+      "description": "Canonical graph snapshots, evidence links, diagnostics, revision metadata, and diff classifications that reviewers rely on.",
+      "integrityControl": "Versioned schema validation, canonicalization, evidence invariants, deterministic serialization, and explicit unresolved diagnostics.",
+      "retention": "Retained only when the caller explicitly writes a local snapshot or report; no hosted history is created.",
+      "evidenceRefs": [
+        "docs/ARCHITECTURE.md:55-93",
+        "src/core/canonical.ts:1-80",
+        "src/core/diff.ts:1-80"
+      ]
+    },
+    {
+      "id": "local-files-and-worktree",
+      "classification": "confidential",
+      "description": "Files outside the selected repository and the caller's dirty worktree or Git history.",
+      "integrityControl": "Repository-relative path validation, symlink checks, read-only Git commands, isolated temporary trees, and no checkout/reset/stash/clean operations.",
+      "retention": "No outside files are intentionally read; temporary revision trees are deleted in a finally path.",
+      "evidenceRefs": [
+        "src/commands.ts:97-113",
+        "src/git/revision.ts:1-230",
+        "docs/THREAT_MODEL.md:25-30"
+      ]
+    },
+    {
+      "id": "credentials-and-tokens",
+      "classification": "confidential",
+      "description": "Developer credentials and the read-only GitHub token context available to a pull-request runner.",
+      "integrityControl": "Local analysis has no credential loader; the workflow declares contents: read, persists no checkout credentials, and passes no secrets to the Action.",
+      "retention": "Credentials are not ingested into snapshots, reports, artifacts, or telemetry.",
+      "evidenceRefs": [
+        ".github/workflows/ci.yml:11-12",
+        ".github/workflows/codeql.yml:14-30",
+        "docs/ACTION.md:1-90"
+      ]
+    },
+    {
+      "id": "reports-and-artifacts",
+      "classification": "internal",
+      "description": "Caller-selected JSON, Markdown, or self-contained HTML reports and the optional GitHub artifact copies.",
+      "integrityControl": "Escaped rendering, restrictive HTML CSP, output overwrite refusal by default, final-component no-follow open, and explicit upload opt-in.",
+      "retention": "Local retention is caller-controlled; Action artifacts default to seven days and can be disabled for sensitive repositories.",
+      "evidenceRefs": [
+        "src/cli.ts:132-138",
+        "src/report/render.ts:1-120",
+        "action.yml:25-35",
+        "action.yml:142-160"
+      ]
+    },
+    {
+      "id": "ci-availability-and-budgets",
+      "classification": "availability",
+      "description": "Local and CI CPU, memory, file-count, archive, report-size, and wall-clock budgets.",
+      "integrityControl": "Fail-closed resource ceilings, cancellation signals, workflow timeouts, and bounded report cardinality.",
+      "retention": "Budget diagnostics are emitted only to the caller's local output or workflow log.",
+      "evidenceRefs": [
+        "src/commands.ts:59-65",
+        "src/core/config.ts:1-120",
+        ".github/workflows/ci.yml:18-23",
+        "docs/THREAT_MODEL.md:31-35"
+      ]
+    },
+    {
+      "id": "release-integrity",
+      "classification": "public",
+      "description": "The integrity of source distributions, dependency resolution, pinned workflow actions, and future release metadata.",
+      "integrityControl": "Committed lockfile, lifecycle-disabled installs, pinned Actions, dependency review, CodeQL, package dry-runs, and provenance checks.",
+      "retention": "No public npm release exists yet; future artifacts must retain checksums and provenance only.",
+      "evidenceRefs": [
+        "package-lock.json:1",
+        ".github/workflows/ci.yml:46-48",
+        ".github/workflows/release.yml:1-160",
+        "docs/RELEASE.md:1-120"
+      ]
+    }
+  ],
+  "actors": [
+    {
+      "id": "local-caller",
+      "role": "Maintainer or reviewer invoking the CLI on an authorized repository.",
+      "startingAuthority": "Can read the selected input and choose local output paths under their operating-system account.",
+      "canDo": [
+        "Choose repository, refs, configuration, report format, and output path.",
+        "Read the resulting local graph, diff, policy, or runtime report."
+      ],
+      "cannotDo": [
+        "Grant CARTOGRAPH a hosted account or remote storage capability.",
+        "Make the analyzer execute repository code or silently upload source."
+      ],
+      "evidenceRefs": ["docs/PRODUCT.md:8-35", "src/cli.ts:153-235"]
+    },
+    {
+      "id": "repository-author",
+      "role": "Author of source, configuration, Git history, package metadata, or local policy supplied as input.",
+      "startingAuthority": "Controls the input content and may intentionally provide hostile syntax, refs, paths, or metadata.",
+      "canDo": [
+        "Influence parser inputs, Git refs, report text, and resource consumption within declared limits."
+      ],
+      "cannotDo": [
+        "Execute modules through the analyzer.",
+        "Escape validated roots, overwrite output by default, or turn diagnostics into canonical evidence."
+      ],
+      "evidenceRefs": [
+        "SECURITY.md:4-8",
+        "docs/THREAT_MODEL.md:23-35",
+        "test/security/offline.test.ts:1-180"
+      ]
+    },
+    {
+      "id": "fork-contributor",
+      "role": "Untrusted contributor proposing a pull request that triggers the read-only Action or CI.",
+      "startingAuthority": "Controls fork branch content and pull-request text but does not control the base repository token or secrets.",
+      "canDo": [
+        "Supply source and revision inputs to the pull-request workflow.",
+        "Cause bounded analysis failures or diagnostics."
+      ],
+      "cannotDo": [
+        "Receive secrets, write repository contents, or choose pull_request_target execution.",
+        "Make the Action upload an artifact when upload-report is false."
+      ],
+      "evidenceRefs": [
+        ".github/workflows/ci.yml:3-12",
+        "action.yml:62-77",
+        "docs/ACTION.md:22-90"
+      ]
+    },
+    {
+      "id": "github-runner",
+      "role": "Ephemeral GitHub-hosted runner executing repository CI or the composite Action.",
+      "startingAuthority": "Receives workflow source and a least-privilege read token under GitHub's runner isolation assumptions.",
+      "canDo": [
+        "Run pinned workflow steps, build the local package, and optionally upload report artifacts."
+      ],
+      "cannotDo": [
+        "Authenticate a CARTOGRAPH tenant or persist a hosted graph database.",
+        "Override local parser, path, report, or resource controls."
+      ],
+      "evidenceRefs": [
+        ".github/workflows/ci.yml:18-48",
+        "action.yml:46-61",
+        "docs/THREAT_MODEL.md:102-111"
+      ]
+    },
+    {
+      "id": "dependency-or-release-actor",
+      "role": "Maintainer, dependency publisher, or compromised package/action supply-chain participant.",
+      "startingAuthority": "May influence a reviewed dependency, pinned release process, or future artifact, subject to repository review and lockfile controls.",
+      "canDo": [
+        "Propose dependency or release changes that enter review and validation."
+      ],
+      "cannotDo": [
+        "Run install lifecycle scripts during CI's lifecycle-disabled install.",
+        "Publish a release through an unreviewed hosted service in the current scope."
+      ],
+      "evidenceRefs": [
+        ".github/workflows/ci.yml:46-48",
+        "docs/RELEASE.md:1-120",
+        "SECURITY.md:15-22"
+      ]
+    },
+    {
+      "id": "security-reporter",
+      "role": "Private reporter of a suspected vulnerability or boundary failure.",
+      "startingAuthority": "Can provide a minimal authorized fixture or redacted reproduction through the private reporting channel.",
+      "canDo": ["Request maintainer triage and coordinated remediation."],
+      "cannotDo": [
+        "Force public disclosure of secrets or source through the normal issue tracker.",
+        "Authorize a hosted or account-based product boundary."
+      ],
+      "evidenceRefs": ["SECURITY.md:10-31"]
+    }
+  ],
+  "dataFlows": [
+    {
+      "id": "local-source-to-analyzer",
+      "from": "local-caller and repository-author input",
+      "to": "TypeScript loader and bounded extractors",
+      "data": "Source text, compiler configuration, package metadata, and parser-visible syntax.",
+      "purpose": "Build a canonical local graph snapshot.",
+      "network": false,
+      "storage": "bounded-memory",
+      "retention": "Source bodies are not serialized; only normalized relative evidence, hashes, nodes, edges, and diagnostics survive.",
+      "authorization": "The operating-system caller must already be authorized to read the repository.",
+      "controls": [
+        "Parser-only loading without imports or lifecycle execution.",
+        "Root-relative config and source selection.",
+        "Resource ceilings fail closed before partial output."
+      ],
+      "evidenceRefs": [
+        "src/commands.ts:144-163",
+        "docs/ARCHITECTURE.md:45-54",
+        "docs/THREAT_MODEL.md:84-96"
+      ]
+    },
+    {
+      "id": "git-to-temporary-revision",
+      "from": "local Git repository and caller-supplied refs",
+      "to": "fixed Git/archive subprocesses and isolated temporary tree",
+      "data": "Validated commit IDs, tree contents, path history, and bounded archive bytes.",
+      "purpose": "Compare exact revisions without changing the caller worktree.",
+      "network": false,
+      "storage": "ephemeral",
+      "retention": "Materialized trees and partial archives are removed in a finally path after the comparison.",
+      "authorization": "No remote fetch; the caller authorizes local Git read access.",
+      "controls": [
+        "Argument-array subprocesses with no shell.",
+        "Ref and merge-base validation.",
+        "Archive, extracted-tree, memory, and wall-clock ceilings."
+      ],
+      "evidenceRefs": [
+        "src/git/revision.ts:1-230",
+        "src/commands.ts:232-264",
+        "docs/ARCHITECTURE.md:124-141"
+      ]
+    },
+    {
+      "id": "graph-to-local-report",
+      "from": "canonical graph snapshot or diff",
+      "to": "caller-selected JSON, Markdown, or self-contained HTML output",
+      "data": "Versioned graph/diff records, relative evidence, diagnostics, and optional policy/ADR context.",
+      "purpose": "Provide reviewable local evidence without source bodies or remote assets.",
+      "network": false,
+      "storage": "caller-selected-local",
+      "retention": "The caller controls the output file; overwrite and symlink checks apply before writing.",
+      "authorization": "The caller chooses the output path and must authorize any --force replacement.",
+      "controls": [
+        "Escaped renderer output and restrictive HTML CSP.",
+        "No remote scripts, styles, fonts, or requests.",
+        "Report item and byte ceilings."
+      ],
+      "evidenceRefs": [
+        "src/cli.ts:132-138",
+        "src/report/render.ts:1-120",
+        "docs/ARCHITECTURE.md:114-122"
+      ]
+    },
+    {
+      "id": "pull-request-to-read-only-action",
+      "from": "fork pull request and explicit base/head inputs",
+      "to": "GitHub runner, local CARTOGRAPH build, and optional artifact store",
+      "data": "Repository revisions, graph/diff JSON and HTML, policy result, and step summary.",
+      "purpose": "Run an architecture diff in CI without write authority or source upload to CARTOGRAPH.",
+      "network": true,
+      "storage": "github-artifact",
+      "retention": "Artifact upload is opt-in, defaults to seven days, and can be disabled for sensitive repositories; runner temp files are ephemeral.",
+      "authorization": "GitHub supplies contents: read under pull_request; the composite Action receives no secrets.",
+      "controls": [
+        "Pinned checkout/setup/upload actions.",
+        "persist-credentials: false in CI.",
+        "No pull_request_target and no workflow write permission."
+      ],
+      "evidenceRefs": [
+        ".github/workflows/ci.yml:3-48",
+        "action.yml:46-77",
+        "action.yml:142-160",
+        "docs/ACTION.md:22-90"
+      ]
+    },
+    {
+      "id": "local-policy-to-evaluator",
+      "from": "repository-relative local policy JSON",
+      "to": "data-only policy evaluator and optional Action exit status",
+      "data": "Bounded selectors, modes, exception metadata, and diff references.",
+      "purpose": "Report informational or enforcing architecture constraints without remote policy resolution.",
+      "network": false,
+      "storage": "bounded-memory",
+      "retention": "Policy input and result remain local or in the optional CI artifact selected by the caller.",
+      "authorization": "The caller explicitly supplies the repository-relative policy path; no policy file grants authority.",
+      "controls": [
+        "JSON-only local reader.",
+        "No commands, plugins, remote fetches, or authority escalation.",
+        "Stable exit codes and malformed-input failure."
+      ],
+      "evidenceRefs": [
+        "docs/ARCHITECTURE.md:25-43",
+        "src/core/policy.ts:1-160",
+        "action.yml:37-44",
+        "action.yml:121-140"
+      ]
+    },
+    {
+      "id": "local-trace-to-reconciliation",
+      "from": "explicit local GraphSnapshot, OTLP JSON, and span bindings",
+      "to": "inert normalizer, bounded retention store, and local reconciliation report",
+      "data": "Allowlisted trace identity and timing fields plus static/runtime classifications; arbitrary attributes and payloads are discarded.",
+      "purpose": "Optional local experiment that compares declared runtime observations with static edges.",
+      "network": false,
+      "storage": "bounded-memory",
+      "retention": "Count, byte, time, and discard-after-read controls prevent implicit history; no collector or hosted retention exists.",
+      "authorization": "The caller must provide all three local files; no listener, upload, or background process is started.",
+      "controls": [
+        "Schema validation and explicit field-level redaction.",
+        "Fail-closed input and report budgets.",
+        "Uncertainty and provenance remain separate from static evidence."
+      ],
+      "evidenceRefs": [
+        "src/cli.ts:238-300",
+        "src/core/runtime-traces.ts:1-180",
+        "src/core/runtime-trace-safety.ts:1-180",
+        "docs/RUNTIME_TRACE_SAFETY.md:1-120"
+      ]
+    },
+    {
+      "id": "release-input-to-artifact",
+      "from": "reviewed source, lockfile, dependencies, and release configuration",
+      "to": "local package rehearsal and future scoped release artifact",
+      "data": "Build output, package manifest, checksums, SBOM/provenance metadata, and compatibility record.",
+      "purpose": "Preserve reproducible distribution integrity without a current public release.",
+      "network": true,
+      "storage": "public-release",
+      "retention": "No public package is released in this strategy branch; a future release retains artifact integrity metadata, not source inputs or telemetry.",
+      "authorization": "Release publication remains an explicit maintainer operation outside the local analyzer's authority.",
+      "controls": [
+        "Lifecycle-disabled install and lockfile.",
+        "Pinned workflow actions, dependency review, CodeQL, package contents checks, and provenance.",
+        "No automatic publish path in the current product."
+      ],
+      "evidenceRefs": [
+        ".github/workflows/ci.yml:46-48",
+        ".github/workflows/release.yml:1-160",
+        "docs/RELEASE.md:1-120"
+      ]
+    }
+  ],
+  "tenancyAuthorization": {
+    "multiTenant": false,
+    "accountRequired": false,
+    "authModel": "none-local-caller-authorized",
+    "actionPermission": "contents-read-only",
+    "secretsAvailable": false,
+    "sourceUpload": false,
+    "operatorObligation": "The caller must authorize repository reads, choose safe output locations, and treat reports as local artifacts; CARTOGRAPH does not authenticate callers or establish tenant isolation.",
+    "evidenceRefs": [
+      "docs/PRODUCT.md:8-35",
+      "SECURITY.md:1-8",
+      ".github/workflows/ci.yml:11-12",
+      "docs/ACTION.md:22-90"
+    ]
+  },
+  "retention": [
+    {
+      "id": "source-retention",
+      "state": "ephemeral",
+      "rule": "Do not copy source bodies into graph snapshots, reports, fixtures, scorecards, or telemetry.",
+      "deletionOwner": "Analyzer process and caller-managed repository permissions.",
+      "evidenceRefs": [
+        "docs/ARCHITECTURE.md:45-54",
+        "docs/THREAT_MODEL.md:84-96"
+      ]
+    },
+    {
+      "id": "revision-tree-retention",
+      "state": "ephemeral",
+      "rule": "Delete materialized revision trees and partial archives after success or failure.",
+      "deletionOwner": "Revision materialization finally path.",
+      "evidenceRefs": [
+        "src/git/revision.ts:1-230",
+        "docs/ARCHITECTURE.md:124-141"
+      ]
+    },
+    {
+      "id": "local-output-retention",
+      "state": "caller-controlled",
+      "rule": "Retain a snapshot, diff, policy result, or report only when the caller explicitly writes it to a local path.",
+      "deletionOwner": "Local caller or repository workflow owner.",
+      "evidenceRefs": ["src/cli.ts:132-138", "SECURITY.md:42-46"]
+    },
+    {
+      "id": "github-artifact-retention",
+      "state": "short-lived-public-artifact",
+      "rule": "When upload-report is true, GitHub retains JSON/HTML reports for the configured one-to-ninety-day window; sensitive repositories can disable upload.",
+      "deletionOwner": "GitHub workflow owner and GitHub artifact retention control.",
+      "evidenceRefs": ["action.yml:25-35", "action.yml:142-160"]
+    },
+    {
+      "id": "runtime-trace-retention",
+      "state": "bounded-memory",
+      "rule": "Optional runtime inputs are normalized, redacted, bounded by count/bytes/time, and explicitly discardable; no implicit history is retained.",
+      "deletionOwner": "Local runtime reconciliation caller.",
+      "evidenceRefs": [
+        "src/core/runtime-trace-safety.ts:1-180",
+        "docs/RUNTIME_TRACE_SAFETY.md:1-120"
+      ]
+    },
+    {
+      "id": "workflow-log-retention",
+      "state": "caller-controlled",
+      "rule": "Diagnostics and summaries follow the local terminal or GitHub workflow-log retention chosen by the caller; they are not copied to a CARTOGRAPH service.",
+      "deletionOwner": "Local operator or GitHub repository owner.",
+      "evidenceRefs": [
+        "src/cli-errors.ts:1-150",
+        "action.yml:133-140",
+        "SECURITY.md:1-8"
+      ]
+    },
+    {
+      "id": "telemetry-retention",
+      "state": "not-collected",
+      "rule": "Do not collect hidden usage, source, account, retention, or background telemetry in the selected branch.",
+      "deletionOwner": "Not applicable because the collection is rejected.",
+      "evidenceRefs": [
+        "docs/OSS_HEALTH_SCORECARD.md:49-66",
+        "docs/adr/0007-local-first-investment-boundary.md:27-41"
+      ]
+    }
+  ],
+  "resolvedQuestions": [
+    {
+      "id": "diff-wall-clock-aggregation",
+      "question": "Does maxWallClockMs govern all Git work in a revision diff?",
+      "resolution": "No. It reaches materialization and analyzer resource options, while revision comparison and path-history calls receive only the cancellation signal and use the fixed subprocess timeout.",
+      "status": "gap-remains",
+      "evidenceRefs": ["src/commands.ts:237-263", "src/git/revision.ts:205-208"]
+    },
+    {
+      "id": "diff-report-cardinality",
+      "question": "Does maxReportItems cap every graph snapshot before a revision diff?",
+      "resolution": "No. Working-tree scan and final rendering assert limits, but materialized snapshots and the input schema do not apply the same cardinality assertion before diffing.",
+      "status": "gap-remains",
+      "evidenceRefs": [
+        "src/commands.ts:144-200",
+        "src/analyzers/typescript.ts:3425-3478",
+        "src/core/schemas.ts:418-430"
+      ]
+    },
+    {
+      "id": "snapshot-memory-budget",
+      "question": "Are hostile diff-snapshot files bounded by memory, time, and cancellation budgets before parsing?",
+      "resolution": "No. Two files are read concurrently with a 64 MiB input limit and renderer limits, but no explicit memory or analysis-time budget surrounds schema parsing and traversal.",
+      "status": "gap-remains",
+      "evidenceRefs": [
+        "src/commands.ts:804-815",
+        "src/core/schemas.ts:418-430",
+        "src/report/render.ts:16-81"
+      ]
+    },
+    {
+      "id": "action-root-and-config",
+      "question": "Does the composite Action enforce its documented repository-relative root and honor repository resource configuration?",
+      "resolution": "No. The Action passes the root input to diff without checking containment under GITHUB_WORKSPACE and exposes no config input, so the documented root-relative contract and repository resource settings remain consumer assumptions.",
+      "status": "gap-remains",
+      "evidenceRefs": [
+        "action.yml:8-12",
+        "action.yml:65-68",
+        "action.yml:114-120",
+        "docs/ACTION.md:44-67"
+      ]
+    },
+    {
+      "id": "runtime-core-vs-cli-ceilings",
+      "question": "Are runtime trace limits identical for CLI and library callers?",
+      "resolution": "No. The core policy permits up to 1 GiB input and has no explicit memory ceiling, while the CLI hard-validates a 64 MiB input ceiling; library callers remain a trusted boundary until the contracts converge.",
+      "status": "gap-remains",
+      "evidenceRefs": [
+        "src/cli.ts:241-280",
+        "src/core/runtime-trace-budgets.ts:29-70",
+        "src/core/runtime-trace-safety.ts:241-347"
+      ]
+    },
+    {
+      "id": "adapter-isolation-selection",
+      "question": "Is isolation automatic for every third-party adapter call?",
+      "resolution": "No. In-process runAdapter and isolated runAdapterIsolated are separate APIs; callers must select the permissioned child-process path for untrusted third-party adapters.",
+      "status": "gap-remains",
+      "evidenceRefs": [
+        "src/core/adapters.ts:463-516",
+        "src/core/adapter-isolation.ts:347-395",
+        "docs/ADAPTERS.md:83-101"
+      ]
+    },
+    {
+      "id": "release-privilege-assumption",
+      "question": "What assumptions protect the privileged release workflow?",
+      "resolution": "The tag-triggered job intentionally grants contents, identity-token, and attestation write permissions; protected tags/main, trusted dependencies, and pinned actions must remain enforced before any public release.",
+      "status": "gap-remains",
+      "evidenceRefs": [
+        ".github/workflows/release.yml:15-23",
+        ".github/workflows/release.yml:63-117",
+        "docs/RELEASE.md:22-49"
+      ]
+    }
+  ],
+  "incidentResponse": {
+    "reporting": "Use private GitHub vulnerability reporting when enabled or contact the maintainer privately; never place secrets or proprietary source in a public issue.",
+    "detection": "Reproduce with a minimal authorized or redacted fixture, the affected command/ref/configuration, and the local test or workflow evidence; absence of telemetry is intentional.",
+    "containment": "Disable the affected local command or Action upload, preserve the exact revision and redacted evidence, rotate any external token through its owner, and block a release until the boundary is reviewed.",
+    "disclosure": "Coordinate a practical disclosure and remediation plan privately; the unreleased project makes no fixed response-time or release-time promise.",
+    "evidenceRefs": [
+      "SECURITY.md:10-31",
+      "SECURITY.md:48-54",
+      "docs/MAINTENANCE.md:1-120"
+    ]
+  },
+  "supplyChain": {
+    "installScriptsExecuted": false,
+    "actionsPinned": true,
+    "lockfileRequired": true,
+    "dependencyReview": true,
+    "codeql": true,
+    "provenance": true,
+    "releaseStatus": "no-public-release-yet",
+    "residual": "The compiler and npm dependency chain remain trusted dependencies; every future release or new adapter needs refreshed dependency, workflow, and ownership review.",
+    "evidenceRefs": [
+      "package-lock.json:1",
+      ".github/workflows/ci.yml:34-48",
+      ".github/workflows/codeql.yml:36-50",
+      "docs/RELEASE.md:1-120",
+      "docs/THREAT_MODEL.md:98-111"
+    ]
+  },
+  "abuseCases": [
+    {
+      "id": "repository-code-execution",
+      "attacker": "Repository author supplying hostile TypeScript, package metadata, or lifecycle scripts.",
+      "entryPoint": "Local scan, TypeScript project loading, or dependency directory in the selected root.",
+      "capabilityGain": "If parser-only analysis imported or executed input, the attacker could run code with the caller or CI runner authority.",
+      "impact": "Credential theft, local file disclosure, worktree tampering, or runner compromise.",
+      "controls": [
+        "Parser APIs read syntax without importing modules.",
+        "CI installs with --ignore-scripts.",
+        "Negative offline fixtures assert no marker write or fetch."
+      ],
+      "mitigation": "Keep the execution boundary enforced and require a new review for plugins, builds, or automatic binding.",
+      "status": "blocked",
+      "evidenceRefs": [
+        "docs/THREAT_MODEL.md:23-35",
+        "test/security/offline.test.ts:1-180",
+        ".github/workflows/ci.yml:46-48"
+      ]
+    },
+    {
+      "id": "repository-path-escape",
+      "attacker": "Repository author controlling config paths, extends references, package maps, or symlinked files.",
+      "entryPoint": "Root-relative config and TypeScript project resolution.",
+      "capabilityGain": "A path-validation failure could read files outside the selected repository or temporary root.",
+      "impact": "Disclosure of local source, credentials, or unrelated workspace data.",
+      "controls": [
+        "Realpath containment checks.",
+        "Repository-relative schema paths.",
+        "Symlink and out-of-root project rejection."
+      ],
+      "mitigation": "Preserve containment tests and review every new path-consuming adapter or exporter.",
+      "status": "blocked",
+      "evidenceRefs": [
+        "src/commands.ts:97-113",
+        "src/analyzers/typescript/index.ts:1-220",
+        "docs/THREAT_MODEL.md:25-27"
+      ]
+    },
+    {
+      "id": "unsafe-git-ref",
+      "attacker": "Repository author or fork contributor supplying an injection-shaped Git ref.",
+      "entryPoint": "Revision comparison and archive subprocess arguments.",
+      "capabilityGain": "If refs reached a shell or unsafe Git invocation, the attacker could execute commands or alter analysis targets.",
+      "impact": "Command execution, wrong-revision evidence, or worktree damage.",
+      "controls": [
+        "Fixed binaries and argument arrays with no shell.",
+        "Ref verification and exact commit resolution.",
+        "No fetch or worktree mutation."
+      ],
+      "mitigation": "Keep the Git boundary read-only and fail closed for shallow, unrelated, or ambiguous histories.",
+      "status": "blocked",
+      "evidenceRefs": [
+        "src/git/revision.ts:1-230",
+        "docs/ARCHITECTURE.md:124-141",
+        "test/security/git-arguments.test.ts:1-180"
+      ]
+    },
+    {
+      "id": "output-overwrite-or-symlink",
+      "attacker": "Local caller, hostile repository path, or concurrent filesystem actor controlling an output location.",
+      "entryPoint": "--output/--force report and snapshot writing.",
+      "capabilityGain": "A write-path failure could overwrite a user file or follow a symlink into a protected location.",
+      "impact": "Local data loss or disclosure.",
+      "controls": [
+        "Overwrite refusal without --force.",
+        "Final and parent symlink preflight.",
+        "Final-component no-follow open and private file permissions."
+      ],
+      "mitigation": "Retain the documented race limitation and do not claim concurrent filesystem changes are fully prevented.",
+      "status": "accepted-residual",
+      "evidenceRefs": [
+        "src/commands.ts:600-760",
+        "SECURITY.md:42-46",
+        "test/security/output-path.test.ts:1-220"
+      ]
+    },
+    {
+      "id": "resource-exhaustion",
+      "attacker": "Repository author supplying oversized, recursive, ambiguous, or high-cardinality input.",
+      "entryPoint": "Source scan, Git archive, runtime trace import, policy evaluation, or report rendering.",
+      "capabilityGain": "A missing budget could consume unbounded CPU, memory, disk, or CI time.",
+      "impact": "Local denial of service or exhausted shared runner capacity.",
+      "controls": [
+        "Source, archive, extracted-tree, memory, report, and wall-clock ceilings.",
+        "Cancellation and cleanup in finally paths.",
+        "CI timeout."
+      ],
+      "mitigation": "Keep each new adapter and report surface within the declared ceilings and add a bounded regression fixture before expansion.",
+      "status": "blocked",
+      "evidenceRefs": [
+        "src/commands.ts:59-65",
+        "src/core/runtime-trace-budgets.ts:1-180",
+        ".github/workflows/ci.yml:18-23",
+        "docs/THREAT_MODEL.md:31-35"
+      ]
+    },
+    {
+      "id": "report-markup-injection",
+      "attacker": "Repository author controlling names, diagnostics, evidence labels, or policy text.",
+      "entryPoint": "Markdown or self-contained HTML report rendering.",
+      "capabilityGain": "An escaping failure could execute markup or request remote resources in a reviewer's browser.",
+      "impact": "Local disclosure, phishing, or script execution in the report context.",
+      "controls": [
+        "Escape repository-controlled text.",
+        "No repository-provided HTML or remote assets.",
+        "Restrictive HTML CSP and static report tests."
+      ],
+      "mitigation": "Treat any new renderer or report embedding as a separate security review.",
+      "status": "blocked",
+      "evidenceRefs": [
+        "src/report/render.ts:1-120",
+        "docs/THREAT_MODEL.md:30-35",
+        "test/security/report-output.test.ts:1-220"
+      ]
+    },
+    {
+      "id": "fork-token-exposure",
+      "attacker": "Untrusted fork contributor modifying source or workflow-adjacent inputs in a pull request.",
+      "entryPoint": "pull_request CI and the composite Action.",
+      "capabilityGain": "A workflow permission or event mistake could expose a token or permit repository writes.",
+      "impact": "Repository mutation, secret theft, or supply-chain compromise.",
+      "controls": [
+        "pull_request event, contents: read, no secrets, persist-credentials: false, pinned actions, and no pull_request_target."
+      ],
+      "mitigation": "Re-run the fork smoke and workflow policy tests for every permission or event change.",
+      "status": "blocked",
+      "evidenceRefs": [
+        ".github/workflows/ci.yml:3-48",
+        "action.yml:46-77",
+        "test/security/workflow-policy.test.ts:1-220",
+        "docs/THREAT_MODEL.md:33-35"
+      ]
+    },
+    {
+      "id": "dependency-or-release-compromise",
+      "attacker": "Compromised dependency, action ref, maintainer credential, or future package publication path.",
+      "entryPoint": "Install, build, workflow action, package rehearsal, or release publication.",
+      "capabilityGain": "A supply-chain compromise could alter the analyzer or distribute a malicious artifact.",
+      "impact": "Developer or CI compromise and integrity loss for graph evidence.",
+      "controls": [
+        "Lockfile, lifecycle-disabled install, pinned actions, dependency review, CodeQL, package contents checks, and provenance."
+      ],
+      "mitigation": "Require a release-specific dependency, signing, identity, and incident-response review before any public package or hosted worker.",
+      "status": "required-before-expansion",
+      "evidenceRefs": [
+        ".github/workflows/ci.yml:34-48",
+        ".github/workflows/codeql.yml:36-50",
+        "docs/RELEASE.md:1-120",
+        "docs/THREAT_MODEL.md:34-35"
+      ]
+    },
+    {
+      "id": "optional-trace-disclosure",
+      "attacker": "Local input author supplying malicious OTLP records or sensitive free-text attributes.",
+      "entryPoint": "Explicit reconcile-runtime local files.",
+      "capabilityGain": "A normalization or retention failure could expose source, credentials, or personal data in a report or long-lived history.",
+      "impact": "Sensitive-data disclosure or misleading runtime evidence.",
+      "controls": [
+        "No collector or listener.",
+        "Allowlisted fields, redaction, count/byte/time bounds, explicit discard, and uncertainty labels."
+      ],
+      "mitigation": "Keep runtime reconciliation outside the default CLI/report loop until the trace safety and retention gates are re-reviewed.",
+      "status": "required-before-expansion",
+      "evidenceRefs": [
+        "src/core/runtime-trace-safety.ts:1-180",
+        "docs/RUNTIME_TRACE_SAFETY.md:1-120",
+        "docs/THREAT_MODEL.md:37-60"
+      ]
+    }
+  ],
+  "blockingMitigations": [
+    {
+      "id": "offline-parser-boundary",
+      "requirement": "Repository source, configuration, and traces remain inert local data; no imports, lifecycle scripts, plugins, collectors, or hidden network requests run.",
+      "status": "enforced",
+      "blockingReason": "Breaking this boundary would grant repository-controlled code or data a new caller or runner capability.",
+      "evidenceRefs": [
+        "docs/THREAT_MODEL.md:84-96",
+        "test/security/offline.test.ts:1-180"
+      ]
+    },
+    {
+      "id": "path-containment-and-nofollow",
+      "requirement": "Validate repository-relative paths and reject traversal, archived symlinks, output symlinks, and unsafe parents before writing.",
+      "status": "enforced",
+      "blockingReason": "Path escape or unsafe output could disclose or destroy files outside the selected local boundary.",
+      "evidenceRefs": [
+        "src/commands.ts:97-113",
+        "SECURITY.md:42-46",
+        "test/security/output-path.test.ts:1-220"
+      ]
+    },
+    {
+      "id": "read-only-git-boundary",
+      "requirement": "Resolve refs locally with fixed argument arrays, materialize isolated trees, and never mutate the caller worktree.",
+      "status": "enforced",
+      "blockingReason": "Git argument or worktree mutation would turn untrusted history into command or data-loss authority.",
+      "evidenceRefs": [
+        "src/git/revision.ts:1-230",
+        "test/security/git-arguments.test.ts:1-180"
+      ]
+    },
+    {
+      "id": "resource-and-cancellation-budgets",
+      "requirement": "Preserve source, archive, memory, report, trace, and wall-clock ceilings with cleanup on cancellation or failure.",
+      "status": "enforced",
+      "blockingReason": "An unbounded local or CI workload could deny service to the caller or shared runner.",
+      "evidenceRefs": [
+        "src/commands.ts:59-65",
+        "src/core/runtime-trace-budgets.ts:1-180",
+        "docs/THREAT_MODEL.md:31-35"
+      ]
+    },
+    {
+      "id": "escaped-static-reports",
+      "requirement": "Reports contain escaped local evidence only, no source bodies or absolute paths, no remote assets, and a restrictive CSP.",
+      "status": "enforced",
+      "blockingReason": "A report is opened by a reviewer and must not become a browser execution or disclosure boundary.",
+      "evidenceRefs": [
+        "src/report/render.ts:1-120",
+        "docs/THREAT_MODEL.md:30-33",
+        "test/security/report-output.test.ts:1-220"
+      ]
+    },
+    {
+      "id": "fork-safe-read-only-ci",
+      "requirement": "Fork pull requests run under pull_request with contents: read, no secrets, pinned actions, and no write-capable target event.",
+      "status": "enforced",
+      "blockingReason": "A workflow permission mistake could grant untrusted fork content repository or secret authority.",
+      "evidenceRefs": [
+        ".github/workflows/ci.yml:3-48",
+        "action.yml:46-77",
+        "test/security/workflow-policy.test.ts:1-220"
+      ]
+    },
+    {
+      "id": "expansion-review-gate",
+      "requirement": "Any hosted, account, team, automatic-binding, or provider expansion requires a public RFC, refreshed evidence, privacy/security review, cost model, claims audit, capacity charter, and separate ADR.",
+      "status": "required-before-expansion",
+      "blockingReason": "A new trust boundary would introduce authorization, tenancy, retention, incident-response, and operational ownership that local-only controls do not cover.",
+      "evidenceRefs": [
+        "docs/adr/0007-local-first-investment-boundary.md:43-50",
+        "docs/ROADMAP.md:102-105"
+      ]
+    }
+  ],
+  "rejectedDataCollection": [
+    {
+      "id": "hosted-source-copy",
+      "item": "Uploading repository source, graph snapshots, or raw issue bodies to a hosted service.",
+      "rationale": "The local loop is complete without source transfer, and proprietary architecture input cannot be made a prerequisite for use.",
+      "evidenceRefs": [
+        "docs/PRODUCT.md:29-35",
+        "docs/OSS_HEALTH_SCORECARD.md:49-66"
+      ]
+    },
+    {
+      "id": "required-account",
+      "item": "Requiring an account, tenant, workspace, or organizational history service.",
+      "rationale": "No supported product operation needs identity or multi-tenant storage; adding it now would create an unearned authorization boundary.",
+      "evidenceRefs": [
+        "docs/PRODUCT.md:29-35",
+        "docs/adr/0007-local-first-investment-boundary.md:27-41"
+      ]
+    },
+    {
+      "id": "hidden-telemetry",
+      "item": "Background usage telemetry, source collection, retention measurement, or silent network requests.",
+      "rationale": "The scorecard and feedback contracts require manual public or consented aggregate evidence and prohibit private telemetry.",
+      "evidenceRefs": [
+        "docs/OSS_HEALTH_SCORECARD.md:49-66",
+        "docs/COMMUNITY_FEEDBACK.md:70-120"
+      ]
+    },
+    {
+      "id": "automatic-runtime-collector",
+      "item": "An OTLP listener, automatic trace collector, or implicit runtime history store.",
+      "rationale": "Runtime reconciliation is an explicit local experiment with bounded input and no collector; automatic binding remains outside the product boundary.",
+      "evidenceRefs": [
+        "docs/THREAT_MODEL.md:37-60",
+        "docs/RUNTIME_TRACE_SAFETY.md:1-120"
+      ]
+    },
+    {
+      "id": "provider-source-routing",
+      "item": "Sending source, issue text, credentials, or uncertain fields to a model provider or other external processor.",
+      "rationale": "The provider boundary is design-only and disabled; a future adapter needs consent, allowlists, retention/deletion controls, and independent red-team review.",
+      "evidenceRefs": [
+        "docs/MODEL_PROVIDER_PRIVACY.md:1-130",
+        "scripts/model-provider-privacy.mjs:1-220"
+      ]
+    }
+  ],
+  "residualRisks": [
+    {
+      "id": "dynamic-language-incompleteness",
+      "risk": "Static analysis can miss dynamic JavaScript behavior and therefore cannot prove complete architectural truth.",
+      "impact": "A reviewer may under-estimate an unmodeled relationship if diagnostics and limitations are ignored.",
+      "owner": "Maintainer and reviewer.",
+      "treatment": "Keep unknowns and confidence visible, preserve unsupported diagnostics, and do not convert missing evidence into a claim.",
+      "evidenceRefs": ["docs/PRODUCT.md:35-52", "docs/THREAT_MODEL.md:98-100"]
+    },
+    {
+      "id": "trusted-dependency-chain",
+      "risk": "The TypeScript compiler, ts-morph, npm dependencies, and GitHub runner remain trusted computing dependencies.",
+      "impact": "A compromised dependency or runner could alter analysis or expose caller data within its existing authority.",
+      "owner": "Maintainer and release owner.",
+      "treatment": "Keep lockfile, dependency review, pinned Actions, CodeQL, lifecycle-disabled installs, provenance, and release review current.",
+      "evidenceRefs": ["docs/THREAT_MODEL.md:98-111", "docs/RELEASE.md:1-120"]
+    },
+    {
+      "id": "concurrent-filesystem-race",
+      "risk": "Output preflight and final-component no-follow semantics do not claim race-free protection from concurrent filesystem changes.",
+      "impact": "A concurrent local actor could still change a path after preflight and before a write.",
+      "owner": "Local caller and operating system.",
+      "treatment": "Keep the race limitation explicit; use trusted output directories and avoid treating the CLI as a hostile multi-process file server.",
+      "evidenceRefs": ["SECURITY.md:42-46", "docs/THREAT_MODEL.md:27"]
+    },
+    {
+      "id": "runner-boundary",
+      "risk": "The read-only Action still executes on a GitHub-hosted runner whose isolation and artifact controls are external assumptions.",
+      "impact": "A runner or artifact-service compromise could expose the inputs or reports already available to that workflow.",
+      "owner": "GitHub workflow owner and GitHub service.",
+      "treatment": "Keep permissions minimal, uploads opt-in and short-lived, and local execution the complete product path; review any hosted expansion separately.",
+      "evidenceRefs": [
+        "action.yml:25-35",
+        "action.yml:142-160",
+        "docs/ACTION.md:22-90"
+      ]
+    }
+  ],
+  "provenance": {
+    "source": "CARTOGRAPH repository-authored strategy privacy and security review fixture",
+    "license": "Apache-2.0",
+    "reference": "M-009 strategy-branch privacy and security review; F-002 threat model; M-005 scorecard; M-006 ADR",
+    "transformation": "The fixture turns the supported local CLI, read-only Action, optional local trace experiment, release controls, and explicit rejected collection into a digestable public review without source bodies, secrets, private records, or telemetry.",
+    "sourceBodiesIncluded": false,
+    "secretsIncluded": false,
+    "redistribution": "allowed"
+  }
+}
