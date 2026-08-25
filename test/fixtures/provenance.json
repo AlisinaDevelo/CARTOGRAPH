@@ -191,6 +191,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "oss-health-scorecard",
+      "path": "oss-health",
+      "source": "CARTOGRAPH repository-authored OSS health scorecard fixture",
+      "license": "Apache-2.0",
+      "reference": "M-005 public OSS health and traction scorecard issue; R-005 compatibility review",
+      "transformation": "The scorecard aggregates public compatibility outcomes and declares unobserved dimensions without retaining third-party source bodies, graph snapshots, private records, or telemetry.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "review-regressions",
       "path": "review-regressions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

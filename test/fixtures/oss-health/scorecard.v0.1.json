@@ -1,0 +1,289 @@
+{
+  "$schema": "../../../schema/oss-health-scorecard.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.oss-health-scorecard",
+  "mediaType": "application/vnd.cartograph.oss-health-scorecard+json",
+  "scorecardId": "oss-health-scorecard-v0.1",
+  "asOf": "2026-08-25T00:00:00Z",
+  "window": {
+    "kind": "snapshot",
+    "start": "2026-08-23T00:00:00Z",
+    "end": "2026-08-25T00:00:00Z",
+    "timezone": "UTC"
+  },
+  "scope": {
+    "publicOnly": true,
+    "network": false,
+    "hiddenTelemetry": false,
+    "sourcePayloads": false,
+    "personalData": false,
+    "collectionMode": "manual-public-evidence",
+    "retention": "summary-only",
+    "allowedSources": [
+      "public-report",
+      "public-issue",
+      "public-pr",
+      "public-discussion",
+      "release-artifact",
+      "security-advisory",
+      "maintainer-review"
+    ]
+  },
+  "dimensions": [
+    {
+      "id": "external-repository-runs",
+      "label": "Successful external repository runs",
+      "description": "Public or explicitly authorized repository runs that complete within a declared boundary and retain aggregate evidence only.",
+      "unit": "repositories",
+      "collectionRule": "Count each repository and revision once; retain both successful runs and bounded failures so the denominator cannot be inflated."
+    },
+    {
+      "id": "repeat-non-maintainer-contributors",
+      "label": "Repeat non-maintainer contributors",
+      "description": "Contributors outside the maintainer group who make at least two accepted public contributions in the declared window.",
+      "unit": "contributors",
+      "collectionRule": "Count only consented public contribution records; do not infer identity from private telemetry, downloads, or account activity."
+    },
+    {
+      "id": "release-stability",
+      "label": "Release stability",
+      "description": "Reproducible release and rollback outcomes for public tagged artifacts.",
+      "unit": "releases",
+      "collectionRule": "Count only published or explicitly rehearsed release artifacts with checksums, install smoke tests, and rollback evidence."
+    },
+    {
+      "id": "issue-quality",
+      "label": "Issue quality",
+      "description": "Public reports that contain a reproducible boundary, useful evidence, and an explicit disposition.",
+      "unit": "issues",
+      "collectionRule": "Sample public issues with a declared rubric; do not use issue volume, stars, or views as quality proxies."
+    },
+    {
+      "id": "maintainer-load",
+      "label": "Maintainer load",
+      "description": "Consent-based effort and support burden needed to review, release, secure, and maintain the project.",
+      "unit": "maintainer-hours",
+      "collectionRule": "Record manually supplied aggregate ranges and assumptions; never infer hours from presence, timestamps, or background activity."
+    },
+    {
+      "id": "security-history",
+      "label": "Security history",
+      "description": "Publicly disclosed security findings, response state, and recurring boundary failures.",
+      "unit": "incidents",
+      "collectionRule": "Use public advisories and reviewed security records; do not scan private repositories or turn absence of a report into a zero-risk claim."
+    },
+    {
+      "id": "retention-feedback",
+      "label": "Retention or feedback",
+      "description": "Consented follow-up evidence that a non-maintainer found the workflow useful and returned or provided structured feedback.",
+      "unit": "feedback-records",
+      "collectionRule": "Retain only anonymized public or explicitly authorized summaries with consent, evidence, privacy review, and a backlog decision."
+    },
+    {
+      "id": "adopter-feedback",
+      "label": "Adopter feedback coverage",
+      "description": "External adopter evaluations that distinguish confirmed value, unsupported behavior, and unresolved limitations.",
+      "unit": "feedback-records",
+      "collectionRule": "Count only the public, consented, anonymized records defined by the community feedback contract; a missing record is not a zero-value claim."
+    }
+  ],
+  "observations": [
+    {
+      "id": "external-repository-runs-2026-08-25",
+      "dimensionId": "external-repository-runs",
+      "status": "observed",
+      "unit": "repositories",
+      "value": 3,
+      "denominator": 5,
+      "evidenceRefs": ["docs/COMPATIBILITY_REVIEW.md", "R-005"],
+      "limitations": [
+        "This five-repository compatibility sample is not representative of the TypeScript ecosystem.",
+        "The three successful runs and two bounded failures are compatibility observations, not population-wide precision, recall, or adoption claims."
+      ],
+      "records": [
+        {
+          "repositoryId": "honojs/hono",
+          "repositoryUrl": "https://github.com/honojs/hono",
+          "revision": "017000d",
+          "outcome": "successful",
+          "evidenceRef": "docs/COMPATIBILITY_REVIEW.md",
+          "authorization": "public",
+          "sourceBodiesCopied": false,
+          "graphSnapshotsRetained": false
+        },
+        {
+          "repositoryId": "microsoft/tsyringe",
+          "repositoryUrl": "https://github.com/microsoft/tsyringe",
+          "revision": "e033769",
+          "outcome": "successful",
+          "evidenceRef": "docs/COMPATIBILITY_REVIEW.md",
+          "authorization": "public",
+          "sourceBodiesCopied": false,
+          "graphSnapshotsRetained": false
+        },
+        {
+          "repositoryId": "pmndrs/zustand",
+          "repositoryUrl": "https://github.com/pmndrs/zustand",
+          "revision": "b57db4f",
+          "outcome": "successful",
+          "evidenceRef": "docs/COMPATIBILITY_REVIEW.md",
+          "authorization": "public",
+          "sourceBodiesCopied": false,
+          "graphSnapshotsRetained": false
+        },
+        {
+          "repositoryId": "colinhacks/zod",
+          "repositoryUrl": "https://github.com/colinhacks/zod",
+          "revision": "badf0b7",
+          "outcome": "bounded-failure",
+          "evidenceRef": "docs/COMPATIBILITY_REVIEW.md",
+          "authorization": "public",
+          "sourceBodiesCopied": false,
+          "graphSnapshotsRetained": false
+        },
+        {
+          "repositoryId": "changesets/changesets",
+          "repositoryUrl": "https://github.com/changesets/changesets",
+          "revision": "2eb65ba",
+          "outcome": "bounded-failure",
+          "evidenceRef": "docs/COMPATIBILITY_REVIEW.md",
+          "authorization": "public",
+          "sourceBodiesCopied": false,
+          "graphSnapshotsRetained": false
+        }
+      ],
+      "claim": "descriptive-only"
+    },
+    {
+      "id": "repeat-non-maintainer-contributors-2026-08-25",
+      "dimensionId": "repeat-non-maintainer-contributors",
+      "status": "not-observed",
+      "unit": "contributors",
+      "value": null,
+      "denominator": null,
+      "evidenceRefs": ["docs/COMMUNITY_FEEDBACK.md"],
+      "limitations": [
+        "The snapshot has no consented external contributor records; absence of a record is not evidence of zero contributors."
+      ],
+      "records": [],
+      "claim": "not-a-claim"
+    },
+    {
+      "id": "release-stability-2026-08-25",
+      "dimensionId": "release-stability",
+      "status": "not-observed",
+      "unit": "releases",
+      "value": null,
+      "denominator": null,
+      "evidenceRefs": ["docs/RELEASE.md", "docs/RELEASE_REHEARSAL.md"],
+      "limitations": [
+        "CARTOGRAPH has no public package release in this snapshot; local release rehearsal is not a public release-stability series."
+      ],
+      "records": [],
+      "claim": "not-a-claim"
+    },
+    {
+      "id": "issue-quality-2026-08-25",
+      "dimensionId": "issue-quality",
+      "status": "not-observed",
+      "unit": "issues",
+      "value": null,
+      "denominator": null,
+      "evidenceRefs": ["docs/COMMUNITY_FEEDBACK.md", "GOVERNANCE.md"],
+      "limitations": [
+        "The public triage rubric exists, but no sampled issue-quality series has been collected or retained."
+      ],
+      "records": [],
+      "claim": "not-a-claim"
+    },
+    {
+      "id": "maintainer-load-2026-08-25",
+      "dimensionId": "maintainer-load",
+      "status": "not-observed",
+      "unit": "maintainer-hours",
+      "value": null,
+      "denominator": null,
+      "evidenceRefs": ["docs/MAINTENANCE.md"],
+      "limitations": [
+        "No maintainer time or support-load telemetry is collected; a capacity range requires an explicitly supplied future review."
+      ],
+      "records": [],
+      "claim": "not-a-claim"
+    },
+    {
+      "id": "security-history-2026-08-25",
+      "dimensionId": "security-history",
+      "status": "not-observed",
+      "unit": "incidents",
+      "value": null,
+      "denominator": null,
+      "evidenceRefs": ["SECURITY.md", "docs/THREAT_MODEL.md"],
+      "limitations": [
+        "The public policy and threat model define the response boundary, but this snapshot does not claim a complete security-history census or zero incidents."
+      ],
+      "records": [],
+      "claim": "not-a-claim"
+    },
+    {
+      "id": "retention-feedback-2026-08-25",
+      "dimensionId": "retention-feedback",
+      "status": "not-observed",
+      "unit": "feedback-records",
+      "value": null,
+      "denominator": null,
+      "evidenceRefs": ["docs/COMMUNITY_FEEDBACK.md"],
+      "limitations": [
+        "There are zero external feedback records in the consented snapshot, so retention is not measured and no retention claim is permitted."
+      ],
+      "records": [],
+      "claim": "not-a-claim"
+    },
+    {
+      "id": "adopter-feedback-2026-08-25",
+      "dimensionId": "adopter-feedback",
+      "status": "not-observed",
+      "unit": "feedback-records",
+      "value": null,
+      "denominator": null,
+      "evidenceRefs": ["docs/COMMUNITY_FEEDBACK.md", "M-004"],
+      "limitations": [
+        "The current feedback contract contains one synthetic maintainer baseline and zero external adopter records; it makes no adoption or traction claim."
+      ],
+      "records": [],
+      "claim": "not-a-claim"
+    }
+  ],
+  "strategyGate": {
+    "tractionClaim": "deferred",
+    "hostedInvestment": "deferred",
+    "reason": "Three successful public compatibility runs demonstrate a bounded technical sample, but no representative external retention, contributor, release, maintainer-load, security-history, or adopter-feedback evidence exists.",
+    "requiredEvidence": [
+      "external-repository-runs",
+      "repeat-non-maintainer-contributors",
+      "release-stability",
+      "issue-quality",
+      "maintainer-load",
+      "security-history",
+      "retention-feedback",
+      "adopter-feedback"
+    ]
+  },
+  "summary": {
+    "observedDimensionCount": 1,
+    "notObservedDimensionCount": 7,
+    "externalRepositoryCount": 5,
+    "successfulExternalRepositoryCount": 3,
+    "boundedFailureExternalRepositoryCount": 2,
+    "claimsPermitted": false,
+    "network": false,
+    "hiddenTelemetry": false,
+    "sourcePayloads": false
+  },
+  "provenance": {
+    "source": "CARTOGRAPH repository-authored OSS health scorecard fixture",
+    "license": "Apache-2.0",
+    "reference": "M-005 public OSS health and traction scorecard issue; R-005 compatibility review",
+    "transformation": "The snapshot aggregates the checked-in compatibility review and public process contracts; it retains no third-party source bodies, graph snapshots, private records, or telemetry.",
+    "redistribution": "allowed"
+  }
+}

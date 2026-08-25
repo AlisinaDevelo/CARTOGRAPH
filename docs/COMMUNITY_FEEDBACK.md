@@ -79,8 +79,8 @@ zero external adopter or contributor records. It therefore makes no traction
 claim. Its explicit decisions are:
 
 - retain the public, local-first, consent-based feedback boundary for M-004;
-- defer traction and health claims in M-005 until consented external evidence
-  exists.
+- defer traction and health claims in [M-005's scorecard](OSS_HEALTH_SCORECARD.md)
+  until consented external evidence exists.
 
 The synthetic baseline is a protocol regression fixture, not user research. It
 exists to prove that every future record has a triage category, evidence
