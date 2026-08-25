@@ -32,6 +32,11 @@ describe("CLI contract", () => {
     expect(policy).toContain("shallow");
     expect(policy).toContain("policy [root]");
     expect(policy).toContain("Exit code 2");
+    expect(policy).toContain("## Explicit local CLI integration");
+    expect(policy).toContain("reconcile-runtime --snapshot <path>");
+    expect(policy).toContain("discard-after-read");
+    expect(policy).toContain("--max-report-items");
+    expect(policy).toContain("collector");
     expect(readme).toContain("[CLI runtime and exit policy](docs/CLI.md)");
     expect(readme).toContain("--comparison merge-base");
   });

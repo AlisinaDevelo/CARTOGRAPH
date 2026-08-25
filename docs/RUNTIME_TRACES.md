@@ -22,12 +22,12 @@ limit before parsing; malformed JSON, malformed OTLP records, duplicate spans,
 and limit violations return `RuntimeTraceValidationError` with a stable code.
 The normalized artifact is in-memory only. O-003 adds the explicit field-level
 redaction and bounded-retention boundary documented in
-[`RUNTIME_TRACE_SAFETY.md`](RUNTIME_TRACE_SAFETY.md); CLI/report integration
-remains a separate follow-on contract. O-013 adds the explicit bounded import
+[`RUNTIME_TRACE_SAFETY.md`](RUNTIME_TRACE_SAFETY.md). O-013 adds the explicit bounded import
 and cost policy documented in [`RUNTIME_TRACE_BUDGETS.md`](RUNTIME_TRACE_BUDGETS.md);
 trace-count truncation is opt-in and always marked incomplete. The explicit local static/runtime
 reconciliation contract is documented separately in
-[`RUNTIME_RECONCILIATION.md`](RUNTIME_RECONCILIATION.md).
+[`RUNTIME_RECONCILIATION.md`](RUNTIME_RECONCILIATION.md), with its opt-in CLI
+surface specified in [`CLI.md`](CLI.md#explicit-local-cli-integration).
 
 ```ts
 const normalized = parseRuntimeTraceJson(localOtlpJson, {

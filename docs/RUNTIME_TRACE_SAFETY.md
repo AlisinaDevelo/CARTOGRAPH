@@ -40,10 +40,11 @@ opens a collector, uploads data, or starts background cleanup.
 
 ## Explicit opt-in
 
-There is no default trace store, automatic collection, or reconciliation CLI.
-A caller must explicitly import a local trace, apply a safety policy, retain it
-in the bounded store if desired, and invoke reconciliation. The safety policy
-does not grant authority to execute repository code or contact a network.
+There is no default trace store or automatic collection. The
+`reconcile-runtime` CLI is an explicit opt-in boundary: callers supply the
+local trace, static snapshot, and span bindings, and the command applies this
+safety policy before invoking reconciliation. The safety policy does not grant
+authority to execute repository code or contact a network.
 
 For import-time input, cardinality, analysis-time, and report-size ceilings,
 use the separate O-013 budget contract in

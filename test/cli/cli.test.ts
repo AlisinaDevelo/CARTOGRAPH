@@ -21,6 +21,7 @@ describe("CLI", () => {
     expect(createCli().commands.map((command) => command.name())).toEqual([
       "scan",
       "diff",
+      "reconcile-runtime",
       "diff-snapshots",
       "policy",
       "migrate-snapshot",
