@@ -239,6 +239,32 @@ describe("CLI entrypoint", () => {
     expect(migration.changedEdgeIdentities).toHaveLength(1);
   });
 
+  it("does not overwrite the source artifact by default", async () => {
+    const root = await mkdtemp(
+      join(tmpdir(), "cartograph-cli-migration-safety-test-"),
+    );
+    temporaryDirectories.push(root);
+    const input = join(root, "legacy.json");
+    const report = join(root, "migration-report.json");
+    const original = await readFile(migrationFixture);
+    await writeFile(input, original);
+
+    const result = await runEntrypoint([
+      "migrate-snapshot",
+      input,
+      "--output",
+      input,
+      "--report",
+      report,
+    ]);
+
+    expect(result.code).toBe(1);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toContain("cartograph [output-error]");
+    expect(await readFile(input)).toEqual(original);
+    await expect(access(report)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("emits a read-only remediation review state without applying changes", async () => {
     const root = await mkdtemp(
       join(tmpdir(), "cartograph-cli-remediation-review-test-"),
