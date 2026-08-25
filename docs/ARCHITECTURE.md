@@ -144,6 +144,18 @@ impact is not hidden, with `includeUnresolved: false` available when a review
 needs only resolved relationships. Node and edge ceilings fail closed with an
 actionable resource diagnostic rather than truncating the result.
 
+The Q-004 `cartograph.architecture-impact` model adds the change-control
+boundary around that primitive. A scenario names a supported change kind
+(`node-*`, `edge-*`, or `diagnostic-changed`), changed roots, direction,
+allowed edge kinds, depth and cardinality ceilings, unresolved-edge handling,
+and explicit node or edge boundary stops. Each affected node retains its
+shortest path, weakest path confidence, evidence IDs, and one or more
+inclusion reasons. Boundary, depth-limit, cycle, excluded-edge, unresolved,
+missing-target, and unsupported-change records remain in `unknowns`; the
+model never turns them into an opaque risk score or infers a relationship.
+The assessment is local, read-only, deterministic, and serialized under the
+versioned `cartograph.architecture-impact` contract.
+
 ## Architecture query contract
 
 The Q-001/Q-002/Q-003 query contract wraps bounded, local questions in a

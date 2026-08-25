@@ -1,0 +1,376 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.architecture-impact-fixtures",
+  "fixtureId": "q004-v0.1",
+  "scope": {
+    "network": false,
+    "filesystemWrites": false,
+    "sourceBodiesIncluded": false,
+    "execution": false,
+    "deterministic": true
+  },
+  "graphs": {
+    "impact-network": {
+      "schemaVersion": 1,
+      "revision": { "commitSha": "q004-impact-fixture" },
+      "nodes": [
+        {
+          "id": "function:handler",
+          "stableKey": "function:handler",
+          "kind": "function",
+          "name": "handler",
+          "language": "typescript"
+        },
+        {
+          "id": "function:caller",
+          "stableKey": "function:caller",
+          "kind": "function",
+          "name": "caller",
+          "language": "typescript"
+        },
+        {
+          "id": "function:leaf",
+          "stableKey": "function:leaf",
+          "kind": "function",
+          "name": "leaf",
+          "language": "typescript"
+        },
+        {
+          "id": "endpoint:payments",
+          "stableKey": "endpoint:payments",
+          "kind": "endpoint",
+          "name": "payments",
+          "language": "typescript"
+        },
+        {
+          "id": "module:policy",
+          "stableKey": "module:policy",
+          "kind": "module",
+          "name": "policy",
+          "language": "typescript"
+        },
+        {
+          "id": "service:runtime",
+          "stableKey": "service:runtime",
+          "kind": "service",
+          "name": "runtime",
+          "language": "typescript"
+        },
+        {
+          "id": "external_service:payments",
+          "stableKey": "external_service:payments",
+          "kind": "external_service",
+          "name": "payments",
+          "language": "typescript"
+        },
+        {
+          "id": "database_table:ledger",
+          "stableKey": "database_table:ledger",
+          "kind": "database_table",
+          "name": "ledger",
+          "language": "typescript"
+        },
+        {
+          "id": "queue:events",
+          "stableKey": "queue:events",
+          "kind": "queue",
+          "name": "events",
+          "language": "typescript"
+        }
+      ],
+      "edges": [
+        {
+          "from": "function:caller",
+          "to": "function:handler",
+          "kind": "calls",
+          "confidence": "certain",
+          "evidence": [
+            {
+              "id": "e:caller-handler",
+              "kind": "source",
+              "path": "src/caller.ts",
+              "line": 10,
+              "detector": "cartograph.impact-fixture@1",
+              "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ]
+        },
+        {
+          "from": "endpoint:payments",
+          "to": "function:handler",
+          "kind": "routes_to",
+          "confidence": "certain",
+          "evidence": [
+            {
+              "id": "e:endpoint-handler",
+              "kind": "source",
+              "path": "src/routes.ts",
+              "line": 12,
+              "detector": "cartograph.impact-fixture@1",
+              "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ]
+        },
+        {
+          "from": "function:handler",
+          "to": "module:policy",
+          "kind": "depends_on",
+          "confidence": "inferred",
+          "evidence": [
+            {
+              "id": "e:handler-policy",
+              "kind": "source",
+              "path": "src/handler.ts",
+              "line": 20,
+              "detector": "cartograph.impact-fixture@1",
+              "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ]
+        },
+        {
+          "from": "function:handler",
+          "to": "service:runtime",
+          "kind": "requests",
+          "confidence": "observed",
+          "evidence": [
+            {
+              "id": "e:handler-runtime",
+              "kind": "runtime",
+              "path": "src/handler.ts",
+              "line": 21,
+              "detector": "cartograph.impact-fixture@1",
+              "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ]
+        },
+        {
+          "from": "service:runtime",
+          "to": "external_service:payments",
+          "kind": "requests",
+          "confidence": "inferred",
+          "evidence": [
+            {
+              "id": "e:runtime-payments",
+              "kind": "source",
+              "path": "src/runtime.ts",
+              "line": 7,
+              "detector": "cartograph.impact-fixture@1",
+              "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ]
+        },
+        {
+          "from": "function:handler",
+          "to": "database_table:ledger",
+          "kind": "reads",
+          "confidence": "observed",
+          "evidence": [
+            {
+              "id": "e:handler-ledger",
+              "kind": "runtime",
+              "path": "src/handler.ts",
+              "line": 22,
+              "detector": "cartograph.impact-fixture@1",
+              "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ]
+        },
+        {
+          "from": "function:handler",
+          "to": "queue:events",
+          "kind": "publishes",
+          "confidence": "inferred",
+          "evidence": [],
+          "unresolvedReason": "queue is selected by runtime configuration"
+        },
+        {
+          "from": "module:policy",
+          "to": "function:leaf",
+          "kind": "calls",
+          "confidence": "inferred",
+          "evidence": [
+            {
+              "id": "e:policy-leaf",
+              "kind": "source",
+              "path": "src/policy.ts",
+              "line": 5,
+              "detector": "cartograph.impact-fixture@1",
+              "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ]
+        }
+      ],
+      "diagnostics": []
+    }
+  },
+  "scenarios": [
+    {
+      "id": "reverse-callers-and-route-boundary",
+      "graphId": "impact-network",
+      "description": "A changed handler affects callers and the route that reaches it, but the endpoint boundary stops further reverse traversal.",
+      "impact": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-impact",
+        "scenarioId": "reverse-callers-and-route-boundary",
+        "change": {
+          "kind": "node-changed",
+          "roots": ["function:handler"],
+          "confidence": "certain",
+          "evidenceIds": ["git:handler-change"]
+        },
+        "traversal": {
+          "direction": "reverse",
+          "maxDepth": 1,
+          "boundary": { "stopNodeKinds": ["endpoint"] }
+        }
+      },
+      "expected": {
+        "affected": [
+          "endpoint:payments",
+          "function:caller",
+          "function:handler"
+        ],
+        "uncertaintyCodes": ["boundary-stop"],
+        "overreachCategories": []
+      }
+    },
+    {
+      "id": "forward-policy-runtime-boundaries",
+      "graphId": "impact-network",
+      "description": "A changed handler reaches policy, runtime, storage, and an external service; explicit boundaries and unresolved relationships remain reviewer-visible.",
+      "impact": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-impact",
+        "scenarioId": "forward-policy-runtime-boundaries",
+        "change": {
+          "kind": "node-changed",
+          "roots": ["function:handler"],
+          "confidence": "certain",
+          "evidenceIds": ["git:handler-change"]
+        },
+        "traversal": {
+          "direction": "forward",
+          "maxDepth": 4,
+          "boundary": { "stopNodeKinds": ["external_service"] }
+        }
+      },
+      "expected": {
+        "affected": [
+          "database_table:ledger",
+          "function:handler",
+          "function:leaf",
+          "module:policy",
+          "service:runtime"
+        ],
+        "uncertaintyCodes": ["boundary-stop", "unresolved-edge"],
+        "overreachCategories": [
+          { "category": "boundary-stop", "count": 1 },
+          { "category": "unresolved-edge", "count": 1 }
+        ]
+      }
+    },
+    {
+      "id": "bounded-policy-depth",
+      "graphId": "impact-network",
+      "description": "A policy change is bounded to one hop; the next call remains an explicit depth-limit unknown.",
+      "impact": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-impact",
+        "scenarioId": "bounded-policy-depth",
+        "change": {
+          "kind": "node-changed",
+          "roots": ["module:policy"],
+          "confidence": "certain",
+          "evidenceIds": ["git:policy-change"]
+        },
+        "traversal": { "direction": "forward", "maxDepth": 0 }
+      },
+      "expected": {
+        "affected": ["module:policy"],
+        "uncertaintyCodes": ["depth-limit"],
+        "overreachCategories": []
+      }
+    },
+    {
+      "id": "resolved-only-impact",
+      "graphId": "impact-network",
+      "description": "A resolved-only review excludes the configuration-selected queue while retaining the explicit unresolved unknown.",
+      "impact": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-impact",
+        "scenarioId": "resolved-only-impact",
+        "change": {
+          "kind": "edge-changed",
+          "roots": ["function:handler"],
+          "confidence": "observed",
+          "evidenceIds": ["git:edge-change"]
+        },
+        "traversal": {
+          "direction": "forward",
+          "maxDepth": 3,
+          "includeUnresolved": false
+        }
+      },
+      "expected": {
+        "affected": [
+          "database_table:ledger",
+          "external_service:payments",
+          "function:handler",
+          "function:leaf",
+          "module:policy",
+          "service:runtime"
+        ],
+        "uncertaintyCodes": ["unresolved-edge"],
+        "overreachCategories": []
+      }
+    },
+    {
+      "id": "unsupported-change-kind",
+      "graphId": "impact-network",
+      "description": "An unsupported change category fails closed without turning a root into an opaque risk score.",
+      "impact": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-impact",
+        "scenarioId": "unsupported-change-kind",
+        "change": {
+          "kind": "unsupported",
+          "roots": ["function:handler"],
+          "confidence": "certain",
+          "evidenceIds": ["git:unknown-change"]
+        },
+        "traversal": { "direction": "forward" }
+      },
+      "expected": {
+        "affected": [],
+        "uncertaintyCodes": ["unsupported-change"],
+        "overreachCategories": []
+      }
+    },
+    {
+      "id": "edge-kind-selection",
+      "graphId": "impact-network",
+      "description": "A caller selects only call edges; excluded policy, route, runtime, storage, and queue edges remain unknown rather than inferred.",
+      "impact": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-impact",
+        "scenarioId": "edge-kind-selection",
+        "change": {
+          "kind": "node-added",
+          "roots": ["function:handler"],
+          "confidence": "user_confirmed",
+          "evidenceIds": ["git:node-add"]
+        },
+        "traversal": {
+          "direction": "forward",
+          "edgeKinds": ["calls"],
+          "maxDepth": 3
+        }
+      },
+      "expected": {
+        "affected": ["function:handler"],
+        "uncertaintyCodes": ["edge-kind-excluded"],
+        "overreachCategories": []
+      }
+    }
+  ]
+}

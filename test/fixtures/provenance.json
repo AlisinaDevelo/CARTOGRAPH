@@ -477,6 +477,15 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "Positive, negative, malformed, unsupported, over-limit, traversal, path, boundary, cycle, and metadata projection requests exercise selector predicates, canonical output ordering, complete evidence and policy/ADR/ownership provenance, missing and stale metadata diagnostics, truncation diagnostics, and fail-closed local resource bounds without source execution or network access.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "architecture-impact",
+      "path": "architecture-impact",
+      "source": "CARTOGRAPH repository-authored synthetic impact fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Six bounded graph scenarios exercise reverse callers, policy and runtime boundaries, depth limits, unresolved relationships, unsupported change kinds, edge-kind selection, precision, recall, overreach categories, confidence, evidence IDs, and reviewer-visible uncertainty without source bodies, execution, or network access.",
+      "redistribution": "allowed"
     }
   ]
 }

@@ -43,6 +43,20 @@ the exact node and edge sets, confidence/evidence preservation, cycle paths,
 unresolved-edge visibility, depth-limit reporting, ordering stability, and a
 bounded local timing sample. No network or source execution is involved.
 
+Q-004 adds the six-scenario
+[`architecture-impact/scenarios.v0.1.json`](../test/fixtures/architecture-impact/scenarios.v0.1.json)
+golden corpus and the `cartograph.architecture-impact-evaluation` report.
+The scenarios cover reverse callers and route boundaries, policy/runtime
+boundaries, depth limits, resolved-only traversal, unsupported change kinds,
+and explicit edge-kind selection. The report compares expected and observed
+affected sets, precision, recall, categorized overreach, path reasons, and
+reviewer-visible uncertainty. The current synthetic corpus has 16 expected
+affected records, 18 observed records, precision `0.8889`, recall `1.0`, and
+two declared overreach records (one boundary stop and one unresolved edge).
+Those numbers describe this checked-in fixture only; they are not a population
+risk estimate or a universal impact guarantee. Validate it with
+`npm run impact:validate`.
+
 Identity fixtures cover a source-line move, a unique same-name file move, a
 rename supported by an unchanged directed neighborhood, duplicate-name
 ambiguity, a non-mutual destination collision, and a weak unsupported rename.

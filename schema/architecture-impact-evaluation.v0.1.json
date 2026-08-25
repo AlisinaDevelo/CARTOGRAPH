@@ -1,0 +1,389 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.architecture-impact-evaluation",
+  "fixtureId": "q004-v0.1",
+  "fixtureDigest": "sha256:ca1e24589818ec8dd20ed8e276c6cd24b96892b1475988137190b63b800b1c35",
+  "cases": [
+    {
+      "id": "bounded-policy-depth",
+      "changeKind": "node-changed",
+      "expectedAffected": ["module:policy"],
+      "actualAffected": ["module:policy"],
+      "truePositives": 1,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "precision": 1,
+      "recall": 1,
+      "overreachCategories": [],
+      "uncertaintyCodes": [
+        {
+          "code": "depth-limit",
+          "count": 1
+        }
+      ],
+      "reviewerReasons": [
+        {
+          "nodeId": "module:policy",
+          "codes": ["changed-root"],
+          "messages": ["root module:policy was selected for node-changed"]
+        }
+      ],
+      "pass": true
+    },
+    {
+      "id": "edge-kind-selection",
+      "changeKind": "node-added",
+      "expectedAffected": ["function:handler"],
+      "actualAffected": ["function:handler"],
+      "truePositives": 1,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "precision": 1,
+      "recall": 1,
+      "overreachCategories": [],
+      "uncertaintyCodes": [
+        {
+          "code": "edge-kind-excluded",
+          "count": 4
+        }
+      ],
+      "reviewerReasons": [
+        {
+          "nodeId": "function:handler",
+          "codes": ["changed-root"],
+          "messages": ["root function:handler was selected for node-added"]
+        }
+      ],
+      "pass": true
+    },
+    {
+      "id": "forward-policy-runtime-boundaries",
+      "changeKind": "node-changed",
+      "expectedAffected": [
+        "database_table:ledger",
+        "function:handler",
+        "function:leaf",
+        "module:policy",
+        "service:runtime"
+      ],
+      "actualAffected": [
+        "database_table:ledger",
+        "external_service:payments",
+        "function:handler",
+        "function:leaf",
+        "module:policy",
+        "queue:events",
+        "service:runtime"
+      ],
+      "truePositives": 5,
+      "falsePositives": 2,
+      "falseNegatives": 0,
+      "precision": 0.7142857142857143,
+      "recall": 1,
+      "overreachCategories": [
+        {
+          "category": "boundary-stop",
+          "count": 1
+        },
+        {
+          "category": "unresolved-edge",
+          "count": 1
+        }
+      ],
+      "uncertaintyCodes": [
+        {
+          "code": "boundary-stop",
+          "count": 2
+        },
+        {
+          "code": "unresolved-edge",
+          "count": 2
+        }
+      ],
+      "reviewerReasons": [
+        {
+          "nodeId": "function:handler",
+          "codes": ["changed-root"],
+          "messages": ["root function:handler was selected for node-changed"]
+        },
+        {
+          "nodeId": "database_table:ledger",
+          "codes": ["traversed-edge"],
+          "messages": ["included through reads from function:handler"]
+        },
+        {
+          "nodeId": "module:policy",
+          "codes": ["traversed-edge"],
+          "messages": ["included through depends_on from function:handler"]
+        },
+        {
+          "nodeId": "queue:events",
+          "codes": ["unresolved-edge"],
+          "messages": ["included through an unresolved publishes edge"]
+        },
+        {
+          "nodeId": "service:runtime",
+          "codes": ["traversed-edge"],
+          "messages": ["included through requests from function:handler"]
+        },
+        {
+          "nodeId": "external_service:payments",
+          "codes": ["boundary-stop"],
+          "messages": ["included at the declared requests boundary stop"]
+        },
+        {
+          "nodeId": "function:leaf",
+          "codes": ["traversed-edge"],
+          "messages": ["included through calls from module:policy"]
+        }
+      ],
+      "pass": true
+    },
+    {
+      "id": "resolved-only-impact",
+      "changeKind": "edge-changed",
+      "expectedAffected": [
+        "database_table:ledger",
+        "external_service:payments",
+        "function:handler",
+        "function:leaf",
+        "module:policy",
+        "service:runtime"
+      ],
+      "actualAffected": [
+        "database_table:ledger",
+        "external_service:payments",
+        "function:handler",
+        "function:leaf",
+        "module:policy",
+        "service:runtime"
+      ],
+      "truePositives": 6,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "precision": 1,
+      "recall": 1,
+      "overreachCategories": [],
+      "uncertaintyCodes": [
+        {
+          "code": "unresolved-edge",
+          "count": 1
+        }
+      ],
+      "reviewerReasons": [
+        {
+          "nodeId": "function:handler",
+          "codes": ["changed-root"],
+          "messages": ["root function:handler was selected for edge-changed"]
+        },
+        {
+          "nodeId": "database_table:ledger",
+          "codes": ["traversed-edge"],
+          "messages": ["included through reads from function:handler"]
+        },
+        {
+          "nodeId": "module:policy",
+          "codes": ["traversed-edge"],
+          "messages": ["included through depends_on from function:handler"]
+        },
+        {
+          "nodeId": "service:runtime",
+          "codes": ["traversed-edge"],
+          "messages": ["included through requests from function:handler"]
+        },
+        {
+          "nodeId": "external_service:payments",
+          "codes": ["traversed-edge"],
+          "messages": ["included through requests from service:runtime"]
+        },
+        {
+          "nodeId": "function:leaf",
+          "codes": ["traversed-edge"],
+          "messages": ["included through calls from module:policy"]
+        }
+      ],
+      "pass": true
+    },
+    {
+      "id": "reverse-callers-and-route-boundary",
+      "changeKind": "node-changed",
+      "expectedAffected": [
+        "endpoint:payments",
+        "function:caller",
+        "function:handler"
+      ],
+      "actualAffected": [
+        "endpoint:payments",
+        "function:caller",
+        "function:handler"
+      ],
+      "truePositives": 3,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "precision": 1,
+      "recall": 1,
+      "overreachCategories": [],
+      "uncertaintyCodes": [
+        {
+          "code": "boundary-stop",
+          "count": 2
+        }
+      ],
+      "reviewerReasons": [
+        {
+          "nodeId": "function:handler",
+          "codes": ["changed-root"],
+          "messages": ["root function:handler was selected for node-changed"]
+        },
+        {
+          "nodeId": "endpoint:payments",
+          "codes": ["boundary-stop"],
+          "messages": ["included at the declared routes_to boundary stop"]
+        },
+        {
+          "nodeId": "function:caller",
+          "codes": ["traversed-edge"],
+          "messages": ["included through calls from function:handler"]
+        }
+      ],
+      "pass": true
+    },
+    {
+      "id": "unsupported-change-kind",
+      "changeKind": "unsupported",
+      "expectedAffected": [],
+      "actualAffected": [],
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "precision": 1,
+      "recall": 1,
+      "overreachCategories": [],
+      "uncertaintyCodes": [
+        {
+          "code": "unsupported-change",
+          "count": 1
+        }
+      ],
+      "reviewerReasons": [],
+      "pass": true
+    }
+  ],
+  "overall": {
+    "cases": 6,
+    "expectedAffected": 16,
+    "actualAffected": 18,
+    "truePositives": 16,
+    "falsePositives": 2,
+    "falseNegatives": 0,
+    "precision": 0.8888888888888888,
+    "recall": 1,
+    "overreachCategories": [
+      {
+        "category": "boundary-stop",
+        "count": 1
+      },
+      {
+        "category": "unresolved-edge",
+        "count": 1
+      }
+    ],
+    "uncertaintyCodes": [
+      {
+        "code": "boundary-stop",
+        "count": 4
+      },
+      {
+        "code": "depth-limit",
+        "count": 1
+      },
+      {
+        "code": "edge-kind-excluded",
+        "count": 4
+      },
+      {
+        "code": "unresolved-edge",
+        "count": 3
+      },
+      {
+        "code": "unsupported-change",
+        "count": 1
+      }
+    ],
+    "reviewerReasonCount": 18
+  },
+  "byChangeKind": [
+    {
+      "changeKind": "edge-changed",
+      "cases": 1,
+      "precision": 1,
+      "recall": 1,
+      "overreachCategories": [],
+      "uncertaintyCodes": [
+        {
+          "code": "unresolved-edge",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "changeKind": "node-added",
+      "cases": 1,
+      "precision": 1,
+      "recall": 1,
+      "overreachCategories": [],
+      "uncertaintyCodes": [
+        {
+          "code": "edge-kind-excluded",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "changeKind": "node-changed",
+      "cases": 3,
+      "precision": 0.8181818181818182,
+      "recall": 1,
+      "overreachCategories": [
+        {
+          "category": "boundary-stop",
+          "count": 1
+        },
+        {
+          "category": "unresolved-edge",
+          "count": 1
+        }
+      ],
+      "uncertaintyCodes": [
+        {
+          "code": "boundary-stop",
+          "count": 4
+        },
+        {
+          "code": "depth-limit",
+          "count": 1
+        },
+        {
+          "code": "unresolved-edge",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "changeKind": "unsupported",
+      "cases": 1,
+      "precision": 1,
+      "recall": 1,
+      "overreachCategories": [],
+      "uncertaintyCodes": [
+        {
+          "code": "unsupported-change",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "deterministic": true,
+  "readOnly": true,
+  "reportDigest": "sha256:a7fc20b97536cf082c60cc30d7109e9c10d3f00854a9a4358f9fcda3e3133aba"
+}
