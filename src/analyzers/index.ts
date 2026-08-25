@@ -17,6 +17,16 @@ export {
   type WorkspaceManifestErrorCode,
   type WorkspacePackage,
 } from "./workspace.js";
+export {
+  API_BOUNDARY_DETECTOR,
+  discoverApiBoundaries,
+  type ApiBoundary,
+  type ApiBoundaryDiscovery,
+  type ApiPartialDiagnostic,
+  type ApiPartialDiagnosticCode,
+  type ApiResolverBinding,
+  type ApiSource,
+} from "./api-boundaries.js";
 export { CancellationError } from "../resources.js";
 export {
   analyzeExpressRouteCall,

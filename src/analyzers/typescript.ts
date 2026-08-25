@@ -49,6 +49,15 @@ import {
 } from "./express.js";
 import { analyzeFastifyRouteCall, isFastifyRouteMethod } from "./fastify.js";
 import {
+  API_BOUNDARY_DETECTOR,
+  discoverApiBoundaries,
+  type ApiBoundary,
+  type ApiBoundaryDiscovery,
+  type ApiPartialDiagnostic,
+  type ApiResolverBinding,
+  type ApiSource,
+} from "./api-boundaries.js";
+import {
   discoverWorkspacePackages,
   workspacePackageForPath,
   type WorkspaceDiscovery,
@@ -203,6 +212,9 @@ type QueueBinding = {
 };
 
 interface AnalyzerContext {
+  apiBoundaries: readonly ApiBoundary[];
+  apiDiagnostics: readonly ApiPartialDiagnostic[];
+  apiResolverBindings: ReadonlyMap<string, ApiResolverBinding>;
   blockedRelativeImports: Set<string>;
   callablesByDeclaration: Map<string, CallableInfo>;
   callablesByStableKey: Map<string, CallableInfo>;
@@ -1529,6 +1541,62 @@ const addDiagnostic = (
   context.diagnostics.set(diagnostic.id, diagnostic);
 };
 
+const evidenceForApiSource = (source: ApiSource, suffix: string): Evidence => ({
+  id: evidenceKey(
+    source.path,
+    source.line,
+    source.column,
+    `${API_BOUNDARY_DETECTOR}/${suffix}`,
+  ),
+  kind: "source",
+  path: source.path,
+  line: source.line,
+  column: source.column,
+  detector: `${API_BOUNDARY_DETECTOR}/${suffix}`,
+  contentHash: source.contentHash,
+});
+
+const sourceFromNodeForApi = (
+  context: AnalyzerContext,
+  node: Node,
+): ApiSource => {
+  const location = sourcePosition(context.rootDir, node);
+  return {
+    path: location.path,
+    line: location.line,
+    column: location.column ?? 1,
+    contentHash: context.fileHashes.get(location.path) ?? "0".repeat(64),
+  };
+};
+
+const addApiDiagnostic = (
+  context: AnalyzerContext,
+  diagnostic: ApiPartialDiagnostic,
+): void => {
+  const definition = getDiagnosticDefinition(diagnostic.code);
+  if (!definition)
+    throw new Error(`unregistered diagnostic code: ${diagnostic.code}`);
+  const message = diagnostic.detail
+    ? `${definition.message} ${diagnostic.detail}`
+    : definition.message;
+  const location: SourceLocation = {
+    path: diagnostic.source.path,
+    line: diagnostic.source.line,
+    column: diagnostic.source.column,
+  };
+  const evidence = evidenceForApiSource(diagnostic.source, "diagnostic");
+  const record: Diagnostic = {
+    id: diagnosticKey(diagnostic.code, location, message),
+    code: diagnostic.code,
+    severity: definition.severity,
+    message,
+    remediation: definition.remediation,
+    location,
+    evidence: [evidence],
+  };
+  context.diagnostics.set(record.id, record);
+};
+
 const addEdge = (
   context: AnalyzerContext,
   from: GraphNode,
@@ -1617,6 +1685,127 @@ const addWorkspaceEdges = (context: AnalyzerContext): void => {
       "contains",
       workspacePackage.evidence,
     );
+  }
+};
+
+const callableMatchesForName = (
+  context: AnalyzerContext,
+  name: string,
+): CallableInfo[] => {
+  const normalized = name.trim();
+  if (normalized.length === 0) return [];
+  const matches = new Set<CallableInfo>();
+  for (const callable of context.callablesByStableKey.values()) {
+    const stableName = callable.graphNode.stableKey.split(":").pop() ?? "";
+    if (
+      callable.graphNode.name === normalized ||
+      stableName === normalized ||
+      callable.graphNode.stableKey.endsWith(`:${normalized}`)
+    )
+      matches.add(callable);
+  }
+  return [...matches].sort((left, right) =>
+    compareStrings(left.graphNode.stableKey, right.graphNode.stableKey),
+  );
+};
+
+const addApiBoundaryEdges = (context: AnalyzerContext): void => {
+  for (const diagnostic of context.apiDiagnostics)
+    addApiDiagnostic(context, diagnostic);
+
+  for (const boundary of context.apiBoundaries) {
+    const endpoint = addNode(
+      context,
+      boundary.stableKey,
+      "endpoint",
+      boundary.name,
+      {
+        path: boundary.source.path,
+        line: boundary.source.line,
+        column: boundary.source.column,
+      },
+      boundary.schema,
+    );
+    const evidence = evidenceForApiSource(
+      boundary.source,
+      `${boundary.schema}-schema`,
+    );
+    let target: GraphNode | undefined;
+
+    if (boundary.schema === "graphql") {
+      const binding = context.apiResolverBindings.get(boundary.operationKey);
+      if (binding) {
+        target = resolveCallable(context, binding.expression)?.graphNode;
+        if (target) {
+          addEdge(context, endpoint, target, "routes_to", evidence, "inferred");
+          addEdge(
+            context,
+            endpoint,
+            target,
+            "routes_to",
+            evidenceForApiSource(binding.source, "resolver"),
+            "inferred",
+          );
+          continue;
+        }
+        addApiDiagnostic(context, {
+          code: "PARTIAL_API_SCHEMA_ALIAS",
+          source: binding.source,
+          detail: `GraphQL resolver ${boundary.operationKey} could not be resolved to a local callable.`,
+        });
+      } else {
+        addApiDiagnostic(context, {
+          code: "PARTIAL_API_SCHEMA_ALIAS",
+          source: boundary.source,
+          detail: `GraphQL resolver ${boundary.operationKey} is not declared in a statically bound resolver map.`,
+        });
+      }
+      continue;
+    }
+
+    const handlerName = boundary.handlerName?.trim();
+    let targetCallable: CallableInfo | undefined;
+    if (handlerName) {
+      const matches = callableMatchesForName(context, handlerName);
+      if (matches.length === 1) {
+        targetCallable = matches[0];
+        target = targetCallable?.graphNode;
+      } else if (matches.length > 1) {
+        addApiDiagnostic(context, {
+          code: "PARTIAL_API_SCHEMA_ALIAS",
+          source: boundary.source,
+          detail: `OpenAPI handler alias ${handlerName} resolves to multiple local callables.`,
+        });
+      }
+    }
+    if (!target && boundary.method && boundary.path) {
+      target = context.nodes.get(
+        `endpoint:${boundary.method}:${boundary.path}`,
+      );
+    }
+    if (target) {
+      addEdge(context, endpoint, target, "routes_to", evidence, "inferred");
+      if (targetCallable) {
+        addEdge(
+          context,
+          endpoint,
+          target,
+          "routes_to",
+          evidenceFor(
+            context,
+            targetCallable.node,
+            `${API_BOUNDARY_DETECTOR}/handler`,
+          ),
+          "inferred",
+        );
+      }
+      continue;
+    }
+    addApiDiagnostic(context, {
+      code: "PARTIAL_API_SCHEMA_ALIAS",
+      source: boundary.source,
+      detail: `OpenAPI ${boundary.operationKey} has no statically resolvable local handler or matching route.`,
+    });
   }
 };
 
@@ -1748,6 +1937,11 @@ const resolveCallable = (
       if (initializer && Node.isExpression(initializer)) {
         return resolveCallable(context, initializer, seen);
       }
+    }
+    const declaration = expression.getDefinitionNodes().find(isCallableNode);
+    if (declaration) {
+      const callable = callableForDeclaration(context, declaration);
+      if (callable) return callable;
     }
   }
 
@@ -3202,6 +3396,14 @@ const addRouteEdges = (
       routeResult.diagnostic.message,
       routeResult.diagnostic.node,
     );
+    if (context.apiBoundaries.length > 0) {
+      addApiDiagnostic(context, {
+        code: "PARTIAL_RUNTIME_COMPOSED_ROUTE",
+        source: sourceFromNodeForApi(context, routeResult.diagnostic.node),
+        detail:
+          "An API schema is present, but this route registration uses a runtime-composed path or method.",
+      });
+    }
     return true;
   }
 
@@ -3277,6 +3479,17 @@ const addFastifyRouteEdges = (
       diagnostic.message,
       diagnostic.node,
     );
+    if (
+      context.apiBoundaries.length > 0 &&
+      diagnostic.code === "UNSUPPORTED_DYNAMIC_FASTIFY_ROUTE"
+    ) {
+      addApiDiagnostic(context, {
+        code: "PARTIAL_RUNTIME_COMPOSED_ROUTE",
+        source: sourceFromNodeForApi(context, diagnostic.node),
+        detail:
+          "An API schema is present, but this route registration uses a runtime-composed path or method.",
+      });
+    }
   }
 
   for (const registration of routeResult.registrations) {
@@ -3476,8 +3689,19 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
       return [sourceFilePath(rootDir, path), hashBytes(readFileSync(path))];
     }),
   );
+  const apiDiscovery: ApiBoundaryDiscovery = discoverApiBoundaries(
+    rootDir,
+    sourceFiles,
+    resources,
+    checkBudget,
+  );
+  for (const [path, contentHash] of apiDiscovery.fileHashes)
+    fileHashes.set(path, contentHash);
 
   return {
+    apiBoundaries: apiDiscovery.boundaries,
+    apiDiagnostics: apiDiscovery.diagnostics,
+    apiResolverBindings: apiDiscovery.resolverBindings,
     blockedRelativeImports: new Set(),
     callablesByDeclaration: new Map(),
     callablesByStableKey: new Map(),
@@ -3511,6 +3735,7 @@ export const analyzeTypeScriptRepository = (
   }
   addWorkspaceEdges(context);
   registerCallables(context);
+  addApiBoundaryEdges(context);
   importSourceFiles(context);
   analyzeCalls(context);
   context.checkBudget();

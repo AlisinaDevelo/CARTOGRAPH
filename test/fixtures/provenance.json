@@ -513,6 +513,15 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "Npm, pnpm, and Yarn workspace manifests exercise stable package roots, local dependency edges, package-to-module ownership, and fail-closed overlapping or malformed declarations without source execution or network access.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "api-boundaries",
+      "path": "api-boundaries",
+      "source": "CARTOGRAPH repository-authored synthetic API-boundary fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "GraphQL SDL, statically bound resolvers, OpenAPI operations, handler aliases, generated schema inputs, aliased path references, and runtime-composed routes exercise evidence-backed endpoint boundaries and explicit partial-coverage diagnostics without source execution or network access.",
+      "redistribution": "allowed"
     }
   ]
 }

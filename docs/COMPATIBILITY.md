@@ -514,6 +514,22 @@ GraphSnapshot, GraphDiff, adapter, capability, and diagnostic versions remain at
 `1`; older readers that do not understand package selectors can still preserve
 the node and its edges as opaque graph records.
 
+## X-012 API schema boundaries
+
+X-012 adds bounded GraphQL SDL/template and OpenAPI operation discovery to the
+TypeScript analyzer without changing GraphSnapshot, GraphDiff, adapter, or
+capability versions. GraphQL root fields and OpenAPI path methods use stable
+`endpoint` identities; a resolver or handler reference becomes an inferred
+`routes_to` edge only when it resolves to one local callable or a matching
+literal framework endpoint. Source spans and SHA-256 hashes cover the schema
+declaration and the resulting relationship.
+
+Generated schema inputs, aliased or referenced operations, missing mappings,
+and runtime-composed routes remain visible as the stable
+`PARTIAL_API_SCHEMA_GENERATION`, `PARTIAL_API_SCHEMA_ALIAS`, and
+`PARTIAL_RUNTIME_COMPOSED_ROUTE` diagnostics. The analyzer never executes a
+schema generator, follows a remote reference, or guesses a runtime route.
+
 ## E-011 adapter lifecycle and security response
 
 E-011 publishes the versioned

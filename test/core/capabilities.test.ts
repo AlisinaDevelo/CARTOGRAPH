@@ -36,7 +36,7 @@ describe("capability and unknown-semantics registry", () => {
     expect(validate(data)).toBe(true);
     expect(CapabilityRegistrySchema.safeParse(data).success).toBe(true);
     expect(data).toEqual(CAPABILITY_REGISTRY);
-    expect(CAPABILITY_REGISTRY.extractors[0]?.capabilities).toHaveLength(6);
+    expect(CAPABILITY_REGISTRY.extractors[0]?.capabilities).toHaveLength(7);
   });
 
   it("exposes the registry version on analyzer snapshots", () => {

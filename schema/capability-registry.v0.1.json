@@ -41,6 +41,20 @@
           ]
         },
         {
+          "id": "api.boundaries",
+          "diagnosticCodes": [
+            "PARTIAL_API_SCHEMA_GENERATION",
+            "PARTIAL_API_SCHEMA_ALIAS",
+            "PARTIAL_RUNTIME_COMPOSED_ROUTE"
+          ],
+          "confidence": ["inferred"],
+          "examples": [
+            "Static GraphQL root fields and OpenAPI operations produce endpoint boundary nodes with source evidence.",
+            "Resolver and handler aliases are linked only when they resolve to one local callable or route.",
+            "Generated schemas, aliased references, and runtime-composed routes remain explicit partial-coverage diagnostics."
+          ]
+        },
+        {
           "id": "http.requests",
           "diagnosticCodes": ["UNSUPPORTED_DYNAMIC_HTTP_DESTINATION"],
           "confidence": ["certain", "inferred"],

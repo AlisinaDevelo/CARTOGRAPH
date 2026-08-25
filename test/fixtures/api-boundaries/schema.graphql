@@ -1,0 +1,16 @@
+type Query {
+  user(id: ID!): User
+  aliasUser: User
+}
+
+type Mutation {
+  createUser(input: UserInput!): User
+}
+
+input UserInput {
+  name: String!
+}
+
+type User {
+  id: ID!
+}
