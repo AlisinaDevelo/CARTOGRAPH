@@ -52,3 +52,15 @@ network connection, executes a selector, or changes a graph. The Action is
 disabled unless a policy path is supplied; its default policy mode is
 informational and enforcement is opt-in. A valid configuration or report is not
 by itself authorization to merge.
+
+## Regression corpus
+
+The offline
+[`policy-regression.v0.1.json`](../test/fixtures/policy-regression.v0.1.json)
+corpus exercises positive and negative outcomes for every supported
+`target:assertion` pair. It also checks the explicit unsupported result for a
+diff-target rule evaluated against a snapshot, stable explanation text, and
+evidence references. `npm run policy-regression:validate` runs every case twice
+and publishes the expected baseline counts; the checked-in v0.1 baseline is
+zero false positives, zero false negatives, zero explanation regressions, and
+zero evidence regressions.

@@ -66,6 +66,16 @@ file loading. A URL, executable field, or path outside the repository is
 rejected before any evaluation boundary is reached. P-004 owns evaluation;
 these fixtures do not claim that a valid policy has passed.
 
+P-006 adds the checked-in
+[`policy-regression.v0.1.json`](../test/fixtures/policy-regression.v0.1.json)
+corpus. It contains positive and negative cases for every supported target and
+assertion pair, an explicit diff-on-snapshot unsupported case, and assertions
+for stable explanations and evidence references. `npm run
+policy-regression:validate` evaluates the corpus twice, publishes the observed
+false-positive, false-negative, explanation-regression, and evidence-regression
+counts, and fails if any count differs from the checked-in baseline. The v0.1
+baseline is zero for all four regression classes.
+
 ## Practical compatibility
 
 Before v0.1, CARTOGRAPH will analyze at least three representative public TypeScript repositories or recorded snapshots. The report will publish supported, unresolved, and failed construct counts without copying third-party source into the repository.

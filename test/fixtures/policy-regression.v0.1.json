@@ -1,0 +1,808 @@
+{
+  "$schema": "../../schema/policy-regression.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.policy-regression",
+  "fixtureId": "policy-regression-v0-1",
+  "baseline": {
+    "falsePositives": 0,
+    "falseNegatives": 0,
+    "explanationRegressions": 0,
+    "evidenceRegressions": 0
+  },
+  "requiredRuleTypes": [
+    "node:exists",
+    "node:absent",
+    "node:count-at-most",
+    "node:count-at-least",
+    "edge:exists",
+    "edge:absent",
+    "edge:count-at-most",
+    "edge:count-at-least",
+    "diff:exists",
+    "diff:absent",
+    "diff:count-at-most",
+    "diff:count-at-least"
+  ],
+  "snapshots": {
+    "empty": {
+      "schemaVersion": 1,
+      "revision": { "commitSha": "policy-regression-empty" },
+      "nodes": [],
+      "edges": [],
+      "diagnostics": []
+    },
+    "module-only-before": {
+      "schemaVersion": 1,
+      "revision": { "commitSha": "policy-regression-before" },
+      "nodes": [{ "id": "module:app", "kind": "module", "name": "app" }],
+      "edges": [],
+      "diagnostics": []
+    },
+    "module-only-after": {
+      "schemaVersion": 1,
+      "revision": { "commitSha": "policy-regression-after" },
+      "nodes": [{ "id": "module:app", "kind": "module", "name": "app" }],
+      "edges": [],
+      "diagnostics": []
+    },
+    "graph": {
+      "schemaVersion": 1,
+      "revision": { "commitSha": "policy-regression-graph" },
+      "nodes": [
+        { "id": "module:app", "kind": "module", "name": "app" },
+        {
+          "id": "endpoint:health",
+          "kind": "endpoint",
+          "name": "health"
+        },
+        {
+          "id": "endpoint:users",
+          "kind": "endpoint",
+          "name": "users"
+        },
+        {
+          "id": "service:users",
+          "kind": "service",
+          "name": "users"
+        }
+      ],
+      "edges": [
+        {
+          "from": "module:app",
+          "to": "service:users",
+          "kind": "calls",
+          "confidence": "certain",
+          "evidence": [{ "kind": "user", "id": "fixture-edge-app" }]
+        },
+        {
+          "from": "service:users",
+          "to": "endpoint:users",
+          "kind": "calls",
+          "confidence": "inferred",
+          "evidence": [{ "kind": "user", "id": "fixture-edge-users" }]
+        }
+      ],
+      "diagnostics": []
+    },
+    "one-endpoint": {
+      "schemaVersion": 1,
+      "revision": { "commitSha": "policy-regression-one-endpoint" },
+      "nodes": [
+        { "id": "module:app", "kind": "module", "name": "app" },
+        {
+          "id": "endpoint:health",
+          "kind": "endpoint",
+          "name": "health"
+        }
+      ],
+      "edges": [],
+      "diagnostics": []
+    }
+  },
+  "diffs": {
+    "no-change": {
+      "before": "module-only-before",
+      "after": "module-only-after"
+    },
+    "one-node-added": {
+      "before": "module-only-before",
+      "after": "one-endpoint"
+    },
+    "two-nodes-added": {
+      "before": "module-only-before",
+      "after": "graph"
+    }
+  },
+  "cases": [
+    {
+      "id": "node-exists-positive",
+      "class": "positive",
+      "input": { "kind": "snapshot", "ref": "graph" },
+      "policy": {
+        "policyId": "policy-node-exists-positive",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "node-exists-positive",
+            "target": "node",
+            "selector": { "kind": "service" },
+            "assertion": "exists"
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "unsupportedIds": []
+      }
+    },
+    {
+      "id": "node-exists-negative",
+      "class": "negative",
+      "input": { "kind": "snapshot", "ref": "empty" },
+      "policy": {
+        "policyId": "policy-node-exists-negative",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "node-exists-negative",
+            "target": "node",
+            "selector": { "kind": "service" },
+            "assertion": "exists"
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:node-exists-negative"],
+        "unsupportedIds": [],
+        "checks": [
+          {
+            "kind": "violation",
+            "id": "violation:node-exists-negative",
+            "reasonIncludes": "requires at least one matching node",
+            "evidenceIncludes": [
+              "input:snapshot",
+              "policy:policy-node-exists-negative",
+              "policy-rule:node-exists-negative"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-absent-positive",
+      "class": "positive",
+      "input": { "kind": "snapshot", "ref": "graph" },
+      "policy": {
+        "policyId": "policy-node-absent-positive",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "node-absent-positive",
+            "target": "node",
+            "selector": { "kind": "unknown" },
+            "assertion": "absent"
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "unsupportedIds": []
+      }
+    },
+    {
+      "id": "node-absent-negative",
+      "class": "negative",
+      "input": { "kind": "snapshot", "ref": "graph" },
+      "policy": {
+        "policyId": "policy-node-absent-negative",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "node-absent-negative",
+            "target": "node",
+            "selector": { "kind": "endpoint" },
+            "assertion": "absent"
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:node-absent-negative"],
+        "unsupportedIds": [],
+        "checks": [
+          {
+            "kind": "violation",
+            "id": "violation:node-absent-negative",
+            "reasonIncludes": "forbids matching node",
+            "evidenceIncludes": [
+              "node:endpoint:health",
+              "input:snapshot",
+              "policy-rule:node-absent-negative"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-count-at-most-positive",
+      "class": "positive",
+      "input": { "kind": "snapshot", "ref": "graph" },
+      "policy": {
+        "policyId": "policy-node-at-most-positive",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "node-count-at-most-positive",
+            "target": "node",
+            "selector": { "kind": "endpoint" },
+            "assertion": "count-at-most",
+            "value": 2
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "unsupportedIds": []
+      }
+    },
+    {
+      "id": "node-count-at-most-negative",
+      "class": "negative",
+      "input": { "kind": "snapshot", "ref": "graph" },
+      "policy": {
+        "policyId": "policy-node-at-most-negative",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "node-count-at-most-negative",
+            "target": "node",
+            "selector": { "kind": "endpoint" },
+            "assertion": "count-at-most",
+            "value": 1
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:node-count-at-most-negative"],
+        "unsupportedIds": [],
+        "checks": [
+          {
+            "kind": "violation",
+            "id": "violation:node-count-at-most-negative",
+            "reasonIncludes": "permits at most 1 matching node",
+            "evidenceIncludes": ["node:endpoint:health"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-count-at-least-positive",
+      "class": "positive",
+      "input": { "kind": "snapshot", "ref": "graph" },
+      "policy": {
+        "policyId": "policy-node-at-least-positive",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "node-count-at-least-positive",
+            "target": "node",
+            "selector": { "kind": "endpoint" },
+            "assertion": "count-at-least",
+            "value": 2
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "unsupportedIds": []
+      }
+    },
+    {
+      "id": "node-count-at-least-negative",
+      "class": "negative",
+      "input": { "kind": "snapshot", "ref": "graph" },
+      "policy": {
+        "policyId": "policy-node-at-least-negative",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "node-count-at-least-negative",
+            "target": "node",
+            "selector": { "kind": "endpoint" },
+            "assertion": "count-at-least",
+            "value": 3
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:node-count-at-least-negative"],
+        "unsupportedIds": [],
+        "checks": [
+          {
+            "kind": "violation",
+            "id": "violation:node-count-at-least-negative",
+            "reasonIncludes": "requires at least 3 matching node",
+            "evidenceIncludes": ["node:endpoint:health"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "edge-exists-positive",
+      "class": "positive",
+      "input": { "kind": "snapshot", "ref": "graph" },
+      "policy": {
+        "policyId": "policy-edge-exists-positive",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "edge-exists-positive",
+            "target": "edge",
+            "selector": { "kind": "calls" },
+            "assertion": "exists"
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "unsupportedIds": []
+      }
+    },
+    {
+      "id": "edge-exists-negative",
+      "class": "negative",
+      "input": { "kind": "snapshot", "ref": "empty" },
+      "policy": {
+        "policyId": "policy-edge-exists-negative",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "edge-exists-negative",
+            "target": "edge",
+            "selector": { "kind": "calls" },
+            "assertion": "exists"
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:edge-exists-negative"],
+        "unsupportedIds": [],
+        "checks": [
+          {
+            "kind": "violation",
+            "id": "violation:edge-exists-negative",
+            "reasonIncludes": "requires at least one matching edge",
+            "evidenceIncludes": [
+              "input:snapshot",
+              "policy-rule:edge-exists-negative"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "edge-absent-positive",
+      "class": "positive",
+      "input": { "kind": "snapshot", "ref": "graph" },
+      "policy": {
+        "policyId": "policy-edge-absent-positive",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "edge-absent-positive",
+            "target": "edge",
+            "selector": { "kind": "unknown" },
+            "assertion": "absent"
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "unsupportedIds": []
+      }
+    },
+    {
+      "id": "edge-absent-negative",
+      "class": "negative",
+      "input": { "kind": "snapshot", "ref": "graph" },
+      "policy": {
+        "policyId": "policy-edge-absent-negative",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "edge-absent-negative",
+            "target": "edge",
+            "selector": { "kind": "calls" },
+            "assertion": "absent"
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:edge-absent-negative"],
+        "unsupportedIds": [],
+        "checks": [
+          {
+            "kind": "violation",
+            "id": "violation:edge-absent-negative",
+            "reasonIncludes": "forbids matching edge",
+            "evidenceIncludes": [
+              "edge:module:app|calls|service:users",
+              "evidence:fixture-edge-app"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "edge-count-at-most-positive",
+      "class": "positive",
+      "input": { "kind": "snapshot", "ref": "graph" },
+      "policy": {
+        "policyId": "policy-edge-at-most-positive",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "edge-count-at-most-positive",
+            "target": "edge",
+            "selector": { "kind": "calls" },
+            "assertion": "count-at-most",
+            "value": 2
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "unsupportedIds": []
+      }
+    },
+    {
+      "id": "edge-count-at-most-negative",
+      "class": "negative",
+      "input": { "kind": "snapshot", "ref": "graph" },
+      "policy": {
+        "policyId": "policy-edge-at-most-negative",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "edge-count-at-most-negative",
+            "target": "edge",
+            "selector": { "kind": "calls" },
+            "assertion": "count-at-most",
+            "value": 1
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:edge-count-at-most-negative"],
+        "unsupportedIds": [],
+        "checks": [
+          {
+            "kind": "violation",
+            "id": "violation:edge-count-at-most-negative",
+            "reasonIncludes": "permits at most 1 matching edge",
+            "evidenceIncludes": ["edge:module:app|calls|service:users"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "edge-count-at-least-positive",
+      "class": "positive",
+      "input": { "kind": "snapshot", "ref": "graph" },
+      "policy": {
+        "policyId": "policy-edge-at-least-positive",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "edge-count-at-least-positive",
+            "target": "edge",
+            "selector": { "kind": "calls" },
+            "assertion": "count-at-least",
+            "value": 2
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "unsupportedIds": []
+      }
+    },
+    {
+      "id": "edge-count-at-least-negative",
+      "class": "negative",
+      "input": { "kind": "snapshot", "ref": "graph" },
+      "policy": {
+        "policyId": "policy-edge-at-least-negative",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "edge-count-at-least-negative",
+            "target": "edge",
+            "selector": { "kind": "calls" },
+            "assertion": "count-at-least",
+            "value": 3
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:edge-count-at-least-negative"],
+        "unsupportedIds": [],
+        "checks": [
+          {
+            "kind": "violation",
+            "id": "violation:edge-count-at-least-negative",
+            "reasonIncludes": "requires at least 3 matching edge",
+            "evidenceIncludes": ["evidence:fixture-edge-app"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "diff-exists-positive",
+      "class": "positive",
+      "input": { "kind": "diff", "ref": "one-node-added" },
+      "policy": {
+        "policyId": "policy-diff-exists-positive",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "diff-exists-positive",
+            "target": "diff",
+            "selector": { "kind": "node-added" },
+            "assertion": "exists"
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "unsupportedIds": []
+      }
+    },
+    {
+      "id": "diff-exists-negative",
+      "class": "negative",
+      "input": { "kind": "diff", "ref": "no-change" },
+      "policy": {
+        "policyId": "policy-diff-exists-negative",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "diff-exists-negative",
+            "target": "diff",
+            "selector": { "kind": "node-added" },
+            "assertion": "exists"
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:diff-exists-negative"],
+        "unsupportedIds": [],
+        "checks": [
+          {
+            "kind": "violation",
+            "id": "violation:diff-exists-negative",
+            "reasonIncludes": "requires at least one matching diff",
+            "evidenceIncludes": [
+              "input:diff",
+              "policy-rule:diff-exists-negative"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "diff-absent-positive",
+      "class": "positive",
+      "input": { "kind": "diff", "ref": "no-change" },
+      "policy": {
+        "policyId": "policy-diff-absent-positive",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "diff-absent-positive",
+            "target": "diff",
+            "selector": { "kind": "node-added" },
+            "assertion": "absent"
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "unsupportedIds": []
+      }
+    },
+    {
+      "id": "diff-absent-negative",
+      "class": "negative",
+      "input": { "kind": "diff", "ref": "one-node-added" },
+      "policy": {
+        "policyId": "policy-diff-absent-negative",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "diff-absent-negative",
+            "target": "diff",
+            "selector": { "kind": "node-added" },
+            "assertion": "absent"
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:diff-absent-negative"],
+        "unsupportedIds": [],
+        "checks": [
+          {
+            "kind": "violation",
+            "id": "violation:diff-absent-negative",
+            "reasonIncludes": "forbids matching diff",
+            "evidenceIncludes": ["node:endpoint:health"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "diff-count-at-most-positive",
+      "class": "positive",
+      "input": { "kind": "diff", "ref": "one-node-added" },
+      "policy": {
+        "policyId": "policy-diff-at-most-positive",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "diff-count-at-most-positive",
+            "target": "diff",
+            "selector": { "kind": "node-added" },
+            "assertion": "count-at-most",
+            "value": 1
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "unsupportedIds": []
+      }
+    },
+    {
+      "id": "diff-count-at-most-negative",
+      "class": "negative",
+      "input": { "kind": "diff", "ref": "two-nodes-added" },
+      "policy": {
+        "policyId": "policy-diff-at-most-negative",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "diff-count-at-most-negative",
+            "target": "diff",
+            "selector": { "kind": "node-added" },
+            "assertion": "count-at-most",
+            "value": 1
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:diff-count-at-most-negative"],
+        "unsupportedIds": [],
+        "checks": [
+          {
+            "kind": "violation",
+            "id": "violation:diff-count-at-most-negative",
+            "reasonIncludes": "permits at most 1 matching diff",
+            "evidenceIncludes": ["node:endpoint:health"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "diff-count-at-least-positive",
+      "class": "positive",
+      "input": { "kind": "diff", "ref": "one-node-added" },
+      "policy": {
+        "policyId": "policy-diff-at-least-positive",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "diff-count-at-least-positive",
+            "target": "diff",
+            "selector": { "kind": "node-added" },
+            "assertion": "count-at-least",
+            "value": 1
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "unsupportedIds": []
+      }
+    },
+    {
+      "id": "diff-count-at-least-negative",
+      "class": "negative",
+      "input": { "kind": "diff", "ref": "no-change" },
+      "policy": {
+        "policyId": "policy-diff-at-least-negative",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "diff-count-at-least-negative",
+            "target": "diff",
+            "selector": { "kind": "node-added" },
+            "assertion": "count-at-least",
+            "value": 1
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:diff-count-at-least-negative"],
+        "unsupportedIds": [],
+        "checks": [
+          {
+            "kind": "violation",
+            "id": "violation:diff-count-at-least-negative",
+            "reasonIncludes": "requires at least 1 matching diff",
+            "evidenceIncludes": [
+              "input:diff",
+              "policy-rule:diff-count-at-least-negative"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "unsupported-diff-target-on-snapshot",
+      "class": "unsupported",
+      "input": { "kind": "snapshot", "ref": "graph" },
+      "policy": {
+        "policyId": "policy-unsupported-snapshot",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "unsupported-diff-target",
+            "target": "diff",
+            "selector": { "kind": "node-added" },
+            "assertion": "exists"
+          }
+        ]
+      },
+      "expected": {
+        "status": "unsupported",
+        "violationIds": [],
+        "unsupportedIds": ["unsupported:unsupported-diff-target"],
+        "checks": [
+          {
+            "kind": "unsupported",
+            "id": "unsupported:unsupported-diff-target",
+            "reasonIncludes": "diff-target policy rules require a canonical GraphDiff input",
+            "evidenceIncludes": [
+              "input:snapshot",
+              "policy:policy-unsupported-snapshot",
+              "policy-rule:unsupported-diff-target"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
