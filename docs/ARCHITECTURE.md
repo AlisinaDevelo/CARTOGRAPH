@@ -29,6 +29,7 @@ repository or materialized Git revision
 
 - `src/core`: versioned graph, diff, and configuration contracts, validation, canonicalization, and comparison.
 - `src/analyzers/typescript`: TypeScript program loading and language-level relationships.
+- `src/analyzers/workspace`: bounded npm, pnpm, and Yarn workspace manifest discovery and package ownership edges.
 - `src/analyzers/express`: bounded Express route semantics.
 - `src/git`: read-only Git validation and revision materialization in narrow temporary directories.
 - `src/report`: deterministic JSON, Markdown, and standalone HTML rendering.
@@ -95,6 +96,14 @@ A snapshot contains versioned metadata, the capability-registry version, typed n
 Every edge must contain at least one evidence record or an explicit unresolved reason. Source-evidence records contain a normalized repository-relative path, a positive source span, a versioned detector identity, and a content hash. Unknown evidence fields—including source bodies and snippets—are rejected. Confidence is recorded on the edge; it distinguishes direct semantic evidence from bounded inference and is not a probability. Canonical serialization normalizes identifier separators to `/` and date-time metadata to UTC ISO 8601; malformed records fail with structured contract paths.
 
 Canonicalization validates records, rejects conflicting identities, removes exact duplicates, and sorts every collection. The runtime validator also enforces cross-record node references that JSON Schema cannot express portably. Identical input must serialize identically.
+
+The TypeScript analyzer adds `package` nodes only when an npm/Yarn
+`package.json` workspace or pnpm workspace manifest explicitly declares the
+roots. A package stable key is `package:<repository-relative-root>` and its
+`package.json` location is retained as root evidence. Declared local package
+dependencies become `depends_on` edges, and source modules under a package
+root become `contains` edges. Overlapping, malformed, mixed-manager, or
+unbounded declarations fail closed before any package roots are merged.
 
 ## Diff semantics
 

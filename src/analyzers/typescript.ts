@@ -48,6 +48,12 @@ import {
   isPotentialExpressReceiver,
 } from "./express.js";
 import { analyzeFastifyRouteCall, isFastifyRouteMethod } from "./fastify.js";
+import {
+  discoverWorkspacePackages,
+  workspacePackageForPath,
+  type WorkspaceDiscovery,
+  type WorkspacePackage,
+} from "./workspace.js";
 import { createResourceBudget, ResourceLimitError } from "../resources.js";
 
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts"]);
@@ -219,6 +225,7 @@ interface AnalyzerContext {
   sourcePaths: Set<string>;
   sourceFiles: SourceFile[];
   extractors: ReadonlySet<TypeScriptExtractor>;
+  workspace: WorkspaceDiscovery | undefined;
   checkBudget: () => void;
 }
 
@@ -1457,6 +1464,7 @@ const addNode = (
   kind: GraphNode["kind"],
   name: string,
   location?: SourceLocation,
+  language = "typescript",
 ): GraphNode => {
   const existing = context.nodes.get(stableKey);
   if (existing) return existing;
@@ -1466,7 +1474,7 @@ const addNode = (
     stableKey,
     kind,
     name,
-    language: "typescript",
+    language,
     ...(location ? { location } : {}),
   };
   context.nodes.set(stableKey, node);
@@ -1548,6 +1556,68 @@ const addEdge = (
   }
   if (existing.confidence !== "certain" && confidence === "certain")
     existing.confidence = confidence;
+};
+
+const workspacePackageNode = (
+  context: AnalyzerContext,
+  workspacePackage: WorkspacePackage,
+): GraphNode =>
+  addNode(
+    context,
+    workspacePackage.nodeId,
+    "package",
+    workspacePackage.name,
+    {
+      path: workspacePackage.manifestRelativePath,
+      line: 1,
+      column: 1,
+    },
+    "json",
+  );
+
+const addWorkspaceEdges = (context: AnalyzerContext): void => {
+  const workspace = context.workspace;
+  if (!workspace) return;
+
+  const packageNodes = new Map(
+    workspace.packages.map((workspacePackage) => [
+      workspacePackage.name,
+      workspacePackageNode(context, workspacePackage),
+    ]),
+  );
+
+  for (const workspacePackage of workspace.packages) {
+    const packageNode = packageNodes.get(workspacePackage.name);
+    if (!packageNode) continue;
+    for (const dependencyName of workspacePackage.dependencies) {
+      const dependencyNode = packageNodes.get(dependencyName);
+      if (!dependencyNode) continue;
+      addEdge(
+        context,
+        packageNode,
+        dependencyNode,
+        "depends_on",
+        workspacePackage.evidence,
+      );
+    }
+  }
+
+  for (const sourceFile of context.sourceFiles) {
+    const workspacePackage = workspacePackageForPath(
+      workspace,
+      sourceFile.getFilePath(),
+    );
+    if (!workspacePackage) continue;
+    const packageNode = packageNodes.get(workspacePackage.name);
+    if (!packageNode) continue;
+    addEdge(
+      context,
+      packageNode,
+      moduleForFile(context, sourceFile),
+      "contains",
+      workspacePackage.evidence,
+    );
+  }
 };
 
 const registerCallable = (
@@ -3366,6 +3436,11 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
     ...(options.signal === undefined ? {} : { signal: options.signal }),
   });
   checkBudget();
+  const workspace = discoverWorkspacePackages(
+    rootDir,
+    resources,
+    options.signal,
+  );
   const loaded = loadedProjectSources(
     rootDir,
     options.tsconfigPath,
@@ -3418,6 +3493,7 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
     sourcePaths,
     sourceFiles,
     extractors,
+    workspace,
     checkBudget,
   };
 };
@@ -3433,6 +3509,7 @@ export const analyzeTypeScriptRepository = (
     context.checkBudget();
     moduleForFile(context, sourceFile);
   }
+  addWorkspaceEdges(context);
   registerCallables(context);
   importSourceFiles(context);
   analyzeCalls(context);

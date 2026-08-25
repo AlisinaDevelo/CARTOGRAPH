@@ -504,6 +504,15 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "A digest-bound local gate report combines deterministic query correctness, impact precision and recall, explanation completeness, resource and malformed-input safety, path-leakage checks, reviewer tasks, and a conservative multi-repository decision without source bodies, execution, or network access.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "workspace-boundaries",
+      "path": "workspace-boundaries",
+      "source": "CARTOGRAPH repository-authored synthetic workspace fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Npm, pnpm, and Yarn workspace manifests exercise stable package roots, local dependency edges, package-to-module ownership, and fail-closed overlapping or malformed declarations without source execution or network access.",
+      "redistribution": "allowed"
     }
   ]
 }

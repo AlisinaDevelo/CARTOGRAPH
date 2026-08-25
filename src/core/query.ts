@@ -124,6 +124,7 @@ const QueryContentHashSchema = z
 const NODE_KINDS = [
   "endpoint",
   "module",
+  "package",
   "service",
   "function",
   "database_table",

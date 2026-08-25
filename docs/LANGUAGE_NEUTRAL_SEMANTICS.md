@@ -19,7 +19,7 @@ contains:
 - diagnostics that preserve unsupported or ambiguous analysis as structured,
   evidence-linked records.
 
-The node and edge kind vocabularies describe architecture (`service`,
+The node and edge kind vocabularies describe architecture (`package`, `service`,
 `function`, `database_table`, `calls`, `reads`, `requests`, and so on). They do
 not describe a particular parser. New adapters map their native constructs into
 these kinds and keep native detail in evidence, names, or adapter-specific

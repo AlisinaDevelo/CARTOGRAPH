@@ -1,0 +1,7 @@
+{
+  "name": "@fixture/pnpm-one",
+  "version": "1.0.0",
+  "devDependencies": {
+    "@fixture/pnpm-two": "workspace:^"
+  }
+}

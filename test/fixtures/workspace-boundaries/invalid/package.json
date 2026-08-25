@@ -1,0 +1,8 @@
+{
+  "name": "workspace-invalid-root",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "packages/**"
+  ]
+}

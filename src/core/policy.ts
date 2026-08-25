@@ -79,6 +79,7 @@ const NameSelectorSchema = z
 const NodeKindSchema = z.enum([
   "endpoint",
   "module",
+  "package",
   "service",
   "function",
   "database_table",

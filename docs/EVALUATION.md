@@ -229,6 +229,13 @@ adapter-compatibility migration, experimental opt-in, and a future capability
 registry rejection. The tests prove negotiation runs before `analyze`, applies
 only the reviewed version rewrite, and preserves deterministic failure guidance.
 
+X-009 adds the `workspace-boundaries` fixture and package-boundary assertions.
+The npm, pnpm, and Yarn cases require stable `package:<root>` nodes, manifest
+hash evidence, local `depends_on` edges, and package-to-module `contains` edges.
+The invalid cases require overlapping and malformed workspace declarations to
+fail before a snapshot is emitted; no external package or unrelated root is
+merged.
+
 E-009 adds the package-shaped
 [`examples/adapter-starter`](../examples/adapter-starter) and its independent
 root review harness. Three cases cover empty output, an evidence-backed

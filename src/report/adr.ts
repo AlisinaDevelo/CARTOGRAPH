@@ -324,6 +324,7 @@ const nodeKinds: readonly GraphNode["kind"][] = [
   "file",
   "function",
   "module",
+  "package",
   "queue",
   "service",
   "unknown",

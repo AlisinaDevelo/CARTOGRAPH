@@ -8,6 +8,15 @@ export {
   ResourceLimitError,
   type TypeScriptExtractor,
 } from "./typescript.js";
+export {
+  WorkspaceManifestError,
+  discoverWorkspacePackages,
+  workspacePackageForPath,
+  type WorkspaceDiscovery,
+  type WorkspaceManager,
+  type WorkspaceManifestErrorCode,
+  type WorkspacePackage,
+} from "./workspace.js";
 export { CancellationError } from "../resources.js";
 export {
   analyzeExpressRouteCall,

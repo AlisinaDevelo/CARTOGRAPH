@@ -1,0 +1,10 @@
+{
+  "name": "workspace-yarn-root",
+  "private": true,
+  "packageManager": "yarn@4.5.0",
+  "workspaces": {
+    "packages": [
+      "modules/*"
+    ]
+  }
+}
