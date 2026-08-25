@@ -495,6 +495,15 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "Five bounded local requests exercise cycle, truncation, missing-evidence, empty-result, and policy/ADR/ownership metadata explanations across JSON, Markdown, and HTML projections without source bodies, execution, or network access.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "architecture-query-quality-gate",
+      "path": "architecture-query-quality-gate",
+      "source": "CARTOGRAPH repository-authored synthetic query quality gate fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A digest-bound local gate report combines deterministic query correctness, impact precision and recall, explanation completeness, resource and malformed-input safety, path-leakage checks, reviewer tasks, and a conservative multi-repository decision without source bodies, execution, or network access.",
+      "redistribution": "allowed"
     }
   ]
 }
