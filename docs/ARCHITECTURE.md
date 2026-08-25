@@ -80,7 +80,13 @@ maps that expose additional environment branches remain visible as an
 `AMBIGUOUS_PACKAGE_CONDITION` warning with the selected and available condition
 sets in the diagnostic message.
 
-Adapters depend on the core contract. The core does not depend on a framework adapter.
+Adapters depend on the core contract. The core does not depend on a framework
+adapter. Trusted local fixtures can use the synchronous contract checker, but
+third-party module adapters use the opt-in permissioned child-process host in
+`src/core/adapter-isolation.ts`. Only the declared source and module
+directories are readable there; writes, network, child processes, and workers
+remain denied, and resource breaches terminate the child before a result is
+accepted.
 
 ## Canonical graph
 

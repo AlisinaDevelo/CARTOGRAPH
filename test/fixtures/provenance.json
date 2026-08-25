@@ -47,6 +47,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "adapter-isolation",
+      "path": "adapter-isolation",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A module-exported adversarial adapter exercises process termination, response limits, permission denial, malformed evidence, and protocol cleanup without reading repository code.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "outside-import",
       "path": "outside-import",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

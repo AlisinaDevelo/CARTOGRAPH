@@ -9,10 +9,14 @@ import Ajv from "ajv";
 import {
   ADAPTER_API_VERSION,
   AdapterCapabilityManifestSchema,
+  AdapterIsolationError,
   AdapterValidationError,
   parseAdapterManifest,
+  parseAdapterInput,
   runAdapter,
+  runAdapterIsolated,
   runAdapterConformance,
+  supportsAdapterIsolation,
   serializeAdapterInput,
   serializeAdapterOutput,
 } from "../src/core/index.ts";
@@ -38,17 +42,132 @@ const adapterInput = (fixture, commitSha = "sample-fixture") => ({
     maxFiles: 1,
     maxFileBytes: 1_024,
     maxSourceBytes: 1_024,
+    maxInputBytes: 8_192,
+    maxOutputBytes: 32_768,
+    maxMemoryBytes: 256 * 1024 * 1024,
     maxWallClockMs: 1_000,
   },
 });
 
-const validate = () => {
+const isolationInput = (fixture, overrides = {}) => ({
+  apiVersion: ADAPTER_API_VERSION,
+  source: {
+    rootDir: repositoryRoot,
+    include: ["."],
+    exclude: [],
+    revision: { commitSha: `isolation-${fixture}` },
+  },
+  config: { fixture },
+  resources: {
+    maxFiles: 128,
+    maxFileBytes: 16_384,
+    maxSourceBytes: 65_536,
+    maxInputBytes: 8_192,
+    maxOutputBytes: 32_768,
+    maxMemoryBytes: 256 * 1024 * 1024,
+    maxWallClockMs: 2_000,
+    ...overrides,
+  },
+});
+
+const validateIsolation = async () => {
+  if (!supportsAdapterIsolation()) {
+    try {
+      await runAdapterIsolated({
+        adapterModule: resolve(
+          repositoryRoot,
+          "test/fixtures/adapter-isolation/adapter.mjs",
+        ),
+        input: isolationInput("empty"),
+      });
+      throw new Error("unsupported isolation runtime unexpectedly succeeded");
+    } catch (error) {
+      if (
+        !(error instanceof AdapterIsolationError) ||
+        error.code !== "unsupported-runtime"
+      )
+        throw error;
+    }
+    return { available: false, cases: 0, terminated: 0, denied: 0 };
+  }
+  const adapterModule = resolve(
+    repositoryRoot,
+    "test/fixtures/adapter-isolation/adapter.mjs",
+  );
+  const output = await runAdapterIsolated({
+    adapterModule,
+    input: isolationInput("empty"),
+  });
+  if (output.graph.nodes.length !== 0 || output.graph.edges.length !== 0)
+    throw new Error("isolated adapter produced a non-empty empty fixture");
+
+  const expectIsolationFailure = async (fixture, overrides, code) => {
+    try {
+      await runAdapterIsolated({
+        adapterModule,
+        input: isolationInput(fixture, overrides),
+      });
+      throw new Error(`isolated ${fixture} fixture unexpectedly succeeded`);
+    } catch (error) {
+      if (!(error instanceof AdapterIsolationError) || error.code !== code)
+        throw error;
+    }
+  };
+  await expectIsolationFailure(
+    "hang",
+    { maxWallClockMs: 500 },
+    "wall-clock-limit",
+  );
+  await expectIsolationFailure(
+    "oversized",
+    { maxOutputBytes: 1_024 },
+    "output-limit",
+  );
+  await expectIsolationFailure("network", {}, "authority-denied");
+  await expectIsolationFailure("child-process", {}, "authority-denied");
+
+  try {
+    await runAdapterIsolated({
+      adapterModule,
+      input: isolationInput("malformed-evidence"),
+    });
+    throw new Error(
+      "isolated malformed-evidence fixture unexpectedly succeeded",
+    );
+  } catch (error) {
+    if (
+      !(error instanceof AdapterValidationError) ||
+      error.code !== "invalid-output"
+    )
+      throw error;
+  }
+
+  try {
+    parseAdapterInput({
+      ...isolationInput("empty"),
+      source: { ...isolationInput("empty").source, include: ["../outside"] },
+    });
+    throw new Error("isolated path escape fixture unexpectedly succeeded");
+  } catch (error) {
+    if (!(error instanceof AdapterValidationError)) throw error;
+  }
+  return { available: true, cases: 7, terminated: 2, denied: 2 };
+};
+
+const validate = async () => {
   const schema = readJson("schema/adapter.v0.1.schema.json");
+  const inputSchema = readJson("schema/adapter-input.v0.1.schema.json");
   const sample = readJson("schema/adapter.v0.1.json");
   const validateSchema = new Ajv({ allErrors: true }).compile(schema);
+  const validateInputSchema = new Ajv({ allErrors: true }).compile(inputSchema);
   if (!validateSchema(sample)) {
     throw new Error(
       `adapter JSON Schema validation failed: ${JSON.stringify(validateSchema.errors)}`,
+    );
+  }
+  if (!validateInputSchema(adapterInput("empty"))) {
+    throw new Error(
+      `adapter input JSON Schema validation failed: ${JSON.stringify(validateInputSchema.errors)}`,
     );
   }
 
@@ -132,6 +251,7 @@ const validate = () => {
     repetitions: 2,
     maxDurationMs: 1_000,
   });
+  const isolation = await validateIsolation();
 
   return {
     ok: true,
@@ -150,6 +270,7 @@ const validate = () => {
       identity: conformance.identity,
       performance: conformance.performance,
     },
+    isolation,
   };
 };
 
@@ -158,9 +279,9 @@ if (process.argv[2] !== "validate") {
   process.exit(2);
 }
 
-try {
-  console.log(JSON.stringify(validate()));
-} catch (error) {
-  console.error(`adapter validation failed: ${error.message}`);
-  process.exit(1);
-}
+validate()
+  .then((result) => console.log(JSON.stringify(result)))
+  .catch((error) => {
+    console.error(`adapter validation failed: ${error.message}`);
+    process.exit(1);
+  });

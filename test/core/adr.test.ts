@@ -44,7 +44,7 @@ describe("local ADR references", () => {
 
     const parsed = parseAdrReferenceDocument(sample);
     expect(parsed).toMatchObject({ schemaVersion: 1 });
-    expect(parsed.references).toHaveLength(4);
+    expect(parsed.references).toHaveLength(5);
     expect(
       parsed.references.every((reference) => reference.status === "accepted"),
     ).toBe(true);
@@ -215,7 +215,7 @@ describe("local ADR references", () => {
       writeFileSync(join(root, "adr.json"), JSON.stringify(sample), "utf8");
       expect(
         readAdrReferenceDocument(root, "adr.json").references,
-      ).toHaveLength(4);
+      ).toHaveLength(5);
       expect(() => readAdrReferenceDocument(root, "../adr.json")).toThrow(
         /repository-relative local file/u,
       );
