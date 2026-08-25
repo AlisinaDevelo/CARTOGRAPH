@@ -74,6 +74,14 @@ symlink exclusion. Case-folded and Unicode collisions fail closed with
 `IDENTITY_CASE_COLLISION` or `IDENTITY_UNICODE_COLLISION` diagnostics, and CI
 publishes the portability result to the step summary.
 
+P-013 adds the identity quality release gate in
+[`IDENTITY_QUALITY.md`](IDENTITY_QUALITY.md). `npm run
+identity:quality:validate` replays curated and seeded generated cases and
+reports preservation, false-match, ambiguity, unmatched, and unsupported rates
+by refactor family. It compares the deterministic quality digest with the
+checked-in baseline and enforces the documented thresholds and expiring
+exception process before release.
+
 ## Policy configuration evaluation
 
 The policy fixture validates the versioned local contract through both the

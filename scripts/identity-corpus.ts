@@ -83,9 +83,14 @@ type CorpusFixture = {
 type CaseReport = {
   id: string;
   category: IdentityCategory;
+  source: "curated" | "generated";
   beforeNodes: number;
   afterNodes: number;
   matches: number;
+  expectedMatches: number;
+  preserved: number;
+  falseMatches: number;
+  unmatched: number;
   added: number;
   removed: number;
   ambiguous: number;
@@ -108,6 +113,20 @@ const categories: IdentityCategory[] = [
   "path-alias",
   "ambiguous",
 ];
+
+const expectedMatchesForCategory = (current: CorpusCase): number => {
+  if (current.expected !== undefined) return current.expected.matches;
+  if (
+    current.category === "line-move" ||
+    current.category === "file-move" ||
+    current.category === "path-alias"
+  )
+    return 1;
+  if (current.category === "supported-rename") return 2;
+  if (current.category === "overloads")
+    return Math.min(current.before.length, current.after.length);
+  return 0;
+};
 
 class XorShift32 {
   private state: number;
@@ -533,6 +552,7 @@ const evaluateCase = (
   current: CorpusCase,
   maxCandidates: number,
   maxNodesPerSnapshot: number,
+  source: "curated" | "generated",
 ): CaseReport => {
   if (
     current.before.length > maxNodesPerSnapshot ||
@@ -597,9 +617,23 @@ const evaluateCase = (
   return {
     id: current.id,
     category: current.category,
+    source,
     beforeNodes: current.before.length,
     afterNodes: current.after.length,
     matches: result.matches.length,
+    expectedMatches: expectedMatchesForCategory(current),
+    preserved: Math.min(
+      result.matches.length,
+      expectedMatchesForCategory(current),
+    ),
+    falseMatches: Math.max(
+      0,
+      result.matches.length - expectedMatchesForCategory(current),
+    ),
+    unmatched: Math.max(
+      0,
+      expectedMatchesForCategory(current) - result.matches.length,
+    ),
     added: result.added.length,
     removed: result.removed.length,
     ambiguous: result.ambiguous.length,
@@ -607,6 +641,91 @@ const evaluateCase = (
     methods: result.matches.map((item) => item.method),
   };
 };
+
+type QualityMetrics = {
+  cases: number;
+  beforeNodes: number;
+  afterNodes: number;
+  eligibleMatches: number;
+  preserved: number;
+  falseMatches: number;
+  ambiguous: number;
+  unmatched: number;
+  unsupported: number;
+  preservationRate: number | null;
+  falseMatchRate: number;
+  ambiguityRate: number;
+  unmatchedRate: number;
+  unsupportedRate: number;
+};
+
+const rate = (numerator: number, denominator: number): number =>
+  Number((numerator / Math.max(1, denominator)).toFixed(4));
+
+const summarizeQuality = (reports: readonly CaseReport[]): QualityMetrics => {
+  const beforeNodes = reports.reduce(
+    (sum, current) => sum + current.beforeNodes,
+    0,
+  );
+  const afterNodes = reports.reduce(
+    (sum, current) => sum + current.afterNodes,
+    0,
+  );
+  const eligibleMatches = reports.reduce(
+    (sum, current) => sum + current.expectedMatches,
+    0,
+  );
+  const preserved = reports.reduce(
+    (sum, current) => sum + current.preserved,
+    0,
+  );
+  const falseMatches = reports.reduce(
+    (sum, current) => sum + current.falseMatches,
+    0,
+  );
+  const matched = reports.reduce((sum, current) => sum + current.matches, 0);
+  const ambiguous = reports.reduce(
+    (sum, current) => sum + current.ambiguous,
+    0,
+  );
+  const unmatched = reports.reduce(
+    (sum, current) => sum + current.unmatched,
+    0,
+  );
+  const unsupported = reports.reduce(
+    (sum, current) => sum + current.unsupported,
+    0,
+  );
+  return {
+    cases: reports.length,
+    beforeNodes,
+    afterNodes,
+    eligibleMatches,
+    preserved,
+    falseMatches,
+    ambiguous,
+    unmatched,
+    unsupported,
+    preservationRate:
+      eligibleMatches === 0 ? null : rate(preserved, eligibleMatches),
+    falseMatchRate: rate(falseMatches, matched),
+    ambiguityRate: rate(ambiguous, beforeNodes),
+    unmatchedRate: rate(unmatched, eligibleMatches),
+    unsupportedRate: rate(unsupported, beforeNodes),
+  };
+};
+
+const qualityByCategory = (
+  reports: readonly CaseReport[],
+): Record<IdentityCategory, QualityMetrics> =>
+  Object.fromEntries(
+    categories.map((category) => [
+      category,
+      summarizeQuality(
+        reports.filter((current) => current.category === category),
+      ),
+    ]),
+  ) as Record<IdentityCategory, QualityMetrics>;
 
 export type IdentityCorpusReport = ReturnType<typeof runIdentityCorpus>;
 
@@ -628,6 +747,12 @@ export const runIdentityCorpus = (): {
     matchRate: number;
     ambiguityRate: number;
     categories: Record<IdentityCategory, number>;
+    curated: QualityMetrics;
+    generated: QualityMetrics;
+    byCategory: {
+      curated: Record<IdentityCategory, QualityMetrics>;
+      generated: Record<IdentityCategory, QualityMetrics>;
+    };
   };
 } => {
   const fixture = loadIdentityCorpus();
@@ -645,6 +770,7 @@ export const runIdentityCorpus = (): {
       current,
       fixture.generator.maxCandidates,
       fixture.generator.maxNodesPerSnapshot,
+      "curated",
     ),
   );
   const generated = generateIdentityCorpus(
@@ -656,6 +782,7 @@ export const runIdentityCorpus = (): {
       current,
       fixture.generator.maxCandidates,
       fixture.generator.maxNodesPerSnapshot,
+      "generated",
     ),
   );
   const reports = [...regressionReports, ...generatedReports];
@@ -705,6 +832,20 @@ export const runIdentityCorpus = (): {
         (ambiguousNodes / Math.max(1, beforeNodes)).toFixed(4),
       ),
       categories: categoriesResult,
+      curated: summarizeQuality(
+        reports.filter((current) => current.source === "curated"),
+      ),
+      generated: summarizeQuality(
+        reports.filter((current) => current.source === "generated"),
+      ),
+      byCategory: {
+        curated: qualityByCategory(
+          reports.filter((current) => current.source === "curated"),
+        ),
+        generated: qualityByCategory(
+          reports.filter((current) => current.source === "generated"),
+        ),
+      },
     },
   };
 };

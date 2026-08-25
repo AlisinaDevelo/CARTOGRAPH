@@ -76,6 +76,9 @@ jobs:
       - name: Validate identity portability
         run: npm run identity:portability:validate
 
+      - name: Validate identity quality gate
+        run: npm run identity:quality:validate
+
       - name: Validate compatibility review
         run: npm run compatibility:validate
 
