@@ -190,7 +190,8 @@ const compareStrings = (left: string, right: string): number => {
   return 0;
 };
 
-const normalizePath = (value: string): string => value.split(sep).join("/");
+const normalizePath = (value: string): string =>
+  value.normalize("NFC").split(sep).join("/");
 
 const sourceFilePath = (rootDir: string, filePath: string): string => {
   const normalized = normalizePath(relative(rootDir, filePath));

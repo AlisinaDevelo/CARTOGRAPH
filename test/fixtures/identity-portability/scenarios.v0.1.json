@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.identity-portability",
+  "normalization": "NFC",
+  "scenarios": [
+    {
+      "id": "windows-posix-separators",
+      "kind": "equivalent",
+      "invariant": "repository-relative Windows and POSIX paths serialize to one canonical identity"
+    },
+    {
+      "id": "repository-relocation",
+      "kind": "equivalent",
+      "invariant": "the same project copied to another absolute root emits the same relative identities"
+    },
+    {
+      "id": "unicode-composed-decomposed",
+      "kind": "equivalent",
+      "invariant": "NFC and NFD spellings of a path serialize to one canonical identity"
+    },
+    {
+      "id": "case-sensitive-distinct",
+      "kind": "case-policy",
+      "invariant": "Foo.ts and foo.ts remain distinct when case sensitivity is explicit"
+    },
+    {
+      "id": "case-insensitive-collision",
+      "kind": "collision",
+      "diagnostic": "IDENTITY_CASE_COLLISION",
+      "invariant": "case-folded aliases fail closed with candidate identities"
+    },
+    {
+      "id": "unicode-collision",
+      "kind": "collision",
+      "diagnostic": "IDENTITY_UNICODE_COLLISION",
+      "invariant": "distinct pre-normalization spellings fail closed before identity collapse"
+    },
+    {
+      "id": "symlink-policy",
+      "kind": "symlink",
+      "invariant": "symlinked source input is ignored by the working-tree analyzer"
+    }
+  ]
+}

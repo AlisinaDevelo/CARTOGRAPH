@@ -73,6 +73,9 @@ jobs:
       - name: Validate identity regression corpus
         run: npm run identity:validate
 
+      - name: Validate identity portability
+        run: npm run identity:portability:validate
+
       - name: Validate documented workflow
         run: npm run workflow:validate
 

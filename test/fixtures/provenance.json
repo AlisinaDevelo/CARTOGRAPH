@@ -209,6 +209,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "identity-portability",
+      "path": "identity-portability",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Portable graph scenarios exercise separator and Unicode normalization, repository relocation, explicit case-sensitive and case-insensitive collision policy, and symlink exclusion without source disclosure or remote authority.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "identity-corpus",
       "path": "identity-corpus",
       "source": "CARTOGRAPH repository-authored synthetic fixture",
