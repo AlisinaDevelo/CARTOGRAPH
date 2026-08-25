@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/adapter-starter-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH adapter starter fixtures v0.1",
+  "description": "Portable starter cases that exercise supported, unsupported, diagnostic, and deterministic adapter behavior.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "adapterId",
+    "adapterVersion",
+    "cases"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.adapter-starter-fixtures" },
+    "adapterId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "adapterVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "fixture", "expect"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+        },
+        "fixture": { "enum": ["empty", "supported", "unsupported"] },
+        "expect": { "$ref": "#/definitions/expectation" }
+      }
+    },
+    "expectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minNodes", "minEdges"],
+      "properties": {
+        "minNodes": { "type": "integer", "minimum": 0 },
+        "minEdges": { "type": "integer", "minimum": 0 },
+        "unsupportedDiagnosticCodes": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

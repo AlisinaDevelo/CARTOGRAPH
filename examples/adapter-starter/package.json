@@ -1,0 +1,28 @@
+{
+  "name": "cartograph-adapter-starter",
+  "version": "0.1.0",
+  "description": "A bounded starter for a CARTOGRAPH adapter contribution.",
+  "type": "module",
+  "exports": {
+    ".": "./adapter.mjs"
+  },
+  "files": [
+    "adapter.mjs",
+    "fixtures",
+    "test",
+    "README.md",
+    "package.json"
+  ],
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "test": "node --test test/adapter.test.mjs",
+    "pack:check": "npm pack --dry-run --json --ignore-scripts"
+  },
+  "peerDependencies": {
+    "cartograph-cli": ">=0.1.0 <1.0.0"
+  },
+  "license": "Apache-2.0",
+  "private": true
+}

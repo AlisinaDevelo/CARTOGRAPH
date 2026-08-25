@@ -107,6 +107,26 @@ capabilities only with new fixtures and a reviewed compatibility decision.
 Framework and language-specific adapters remain separate implementations behind
 this boundary.
 
+### Starter and maintainer review
+
+External contributors can copy the package-shaped
+[`examples/adapter-starter`](../examples/adapter-starter) rather than inventing
+their own contract boilerplate. It includes a capability manifest, supported
+and unsupported fixtures, a conformance test, package metadata, explicit
+diagnostics, compatibility cases, and security-boundary checks. From the
+repository, `npm run adapter-starter:validate` performs the independent offline
+review harness and `npm pack --dry-run` package check; in a copied package,
+`npm test` runs the same public-contract tests after installing
+`cartograph-cli`.
+
+The maintainer gate is documented in the
+[adapter review playbook](ADAPTER_REVIEW_PLAYBOOK.md). Graduation requires
+bounded evidence, a named owner and backup, security and retirement handling,
+and the recorded independent dry run in
+[`ADAPTER_REVIEW_DRY_RUN.md`](ADAPTER_REVIEW_DRY_RUN.md). A starter is not a
+stable support claim until the review is accepted and the adapter is listed in
+the support matrix.
+
 ### Compatibility negotiation
 
 Before `analyze` is called, `runAdapter` evaluates the adapter manifest against
