@@ -161,6 +161,17 @@ adapter-compatibility migration, experimental opt-in, and a future capability
 registry rejection. The tests prove negotiation runs before `analyze`, applies
 only the reviewed version rewrite, and preserves deterministic failure guidance.
 
+E-009 adds the package-shaped
+[`examples/adapter-starter`](../examples/adapter-starter) and its independent
+root review harness. Three cases cover empty output, an evidence-backed
+supported edge, and an explicit unsupported diagnostic. `npm run
+adapter-starter:validate` validates the fixture schema, package dry-run,
+repeated conformance output, compatibility negotiation, unsafe
+authority/config/path rejection, and isolated execution (or the documented
+unavailable-runtime refusal). The review stages, ownership, maintenance,
+security response, and graduation threshold are recorded in the
+[adapter review playbook](ADAPTER_REVIEW_PLAYBOOK.md).
+
 ## Practical compatibility
 
 R-005 records the first compatibility review in

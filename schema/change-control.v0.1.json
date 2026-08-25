@@ -127,6 +127,18 @@
       "removalGate": null
     },
     {
+      "id": "adapter.starter-review-v1",
+      "kind": "adapter-capability",
+      "status": "active",
+      "introducedVersion": "0.1.0",
+      "owner": "extractor-maintainers",
+      "reviewDate": "2027-09-30",
+      "replacement": null,
+      "deprecationReason": null,
+      "deprecatedSince": null,
+      "removalGate": null
+    },
+    {
       "id": "policy.config-unknown-fields-warn",
       "kind": "policy-feature",
       "status": "active",

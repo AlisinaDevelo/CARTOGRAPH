@@ -1,0 +1,28 @@
+{
+  "$schema": "../../../schema/adapter-starter-fixtures.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.adapter-starter-fixtures",
+  "adapterId": "cartograph.starter.example",
+  "adapterVersion": "0.1.0",
+  "cases": [
+    {
+      "id": "empty",
+      "fixture": "empty",
+      "expect": { "minNodes": 0, "minEdges": 0 }
+    },
+    {
+      "id": "supported",
+      "fixture": "supported",
+      "expect": { "minNodes": 2, "minEdges": 1 }
+    },
+    {
+      "id": "unsupported",
+      "fixture": "unsupported",
+      "expect": {
+        "minNodes": 2,
+        "minEdges": 1,
+        "unsupportedDiagnosticCodes": ["UNSUPPORTED_STARTER_CONSTRUCT"]
+      }
+    }
+  ]
+}
