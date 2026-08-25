@@ -88,6 +88,7 @@ const checkHostedVersionChange = () => {
       file === "schema/diagnostic-registry.v0.1.schema.json" ||
       file === "schema/policy-bundle.v0.1.schema.json" ||
       file === "schema/policy.v0.1.schema.json" ||
+      file === "schema/policy-exception.v0.1.schema.json" ||
       file === "schema/policy-composition.v0.1.schema.json" ||
       file === "schema/adr-reference.v0.1.schema.json" ||
       file === "schema/adapter.v0.1.schema.json" ||
@@ -165,6 +166,9 @@ const checkCompatibility = () => {
   );
   const policyBundleSchema = readJson("schema/policy-bundle.v0.1.schema.json");
   const localPolicySchema = readJson("schema/policy.v0.1.schema.json");
+  const policyExceptionSchema = readJson(
+    "schema/policy-exception.v0.1.schema.json",
+  );
   const policyCompositionSchema = readJson(
     "schema/policy-composition.v0.1.schema.json",
   );
@@ -233,6 +237,10 @@ const checkCompatibility = () => {
     localPolicySource,
     "LOCAL_POLICY_SCHEMA_VERSION",
   );
+  const policyExceptionVersion = sourceVersion(
+    localPolicySource,
+    "LOCAL_POLICY_EXCEPTION_SCHEMA_VERSION",
+  );
   const policyCompositionVersion = sourceVersion(
     policyCompositionSource,
     "POLICY_COMPOSITION_SCHEMA_VERSION",
@@ -298,6 +306,7 @@ const checkCompatibility = () => {
     diagnosticVersion === undefined ||
     policyBundleVersion === undefined ||
     localPolicyVersion === undefined ||
+    policyExceptionVersion === undefined ||
     policyCompositionVersion === undefined ||
     adrReferenceVersion === undefined ||
     adapterVersion === undefined ||
@@ -371,6 +380,16 @@ const checkCompatibility = () => {
     "local policy JSON Schema/runtime",
     localPolicySchema.properties.schemaVersion.const,
     localPolicyVersion,
+  );
+  requireEqual(
+    "local policy exception runtime/policy",
+    policyExceptionVersion,
+    contracts.policyExceptions.current,
+  );
+  requireEqual(
+    "local policy exception JSON Schema/runtime",
+    policyExceptionSchema.properties.schemaVersion.const,
+    policyExceptionVersion,
   );
   requireEqual(
     "policy composition runtime/policy",
@@ -552,6 +571,7 @@ const checkCompatibility = () => {
     diagnosticVersion,
     policyBundleVersion,
     localPolicyVersion,
+    policyExceptionVersion,
     policyCompositionVersion,
     adrReferenceVersion,
     adapterVersion,

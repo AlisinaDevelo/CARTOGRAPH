@@ -1,0 +1,206 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/policy-exception.v0.1.schema.json",
+  "title": "CARTOGRAPH local policy exception v0.1",
+  "description": "A bounded, repository-local exception with explicit ownership, rationale, provenance, precedence, and mandatory expiry.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "id",
+    "ruleId",
+    "scope",
+    "rationale",
+    "owner",
+    "createdAt",
+    "expiresAt"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.policy-exception" },
+    "id": { "$ref": "#/definitions/identifier" },
+    "ruleId": { "$ref": "#/definitions/identifier" },
+    "scope": { "$ref": "#/definitions/exceptionScope" },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "owner": { "$ref": "#/definitions/identifier" },
+    "createdAt": { "$ref": "#/definitions/dateTime" },
+    "expiresAt": { "$ref": "#/definitions/dateTime" },
+    "precedence": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000,
+      "default": 0
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": ["createdAt", "expiresAt"]
+      },
+      "then": {
+        "properties": {
+          "expiresAt": { "format": "date-time" }
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "dateTime": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "format": "date-time"
+    },
+    "selectorValue": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "selectorName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "nodeSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "endpoint",
+            "module",
+            "service",
+            "function",
+            "database_table",
+            "queue",
+            "external_service",
+            "file",
+            "unknown"
+          ]
+        },
+        "id": { "$ref": "#/definitions/selectorValue" },
+        "name": { "$ref": "#/definitions/selectorName" }
+      },
+      "anyOf": [
+        { "required": ["kind"] },
+        { "required": ["id"] },
+        { "required": ["name"] }
+      ]
+    },
+    "edgeSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "calls",
+            "imports",
+            "reads",
+            "writes",
+            "publishes",
+            "subscribes",
+            "requests",
+            "contains",
+            "routes_to",
+            "depends_on",
+            "implements",
+            "unknown"
+          ]
+        },
+        "from": { "$ref": "#/definitions/selectorValue" },
+        "to": { "$ref": "#/definitions/selectorValue" }
+      },
+      "anyOf": [
+        { "required": ["kind"] },
+        { "required": ["from"] },
+        { "required": ["to"] }
+      ]
+    },
+    "diffSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "node-added",
+            "node-removed",
+            "node-changed",
+            "edge-added",
+            "edge-removed",
+            "edge-changed",
+            "edge-rewired",
+            "diagnostic-added",
+            "diagnostic-removed",
+            "diagnostic-changed",
+            "identity-matched",
+            "identity-ambiguous",
+            "identity-unsupported"
+          ]
+        },
+        "id": { "$ref": "#/definitions/selectorValue" },
+        "code": { "$ref": "#/definitions/identifier" },
+        "classification": {
+          "enum": [
+            "node-changed",
+            "edge-changed",
+            "evidence-only",
+            "confidence-changed",
+            "endpoint-rewired",
+            "diagnostic-changed"
+          ]
+        }
+      },
+      "anyOf": [
+        { "required": ["kind"] },
+        { "required": ["id"] },
+        { "required": ["code"] },
+        { "required": ["classification"] }
+      ]
+    },
+    "exceptionScope": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["target", "selector"],
+          "properties": {
+            "target": { "const": "node" },
+            "selector": { "$ref": "#/definitions/nodeSelector" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["target", "selector"],
+          "properties": {
+            "target": { "const": "edge" },
+            "selector": { "$ref": "#/definitions/edgeSelector" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["target", "selector"],
+          "properties": {
+            "target": { "const": "diff" },
+            "selector": { "$ref": "#/definitions/diffSelector" }
+          }
+        }
+      ]
+    }
+  }
+}

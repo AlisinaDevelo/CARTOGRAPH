@@ -43,5 +43,6 @@
         "policy-rule:new-node-review"
       ]
     }
-  ]
+  ],
+  "exceptions": []
 }

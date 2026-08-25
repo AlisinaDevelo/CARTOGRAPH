@@ -86,6 +86,15 @@ negative case requires a typed configuration error with evidence references;
 the published composition schema and checks repeated serialization for byte
 identity.
 
+P-015 adds the
+[`policy-exceptions/scenarios.v0.1.json`](../test/fixtures/policy-exceptions/scenarios.v0.1.json)
+corpus. It evaluates active, expiring, expired, malformed, and duplicate-
+precedence records at a fixed `asOf` time in both informational and enforcing
+modes. Only the selected active or expiring exception may suppress a matching
+violation; expired and malformed records remain visible and leave the finding
+intact. The validator checks report-schema conformance, evidence references,
+expected suppression, and deterministic repeated evaluation.
+
 ## Practical compatibility
 
 Before v0.1, CARTOGRAPH will analyze at least three representative public TypeScript repositories or recorded snapshots. The report will publish supported, unresolved, and failed construct counts without copying third-party source into the repository.

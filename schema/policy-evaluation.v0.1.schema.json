@@ -39,6 +39,17 @@
       "type": "array",
       "maxItems": 10000,
       "items": { "$ref": "#/definitions/unsupported" }
+    },
+    "asOf": { "$ref": "#/definitions/dateTime" },
+    "exceptionWindowDays": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3650
+    },
+    "exceptions": {
+      "type": "array",
+      "maxItems": 128,
+      "items": { "$ref": "#/definitions/exception" }
     }
   },
   "definitions": {
@@ -52,11 +63,20 @@
       "type": "string",
       "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
     },
+    "dateTime": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "format": "date-time"
+    },
     "target": { "enum": ["node", "edge", "diff"] },
     "assertion": {
       "enum": ["exists", "absent", "count-at-most", "count-at-least"]
     },
     "effect": { "enum": ["informational", "enforce"] },
+    "exceptionStatus": {
+      "enum": ["active", "expiring", "expired", "malformed"]
+    },
     "evidenceReference": {
       "type": "string",
       "minLength": 1,
@@ -133,6 +153,33 @@
           "minItems": 1,
           "maxItems": 128,
           "items": { "$ref": "#/definitions/evidenceReference" }
+        }
+      }
+    },
+    "exception": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "suppresses", "reason", "evidenceRefs"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "ruleId": { "$ref": "#/definitions/identifier" },
+        "status": { "$ref": "#/definitions/exceptionStatus" },
+        "precedence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "suppresses": { "type": "boolean" },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/identifier" }
         }
       }
     }

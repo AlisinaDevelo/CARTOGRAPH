@@ -276,16 +276,18 @@ export async function loadDiff(path: string) {
 
 export type PolicyInputKind = "snapshot" | "diff";
 
-export type PolicyEvaluationOptions = {
+export type PolicyEvaluationFileOptions = {
   input: string;
   inputKind: PolicyInputKind;
   mode?: PolicyCiMode;
+  asOf?: string;
+  expiringWithinDays?: number;
   policy: string;
   root: string;
 };
 
 export async function evaluatePolicyFile(
-  options: PolicyEvaluationOptions,
+  options: PolicyEvaluationFileOptions,
 ): Promise<PolicyEvaluation> {
   const root = realpathSync(resolve(options.root));
   const parsedPolicy = composePolicyConfig(root, options.policy).policy;
@@ -293,10 +295,24 @@ export async function evaluatePolicyFile(
     options.mode === undefined
       ? parsedPolicy
       : parsePolicyConfig({ ...parsedPolicy, mode: options.mode });
+  const evaluationOptions = {
+    ...(options.asOf === undefined ? {} : { asOf: options.asOf }),
+    ...(options.expiringWithinDays === undefined
+      ? {}
+      : { expiringWithinDays: options.expiringWithinDays }),
+  };
   if (options.inputKind === "snapshot") {
-    return evaluatePolicyOnSnapshot(policy, await loadSnapshot(options.input));
+    return evaluatePolicyOnSnapshot(
+      policy,
+      await loadSnapshot(options.input),
+      evaluationOptions,
+    );
   }
-  return evaluatePolicyOnDiff(policy, await loadDiff(options.input));
+  return evaluatePolicyOnDiff(
+    policy,
+    await loadDiff(options.input),
+    evaluationOptions,
+  );
 }
 
 export async function diffSnapshotFiles(
