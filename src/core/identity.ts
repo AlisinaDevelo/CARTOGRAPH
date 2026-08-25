@@ -67,7 +67,8 @@ const compareStrings = (left: string, right: string): number => {
 const nodeIdentity = (node: Pick<GraphNode, "stableKey" | "id">): string =>
   `${node.stableKey}\u0000${node.id}`;
 
-const normalizePath = (value: string): string => value.replaceAll("\\", "/");
+const normalizePath = (value: string): string =>
+  value.normalize("NFC").replaceAll("\\", "/");
 
 const nodePath = (node: GraphNode): string | undefined =>
   node.location?.path === undefined

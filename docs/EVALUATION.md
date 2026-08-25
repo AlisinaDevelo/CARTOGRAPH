@@ -66,6 +66,14 @@ serialization. `npm run identity:validate` publishes the seed, generated-case
 count, match rate, ambiguity rate, and minimized-failure count; in CI it also
 adds the result to the GitHub step summary.
 
+P-012 adds the cross-platform corpus at
+[`identity-portability/scenarios.v0.1.json`](../test/fixtures/identity-portability/scenarios.v0.1.json).
+`npm run identity:portability:validate` compares Windows/POSIX separators,
+NFC/NFD spellings, relocated repository roots, explicit case policy, and
+symlink exclusion. Case-folded and Unicode collisions fail closed with
+`IDENTITY_CASE_COLLISION` or `IDENTITY_UNICODE_COLLISION` diagnostics, and CI
+publishes the portability result to the step summary.
+
 ## Policy configuration evaluation
 
 The policy fixture validates the versioned local contract through both the

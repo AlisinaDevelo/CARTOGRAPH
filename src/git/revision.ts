@@ -100,7 +100,7 @@ function assertSafeRef(ref: string): void {
 }
 
 const portableGitPath = (value: string): string | undefined => {
-  const path = value.replaceAll("\\", "/");
+  const path = value.normalize("NFC").replaceAll("\\", "/");
   if (
     path.length === 0 ||
     path.includes("\0") ||

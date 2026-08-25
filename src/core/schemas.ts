@@ -9,7 +9,7 @@ const IdentifierSchema = z
   .string()
   .trim()
   .min(1, "must not be empty")
-  .transform((value) => value.replaceAll("\\", "/"));
+  .transform((value) => value.normalize("NFC").replaceAll("\\", "/"));
 const TextSchema = z.string().trim().min(1, "must not be empty");
 
 const NodeKindSchema = z.enum([
@@ -56,7 +56,7 @@ const ContentHashSchema = z
   .regex(/^(?:sha256:)?[0-9a-f]{64}$/i, "must be a SHA-256 content hash");
 
 const normalizePath = (value: string): string | undefined => {
-  const path = value.replaceAll("\\", "/");
+  const path = value.normalize("NFC").replaceAll("\\", "/");
 
   if (
     path.length === 0 ||
