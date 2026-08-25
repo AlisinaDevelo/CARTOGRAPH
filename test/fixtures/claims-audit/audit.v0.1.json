@@ -1,0 +1,1047 @@
+{
+  "$schema": "../../schema/claims-audit.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.claims-audit",
+  "mediaType": "application/vnd.cartograph.claims-audit+json",
+  "auditId": "claims-audit-year1-3-v0.1",
+  "asOf": "2026-08-25T15:45:00Z",
+  "scope": {
+    "years": [1, 2, 3],
+    "materialClaimRule": "roadmap exit-gates and strategy-decision assertions",
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "privateDataIncluded": false,
+    "collectionMode": "local-repository-evidence-only",
+    "retention": "claims-and-digests-only"
+  },
+  "sourceInventory": [
+    "docs/ROADMAP.md",
+    "docs/EVALUATION.md",
+    "docs/THREAT_MODEL.md",
+    "docs/SUPPORT_MATRIX.md",
+    "docs/ACTION.md",
+    "test/action/action.test.ts",
+    "test/core/graph-diff.test.ts",
+    "test/core/identity-quality.test.ts",
+    "test/core/policy-regression.test.ts",
+    "action.yml",
+    "docs/RELEASE.md",
+    "docs/RELEASE_REHEARSAL.md",
+    "test/fixtures/typescript-express/expected.json",
+    "test/fixtures/snapshots/graph-diff/expected.json",
+    "docs/COMPATIBILITY_REVIEW.md",
+    "test/fixtures/compatibility-review/scenarios.v0.1.json",
+    "docs/IDENTITY_QUALITY.md",
+    "test/fixtures/identity-corpus/quality-baseline.v0.1.json",
+    "docs/POLICIES.md",
+    "test/fixtures/policy-regression.v0.1.json",
+    "docs/ADR_REFERENCES.md",
+    "docs/adr/0007-local-first-investment-boundary.md",
+    "docs/ADAPTERS.md",
+    "docs/ADAPTER_SELECTION.md",
+    "test/core/adapter-isolation.test.ts",
+    "docs/LANGUAGE_EXPANSION_GATE.md",
+    "docs/adr/0006-language-expansion-gate.md",
+    "docs/LANGUAGE_NEUTRAL_SEMANTICS.md",
+    "test/fixtures/language-expansion-gate/report.v0.1.json",
+    "docs/RUNTIME_RECONCILIATION.md",
+    "docs/RUNTIME_RECONCILIATION_UNCERTAINTY.md",
+    "test/fixtures/runtime-reconciliation-corpus/scenarios.v0.1.json",
+    "test/fixtures/runtime-reconciliation-reproducibility/study.v0.1.json",
+    "docs/COMMUNITY_FEEDBACK.md",
+    "test/fixtures/community-feedback/summary.v0.1.json",
+    "docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md",
+    "test/fixtures/strategy-security/review.v0.1.json",
+    "docs/OSS_HEALTH_SCORECARD.md",
+    "test/fixtures/oss-health/scorecard.v0.1.json",
+    "docs/MAINTENANCE.md",
+    "docs/UPGRADING.md"
+  ],
+  "claims": [
+    {
+      "id": "y1-capability-graph",
+      "year": 1,
+      "category": "capability",
+      "statement": "The bounded TypeScript and Express slice produces deterministic graphs with source-bound evidence.",
+      "status": "verified",
+      "finding": "The declared fixture corpus and local analyzer tests pass for the supported graph slice.",
+      "evidence": [
+        {
+          "path": "docs/EVALUATION.md",
+          "kind": "document",
+          "command": "npm run check",
+          "locator": "Fixture corpus, deterministic serialization, and supported construct boundary."
+        },
+        {
+          "path": "test/fixtures/typescript-express/expected.json",
+          "kind": "fixture",
+          "command": "npm run fixtures:validate",
+          "locator": "Expected TypeScript/Express graph and evidence contract."
+        },
+        {
+          "path": "docs/SUPPORT_MATRIX.md",
+          "kind": "document",
+          "command": "npm run support:validate",
+          "locator": "Public supported slice and explicit unsupported boundary."
+        }
+      ],
+      "limitations": [
+        "This is a bounded construct claim, not completeness for arbitrary TypeScript."
+      ],
+      "feedsYear4": []
+    },
+    {
+      "id": "y1-capability-diff",
+      "year": 1,
+      "category": "capability",
+      "statement": "The local workflow compares revisions with evidence-backed semantic diff categories and deterministic reports.",
+      "status": "verified",
+      "finding": "Golden graph-diff and report tests pass, including conservative unresolved and ambiguity behavior.",
+      "evidence": [
+        {
+          "path": "docs/EVALUATION.md",
+          "kind": "document",
+          "command": "npx vitest run test/core/graph-diff.test.ts",
+          "locator": "Diff evaluation, mutation fixtures, identity, and impact traversal."
+        },
+        {
+          "path": "test/fixtures/snapshots/graph-diff/expected.json",
+          "kind": "fixture",
+          "command": "npx vitest run test/core/graph-diff.test.ts",
+          "locator": "Golden semantic diff categories and evidence."
+        }
+      ],
+      "limitations": [
+        "The report is local and bounded by the documented input, cardinality, and time ceilings."
+      ],
+      "feedsYear4": []
+    },
+    {
+      "id": "y1-capability-action",
+      "year": 1,
+      "category": "capability",
+      "statement": "The read-only GitHub Action provides a fork-safe architecture review boundary.",
+      "status": "partial",
+      "finding": "The checked-in workflow and local security harness enforce read-only permissions, no secrets, pinned actions, and no repository-code execution; hosted Action fixture jobs currently fail before analysis because generated dist/cli.js is absent.",
+      "evidence": [
+        {
+          "path": "docs/ACTION.md",
+          "kind": "document",
+          "command": "npm run action:security:validate",
+          "locator": "Fork permissions, artifact boundary, policy modes, and local-only behavior."
+        },
+        {
+          "path": "action.yml",
+          "kind": "schema",
+          "command": "npm run action:validate",
+          "locator": "Action inputs and report contract."
+        },
+        {
+          "path": "test/action/action.test.ts",
+          "kind": "test",
+          "command": "npm run action:validate",
+          "locator": "Local Action fixture and security assertions."
+        }
+      ],
+      "limitations": [
+        "Hosted matrix execution is not green until the generated CLI artifact path is corrected; local validation is not a hosted pass claim."
+      ],
+      "feedsYear4": ["year4-correctness-scale"]
+    },
+    {
+      "id": "y1-capability-distribution",
+      "year": 1,
+      "category": "capability",
+      "statement": "The project has a reproducible v0.1 distribution and rollback rehearsal path.",
+      "status": "partial",
+      "finding": "Local package, SBOM, provenance, quickstart, and installed-CLI rehearsals pass, but no public package release series exists.",
+      "evidence": [
+        {
+          "path": "docs/RELEASE.md",
+          "kind": "document",
+          "command": "npm run release:validate",
+          "locator": "Release artifact and local smoke gate."
+        },
+        {
+          "path": "docs/RELEASE_REHEARSAL.md",
+          "kind": "document",
+          "command": "npm run quickstart:validate",
+          "locator": "Package-install and CLI rollback rehearsal."
+        }
+      ],
+      "limitations": [
+        "A local rehearsal does not establish public release stability, downloads, or downstream compatibility."
+      ],
+      "feedsYear4": ["year4-replication-stewardship"]
+    },
+    {
+      "id": "y1-quality-fixture-thresholds",
+      "year": 1,
+      "category": "quality",
+      "statement": "Explicitly supported construct fixtures meet the declared precision, recall, and evidence completeness targets.",
+      "status": "verified",
+      "finding": "The local evaluation gate reports the declared supported-slice thresholds and fails on unexpected fixture drift.",
+      "evidence": [
+        {
+          "path": "docs/EVALUATION.md",
+          "kind": "document",
+          "command": "npm run check",
+          "locator": "Precision/recall targets and evidence completeness rule."
+        },
+        {
+          "path": "test/fixtures/typescript-express/expected.json",
+          "kind": "fixture",
+          "command": "npm run test:coverage",
+          "locator": "Curated expected graph records."
+        }
+      ],
+      "limitations": [
+        "The threshold applies only to explicitly supported fixture families and is not a population-wide accuracy estimate."
+      ],
+      "feedsYear4": []
+    },
+    {
+      "id": "y1-quality-unsupported-diagnostics",
+      "year": 1,
+      "category": "quality",
+      "statement": "Unsupported and unresolved constructs remain explicit diagnostics rather than guessed edges.",
+      "status": "verified",
+      "finding": "Negative fixtures and support-matrix validators preserve explicit unsupported diagnostics with evidence and remediation guidance.",
+      "evidence": [
+        {
+          "path": "docs/SUPPORT_MATRIX.md",
+          "kind": "document",
+          "command": "npm run support:validate",
+          "locator": "Unsupported and unresolved behavior policy."
+        },
+        {
+          "path": "docs/EVALUATION.md",
+          "kind": "document",
+          "command": "npm run property:validate",
+          "locator": "Negative cases, diagnostics, and conservative identity behavior."
+        }
+      ],
+      "limitations": [
+        "A diagnostic is evidence of an unsupported boundary, not evidence that an equivalent relationship was recovered."
+      ],
+      "feedsYear4": []
+    },
+    {
+      "id": "y1-privacy-local-boundary",
+      "year": 1,
+      "category": "privacy",
+      "statement": "The core analyzer can operate locally without source upload, hidden telemetry, or a required network path.",
+      "status": "verified",
+      "finding": "Threat-model, CLI, Action, and fixture contracts keep source bodies, credentials, background collection, and hosted analysis outside the accepted boundary.",
+      "evidence": [
+        {
+          "path": "docs/THREAT_MODEL.md",
+          "kind": "document",
+          "command": "npm run check",
+          "locator": "Threat boundary and accepted residual risks."
+        },
+        {
+          "path": "docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md",
+          "kind": "document",
+          "command": "npm run strategy-security:validate",
+          "locator": "M-009 local-first decision and data-flow scope."
+        },
+        {
+          "path": "test/fixtures/strategy-security/review.v0.1.json",
+          "kind": "fixture",
+          "command": "npm run strategy-security:validate",
+          "locator": "Digest-bound privacy/security contract."
+        }
+      ],
+      "limitations": [
+        "GitHub workflow checkout, dependency installation, and optional artifact upload are control-plane network operations and are separately scoped."
+      ],
+      "feedsYear4": ["year4-offline-composition"]
+    },
+    {
+      "id": "y1-maintenance-support-window",
+      "year": 1,
+      "category": "maintenance",
+      "statement": "Supported Node, OS, schema, adapter, and deprecation boundaries are documented and validated.",
+      "status": "partial",
+      "finding": "The upgrade policy and compatibility matrix are checked locally, while hosted matrix runs remain affected by the Action artifact and adapter memory ceilings.",
+      "evidence": [
+        {
+          "path": "docs/UPGRADING.md",
+          "kind": "document",
+          "command": "npm run upgrade:validate",
+          "locator": "Node support, versioning, migration, and deprecation procedure."
+        },
+        {
+          "path": "docs/MAINTENANCE.md",
+          "kind": "document",
+          "command": "npm run release-compatibility:validate",
+          "locator": "Maintainer ownership and required checks."
+        }
+      ],
+      "limitations": [
+        "A documented support window does not establish that every hosted runner currently satisfies the resource ceilings."
+      ],
+      "feedsYear4": ["year4-correctness-scale", "year4-replication-stewardship"]
+    },
+    {
+      "id": "y1-adoption-external-sample",
+      "year": 1,
+      "category": "adoption",
+      "statement": "External repositories have been exercised as a bounded compatibility sample.",
+      "status": "partial",
+      "finding": "The R-005 review records three analyzed repositories and two bounded failures, with no third-party source or graph snapshots retained.",
+      "evidence": [
+        {
+          "path": "docs/COMPATIBILITY_REVIEW.md",
+          "kind": "document",
+          "command": "npm run compatibility:validate",
+          "locator": "Five-repository aggregate compatibility matrix."
+        },
+        {
+          "path": "test/fixtures/compatibility-review/scenarios.v0.1.json",
+          "kind": "fixture",
+          "command": "npm run compatibility:validate",
+          "locator": "Revisions, outcomes, diagnostics, and bounded failures."
+        }
+      ],
+      "limitations": [
+        "The sample is technical and small; it is not representative accuracy, adoption, retention, or product-market evidence."
+      ],
+      "feedsYear4": ["year4-correctness-scale", "year4-replication-stewardship"]
+    },
+    {
+      "id": "y1-adoption-traction",
+      "year": 1,
+      "category": "adoption",
+      "statement": "The repository has defensible traction and recurring user evidence.",
+      "status": "not-observed",
+      "finding": "No consented external contributor, adopter, retention, release, or usage series is retained; the scorecard explicitly defers traction claims.",
+      "evidence": [
+        {
+          "path": "docs/OSS_HEALTH_SCORECARD.md",
+          "kind": "document",
+          "command": "npm run oss-health:validate",
+          "locator": "One observed technical dimension and seven not-observed dimensions."
+        },
+        {
+          "path": "docs/COMMUNITY_FEEDBACK.md",
+          "kind": "document",
+          "command": "npm run community-feedback:validate",
+          "locator": "Synthetic maintainer baseline and zero external records."
+        }
+      ],
+      "limitations": [
+        "Public stars, downloads, issue volume, views, and CI runs are intentionally not converted into traction claims."
+      ],
+      "feedsYear4": ["year4-replication-stewardship"]
+    },
+    {
+      "id": "y2-capability-identity",
+      "year": 2,
+      "category": "capability",
+      "statement": "Supported line moves, file moves, and refactors preserve architecture identity conservatively.",
+      "status": "verified",
+      "finding": "Curated, seeded, portability, and quality fixtures pass with explicit ambiguity and unsupported outcomes.",
+      "evidence": [
+        {
+          "path": "docs/IDENTITY_QUALITY.md",
+          "kind": "document",
+          "command": "npm run identity:quality:validate",
+          "locator": "Identity preservation and false-match release thresholds."
+        },
+        {
+          "path": "test/fixtures/identity-corpus/quality-baseline.v0.1.json",
+          "kind": "fixture",
+          "command": "npm run identity:quality:validate",
+          "locator": "Deterministic quality baseline."
+        }
+      ],
+      "limitations": [
+        "Dynamic or weakly supported renames remain explicit unsupported or ambiguous cases."
+      ],
+      "feedsYear4": []
+    },
+    {
+      "id": "y2-capability-policy",
+      "year": 2,
+      "category": "capability",
+      "statement": "Local graph policies support bounded informational and enforcing review modes.",
+      "status": "verified",
+      "finding": "Policy schema, evaluator, composition, exception, and regression validators pass with evidence-linked findings and fail-closed input rules.",
+      "evidence": [
+        {
+          "path": "docs/POLICIES.md",
+          "kind": "document",
+          "command": "npm run policy:validate",
+          "locator": "Policy targets, modes, unsupported inputs, and evidence rules."
+        },
+        {
+          "path": "test/fixtures/policy-regression.v0.1.json",
+          "kind": "fixture",
+          "command": "npm run policy-regression:validate",
+          "locator": "Zero false-positive, false-negative, explanation, and evidence regressions."
+        }
+      ],
+      "limitations": [
+        "A valid policy contract does not claim that the policy is correct for every organization or architecture."
+      ],
+      "feedsYear4": ["year4-governed-review"]
+    },
+    {
+      "id": "y2-capability-adr",
+      "year": 2,
+      "category": "capability",
+      "statement": "Architecture decisions can be linked to graph evidence and checked for lifecycle and drift.",
+      "status": "verified",
+      "finding": "ADR reference, lifecycle, coverage, policy-binding, and drift validators pass on local versioned records.",
+      "evidence": [
+        {
+          "path": "docs/ADR_REFERENCES.md",
+          "kind": "document",
+          "command": "npm run adr:validate",
+          "locator": "ADR reference and reverse-coverage contract."
+        },
+        {
+          "path": "docs/adr/0007-local-first-investment-boundary.md",
+          "kind": "document",
+          "command": "npm run adr-lifecycle:validate",
+          "locator": "Accepted local-first strategy decision."
+        }
+      ],
+      "limitations": [
+        "Lifecycle validation covers repository-authored records; it is not a governance or compliance certification."
+      ],
+      "feedsYear4": ["year4-governed-review"]
+    },
+    {
+      "id": "y2-capability-adapter-contract",
+      "year": 2,
+      "category": "capability",
+      "statement": "External contributors have a versioned adapter contract, starter, support matrix, and review path.",
+      "status": "verified",
+      "finding": "Adapter negotiation, starter, support, lifecycle, isolation, and compatibility fixtures pass locally.",
+      "evidence": [
+        {
+          "path": "docs/ADAPTERS.md",
+          "kind": "document",
+          "command": "npm run adapter:validate",
+          "locator": "Adapter API, capability, and isolation contract."
+        },
+        {
+          "path": "docs/ADAPTER_SELECTION.md",
+          "kind": "document",
+          "command": "npm run adapter:support:validate",
+          "locator": "Status, ownership, support, and retirement criteria."
+        },
+        {
+          "path": "test/core/adapter-isolation.test.ts",
+          "kind": "test",
+          "command": "npm run adapter:validate",
+          "locator": "Permission, time, memory, and output fail-closed tests."
+        }
+      ],
+      "limitations": [
+        "The contract enables contributions but does not establish an external contributor population or supported adapter beyond the declared matrix."
+      ],
+      "feedsYear4": ["year4-governed-review"]
+    },
+    {
+      "id": "y2-quality-identity-baseline",
+      "year": 2,
+      "category": "quality",
+      "statement": "Identity quality has a deterministic release baseline with bounded false-match and ambiguity rates.",
+      "status": "verified",
+      "finding": "The checked-in identity quality digest and thresholds pass across curated, generated, and portability partitions.",
+      "evidence": [
+        {
+          "path": "docs/IDENTITY_QUALITY.md",
+          "kind": "document",
+          "command": "npm run identity:quality:validate",
+          "locator": "Thresholds, digest, and expiring exception process."
+        },
+        {
+          "path": "test/core/identity-quality.test.ts",
+          "kind": "test",
+          "command": "npm run identity:quality:validate",
+          "locator": "Quality report and baseline assertions."
+        }
+      ],
+      "limitations": [
+        "The baseline is a curated and seeded local corpus, not an independent benchmark of all refactor styles."
+      ],
+      "feedsYear4": []
+    },
+    {
+      "id": "y2-quality-policy-regression",
+      "year": 2,
+      "category": "quality",
+      "statement": "The local policy evaluator retains zero baseline false positives, false negatives, explanation regressions, and evidence regressions.",
+      "status": "verified",
+      "finding": "The policy regression corpus evaluates twice and matches the checked-in zero-regression baseline.",
+      "evidence": [
+        {
+          "path": "test/fixtures/policy-regression.v0.1.json",
+          "kind": "fixture",
+          "command": "npm run policy-regression:validate",
+          "locator": "Positive, negative, and unsupported policy cases."
+        },
+        {
+          "path": "test/core/policy-regression.test.ts",
+          "kind": "test",
+          "command": "npm run policy-regression:validate",
+          "locator": "Deterministic regression and evidence assertions."
+        }
+      ],
+      "limitations": [
+        "The baseline proves the reviewed corpus, not that every future policy is semantically appropriate."
+      ],
+      "feedsYear4": ["year4-governed-review"]
+    },
+    {
+      "id": "y2-privacy-adapter-isolation",
+      "year": 2,
+      "category": "privacy",
+      "statement": "Untrusted adapter execution is isolated or refused with bounded permissions and resources.",
+      "status": "verified",
+      "finding": "The local adapter isolation harness rejects network, child-process, path escape, malformed, oversized, and non-cooperative adapter behavior.",
+      "evidence": [
+        {
+          "path": "test/core/adapter-isolation.test.ts",
+          "kind": "test",
+          "command": "npm run adapter:validate",
+          "locator": "Isolated host and fail-closed permission tests."
+        },
+        {
+          "path": "docs/ADAPTERS.md",
+          "kind": "document",
+          "command": "npm run adapter:validate",
+          "locator": "Isolation and resource contract."
+        }
+      ],
+      "limitations": [
+        "Isolation is a local process boundary; it does not authorize executing caller repository code or provide a hosted sandbox."
+      ],
+      "feedsYear4": ["year4-offline-composition"]
+    },
+    {
+      "id": "y2-maintenance-ownership",
+      "year": 2,
+      "category": "maintenance",
+      "statement": "The project has named ownership, review cadence, security disclosure, and dependency-update procedures.",
+      "status": "partial",
+      "finding": "The maintenance contract names one maintainer and procedures, but it explicitly makes no response-time, succession, or release SLA promise.",
+      "evidence": [
+        {
+          "path": "docs/MAINTENANCE.md",
+          "kind": "document",
+          "command": "npm run check",
+          "locator": "Ownership, required checks, dependency, security, and review cadence."
+        },
+        {
+          "path": "docs/UPGRADING.md",
+          "kind": "document",
+          "command": "npm run upgrade:validate",
+          "locator": "Upgrade and compatibility procedure."
+        }
+      ],
+      "limitations": [
+        "A named owner and procedure are not evidence of sustainable maintainer capacity or succession."
+      ],
+      "feedsYear4": ["year4-governed-review", "year4-replication-stewardship"]
+    },
+    {
+      "id": "y2-adoption-contributors",
+      "year": 2,
+      "category": "adoption",
+      "statement": "The adapter and policy surfaces have repeat non-maintainer contributor evidence.",
+      "status": "not-observed",
+      "finding": "No consented repeat non-maintainer contributor records are retained in the feedback contract or scorecard.",
+      "evidence": [
+        {
+          "path": "docs/COMMUNITY_FEEDBACK.md",
+          "kind": "document",
+          "command": "npm run community-feedback:validate",
+          "locator": "Feedback eligibility and zero external record boundary."
+        },
+        {
+          "path": "test/fixtures/community-feedback/summary.v0.1.json",
+          "kind": "fixture",
+          "command": "npm run community-feedback:validate",
+          "locator": "Synthetic maintainer baseline only."
+        }
+      ],
+      "limitations": [
+        "The absence of retained records is not evidence that no one used or contributed to the repository."
+      ],
+      "feedsYear4": ["year4-replication-stewardship"]
+    },
+    {
+      "id": "y3-capability-rust-pilot",
+      "year": 3,
+      "category": "capability",
+      "statement": "A bounded Rust adapter pilot maps the declared module, call, literal integration, and evidence slice.",
+      "status": "verified",
+      "finding": "The pilot records 9 true-positive supported edges out of 9 predicted and expected edges, with two dynamic constructs explicit as unsupported diagnostics.",
+      "evidence": [
+        {
+          "path": "docs/LANGUAGE_EXPANSION_GATE.md",
+          "kind": "document",
+          "command": "npm run language-expansion:validate",
+          "locator": "Rust pilot decision, metrics, and unsupported boundary."
+        },
+        {
+          "path": "test/fixtures/language-expansion-gate/report.v0.1.json",
+          "kind": "fixture",
+          "command": "npm run language-expansion:validate",
+          "locator": "Digest-bound pilot report."
+        }
+      ],
+      "limitations": [
+        "The metrics do not generalize to Rust constructs outside the named pilot slice."
+      ],
+      "feedsYear4": []
+    },
+    {
+      "id": "y3-capability-language-expansion",
+      "year": 3,
+      "category": "capability",
+      "statement": "Broad Rust language expansion is authorized by the Year 3 language gate.",
+      "status": "deferred",
+      "finding": "The accepted ADR retains a narrow experimental pilot while broad Rust expansion remains deferred.",
+      "evidence": [
+        {
+          "path": "docs/LANGUAGE_EXPANSION_GATE.md",
+          "kind": "document",
+          "command": "npm run language-expansion:validate",
+          "locator": "Graduate, narrow, or retire decision."
+        },
+        {
+          "path": "docs/adr/0006-language-expansion-gate.md",
+          "kind": "document",
+          "command": "npm run adr:validate",
+          "locator": "Accepted experimental Rust decision."
+        }
+      ],
+      "limitations": [
+        "Deferral is a strategy state, not a claim that broader Rust analysis is impossible."
+      ],
+      "feedsYear4": ["year4-correctness-scale", "year4-replication-stewardship"]
+    },
+    {
+      "id": "y3-quality-broad-rust-accuracy",
+      "year": 3,
+      "category": "quality",
+      "statement": "The Rust pilot establishes accuracy for broad Rust programs and constructs.",
+      "status": "unsupported",
+      "finding": "No evidence supports this broad claim; only the bounded nine-edge pilot is measured and dynamic cases remain explicit unsupported diagnostics.",
+      "evidence": [
+        {
+          "path": "docs/LANGUAGE_EXPANSION_GATE.md",
+          "kind": "document",
+          "command": "npm run language-expansion:validate",
+          "locator": "Explicit pilot limitations and unsupported boundary."
+        },
+        {
+          "path": "docs/LANGUAGE_NEUTRAL_SEMANTICS.md",
+          "kind": "document",
+          "command": "npm run language-equivalence:validate",
+          "locator": "Unknown and unsupported semantics remain visible."
+        }
+      ],
+      "limitations": [
+        "The unsupported status prevents a pilot result from being converted into a broad accuracy claim."
+      ],
+      "feedsYear4": ["year4-correctness-scale", "year4-replication-stewardship"]
+    },
+    {
+      "id": "y3-capability-runtime-reconciliation",
+      "year": 3,
+      "category": "capability",
+      "statement": "Users can reconcile explicit local runtime observations with static edges without a hosted collector.",
+      "status": "partial",
+      "finding": "The local CLI, bounded schemas, synthetic corpus, redaction, uncertainty, and digest-only reports validate offline; no live collector or production integration is claimed.",
+      "evidence": [
+        {
+          "path": "docs/RUNTIME_RECONCILIATION.md",
+          "kind": "document",
+          "command": "npm run runtime-reconciliation:validate",
+          "locator": "Local input, binding, redaction, and report boundary."
+        },
+        {
+          "path": "test/fixtures/runtime-reconciliation-corpus/scenarios.v0.1.json",
+          "kind": "fixture",
+          "command": "npm run runtime-reconciliation:corpus:validate",
+          "locator": "Eight synthetic family-labeled cases."
+        }
+      ],
+      "limitations": [
+        "Synthetic local cases do not establish production variance, exporter behavior, automatic binding quality, or completeness."
+      ],
+      "feedsYear4": ["year4-offline-composition", "year4-correctness-scale"]
+    },
+    {
+      "id": "y3-quality-runtime-reproducibility",
+      "year": 3,
+      "category": "quality",
+      "statement": "The runtime reconciliation study establishes reproducible behavior under selected local perturbations.",
+      "status": "partial",
+      "finding": "The study records 20 stable replay digests, five classification changes, one missing runtime edge, and one missing-parent record under controlled synthetic perturbations.",
+      "evidence": [
+        {
+          "path": "docs/RUNTIME_RECONCILIATION_UNCERTAINTY.md",
+          "kind": "document",
+          "command": "npm run runtime-reconciliation:reproducibility:validate",
+          "locator": "Sampling and uncertainty interpretation."
+        },
+        {
+          "path": "test/fixtures/runtime-reconciliation-reproducibility/study.v0.1.json",
+          "kind": "fixture",
+          "command": "npm run runtime-reconciliation:reproducibility:validate",
+          "locator": "Digest-only reproducibility study."
+        }
+      ],
+      "limitations": [
+        "The study does not estimate production variance, semantic correctness, completeness, or absence of unobserved behavior."
+      ],
+      "feedsYear4": ["year4-correctness-scale", "year4-offline-composition"]
+    },
+    {
+      "id": "y3-quality-compatibility-sample",
+      "year": 3,
+      "category": "quality",
+      "statement": "The compatibility review demonstrates representative analyzer accuracy across public repositories.",
+      "status": "partial",
+      "finding": "The review demonstrates a reproducible technical sample with three analyzed repositories and two bounded failures, but explicitly rejects representative accuracy or adoption claims.",
+      "evidence": [
+        {
+          "path": "docs/COMPATIBILITY_REVIEW.md",
+          "kind": "document",
+          "command": "npm run compatibility:validate",
+          "locator": "Aggregate outcomes, unknown diagnostics, and limitations."
+        },
+        {
+          "path": "test/fixtures/compatibility-review/scenarios.v0.1.json",
+          "kind": "fixture",
+          "command": "npm run compatibility:validate",
+          "locator": "Five reviewed public revisions and bounded failures."
+        }
+      ],
+      "limitations": [
+        "The sample is not representative of all TypeScript repositories or supported constructs."
+      ],
+      "feedsYear4": ["year4-correctness-scale", "year4-replication-stewardship"]
+    },
+    {
+      "id": "y3-capability-community-feedback",
+      "year": 3,
+      "category": "capability",
+      "statement": "The project has a consented public feedback and RFC decision loop.",
+      "status": "verified",
+      "finding": "The feedback contract validates triage taxonomy, anonymization, explicit backlog decisions, consent, and rejection of private telemetry or source payloads.",
+      "evidence": [
+        {
+          "path": "docs/COMMUNITY_FEEDBACK.md",
+          "kind": "document",
+          "command": "npm run community-feedback:validate",
+          "locator": "Public RFC, triage, consent, and retention boundary."
+        },
+        {
+          "path": "test/fixtures/community-feedback/summary.v0.1.json",
+          "kind": "fixture",
+          "command": "npm run community-feedback:validate",
+          "locator": "Synthetic maintainer baseline and explicit decisions."
+        }
+      ],
+      "limitations": [
+        "A validated feedback protocol is not evidence that external feedback has been received."
+      ],
+      "feedsYear4": ["year4-governed-review"]
+    },
+    {
+      "id": "y3-privacy-strategy-boundary",
+      "year": 3,
+      "category": "privacy",
+      "statement": "The accepted strategy remains OSS-only and local-first without a new trust boundary.",
+      "status": "verified",
+      "finding": "M-009 records assets, actors, data flows, retention, incident response, supply-chain risks, abuse cases, blocking mitigations, and rejected collection with a digest-bound validator.",
+      "evidence": [
+        {
+          "path": "docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md",
+          "kind": "document",
+          "command": "npm run strategy-security:validate",
+          "locator": "Accepted local-first strategy and seven documented gaps."
+        },
+        {
+          "path": "docs/adr/0007-local-first-investment-boundary.md",
+          "kind": "document",
+          "command": "npm run adr:validate",
+          "locator": "Strategy ADR binding and hosted-expansion guard."
+        },
+        {
+          "path": "test/fixtures/strategy-security/review.v0.1.json",
+          "kind": "fixture",
+          "command": "npm run strategy-security:validate",
+          "locator": "Versioned review contract and digest."
+        }
+      ],
+      "limitations": [
+        "A future hosted, team, provider, or broader runtime proposal requires a new public RFC and reviewed ADR."
+      ],
+      "feedsYear4": ["year4-offline-composition", "year4-governed-review"]
+    },
+    {
+      "id": "y3-adoption-external-feedback",
+      "year": 3,
+      "category": "adoption",
+      "statement": "The project has external adopter feedback and repeat non-maintainer usage evidence.",
+      "status": "not-observed",
+      "finding": "The current snapshot contains one synthetic maintainer baseline and zero external adopter or contributor records.",
+      "evidence": [
+        {
+          "path": "docs/COMMUNITY_FEEDBACK.md",
+          "kind": "document",
+          "command": "npm run community-feedback:validate",
+          "locator": "Current anonymized summary and no-traction-claim rule."
+        },
+        {
+          "path": "docs/OSS_HEALTH_SCORECARD.md",
+          "kind": "document",
+          "command": "npm run oss-health:validate",
+          "locator": "Adopter feedback, retention, and contributor dimensions not observed."
+        }
+      ],
+      "limitations": [
+        "No external record is retained, so the audit cannot infer a zero-user population from the absence of records."
+      ],
+      "feedsYear4": ["year4-replication-stewardship"]
+    },
+    {
+      "id": "y3-maintenance-release-history",
+      "year": 3,
+      "category": "maintenance",
+      "statement": "The repository has a public release series with observed stability and downstream compatibility.",
+      "status": "negative",
+      "finding": "No public package release series exists as of the audit; local release and rollback rehearsals are explicitly not a release series.",
+      "evidence": [
+        {
+          "path": "docs/OSS_HEALTH_SCORECARD.md",
+          "kind": "document",
+          "command": "npm run oss-health:validate",
+          "locator": "Release stability is not observed and no public package release exists."
+        },
+        {
+          "path": "docs/RELEASE_REHEARSAL.md",
+          "kind": "document",
+          "command": "npm run release:validate",
+          "locator": "Local rehearsal boundary and non-release status."
+        }
+      ],
+      "limitations": [
+        "Negative means the claimed release series is absent at this audit boundary, not that local artifact generation is broken."
+      ],
+      "feedsYear4": ["year4-replication-stewardship"]
+    },
+    {
+      "id": "y3-maintenance-capacity",
+      "year": 3,
+      "category": "maintenance",
+      "statement": "Maintainer load, succession, and support capacity are measured well enough to authorize Year 4 investment.",
+      "status": "not-observed",
+      "finding": "The maintenance contract names one maintainer and a review cadence but retains no maintainer-time or support-load series.",
+      "evidence": [
+        {
+          "path": "docs/MAINTENANCE.md",
+          "kind": "document",
+          "command": "npm run check",
+          "locator": "Named ownership and explicit no-SLA boundary."
+        },
+        {
+          "path": "docs/OSS_HEALTH_SCORECARD.md",
+          "kind": "document",
+          "command": "npm run oss-health:validate",
+          "locator": "Maintainer load and issue quality not observed."
+        }
+      ],
+      "limitations": [
+        "A single current owner is a governance fact, not evidence of sustainable capacity or succession."
+      ],
+      "feedsYear4": ["year4-governed-review", "year4-replication-stewardship"]
+    },
+    {
+      "id": "y3-quality-oss-hardening",
+      "year": 3,
+      "category": "quality",
+      "statement": "OSS hardening has reduced the project to predictable performance, security, upgrade, and support behavior at scale.",
+      "status": "partial",
+      "finding": "The local pipe covers budgets, property regressions, compatibility, security fixtures, upgrade policy, and documentation; external scale, release stability, and maintainer-load evidence remain unobserved.",
+      "evidence": [
+        {
+          "path": "docs/ROADMAP.md",
+          "kind": "document",
+          "command": "npm run check",
+          "locator": "Year 3 Q3 hardening exit gate and Year 4 conditional gate."
+        },
+        {
+          "path": "docs/OSS_HEALTH_SCORECARD.md",
+          "kind": "document",
+          "command": "npm run oss-health:validate",
+          "locator": "Observed technical sample and seven not-observed dimensions."
+        },
+        {
+          "path": "docs/MAINTENANCE.md",
+          "kind": "document",
+          "command": "npm run check",
+          "locator": "Maintenance, ownership, and hosted-check replacement policy."
+        }
+      ],
+      "limitations": [
+        "Passing local quality gates does not establish external scale or a lower maintainer single-point-of-failure risk."
+      ],
+      "feedsYear4": [
+        "year4-correctness-scale",
+        "year4-governed-review",
+        "year4-replication-stewardship"
+      ]
+    },
+    {
+      "id": "y3-privacy-hosted-expansion",
+      "year": 3,
+      "category": "privacy",
+      "statement": "Year 4 hosted, account, source-upload, or hidden-collection expansion is authorized by roadmap completion.",
+      "status": "deferred",
+      "finding": "The scorecard, M-009 review, and ADR 0007 explicitly defer hosted expansion; roadmap completion alone is not authorization.",
+      "evidence": [
+        {
+          "path": "docs/adr/0007-local-first-investment-boundary.md",
+          "kind": "document",
+          "command": "npm run adr:validate",
+          "locator": "Decision, alternatives, consequences, and new-RFC guard."
+        },
+        {
+          "path": "docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md",
+          "kind": "document",
+          "command": "npm run strategy-security:validate",
+          "locator": "Rejected collection and future review trigger."
+        }
+      ],
+      "limitations": [
+        "A future strategy change would require fresh evidence, public review, and a separate ADR before implementation."
+      ],
+      "feedsYear4": ["year4-offline-composition", "year4-governed-review"]
+    }
+  ],
+  "year4Charter": {
+    "investmentDecision": "conditional-maintenance-first",
+    "hostedExpansion": "deferred",
+    "guard": "Year 4 work cannot authorize hosted, account, source-upload, or hidden-collection scope without a new public RFC and reviewed ADR.",
+    "entries": [
+      {
+        "id": "year4-correctness-scale",
+        "title": "Keep correctness and resource budgets ahead of scale claims",
+        "linkedClaimIds": [
+          "y1-capability-action",
+          "y1-quality-fixture-thresholds",
+          "y1-quality-unsupported-diagnostics",
+          "y1-adoption-external-sample",
+          "y1-maintenance-support-window",
+          "y3-capability-language-expansion",
+          "y3-quality-broad-rust-accuracy",
+          "y3-capability-runtime-reconciliation",
+          "y3-quality-runtime-reproducibility",
+          "y3-quality-compatibility-sample",
+          "y3-quality-oss-hardening"
+        ],
+        "action": "Repair hosted Action artifact assembly, preserve explicit unsupported outcomes, and add representative local scale fixtures before broadening supported claims.",
+        "gate": "A new scale or language claim requires reproducible positive, negative, ambiguity, resource, and independent comparison evidence."
+      },
+      {
+        "id": "year4-offline-composition",
+        "title": "Prefer bounded offline composition over hosted source processing",
+        "linkedClaimIds": [
+          "y1-privacy-local-boundary",
+          "y2-privacy-adapter-isolation",
+          "y3-capability-runtime-reconciliation",
+          "y3-quality-runtime-reproducibility",
+          "y3-privacy-strategy-boundary",
+          "y3-privacy-hosted-expansion"
+        ],
+        "action": "Keep snapshots, traces, policies, and reports local and separately provenance-bound; do not add an exporter or automatic binding path.",
+        "gate": "Any hosted or account-bearing proposal requires a new public RFC, privacy/security review, cost model, and ADR."
+      },
+      {
+        "id": "year4-governed-review",
+        "title": "Invest in governed local review and maintainer continuity",
+        "linkedClaimIds": [
+          "y2-capability-policy",
+          "y2-capability-adr",
+          "y2-capability-adapter-contract",
+          "y2-quality-policy-regression",
+          "y2-privacy-adapter-isolation",
+          "y2-maintenance-ownership",
+          "y3-capability-community-feedback",
+          "y3-privacy-strategy-boundary",
+          "y3-maintenance-capacity",
+          "y3-quality-oss-hardening",
+          "y3-privacy-hosted-expansion"
+        ],
+        "action": "Prioritize ownership, expiry-bound decisions, security response, upgrade rehearsals, and a measured maintainer-load/succession record.",
+        "gate": "No team-scale governance claim is accepted without named ownership, replayable evidence, and a capacity-backed support decision."
+      },
+      {
+        "id": "year4-replication-stewardship",
+        "title": "Build independent replication and public stewardship evidence",
+        "linkedClaimIds": [
+          "y1-capability-distribution",
+          "y1-maintenance-support-window",
+          "y1-adoption-external-sample",
+          "y1-adoption-traction",
+          "y2-adoption-contributors",
+          "y2-maintenance-ownership",
+          "y3-capability-language-expansion",
+          "y3-quality-broad-rust-accuracy",
+          "y3-quality-compatibility-sample",
+          "y3-adoption-external-feedback",
+          "y3-maintenance-release-history",
+          "y3-maintenance-capacity",
+          "y3-quality-oss-hardening"
+        ],
+        "action": "Collect only public or consented aggregate evidence for releases, adopters, contributors, independent comparisons, and support load; retain no source bodies or private telemetry.",
+        "gate": "A strategy refresh must show the denominator, sampling limits, negative results, and reproducible evidence before any traction or market claim."
+      }
+    ]
+  },
+  "summary": {
+    "claimCount": 32,
+    "yearCounts": { "year1": 10, "year2": 9, "year3": 13 },
+    "categoryCounts": {
+      "capability": 12,
+      "quality": 8,
+      "privacy": 4,
+      "adoption": 4,
+      "maintenance": 4
+    },
+    "statusCounts": {
+      "verified": 15,
+      "partial": 9,
+      "unsupported": 1,
+      "negative": 1,
+      "notObserved": 4,
+      "deferred": 2
+    },
+    "verifiedClaims": 15,
+    "nonVerifiedClaims": 17,
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "privateDataIncluded": false,
+    "hostedExpansion": "deferred"
+  },
+  "provenance": {
+    "generatedBy": "CARTOGRAPH repository-authored claim register",
+    "sourceBodiesIncluded": false,
+    "privateDataIncluded": false,
+    "network": false,
+    "license": "Apache-2.0",
+    "redistribution": "allowed"
+  }
+}
