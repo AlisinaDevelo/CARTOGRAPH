@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/property-regression.v0.1.schema.json",
+  "title": "CARTOGRAPH bounded property and security regression corpus v0.1",
+  "description": "A deterministic, offline, bounded corpus for hostile TypeScript, snapshot JSON, policy configuration, and adapter output.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "seed",
+    "budgets",
+    "suites",
+    "regressions"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.property-regression" },
+    "seed": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4294967295
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxTotalMs",
+        "maxCaseMs",
+        "maxSourceBytes",
+        "maxGeneratedFiles"
+      ],
+      "properties": {
+        "maxTotalMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60000
+        },
+        "maxCaseMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "maxSourceBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1048576
+        },
+        "maxGeneratedFiles": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        }
+      }
+    },
+    "suites": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "cases", "expectedRejections"],
+        "properties": {
+          "id": {
+            "enum": [
+              "typescript-input",
+              "snapshot-json",
+              "policy-config",
+              "adapter-output"
+            ]
+          },
+          "cases": { "type": "integer", "minimum": 1, "maximum": 256 },
+          "expectedRejections": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 256
+          }
+        }
+      }
+    },
+    "regressions": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "domain", "expectation", "description"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+          },
+          "domain": {
+            "enum": [
+              "typescript-input",
+              "snapshot-json",
+              "policy-config",
+              "adapter-output"
+            ]
+          },
+          "expectation": {
+            "enum": ["no-execution", "reject", "canonicalize"]
+          },
+          "description": { "type": "string", "minLength": 1, "maxLength": 512 }
+        }
+      }
+    }
+  }
+}

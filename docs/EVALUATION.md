@@ -143,6 +143,11 @@ universal performance guarantee. CI runs `npm run benchmark:ci` against a
 temporary artifact so correctness, determinism, schema, and the applicable
 performance gate are checked without rewriting the baseline.
 
+M-002 adds the offline [bounded property and security corpus](PROPERTY_TESTING.md),
+which replays seeded TypeScript, snapshot, policy, and adapter cases under an
+explicit runtime ceiling and keeps discovered crash or security boundaries as
+ordered regression fixtures.
+
 ## Human usefulness
 
 Design-partner evaluation measures whether reviewers can correctly explain a reported change, reach its evidence, and distinguish facts from unresolved analysis. Downloads and graph size are not success metrics.

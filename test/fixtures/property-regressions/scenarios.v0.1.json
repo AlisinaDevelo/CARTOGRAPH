@@ -1,0 +1,84 @@
+{
+  "$schema": "../../../schema/property-regression.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.property-regression",
+  "seed": 1597463007,
+  "budgets": {
+    "maxTotalMs": 15000,
+    "maxCaseMs": 3000,
+    "maxSourceBytes": 32768,
+    "maxGeneratedFiles": 4
+  },
+  "suites": [
+    {
+      "id": "typescript-input",
+      "cases": 16,
+      "expectedRejections": 0
+    },
+    {
+      "id": "snapshot-json",
+      "cases": 32,
+      "expectedRejections": 8
+    },
+    {
+      "id": "policy-config",
+      "cases": 32,
+      "expectedRejections": 8
+    },
+    {
+      "id": "adapter-output",
+      "cases": 32,
+      "expectedRejections": 8
+    }
+  ],
+  "regressions": [
+    {
+      "id": "typescript-no-execution",
+      "domain": "typescript-input",
+      "expectation": "no-execution",
+      "description": "Static analysis of an execution-shaped source file must not create its sentinel file."
+    },
+    {
+      "id": "typescript-malformed-source",
+      "domain": "typescript-input",
+      "expectation": "canonicalize",
+      "description": "Malformed TypeScript remains a bounded diagnostic result rather than a process crash."
+    },
+    {
+      "id": "snapshot-prototype-pollution",
+      "domain": "snapshot-json",
+      "expectation": "reject",
+      "description": "Prototype-shaped snapshot JSON is rejected without mutating Object.prototype."
+    },
+    {
+      "id": "snapshot-schema-version",
+      "domain": "snapshot-json",
+      "expectation": "reject",
+      "description": "Unsupported snapshot schema versions fail before canonicalization."
+    },
+    {
+      "id": "policy-executable-config",
+      "domain": "policy-config",
+      "expectation": "reject",
+      "description": "Executable policy configuration keys are rejected at the local parser boundary."
+    },
+    {
+      "id": "policy-path-traversal",
+      "domain": "policy-config",
+      "expectation": "reject",
+      "description": "Policy include paths cannot escape the repository-relative boundary."
+    },
+    {
+      "id": "adapter-authority-escalation",
+      "domain": "adapter-output",
+      "expectation": "reject",
+      "description": "Adapter manifests cannot grant network or repository-code execution authority."
+    },
+    {
+      "id": "adapter-executable-config",
+      "domain": "adapter-output",
+      "expectation": "reject",
+      "description": "Adapter input configuration cannot contain command or module execution fields."
+    }
+  ]
+}

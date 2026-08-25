@@ -79,6 +79,9 @@ jobs:
       - name: Validate benchmark budgets
         run: npm run benchmark:budgets:validate
 
+      - name: Validate bounded property and security corpus
+        run: npm run property:validate
+
       - name: Run correctness, determinism, and performance gate
         run: npm run benchmark:ci
 
