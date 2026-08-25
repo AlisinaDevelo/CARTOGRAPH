@@ -1,0 +1,227 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-impact-evaluation.v0.1.schema.json",
+  "title": "CARTOGRAPH architecture impact evaluation v0.1",
+  "description": "Golden, evidence-backed impact evaluation with expected affected sets, precision, recall, overreach categories, and reviewer-visible uncertainty.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "fixtureId",
+    "fixtureDigest",
+    "cases",
+    "overall",
+    "byChangeKind",
+    "deterministic",
+    "readOnly",
+    "reportDigest"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.architecture-impact-evaluation" },
+    "fixtureId": { "$ref": "#/definitions/identifier" },
+    "fixtureDigest": { "$ref": "#/definitions/digest" },
+    "cases": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/definitions/case" }
+    },
+    "overall": { "$ref": "#/definitions/metrics" },
+    "byChangeKind": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/changeMetrics" }
+    },
+    "deterministic": { "const": true },
+    "readOnly": { "const": true },
+    "reportDigest": { "$ref": "#/definitions/digest" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "changeKind": {
+      "enum": [
+        "node-added",
+        "node-removed",
+        "node-changed",
+        "edge-added",
+        "edge-removed",
+        "edge-changed",
+        "diagnostic-changed",
+        "unsupported"
+      ]
+    },
+    "overreachCategory": {
+      "enum": [
+        "transitive-reachability",
+        "unresolved-edge",
+        "boundary-stop",
+        "depth-limit",
+        "cycle",
+        "unsupported-change"
+      ]
+    },
+    "overreach": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "count"],
+      "properties": {
+        "category": { "$ref": "#/definitions/overreachCategory" },
+        "count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "count"],
+      "properties": {
+        "code": {
+          "enum": [
+            "unresolved-edge",
+            "boundary-stop",
+            "depth-limit",
+            "cycle",
+            "edge-kind-excluded",
+            "unsupported-change"
+          ]
+        },
+        "count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "reason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeId", "codes", "messages"],
+      "properties": {
+        "nodeId": { "$ref": "#/definitions/identifier" },
+        "codes": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "messages": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "changeKind",
+        "expectedAffected",
+        "actualAffected",
+        "truePositives",
+        "falsePositives",
+        "falseNegatives",
+        "precision",
+        "recall",
+        "overreachCategories",
+        "uncertaintyCodes",
+        "reviewerReasons",
+        "pass"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "changeKind": { "$ref": "#/definitions/changeKind" },
+        "expectedAffected": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "actualAffected": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "truePositives": { "type": "integer", "minimum": 0 },
+        "falsePositives": { "type": "integer", "minimum": 0 },
+        "falseNegatives": { "type": "integer", "minimum": 0 },
+        "precision": { "type": "number", "minimum": 0, "maximum": 1 },
+        "recall": { "type": "number", "minimum": 0, "maximum": 1 },
+        "overreachCategories": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/overreach" }
+        },
+        "uncertaintyCodes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/uncertainty" }
+        },
+        "reviewerReasons": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/reason" }
+        },
+        "pass": { "type": "boolean" }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cases",
+        "expectedAffected",
+        "actualAffected",
+        "truePositives",
+        "falsePositives",
+        "falseNegatives",
+        "precision",
+        "recall",
+        "overreachCategories",
+        "uncertaintyCodes",
+        "reviewerReasonCount"
+      ],
+      "properties": {
+        "cases": { "type": "integer", "minimum": 0 },
+        "expectedAffected": { "type": "integer", "minimum": 0 },
+        "actualAffected": { "type": "integer", "minimum": 0 },
+        "truePositives": { "type": "integer", "minimum": 0 },
+        "falsePositives": { "type": "integer", "minimum": 0 },
+        "falseNegatives": { "type": "integer", "minimum": 0 },
+        "precision": { "type": "number", "minimum": 0, "maximum": 1 },
+        "recall": { "type": "number", "minimum": 0, "maximum": 1 },
+        "overreachCategories": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/overreach" }
+        },
+        "uncertaintyCodes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/uncertainty" }
+        },
+        "reviewerReasonCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "changeMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "changeKind",
+        "cases",
+        "precision",
+        "recall",
+        "overreachCategories",
+        "uncertaintyCodes"
+      ],
+      "properties": {
+        "changeKind": { "$ref": "#/definitions/changeKind" },
+        "cases": { "type": "integer", "minimum": 1 },
+        "precision": { "type": "number", "minimum": 0, "maximum": 1 },
+        "recall": { "type": "number", "minimum": 0, "maximum": 1 },
+        "overreachCategories": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/overreach" }
+        },
+        "uncertaintyCodes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/uncertainty" }
+        }
+      }
+    }
+  }
+}

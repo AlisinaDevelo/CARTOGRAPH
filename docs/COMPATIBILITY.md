@@ -52,6 +52,18 @@ source-body-free, deterministic, and resource-bounded. This Q-003 addition is
 additive to v0.1: callers that omit the projection retain the prior result
 shape and semantics, while readers that ignore the optional metadata section
 remain compatible.
+Evidence-backed change-impact scenarios use the separately reviewed
+`architectureImpacts` contract and
+[`schema/architecture-impact.v0.1.schema.json`](../schema/architecture-impact.v0.1.schema.json).
+The Q-004 scenario corpus and digest-bound evaluation report are test
+artifacts defined by
+[`schema/architecture-impact-fixtures.v0.1.schema.json`](../schema/architecture-impact-fixtures.v0.1.schema.json)
+and
+[`schema/architecture-impact-evaluation.v0.1.schema.json`](../schema/architecture-impact-evaluation.v0.1.schema.json).
+They add no GraphSnapshot or GraphDiff fields: callers opt into explicit
+change kinds, traversal allow-lists, boundary stops, evidence-linked reasons,
+and visible unknowns. A future impact-model revision requires a new version or
+an explicit migration review.
 Local ADR reference indexes use the reviewed `adrReferences` contract and
 [`schema/adr-reference.v0.1.schema.json`](../schema/adr-reference.v0.1.schema.json).
 P-008 adds ADR comparison details only to Markdown and standalone HTML report

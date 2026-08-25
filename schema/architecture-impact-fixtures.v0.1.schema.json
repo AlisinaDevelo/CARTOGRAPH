@@ -1,0 +1,306 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-impact-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH architecture impact scenarios v0.1",
+  "description": "Curated, source-free architecture impact scenarios with expected affected sets, uncertainty, and overreach categories.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "fixtureId",
+    "scope",
+    "graphs",
+    "scenarios"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.architecture-impact-fixtures" },
+    "fixtureId": { "$ref": "#/definitions/identifier" },
+    "scope": { "$ref": "#/definitions/scope" },
+    "graphs": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/definitions/graph" }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/definitions/scenario" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "network",
+        "filesystemWrites",
+        "sourceBodiesIncluded",
+        "execution",
+        "deterministic"
+      ],
+      "properties": {
+        "network": { "const": false },
+        "filesystemWrites": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "execution": { "const": false },
+        "deterministic": { "const": true }
+      }
+    },
+    "nodeKind": {
+      "enum": [
+        "endpoint",
+        "module",
+        "service",
+        "function",
+        "database_table",
+        "queue",
+        "external_service",
+        "file",
+        "unknown"
+      ]
+    },
+    "edgeKind": {
+      "enum": [
+        "calls",
+        "imports",
+        "reads",
+        "writes",
+        "publishes",
+        "subscribes",
+        "requests",
+        "contains",
+        "routes_to",
+        "depends_on",
+        "implements",
+        "unknown"
+      ]
+    },
+    "confidence": {
+      "enum": ["certain", "inferred", "observed", "user_confirmed"]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "kind": { "enum": ["source", "runtime", "git", "user"] },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!~)(?!\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+        },
+        "line": { "type": "integer", "minimum": 1 },
+        "detector": { "type": "string", "minLength": 1 },
+        "contentHash": {
+          "type": "string",
+          "pattern": "^(?:sha256:)?[0-9a-fA-F]{64}$"
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "stableKey", "kind", "name"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "stableKey": { "$ref": "#/definitions/identifier" },
+        "kind": { "$ref": "#/definitions/nodeKind" },
+        "name": { "type": "string", "minLength": 1 },
+        "language": { "type": "string", "minLength": 1 }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "kind", "confidence", "evidence"],
+      "properties": {
+        "from": { "$ref": "#/definitions/identifier" },
+        "to": { "$ref": "#/definitions/identifier" },
+        "kind": { "$ref": "#/definitions/edgeKind" },
+        "confidence": { "$ref": "#/definitions/confidence" },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/evidence" }
+        },
+        "unresolvedReason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "graph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "revision",
+        "nodes",
+        "edges",
+        "diagnostics"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "revision": {
+          "type": "object",
+          "required": ["commitSha"],
+          "properties": { "commitSha": { "$ref": "#/definitions/identifier" } },
+          "additionalProperties": true
+        },
+        "nodes": { "type": "array", "items": { "$ref": "#/definitions/node" } },
+        "edges": { "type": "array", "items": { "$ref": "#/definitions/edge" } },
+        "diagnostics": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "roots"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "node-added",
+            "node-removed",
+            "node-changed",
+            "edge-added",
+            "edge-removed",
+            "edge-changed",
+            "diagnostic-changed",
+            "unsupported"
+          ]
+        },
+        "roots": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "confidence": { "$ref": "#/definitions/confidence" },
+        "evidenceIds": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stopNodeKinds": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/nodeKind" },
+          "uniqueItems": true
+        },
+        "stopNodeIds": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/identifier" },
+          "uniqueItems": true
+        },
+        "stopEdgeKinds": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/edgeKind" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "traversal": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "direction": { "enum": ["forward", "reverse"] },
+        "edgeKinds": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/edgeKind" },
+          "uniqueItems": true
+        },
+        "maxDepth": { "type": "integer", "minimum": 0, "maximum": 1024 },
+        "maxNodes": { "type": "integer", "minimum": 1 },
+        "maxEdges": { "type": "integer", "minimum": 1 },
+        "includeUnresolved": { "type": "boolean" },
+        "boundary": { "$ref": "#/definitions/boundary" }
+      }
+    },
+    "impact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "scenarioId",
+        "change",
+        "traversal"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.architecture-impact" },
+        "scenarioId": { "$ref": "#/definitions/identifier" },
+        "change": { "$ref": "#/definitions/change" },
+        "traversal": { "$ref": "#/definitions/traversal" }
+      }
+    },
+    "overreachCategory": {
+      "enum": [
+        "transitive-reachability",
+        "unresolved-edge",
+        "boundary-stop",
+        "depth-limit",
+        "cycle",
+        "unsupported-change"
+      ]
+    },
+    "overreach": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "count"],
+      "properties": {
+        "category": { "$ref": "#/definitions/overreachCategory" },
+        "count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["affected", "uncertaintyCodes", "overreachCategories"],
+      "properties": {
+        "affected": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "uncertaintyCodes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "unresolved-edge",
+              "boundary-stop",
+              "depth-limit",
+              "cycle",
+              "edge-kind-excluded",
+              "unsupported-change"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "overreachCategories": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/overreach" }
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "graphId", "impact", "expected"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "graphId": { "$ref": "#/definitions/identifier" },
+        "description": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "impact": { "$ref": "#/definitions/impact" },
+        "expected": { "$ref": "#/definitions/expected" }
+      }
+    }
+  }
+}

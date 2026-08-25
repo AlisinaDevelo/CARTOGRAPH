@@ -1,0 +1,155 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-impact.v0.1.schema.json",
+  "title": "CARTOGRAPH architecture impact model v0.1",
+  "description": "A versioned, local, evidence-backed impact scenario with explicit change kinds, traversal rules, boundary stops, confidence, and uncertainty.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "scenarioId",
+    "change",
+    "traversal"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.architecture-impact" },
+    "scenarioId": { "$ref": "#/definitions/identifier" },
+    "change": { "$ref": "#/definitions/change" },
+    "traversal": { "$ref": "#/definitions/traversal" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "nodeKind": {
+      "enum": [
+        "endpoint",
+        "module",
+        "service",
+        "function",
+        "database_table",
+        "queue",
+        "external_service",
+        "file",
+        "unknown"
+      ]
+    },
+    "edgeKind": {
+      "enum": [
+        "calls",
+        "imports",
+        "reads",
+        "writes",
+        "publishes",
+        "subscribes",
+        "requests",
+        "contains",
+        "routes_to",
+        "depends_on",
+        "implements",
+        "unknown"
+      ]
+    },
+    "confidence": {
+      "enum": ["certain", "inferred", "observed", "user_confirmed"]
+    },
+    "changeKind": {
+      "enum": [
+        "node-added",
+        "node-removed",
+        "node-changed",
+        "edge-added",
+        "edge-removed",
+        "edge-changed",
+        "diagnostic-changed",
+        "unsupported"
+      ]
+    },
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "roots"],
+      "properties": {
+        "kind": { "$ref": "#/definitions/changeKind" },
+        "roots": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "confidence": {
+          "$ref": "#/definitions/confidence",
+          "default": "certain"
+        },
+        "evidenceIds": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stopNodeKinds": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/nodeKind" }
+        },
+        "stopNodeIds": {
+          "type": "array",
+          "maxItems": 128,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "stopEdgeKinds": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/edgeKind" }
+        }
+      }
+    },
+    "traversal": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "direction": { "enum": ["forward", "reverse"], "default": "forward" },
+        "edgeKinds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/edgeKind" }
+        },
+        "maxDepth": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1024,
+          "default": 8
+        },
+        "maxNodes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000,
+          "default": 10000
+        },
+        "maxEdges": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000,
+          "default": 20000
+        },
+        "includeUnresolved": { "type": "boolean", "default": true },
+        "boundary": { "$ref": "#/definitions/boundary" }
+      }
+    }
+  }
+}
