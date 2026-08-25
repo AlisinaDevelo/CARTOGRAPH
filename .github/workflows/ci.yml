@@ -73,6 +73,11 @@ jobs:
       - name: Validate adapter contract
         run: npm run adapter:validate
 
+      - name: Validate adapter compatibility matrix
+        run: npm run adapter:compatibility:validate
+        env:
+          CARTOGRAPH_MATRIX_NODE: ${{ matrix.node-version }}
+
       - name: Validate Action fixture
         run: npm run action:validate
 

@@ -149,6 +149,12 @@ fixture corpus at
 [`test/fixtures/adapter-compatibility/scenarios.v0.1.json`](../test/fixtures/adapter-compatibility/scenarios.v0.1.json)
 covers both shipped adapters and every negotiation state.
 
+The runtime/compiler and capability-fixture Cartesian gate is recorded in the
+[adapter compatibility matrix](ADAPTER_COMPATIBILITY_MATRIX.md). It runs
+every declared adapter locally and in CI, binds the requested Node line with
+`CARTOGRAPH_MATRIX_NODE`, and reports an unlisted local runtime explicitly
+instead of silently skipping a supported combination.
+
 ### Fastify adapter
 
 The bounded Fastify adapter is exported as `createFastifyAdapter()` from
