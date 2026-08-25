@@ -83,6 +83,14 @@ and
 It adds no runtime input fields, automatic binding behavior, exporter access, or
 release threshold, and any future corpus contract revision must publish a new
 version or an explicit review.
+The O-016 reproducibility study is also a versioned local test artifact, defined
+by
+[`schema/runtime-reconciliation-reproducibility-fixtures.v0.1.schema.json`](../schema/runtime-reconciliation-reproducibility-fixtures.v0.1.schema.json)
+and
+[`schema/runtime-reconciliation-reproducibility.v0.1.schema.json`](../schema/runtime-reconciliation-reproducibility.v0.1.schema.json).
+It adds no runtime input fields, automatic binding behavior, exporter access,
+or production variance guarantee; a future study-contract revision must publish
+a new version or an explicit review.
 
 ## Change categories
 

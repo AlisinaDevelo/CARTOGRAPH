@@ -4,6 +4,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import Ajv from "ajv";
 
@@ -340,7 +341,7 @@ const assertFamilySignals = (scenario, input, result) => {
   }
 };
 
-const evaluateCase = (baseInput, scenario) => {
+export const evaluateCaseResult = (baseInput, scenario) => {
   const input = sampledInput(baseInput, scenario);
   const result = RuntimeReconciliationSchema.parse(
     reconcileRuntimeTrace(input),
@@ -355,6 +356,17 @@ const evaluateCase = (baseInput, scenario) => {
     fail(`case ${scenario.id} is not deterministic across repeated evaluation`);
   }
   assertFamilySignals(scenario, input, result);
+  return {
+    input,
+    result,
+    serializedTrace: serializeRuntimeTrace(input.runtimeTrace),
+    serializedResult: serializeRuntimeReconciliation(result),
+  };
+};
+
+const evaluateCase = (baseInput, scenario) => {
+  const { input, result, serializedTrace, serializedResult } =
+    evaluateCaseResult(baseInput, scenario);
 
   const expectedPairs = new Set(
     scenario.expected.records.map(
@@ -383,8 +395,6 @@ const evaluateCase = (baseInput, scenario) => {
   if (stableStringify(actualCounts) !== stableStringify(expectedDigestCounts)) {
     fail(`case ${scenario.id} classification counts drifted`);
   }
-  const serializedTrace = serializeRuntimeTrace(input.runtimeTrace);
-  const serializedResult = serializeRuntimeReconciliation(result);
   const inputDigest = digest(
     stableStringify({
       staticSnapshot: input.staticSnapshot,
@@ -506,17 +516,21 @@ export const validate = (fixturePath = defaultFixturePath) => {
       };
 };
 
-if (process.argv[2] !== "validate") {
-  console.error(
-    "usage: node --import tsx scripts/runtime-reconciliation-corpus.mjs validate [--fixture path] [--print-report]",
-  );
-  process.exit(2);
-}
+if (resolve(process.argv[1] ?? "") === fileURLToPath(import.meta.url)) {
+  if (process.argv[2] !== "validate") {
+    console.error(
+      "usage: node --import tsx scripts/runtime-reconciliation-corpus.mjs validate [--fixture path] [--print-report]",
+    );
+    process.exit(2);
+  }
 
-try {
-  console.log(JSON.stringify(validate(argumentValue("--fixture"))));
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(`runtime reconciliation corpus validation failed: ${message}`);
-  process.exit(1);
+  try {
+    console.log(JSON.stringify(validate(argumentValue("--fixture"))));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(
+      `runtime reconciliation corpus validation failed: ${message}`,
+    );
+    process.exit(1);
+  }
 }

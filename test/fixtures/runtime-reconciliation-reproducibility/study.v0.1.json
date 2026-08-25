@@ -1,0 +1,74 @@
+{
+  "$schema": "../../../schema/runtime-reconciliation-reproducibility-fixtures.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.runtime-reconciliation-reproducibility-fixtures",
+  "mediaType": "application/vnd.cartograph.runtime-reconciliation-reproducibility-fixtures+json",
+  "studyId": "runtime-reconciliation-reproducibility",
+  "evaluatedAt": "2026-08-25T00:00:00Z",
+  "corpusFixture": "test/fixtures/runtime-reconciliation-corpus/scenarios.v0.1.json",
+  "repetitions": 5,
+  "method": {
+    "name": "controlled-local-perturbations",
+    "description": "Replay selected O-010 cases five times under deterministic input-order, missingness, parent-gap, and redaction perturbations; compare result digests and classification IDs to the unperturbed case.",
+    "offlineBoundary": {
+      "network": false,
+      "liveTraces": false,
+      "exporter": false
+    },
+    "perturbations": [
+      {
+        "id": "ordering-permutation",
+        "kind": "ordering",
+        "caseId": "messaging-observed",
+        "description": "Reverse static edges, runtime spans, and bindings before each replay; canonical output must remain stable.",
+        "expected": { "invariant": "stable-result" }
+      },
+      {
+        "id": "sampled-child",
+        "kind": "missingness",
+        "caseId": "database-observed",
+        "description": "Drop the database child span and binding while retaining its parent; the declared edge becomes modeled-not-observed.",
+        "dropSpanIds": ["22222222222222222222222222222222:2222222222222222"],
+        "dropBindingSpanIds": [
+          "22222222222222222222222222222222:2222222222222222"
+        ],
+        "expected": { "invariant": "missingness-delta" }
+      },
+      {
+        "id": "parent-gap",
+        "kind": "missingness",
+        "caseId": "http-ambiguous",
+        "description": "Drop the HTTP parent span and binding while retaining its child; the result records an explicit missing-parent gap.",
+        "dropSpanIds": ["11111111111111111111111111111111:1111111111111111"],
+        "dropBindingSpanIds": [
+          "11111111111111111111111111111111:1111111111111111"
+        ],
+        "expected": { "invariant": "missingness-delta" }
+      },
+      {
+        "id": "redaction-boundary",
+        "kind": "redaction",
+        "caseId": "http-ambiguous",
+        "description": "Apply local name and service-name redaction before replay; classifications and result digest must remain unchanged and the synthetic marker must not survive.",
+        "redaction": {
+          "fields": ["span.name", "span.serviceName"],
+          "replacement": "[REDACTED]"
+        },
+        "expected": { "invariant": "redaction-no-leak" }
+      }
+    ]
+  },
+  "nonGuarantees": [
+    "Five repetitions over eight repository-authored traces do not estimate production workload variance or exporter behavior.",
+    "The study evaluates explicit bindings only and does not measure automatic service-to-node binding quality.",
+    "A stable digest under these perturbations does not prove semantic correctness, completeness, or absence of unobserved behavior.",
+    "Redaction invariants cover the enumerated normalized free-text fields and do not authorize retaining payloads, headers, arbitrary attributes, or live user traces."
+  ],
+  "provenance": {
+    "source": "CARTOGRAPH repository-authored reproducibility study fixture",
+    "license": "Apache-2.0",
+    "reference": "O-010 local runtime reconciliation corpus; no external source",
+    "transformation": "Study metadata selects bounded, deterministic in-memory perturbations over the versioned O-010 corpus; no source bodies, exporter payloads, or live traces are copied.",
+    "redistribution": "allowed"
+  }
+}

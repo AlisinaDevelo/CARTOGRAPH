@@ -158,3 +158,28 @@ contains only fixture, trace, input, and reconciliation-result digests plus
 classification counts. Raw spans and reconciliation records remain in the
 local fixture/evaluator boundary and are not copied into the report. Release
 gating is disabled until a maintainer reviews the synthetic baseline.
+
+## O-016 reproducibility study
+
+The O-016 study replays four selected O-010 cases five times under controlled
+local perturbations: input-order permutation, a sampled child, a missing
+parent, and a redaction boundary. It compares digest stability, classification
+changes, missing runtime edges, missing-parent records, and the redaction
+invariant. The versioned fixture and digest-only report are
+[`runtime-reconciliation-reproducibility/study.v0.1.json`](../test/fixtures/runtime-reconciliation-reproducibility/study.v0.1.json),
+[`runtime-reconciliation-reproducibility.v0.1.schema.json`](../schema/runtime-reconciliation-reproducibility.v0.1.schema.json),
+and
+[`runtime-reconciliation-reproducibility.v0.1.json`](../schema/runtime-reconciliation-reproducibility.v0.1.json).
+
+Run the study locally with:
+
+```sh
+npm run runtime-reconciliation:reproducibility:validate
+```
+
+The checked-in run has 20 stable replay digests, five classification changes,
+one missing runtime edge, and one explicit missing-parent record. The report
+does not estimate production variance, exporter behavior, automatic binding
+quality, semantic correctness, completeness, or absence of unobserved
+behavior. It remains offline with `network: false`, `liveTraces: false`, and
+`exporter: false`; no live user traces are accepted or retained.

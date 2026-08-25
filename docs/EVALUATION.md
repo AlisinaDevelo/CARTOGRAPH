@@ -102,6 +102,15 @@ the report explicitly records `network: false` and `exporter: false`. The
 corpus is a controlled regression baseline, not a production workload or a
 release threshold.
 
+O-016 adds a reproducibility study over four selected O-010 cases. Five local
+repetitions cover ordering, sampled-child, missing-parent, and redaction
+perturbations; the digest-only report records stability, classification and
+missingness ranges, and redaction invariants. The run is fully offline and
+publishes explicit non-guarantees: its 20 stable replay digests do not estimate
+production variance, exporter behavior, automatic binding quality, semantic
+correctness, or completeness. Validate it with
+`npm run runtime-reconciliation:reproducibility:validate`.
+
 ## Policy configuration evaluation
 
 The policy fixture validates the versioned local contract through both the
