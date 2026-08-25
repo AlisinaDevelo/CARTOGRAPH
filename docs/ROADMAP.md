@@ -80,6 +80,10 @@ CARTOGRAPH validates one bounded non-TypeScript adapter or records why language 
 
 Exit gate: language-neutral mapping, cross-language equivalence corpus, conformance and unsupported coverage, maintenance/security ownership, and a graduate, narrow, or retire ADR.
 
+The completed gate is recorded in the [language-expansion report](LANGUAGE_EXPANSION_GATE.md)
+and [ADR 0006](adr/0006-language-expansion-gate.md): the bounded Rust pilot is
+retained as experimental while broad Rust expansion remains deferred.
+
 ### Q2 — Runtime reconciliation experiment
 
 Users can optionally reconcile local OpenTelemetry observations with static edges without a hosted collector.

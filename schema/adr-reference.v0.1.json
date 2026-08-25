@@ -35,6 +35,13 @@
       "title": "Execute third-party adapters behind a permissioned host",
       "status": "accepted",
       "graphIds": ["module:src/core/adapter-isolation.ts"]
+    },
+    {
+      "id": "ADR-0006",
+      "file": "docs/adr/0006-language-expansion-gate.md",
+      "title": "Retain the bounded Rust pilot as experimental",
+      "status": "accepted",
+      "graphIds": ["module:scripts/language-expansion-gate.mjs"]
     }
   ]
 }

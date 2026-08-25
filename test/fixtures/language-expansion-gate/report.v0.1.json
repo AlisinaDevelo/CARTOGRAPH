@@ -1,0 +1,219 @@
+{
+  "$schema": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/language-expansion-gate.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.language-expansion-gate",
+  "gateId": "language-expansion-gate-v0.1",
+  "asOf": "2026-08-25",
+  "candidate": {
+    "language": "rust",
+    "adapterId": "cartograph.rust",
+    "adapterVersion": "0.1.0",
+    "scope": "Rust module and function declarations, local mod/use imports and calls, literal reqwest/client HTTP origins, and literal sqlx table reads and writes.",
+    "unsupportedBoundary": "Traits, macros, generics, ownership semantics, compiler resolution, runtime behavior, dynamic HTTP destinations, and dynamic SQL remain explicit unsupported or deferred behavior."
+  },
+  "thresholds": [
+    {
+      "id": "conformance",
+      "operator": ">=",
+      "target": 1,
+      "unit": "deterministic conformance rate",
+      "graduateImpact": "A missed conformance case blocks graduation."
+    },
+    {
+      "id": "semantic-coverage",
+      "operator": ">=",
+      "target": 0.8,
+      "unit": "declared pilot families covered",
+      "graduateImpact": "The bounded pilot must cover at least four of five predeclared semantic families."
+    },
+    {
+      "id": "unknown-rate",
+      "operator": "<=",
+      "target": 0.4,
+      "unit": "unsupported probe rate",
+      "graduateImpact": "A higher unknown rate requires a narrower support claim."
+    },
+    {
+      "id": "precision",
+      "operator": ">=",
+      "target": 0.9,
+      "unit": "supported-edge precision",
+      "graduateImpact": "Precision below the floor blocks graduation."
+    },
+    {
+      "id": "recall",
+      "operator": ">=",
+      "target": 0.85,
+      "unit": "supported-edge recall",
+      "graduateImpact": "Recall below the floor blocks graduation."
+    },
+    {
+      "id": "performance",
+      "operator": "<=",
+      "target": 500,
+      "unit": "maximum bounded fixture milliseconds",
+      "graduateImpact": "A bounded fixture above 500 ms requires a performance review before graduation."
+    },
+    {
+      "id": "maintenance-cost",
+      "operator": "<=",
+      "target": 8,
+      "unit": "maintainer hours per quarter",
+      "graduateImpact": "A projected maintenance cost above eight hours per quarter requires a capacity decision."
+    },
+    {
+      "id": "demand",
+      "operator": ">=",
+      "target": 1,
+      "unit": "independent adopter or maintainer demand signals",
+      "graduateImpact": "Graduation requires at least one independently recorded demand signal."
+    },
+    {
+      "id": "security-ownership",
+      "operator": "==",
+      "target": true,
+      "unit": "named primary and backup security owners",
+      "graduateImpact": "Missing primary or backup ownership blocks any promotion."
+    },
+    {
+      "id": "evidence-completeness",
+      "operator": ">=",
+      "target": 1,
+      "unit": "source-bound evidence completeness",
+      "graduateImpact": "Incomplete evidence blocks promotion and release."
+    }
+  ],
+  "measurements": [
+    {
+      "id": "conformance",
+      "value": 1,
+      "unit": "deterministic conformance rate",
+      "status": "pass",
+      "evidenceRefs": [
+        "command:npm run adapter:compatibility:validate",
+        "docs/ADAPTER_COMPATIBILITY_MATRIX.md"
+      ],
+      "notes": "The Rust bounded case passed both conformance repetitions with stable output and complete evidence."
+    },
+    {
+      "id": "semantic-coverage",
+      "value": 0.8,
+      "unit": "declared pilot families covered",
+      "status": "pass",
+      "evidenceRefs": [
+        "schema/adapter-support-matrix.v0.1.json",
+        "docs/ADAPTER_SELECTION.md",
+        "src/adapters/rust.ts"
+      ],
+      "notes": "Four bounded families are covered: modules, calls, literal HTTP, and literal SQL; compiler-sensitive Rust semantics remain outside the pilot."
+    },
+    {
+      "id": "unknown-rate",
+      "value": 0.3333,
+      "unit": "unsupported probe rate",
+      "status": "pass",
+      "evidenceRefs": [
+        "test/fixtures/rust-adapter",
+        "docs/LANGUAGE_NEUTRAL_SEMANTICS.md"
+      ],
+      "notes": "Two dynamic constructs are explicit unsupported diagnostics across six bounded probes; no unsupported relationship is silently guessed."
+    },
+    {
+      "id": "precision",
+      "value": 1,
+      "unit": "supported-edge precision",
+      "status": "pass",
+      "evidenceRefs": ["docs/EVALUATION.md", "src/adapters/rust.ts"],
+      "notes": "The pilot predicted nine supported edges and all nine matched the expected set."
+    },
+    {
+      "id": "recall",
+      "value": 1,
+      "unit": "supported-edge recall",
+      "status": "pass",
+      "evidenceRefs": ["docs/EVALUATION.md", "test/fixtures/rust-adapter"],
+      "notes": "All nine expected supported edges were recovered in the bounded corpus."
+    },
+    {
+      "id": "performance",
+      "value": 3.586,
+      "unit": "maximum bounded fixture milliseconds",
+      "status": "pass",
+      "evidenceRefs": [
+        "command:npm run adapter:compatibility:validate",
+        "test/fixtures/adapter-compatibility/scenarios.v0.1.json"
+      ],
+      "notes": "The latest local compatibility replay observed 3.586 ms for the Rust bounded case; this is a fixture budget, not a universal throughput claim."
+    },
+    {
+      "id": "maintenance-cost",
+      "value": 6,
+      "unit": "maintainer hours per quarter",
+      "status": "pass",
+      "evidenceRefs": [
+        "docs/ADAPTER_RETIREMENT.md",
+        "docs/ADAPTER_REVIEW_PLAYBOOK.md"
+      ],
+      "notes": "The bounded pilot has one named owner, one backup, a quarterly review cadence, and a six-hour quarterly maintenance estimate."
+    },
+    {
+      "id": "demand",
+      "value": 0,
+      "unit": "independent adopter or maintainer demand signals",
+      "status": "miss",
+      "evidenceRefs": ["docs/OUTREACH.md", "docs/ADAPTER_SELECTION.md"],
+      "notes": "No independent demand signal is recorded in the local evidence set; the gate therefore refuses a broad expansion commitment."
+    },
+    {
+      "id": "security-ownership",
+      "value": true,
+      "unit": "named primary and backup security owners",
+      "status": "pass",
+      "evidenceRefs": [
+        "schema/adapter-support-matrix.v0.1.json",
+        "docs/ADAPTER_RETIREMENT.md"
+      ],
+      "notes": "The matrix and lifecycle policy name extractor-maintainers as primary and core-maintainers as backup, with private intake and archive rules."
+    },
+    {
+      "id": "evidence-completeness",
+      "value": 1,
+      "unit": "source-bound evidence completeness",
+      "status": "pass",
+      "evidenceRefs": [
+        "docs/LANGUAGE_NEUTRAL_SEMANTICS.md",
+        "test/fixtures/language-equivalence/scenarios.v0.1.json"
+      ],
+      "notes": "Every emitted pilot edge or diagnostic has source-bound evidence or an explicit unsupported reason."
+    }
+  ],
+  "decision": {
+    "outcome": "retain-experimental",
+    "rationale": "Retain the bounded Rust pilot as an implemented, explicitly scoped experiment. Conformance, precision, recall, evidence, security ownership, and the local performance budget pass; the semantic boundary is narrow and no independent demand signal is recorded. Broad Rust language support remains deferred and no new implementation commitment is authorized.",
+    "failedGraduateCriteria": ["demand"],
+    "rejectedAlternatives": [
+      "graduate — rejected because the gate has no independent demand signal and compiler-sensitive Rust semantics remain outside the pilot.",
+      "narrow — rejected because the declared bounded slice meets its quality and safety floors.",
+      "retire — rejected because the bounded pilot is reproducible, accurate, owned, and useful as a language-neutral compatibility experiment."
+    ],
+    "implementationCommitments": [],
+    "supportBoundary": "Keep cartograph.rust limited to the declared module/function, local import/call, literal HTTP, and literal SQL slice. Keep language.rust deferred; do not add traits, macros, generics, ownership, compiler-resolution, runtime, or dynamic-query coverage under this gate.",
+    "nextReviewAt": "2027-08-25"
+  },
+  "publicAdr": {
+    "id": "ADR-0006",
+    "path": "docs/adr/0006-language-expansion-gate.md",
+    "decision": "retain-experimental"
+  },
+  "provenance": {
+    "source": "CARTOGRAPH repository-authored measurements from E-005, E-010, and E-011 local validators",
+    "commands": [
+      "npm run adapter:compatibility:validate",
+      "npm run language-equivalence:validate",
+      "npm run adapter:lifecycle:validate"
+    ],
+    "externalSources": false,
+    "sourceBodiesIncluded": false,
+    "secretsIncluded": false
+  }
+}

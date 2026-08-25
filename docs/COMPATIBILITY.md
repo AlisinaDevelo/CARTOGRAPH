@@ -436,6 +436,19 @@ defect timeline with ten bounded events and public communication templates;
 deadlines and final states are deterministic, and source or secret disclosure
 markers fail closed.
 
+## E-012 language-expansion gate
+
+E-012 publishes the digest-bound
+[`cartograph.language-expansion-gate`](../schema/language-expansion-gate.v0.1.schema.json)
+report and [ADR 0006](adr/0006-language-expansion-gate.md). The gate compares
+predeclared conformance, semantic coverage, unknown rate, precision, recall,
+performance, maintenance cost, demand, security ownership, and evidence
+completeness for the bounded Rust pilot. Quality and safety floors pass, but
+independent demand is absent, so `cartograph.rust` remains bounded and broad
+`language.rust` expansion remains deferred with no implementation commitments.
+The report and ADR are additive governance evidence; they do not change
+GraphSnapshot, GraphDiff, adapter API, capability, or diagnostic versions.
+
 ## E-008 adapter compatibility negotiation
 
 E-008 adds the reviewed `adapterCompatibilityNegotiation` v1 contract and

@@ -1,0 +1,195 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/language-expansion-gate.v0.1.schema.json",
+  "title": "CARTOGRAPH language-expansion gate report v0.1",
+  "description": "Digest-bound evidence and decision record for a bounded non-TypeScript adapter expansion gate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "gateId",
+    "asOf",
+    "candidate",
+    "thresholds",
+    "measurements",
+    "decision",
+    "publicAdr",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.language-expansion-gate" },
+    "gateId": { "$ref": "#/definitions/identifier" },
+    "asOf": { "type": "string", "format": "date" },
+    "candidate": { "$ref": "#/definitions/candidate" },
+    "thresholds": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/definitions/threshold" }
+    },
+    "measurements": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/definitions/measurement" }
+    },
+    "decision": { "$ref": "#/definitions/decision" },
+    "publicAdr": { "$ref": "#/definitions/publicAdr" },
+    "provenance": { "$ref": "#/definitions/provenance" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240,
+      "pattern": "^(?:[a-zA-Z0-9_.-]+/)*[a-zA-Z0-9_.-]+$"
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "language",
+        "adapterId",
+        "adapterVersion",
+        "scope",
+        "unsupportedBoundary"
+      ],
+      "properties": {
+        "language": { "const": "rust" },
+        "adapterId": { "const": "cartograph.rust" },
+        "adapterVersion": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "scope": { "type": "string", "minLength": 1, "maxLength": 1200 },
+        "unsupportedBoundary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1200
+        }
+      }
+    },
+    "threshold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "operator", "target", "unit", "graduateImpact"],
+      "properties": {
+        "id": {
+          "enum": [
+            "conformance",
+            "semantic-coverage",
+            "unknown-rate",
+            "precision",
+            "recall",
+            "performance",
+            "maintenance-cost",
+            "demand",
+            "security-ownership",
+            "evidence-completeness"
+          ]
+        },
+        "operator": { "enum": [">=", "<=", "=="] },
+        "target": { "anyOf": [{ "type": "number" }, { "type": "boolean" }] },
+        "unit": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "graduateImpact": { "type": "string", "minLength": 1, "maxLength": 500 }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "value", "unit", "status", "evidenceRefs", "notes"],
+      "properties": {
+        "id": { "$ref": "#/definitions/threshold/properties/id" },
+        "value": { "anyOf": [{ "type": "number" }, { "type": "boolean" }] },
+        "unit": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "status": { "enum": ["pass", "miss"] },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1, "maxLength": 240 }
+        },
+        "notes": { "type": "string", "minLength": 1, "maxLength": 1400 }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "rationale",
+        "failedGraduateCriteria",
+        "rejectedAlternatives",
+        "implementationCommitments",
+        "supportBoundary",
+        "nextReviewAt"
+      ],
+      "properties": {
+        "outcome": {
+          "enum": ["graduate", "retain-experimental", "narrow", "retire"]
+        },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 2400 },
+        "failedGraduateCriteria": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "rejectedAlternatives": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        },
+        "implementationCommitments": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        },
+        "supportBoundary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1600
+        },
+        "nextReviewAt": { "type": "string", "format": "date" }
+      }
+    },
+    "publicAdr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "decision"],
+      "properties": {
+        "id": { "pattern": "^ADR-[0-9]{4}$", "type": "string" },
+        "path": { "$ref": "#/definitions/path" },
+        "decision": {
+          "enum": ["graduate", "retain-experimental", "narrow", "retire"]
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "commands",
+        "externalSources",
+        "sourceBodiesIncluded",
+        "secretsIncluded"
+      ],
+      "properties": {
+        "source": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "commands": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1, "maxLength": 240 }
+        },
+        "externalSources": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "secretsIncluded": { "const": false }
+      }
+    }
+  }
+}

@@ -122,3 +122,8 @@ signals, and every emitted edge or diagnostic remains source-bound. A changed
 count, diagnostic set, evidence requirement, or identity result is reported
 with its semantic category and case instead of being treated as a generic
 snapshot mismatch.
+
+The E-012 [language-expansion gate](LANGUAGE_EXPANSION_GATE.md) consumes this
+corpus as one input to a public, digest-bound decision. It retains the bounded
+Rust pilot as experimental and keeps broad Rust language support deferred when
+quality and security evidence pass but independent demand is not recorded.

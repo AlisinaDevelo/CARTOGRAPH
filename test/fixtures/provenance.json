@@ -360,6 +360,15 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "A versioned adapter lifecycle policy and two timed tabletop exercises cover ownership loss, quality review, private vulnerability intake, containment, coordinated disclosure, deprecation, archive behavior, and replacement guidance without source or secret data.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "language-expansion-gate",
+      "path": "language-expansion-gate",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A digest-bound language-expansion gate compares bounded Rust conformance, semantic coverage, unknown behavior, quality, performance, maintenance, demand, ownership, and evidence thresholds before recording a conservative public decision.",
+      "redistribution": "allowed"
     }
   ]
 }
