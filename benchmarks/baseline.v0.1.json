@@ -25,6 +25,7 @@
       "id": "typescript-express",
       "digest": "d72e2a52dc108b40f226c9494d730005031728d17c91621f5a367c635e170fd4",
       "fileCount": 13,
+      "reportBytes": 27212,
       "cold": {
         "runs": 1,
         "minMs": 489.361,
@@ -165,6 +166,7 @@
       "id": "review-regressions",
       "digest": "f084e168008c9bcdd9047e9996255c3febc8dc798ca7d0678e156130272b3b14",
       "fileCount": 3,
+      "reportBytes": 8014,
       "cold": {
         "runs": 1,
         "minMs": 114.268,
@@ -192,6 +194,7 @@
       "id": "outside-import",
       "digest": "e4f764275ba0a398e0520dac5662bb3e8d7f16e3df24a40dca0fc5d814c15e6b",
       "fileCount": 1,
+      "reportBytes": 1811,
       "cold": {
         "runs": 1,
         "minMs": 113.64,
@@ -219,6 +222,7 @@
       "id": "exclusions",
       "digest": "641193c8fb128c903eb701df5f6a2719ba70ffe9bdf63da3493add39d8a853b5",
       "fileCount": 5,
+      "reportBytes": 536,
       "cold": {
         "runs": 1,
         "minMs": 100.909,
@@ -246,6 +250,7 @@
       "id": "project-loader",
       "digest": "28115dc345b37a4d4bc3379c9e75bded4b2f4a6a47b629433c00f4825bfad3ef",
       "fileCount": 12,
+      "reportBytes": 1324,
       "cold": {
         "runs": 1,
         "minMs": 99.298,
