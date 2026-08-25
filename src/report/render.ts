@@ -8,6 +8,7 @@ import {
   type GraphEdge,
 } from "../core/index.js";
 import { assertReportItemLimit, ResourceLimitError } from "../resources.js";
+import type { AdrReport, AdrReportReference } from "./adr.js";
 
 export type ReportFormat = "html" | "json" | "markdown";
 
@@ -22,6 +23,7 @@ export const REPORT_LIMITS = {
 const assertReportCardinality = (
   diff: GraphDiff,
   maximum: number | undefined,
+  adrReport?: AdrReport,
 ): void => {
   const nodeCount =
     diff.nodes.added.length +
@@ -52,7 +54,20 @@ const assertReportCardinality = (
     }
   }
 
-  assertReportItemLimit(nodeCount + edgeCount + diagnosticCount, maximum);
+  const adrCount =
+    adrReport === undefined
+      ? 0
+      : adrReport.references.length +
+        adrReport.references.reduce(
+          (count, reference) =>
+            count + reference.evidence.length + reference.diagnostics.length,
+          0,
+        ) +
+        adrReport.diagnostics.length;
+  assertReportItemLimit(
+    nodeCount + edgeCount + diagnosticCount + adrCount,
+    maximum,
+  );
 };
 
 const assertReportByteLimit = (report: string): void => {
@@ -144,8 +159,76 @@ const markdownDiagnostic = (
   return `- ${markdownCode(`${diagnostic.severity} ${diagnostic.code}`)} — ${markdownCode(diagnostic.message)}${remediation}`;
 };
 
-export function renderMarkdownReport(diff: GraphDiff): string {
-  assertReportCardinality(diff, undefined);
+const markdownAdrReference = (reference: AdrReportReference): string[] => {
+  const lines = [
+    `- ${markdownCode(reference.id)} — ${markdownCode(reference.title)} (${markdownCode(reference.status)}); file: ${markdownCode(reference.file)}; change: ${markdownCode(reference.change)}; state: ${markdownCode(reference.state)}`,
+  ];
+  for (const evidence of reference.evidence) {
+    const sources =
+      evidence.sources.length === 0
+        ? markdownCode("no source evidence")
+        : evidence.sources.map(markdownCode).join(", ");
+    lines.push(
+      `  - graph ${markdownCode(evidence.graphId)} — ${markdownCode(evidence.relation)}; evidence: ${sources}`,
+    );
+  }
+  for (const diagnostic of reference.diagnostics) {
+    lines.push(
+      `  - diagnostic ${markdownCode(diagnostic.code)} — ${markdownCode(diagnostic.message)}`,
+    );
+  }
+  return lines;
+};
+
+const markdownAdrSection = (adrReport: AdrReport): string[] => {
+  const { summary } = adrReport;
+  const lines = [
+    "",
+    "## ADR references",
+    "",
+    `- ${plural(summary.added, "reference")} added; ${plural(summary.removed, "reference")} removed; ${plural(summary.changed, "reference")} changed; ${plural(summary.unchanged, "reference")} unchanged; ${plural(summary.stale, "reference")} stale`,
+  ];
+  const groups = [
+    ["Added ADR references", "added"],
+    ["Removed ADR references", "removed"],
+    ["Changed ADR references", "changed"],
+    ["Unchanged ADR references", "unchanged"],
+  ] as const;
+  for (const [title, change] of groups) {
+    const references = adrReport.references.filter(
+      (reference) => reference.change === change,
+    );
+    if (references.length === 0) continue;
+    lines.push("", `### ${title}`, "");
+    lines.push(...references.flatMap(markdownAdrReference));
+  }
+  const stale = adrReport.references.filter(
+    (reference) => reference.state === "stale",
+  );
+  if (stale.length > 0) {
+    lines.push("", "### Stale ADR references", "");
+    lines.push(...stale.flatMap(markdownAdrReference));
+  }
+  const globalDiagnostics = adrReport.diagnostics.filter(
+    (diagnostic) => diagnostic.referenceId === undefined,
+  );
+  if (globalDiagnostics.length > 0) {
+    lines.push("", "### ADR validation diagnostics", "");
+    lines.push(
+      ...globalDiagnostics.map(
+        (diagnostic) =>
+          `- ${markdownCode(diagnostic.code)} — ${markdownCode(diagnostic.message)}`,
+      ),
+    );
+  }
+  return lines;
+};
+
+export function renderMarkdownReport(
+  diff: GraphDiff,
+  adrReport?: AdrReport,
+): string {
+  assertReportCardinality(diff, undefined, adrReport);
   const summary = diff.summary;
   const lines = [
     "# Architecture diff",
@@ -249,6 +332,8 @@ export function renderMarkdownReport(diff: GraphDiff): string {
     );
   }
 
+  if (adrReport !== undefined) lines.push(...markdownAdrSection(adrReport));
+
   const report = `${lines.join("\n")}\n`;
   assertReportByteLimit(report);
   return report;
@@ -301,8 +386,73 @@ const htmlIdentityUnsupported = (
 ): string =>
   `<code>${escapeHtml(candidate.before.stableKey)}</code> <strong>→</strong> <code>${escapeHtml(candidate.after.stableKey)}</code><div class="evidence">${escapeHtml(candidate.reason)}; score: ${escapeHtml(String(candidate.score))}; evidence: ${candidate.signals.map((signal) => escapeHtml(signal)).join(", ")}</div>`;
 
-export function renderHtmlReport(diff: GraphDiff): string {
-  assertReportCardinality(diff, undefined);
+const htmlAdrReference = (reference: AdrReportReference): string => {
+  const evidence = reference.evidence.map(
+    (item) =>
+      `<li>Graph <code>${escapeHtml(item.graphId)}</code> — <strong>${escapeHtml(item.relation)}</strong>; evidence: ${htmlList(item.sources.map((source) => `<code>${escapeHtml(source)}</code>`))}</li>`,
+  );
+  const diagnostics = reference.diagnostics.map(
+    (diagnostic) =>
+      `<li>Diagnostic <code>${escapeHtml(diagnostic.code)}</code>: ${escapeHtml(diagnostic.message)}</li>`,
+  );
+  return `<li><strong><code>${escapeHtml(reference.id)}</code></strong> — ${escapeHtml(reference.title)} (<code>${escapeHtml(reference.status)}</code>); file: <code>${escapeHtml(reference.file)}</code>; change: <code>${escapeHtml(reference.change)}</code>; state: <code>${escapeHtml(reference.state)}</code>${evidence.length === 0 ? "" : `<ul>${evidence.join("")}</ul>`}${diagnostics.length === 0 ? "" : `<ul>${diagnostics.join("")}</ul>`}</li>`;
+};
+
+const htmlAdrGroup = (
+  title: string,
+  references: readonly AdrReportReference[],
+): string =>
+  `<section aria-label="${escapeHtml(title)}"><h3>${escapeHtml(title)}</h3>${htmlList(references.map(htmlAdrReference))}</section>`;
+
+const htmlAdrSection = (adrReport: AdrReport): string => {
+  const { summary } = adrReport;
+  const groups = [
+    ["Added ADR references", "added"],
+    ["Removed ADR references", "removed"],
+    ["Changed ADR references", "changed"],
+    ["Unchanged ADR references", "unchanged"],
+  ] as const;
+  const sections = groups.map(([title, change]) =>
+    htmlAdrGroup(
+      title,
+      adrReport.references.filter((reference) => reference.change === change),
+    ),
+  );
+  const stale = adrReport.references.filter(
+    (reference) => reference.state === "stale",
+  );
+  if (stale.length > 0)
+    sections.push(htmlAdrGroup("Stale ADR references", stale));
+  const globalDiagnostics = adrReport.diagnostics.filter(
+    (diagnostic) => diagnostic.referenceId === undefined,
+  );
+  if (globalDiagnostics.length > 0) {
+    sections.push(
+      htmlAdrGroup(
+        "ADR validation diagnostics",
+        globalDiagnostics.map((diagnostic) => ({
+          id: diagnostic.code,
+          file: diagnostic.file ?? "",
+          title: diagnostic.message,
+          status: "draft" as const,
+          change: "unchanged" as const,
+          state: "stale" as const,
+          graphIds:
+            diagnostic.graphId === undefined ? [] : [diagnostic.graphId],
+          evidence: [],
+          diagnostics: [diagnostic],
+        })),
+      ),
+    );
+  }
+  return `<section aria-labelledby="adr-heading"><h2 id="adr-heading">ADR references</h2><div class="summary"><div class="card">${plural(summary.added, "reference")} added<br>${plural(summary.removed, "reference")} removed<br>${plural(summary.changed, "reference")} changed<br>${plural(summary.unchanged, "reference")} unchanged<br>${plural(summary.stale, "reference")} stale</div></div>${sections.join("")}</section>`;
+};
+
+export function renderHtmlReport(
+  diff: GraphDiff,
+  adrReport?: AdrReport,
+): string {
+  assertReportCardinality(diff, undefined, adrReport);
   const summary = diff.summary;
   const addedNodes = diff.nodes.added.map(htmlNode);
   const removedNodes = diff.nodes.removed.map(htmlNode);
@@ -384,6 +534,7 @@ export function renderHtmlReport(diff: GraphDiff): string {
     <section aria-label="Added diagnostics"><h2>Added diagnostics</h2>${htmlList(addedDiagnostics)}</section>
     <section aria-label="Removed diagnostics"><h2>Removed diagnostics</h2>${htmlList(removedDiagnostics)}</section>
     <section aria-label="Changed diagnostics"><h2>Changed diagnostics</h2>${htmlList(changedDiagnostics)}</section>
+    ${adrReport === undefined ? "" : htmlAdrSection(adrReport)}
   </main>
 </body>
 </html>
@@ -396,17 +547,18 @@ export function renderDiff(
   diff: GraphDiff,
   format: ReportFormat,
   maxReportItems?: number,
+  adrReport?: AdrReport,
 ): string {
-  assertReportCardinality(diff, maxReportItems);
+  assertReportCardinality(diff, maxReportItems, adrReport);
   switch (format) {
     case "html":
-      return renderHtmlReport(diff);
+      return renderHtmlReport(diff, adrReport);
     case "json": {
       const report = `${serializeGraphDiff(diff)}\n`;
       assertReportByteLimit(report);
       return report;
     }
     case "markdown":
-      return renderMarkdownReport(diff);
+      return renderMarkdownReport(diff, adrReport);
   }
 }

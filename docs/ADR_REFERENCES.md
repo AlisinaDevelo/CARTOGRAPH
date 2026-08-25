@@ -59,6 +59,21 @@ The contract records traceability, not architectural truth: an ADR link does
 not prove that the decision is correct or that the implementation follows its
 intent.
 
+## Report integration
+
+`cartograph diff --adr <path>` loads the repository-local ADR index at the
+resolved base and head revisions. Markdown and self-contained HTML reports then
+show each linked ADR's ID, title, lifecycle status, repository-relative file,
+graph IDs, and source evidence. The report classifies references as added,
+removed, changed, or unchanged and marks file/graph validation failures as
+stale. A reference can therefore be both added or changed and stale; the report
+keeps both facts visible. Missing references at one revision are treated as
+removed, while missing graph IDs or mismatched local Markdown metadata are
+reported as stale. The JSON output remains the canonical GraphDiff v1 contract;
+the ADR section is a presentation-layer addition so existing machine readers
+continue to parse the same artifact. Rendering is offline, deterministic, and
+does not turn an ADR link into proof that the implementation follows its intent.
+
 Policies can require selected boundaries and expiry-bound exceptions to carry
 these references through the additive
 [`policy ADR binding contract`](POLICY_ADR_BINDINGS.md). Binding evaluation
