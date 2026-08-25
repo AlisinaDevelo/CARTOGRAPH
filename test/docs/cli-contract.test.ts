@@ -34,4 +34,30 @@ describe("CLI contract", () => {
     expect(readme).toContain("[CLI runtime and exit policy](docs/CLI.md)");
     expect(readme).toContain("--comparison merge-base");
   });
+
+  it("documents the executable policy and ADR adoption workflow", () => {
+    const workflow = readFileSync(
+      resolve(repositoryRoot, "docs/WORKFLOW.md"),
+      "utf8",
+    );
+    const packageJson = JSON.parse(
+      readFileSync(resolve(repositoryRoot, "package.json"), "utf8"),
+    ) as { scripts?: Record<string, string> };
+
+    for (const section of [
+      "## 1. Scan a working tree",
+      "## 2. Compare exact revisions and link decisions",
+      "## 3. Observe policy before enforcing it",
+      "## 4. Migrate historical snapshots explicitly",
+      "## 5. Keep remediation review human-controlled",
+      "## 6. Run the same path in CI",
+      "## Limits and trust boundary",
+    ])
+      expect(workflow).toContain(section);
+    expect(workflow).toContain("--adr adr.json");
+    expect(workflow).toContain("ADR link as proof");
+    expect(packageJson.scripts?.["workflow:validate"]).toBe(
+      "node scripts/workflow-fixture.mjs",
+    );
+  });
 });
