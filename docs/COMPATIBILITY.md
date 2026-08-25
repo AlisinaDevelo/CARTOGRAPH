@@ -39,6 +39,8 @@ Local ADR reference indexes use the reviewed `adrReferences` contract and
 [`schema/adr-reference.v0.1.schema.json`](../schema/adr-reference.v0.1.schema.json).
 Policy evaluation reports use the reviewed `policyEvaluations` contract and
 [`schema/policy-evaluation.v0.1.schema.json`](../schema/policy-evaluation.v0.1.schema.json).
+Composed local policy metadata uses the reviewed `policyCompositions` contract
+and [`schema/policy-composition.v0.1.schema.json`](../schema/policy-composition.v0.1.schema.json).
 Local adapter requests, capability manifests, and graph results use the reviewed
 `adapters` contract and [`schema/adapter.v0.1.schema.json`](../schema/adapter.v0.1.schema.json).
 Normalized local OTLP JSON traces use the reviewed `runtimeTraces` contract and
@@ -170,6 +172,16 @@ failing rule with stable IDs, reasons, matched IDs, and evidence references,
 and records unsupported diff-target rules on snapshot input explicitly. It is
 read-only and offline; CI exit behavior and enforcing workflow integration are
 reserved for P-005.
+
+## P-014 policy composition
+
+P-014 adds the reviewed `policyCompositions` v1 contract and the additive
+composition fields in `schema/policy.v0.1.schema.json`. Repository-local
+includes, scopes, precedence, duplicate IDs, override limits, cycles, and
+contradictory outcomes are resolved deterministically and fail closed with
+evidence-linked configuration errors. Existing v0.1 policy readers may ignore
+the optional fields and continue to read single-file policies; composition
+writers emit the separate v1 metadata contract and never resolve remote files.
 
 ## P-007 local ADR references
 

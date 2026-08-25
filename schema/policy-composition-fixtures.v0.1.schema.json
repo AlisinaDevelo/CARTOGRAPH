@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/policy-composition-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH policy composition fixtures v0.1",
+  "description": "Offline positive and negative policy composition scenarios.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "contract", "fixtureId", "cases"],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.policy-composition-fixtures" },
+    "fixtureId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "expectation", "root", "files"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "expectation": { "enum": ["positive", "negative"] },
+        "root": { "type": "string", "minLength": 1, "maxLength": 1024 },
+        "files": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": "object" }
+        },
+        "errorCode": { "type": "string", "minLength": 1 },
+        "expectedRules": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "expectedOverrides": { "type": "integer", "minimum": 0 },
+        "evidenceIncludes": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

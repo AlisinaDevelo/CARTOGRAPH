@@ -10,6 +10,7 @@ import {
 import { assertReportItemLimit } from "./resources.js";
 import {
   diffGraphSnapshots,
+  composePolicyConfig,
   evaluatePolicyOnDiff,
   evaluatePolicyOnSnapshot,
   migrateGraphSnapshot,
@@ -18,7 +19,6 @@ import {
   parsePolicyConfig,
   defaultCartographConfig,
   readCartographConfig,
-  readPolicyConfig,
   createRemediationReview,
   serializeGraphSnapshot,
   serializeRemediationReview,
@@ -288,7 +288,7 @@ export async function evaluatePolicyFile(
   options: PolicyEvaluationOptions,
 ): Promise<PolicyEvaluation> {
   const root = realpathSync(resolve(options.root));
-  const parsedPolicy = readPolicyConfig(root, options.policy);
+  const parsedPolicy = composePolicyConfig(root, options.policy).policy;
   const policy =
     options.mode === undefined
       ? parsedPolicy

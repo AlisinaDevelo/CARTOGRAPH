@@ -76,6 +76,16 @@ false-positive, false-negative, explanation-regression, and evidence-regression
 counts, and fails if any count differs from the checked-in baseline. The v0.1
 baseline is zero for all four regression classes.
 
+P-014 adds the offline policy-composition corpus at
+[`policy-composition/scenarios.v0.1.json`](../test/fixtures/policy-composition/scenarios.v0.1.json).
+It validates deterministic include order, scope-aware contradiction checks,
+precedence and override authorization, duplicate IDs, cycles, duplicate
+includes, contradictory outcomes, and remote-reference rejection. Every
+negative case requires a typed configuration error with evidence references;
+`npm run policy-composition:validate` also validates the composed result against
+the published composition schema and checks repeated serialization for byte
+identity.
+
 ## Practical compatibility
 
 Before v0.1, CARTOGRAPH will analyze at least three representative public TypeScript repositories or recorded snapshots. The report will publish supported, unresolved, and failed construct counts without copying third-party source into the repository.

@@ -56,6 +56,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "policy-composition",
+      "path": "policy-composition",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Scenario metadata creates isolated local policy files to exercise deterministic includes, scopes, precedence, authorized override limits, duplicate IDs, cycles, and contradictory outcomes without remote resolution.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "remediation-suggestions",
       "path": "remediation-suggestions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

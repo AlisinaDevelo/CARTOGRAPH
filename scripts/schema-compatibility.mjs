@@ -67,6 +67,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/diagnostics.ts" ||
       file === "src/core/policy-bundles.ts" ||
       file === "src/core/policy.ts" ||
+      file === "src/core/policy-composition.ts" ||
       file === "src/core/adr.ts" ||
       file === "src/core/adapters.ts" ||
       file === "src/core/runtime-traces.ts" ||
@@ -87,6 +88,7 @@ const checkHostedVersionChange = () => {
       file === "schema/diagnostic-registry.v0.1.schema.json" ||
       file === "schema/policy-bundle.v0.1.schema.json" ||
       file === "schema/policy.v0.1.schema.json" ||
+      file === "schema/policy-composition.v0.1.schema.json" ||
       file === "schema/adr-reference.v0.1.schema.json" ||
       file === "schema/adapter.v0.1.schema.json" ||
       file === "schema/runtime-traces.v0.1.schema.json" ||
@@ -128,6 +130,7 @@ const checkCompatibility = () => {
   const diagnosticSource = readText("src/core/diagnostics.ts");
   const policyBundleSource = readText("src/core/policy-bundles.ts");
   const localPolicySource = readText("src/core/policy.ts");
+  const policyCompositionSource = readText("src/core/policy-composition.ts");
   const adrReferenceSource = readText("src/core/adr.ts");
   const adapterSource = readText("src/core/adapters.ts");
   const runtimeTraceSource = readText("src/core/runtime-traces.ts");
@@ -162,6 +165,9 @@ const checkCompatibility = () => {
   );
   const policyBundleSchema = readJson("schema/policy-bundle.v0.1.schema.json");
   const localPolicySchema = readJson("schema/policy.v0.1.schema.json");
+  const policyCompositionSchema = readJson(
+    "schema/policy-composition.v0.1.schema.json",
+  );
   const adrReferenceSchema = readJson("schema/adr-reference.v0.1.schema.json");
   const adapterSchema = readJson("schema/adapter.v0.1.schema.json");
   const runtimeTraceSchema = readJson("schema/runtime-traces.v0.1.schema.json");
@@ -227,6 +233,10 @@ const checkCompatibility = () => {
     localPolicySource,
     "LOCAL_POLICY_SCHEMA_VERSION",
   );
+  const policyCompositionVersion = sourceVersion(
+    policyCompositionSource,
+    "POLICY_COMPOSITION_SCHEMA_VERSION",
+  );
   const adrReferenceVersion = sourceVersion(
     adrReferenceSource,
     "ADR_REFERENCE_SCHEMA_VERSION",
@@ -288,6 +298,7 @@ const checkCompatibility = () => {
     diagnosticVersion === undefined ||
     policyBundleVersion === undefined ||
     localPolicyVersion === undefined ||
+    policyCompositionVersion === undefined ||
     adrReferenceVersion === undefined ||
     adapterVersion === undefined ||
     runtimeTraceVersion === undefined ||
@@ -360,6 +371,16 @@ const checkCompatibility = () => {
     "local policy JSON Schema/runtime",
     localPolicySchema.properties.schemaVersion.const,
     localPolicyVersion,
+  );
+  requireEqual(
+    "policy composition runtime/policy",
+    policyCompositionVersion,
+    contracts.policyCompositions.current,
+  );
+  requireEqual(
+    "policy composition JSON Schema/runtime",
+    policyCompositionSchema.properties.schemaVersion.const,
+    policyCompositionVersion,
   );
   requireEqual(
     "ADR reference runtime/policy",
@@ -531,6 +552,7 @@ const checkCompatibility = () => {
     diagnosticVersion,
     policyBundleVersion,
     localPolicyVersion,
+    policyCompositionVersion,
     adrReferenceVersion,
     adapterVersion,
     runtimeTraceVersion,

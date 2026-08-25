@@ -9,7 +9,10 @@ representative example in [`schema/policy.v0.1.json`](../schema/policy.v0.1.json
 
 A policy has a lower-case `policyId`, semantic `version`, optional `mode`, and
 at least one rule. `mode` defaults to `informational`; the evaluator reports
-violations with this effective mode. The `cartograph policy` command and the
+violations with this effective mode. A policy may also declare a bounded local
+`scope`, numeric `precedence`, an `overrideLimit`, and repository-relative
+`includes`. These fields are composed offline before evaluation; no include can
+fetch a URL or leave the repository. The `cartograph policy` command and the
 GitHub Action expose the same explicit CI modes: informational reports findings
 and returns 0, while enforce returns 2 for violations or unsupported rules and
 reserves 1 for tool or configuration errors.
@@ -31,6 +34,25 @@ Unknown fields, executable content, URLs, commands, and arbitrary selector
 expressions are rejected. Selectors are bounded by field-specific enums and
 length limits, so a policy cannot smuggle code or a remote authority into the
 configuration.
+
+## Offline composition
+
+`includes` names regular JSON policy files relative to the analyzed repository
+root. Composition visits each file once in canonical path order, detects cycles
+and duplicate includes, and applies fixed bounds for include depth, file count,
+and rule count. A rule identifier is unique across the composition. Identical
+duplicates are coalesced; a differing lower-precedence definition is accepted
+only when the higher-precedence policy's `overrideLimit` authorizes it. Equal
+precedence disagreements and unauthorized overrides are configuration errors.
+The `scope` participates in contradiction grouping, so otherwise identical
+selectors in different scopes remain independent.
+
+Contradictory assertions for one scope, target, and selector (for example,
+`exists` and `absent`) are rejected. Every composition error is a typed,
+offline configuration error with stable source paths and evidence references
+for the involved policy files, rule IDs, scopes, or composition limit. The
+serialized composition records the root, all sources, and authorized overrides
+so a reviewer can reproduce the result without remote resolution.
 
 ## Offline loading
 
@@ -64,3 +86,11 @@ evidence references. `npm run policy-regression:validate` runs every case twice
 and publishes the expected baseline counts; the checked-in v0.1 baseline is
 zero false positives, zero false negatives, zero explanation regressions, and
 zero evidence regressions.
+
+The policy-composition fixture at
+[`policy-composition/scenarios.v0.1.json`](../test/fixtures/policy-composition/scenarios.v0.1.json)
+covers deterministic includes, scope isolation, authorized precedence, duplicate
+IDs, override limits, equal-precedence conflicts, cycles, duplicate includes,
+contradictory outcomes, and rejected remote references. `npm run
+policy-composition:validate` runs every positive and negative scenario through
+both the runtime contract and the published composition schema.

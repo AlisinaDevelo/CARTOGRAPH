@@ -87,7 +87,8 @@ export const classifyCliError = (value: unknown): CliDiagnosticCode => {
   if (
     name === "ConfigValidationError" ||
     name === "TypeScriptConfigError" ||
-    name === "PolicyConfigValidationError"
+    name === "PolicyConfigValidationError" ||
+    name === "PolicyCompositionError"
   )
     return "configuration-error";
   if (name === "ResourceLimitError") return "resource-limit";
