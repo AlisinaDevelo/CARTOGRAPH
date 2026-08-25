@@ -1,5 +1,9 @@
 # Release process
 
+The versioned acceptance and rollback record for the current package is
+[`RELEASE_REHEARSAL.md`](RELEASE_REHEARSAL.md). It is a local evidence record;
+the dry-run section does not alter an active release.
+
 CARTOGRAPH is not published to npm. A `v<package.version>` tag is the supported
 release trigger: [`.github/workflows/release.yml`](../.github/workflows/release.yml)
 checks the tagged source, creates an installable tarball, runs an isolated package
@@ -64,7 +68,9 @@ Generated `dist`, coverage, temporary repositories, reports, and package tarball
 
 ## Rollback and recovery
 
-Release tags are immutable in practice. If a release is defective:
+The full owner, timing, communication, and follow-up rehearsal is recorded in
+[`RELEASE_REHEARSAL.md`](RELEASE_REHEARSAL.md). Release tags are immutable in
+practice. If a release is defective:
 
 1. Mark the GitHub release as withdrawn in its notes and stop directing users to it.
 2. Prepare a corrective patch release (for example, `v0.1.1`) from `main`; do not retag a different commit as `v0.1.0`.

@@ -198,6 +198,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Five-year roadmap](docs/ROADMAP.md)
 - [Design-partner outreach](docs/OUTREACH.md)
 - [Release gate](docs/RELEASE.md)
+- [Release acceptance and rollback rehearsal](docs/RELEASE_REHEARSAL.md)
 - [Changelog](CHANGELOG.md)
 
 ## License
