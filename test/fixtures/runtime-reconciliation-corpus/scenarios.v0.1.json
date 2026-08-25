@@ -1,0 +1,382 @@
+{
+  "$schema": "../../../schema/runtime-reconciliation-corpus-fixtures.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.runtime-reconciliation-corpus-fixtures",
+  "mediaType": "application/vnd.cartograph.runtime-reconciliation-corpus-fixtures+json",
+  "fixtureId": "runtime-reconciliation-corpus",
+  "evaluatedAt": "2026-08-25T00:00:00Z",
+  "baseInput": "test/fixtures/runtime-reconciliation-corpus/base-input.v0.1.json",
+  "releaseGating": {
+    "enabled": false,
+    "reason": "The corpus is a reviewed synthetic baseline; it does not set production release thresholds."
+  },
+  "limitations": [
+    "All graph nodes, spans, bindings, and expected classifications are repository-authored synthetic data; the cases are not a production workload estimate.",
+    "Bindings are explicit and certain in the positive cases, so automatic service-to-node binding quality is outside this corpus.",
+    "Digest-only reports prove reproducibility and classification stability but intentionally retain no raw runtime payload, exporter data, or source body."
+  ],
+  "cases": [
+    {
+      "id": "http-ambiguous",
+      "description": "An HTTP server/client pair maps to two static endpoint edges, so the result remains ambiguous.",
+      "families": ["http", "static-runtime-disagreement"],
+      "traceIds": ["11111111111111111111111111111111"],
+      "staticEdgeIds": [
+        "edge:service:gateway|requests|service:orders",
+        "edge:service:gateway|calls|service:orders"
+      ],
+      "dropSpanIds": [],
+      "dropBindingSpanIds": [],
+      "sampling": {
+        "strategy": "complete",
+        "expectedSpanCount": 2,
+        "observedSpanCount": 2,
+        "missingIsNotAbsence": true,
+        "rationale": "Both synthetic HTTP spans are retained; completeness is scoped to this case."
+      },
+      "redaction": {
+        "enabled": false,
+        "fields": ["span.name", "span.serviceName"],
+        "replacement": "[REDACTED]"
+      },
+      "provenance": {
+        "source": "CARTOGRAPH repository-authored synthetic fixture",
+        "license": "Apache-2.0",
+        "reference": "CARTOGRAPH repository history; no external source",
+        "transformation": "A server/client span pair and duplicate endpoint edges exercise HTTP ambiguity without exporter access.",
+        "redistribution": "allowed"
+      },
+      "expected": {
+        "classificationCounts": {
+          "observed-and-modeled": 0,
+          "modeled-not-observed": 0,
+          "observed-but-unmodeled": 0,
+          "ambiguous": 1
+        },
+        "records": [
+          {
+            "id": "ambiguous:service%3Agateway=>service%3Aorders",
+            "classification": "ambiguous"
+          }
+        ]
+      }
+    },
+    {
+      "id": "database-observed",
+      "description": "A database client span maps to one static read edge.",
+      "families": ["database"],
+      "traceIds": ["22222222222222222222222222222222"],
+      "staticEdgeIds": ["edge:service:orders|reads|database:orders"],
+      "dropSpanIds": [],
+      "dropBindingSpanIds": [],
+      "sampling": {
+        "strategy": "complete",
+        "expectedSpanCount": 2,
+        "observedSpanCount": 2,
+        "missingIsNotAbsence": true,
+        "rationale": "Both synthetic database spans are retained; completeness is scoped to this case."
+      },
+      "redaction": {
+        "enabled": false,
+        "fields": ["span.name", "span.serviceName"],
+        "replacement": "[REDACTED]"
+      },
+      "provenance": {
+        "source": "CARTOGRAPH repository-authored synthetic fixture",
+        "license": "Apache-2.0",
+        "reference": "CARTOGRAPH repository history; no external source",
+        "transformation": "A service/database span pair exercises a modeled database read with explicit bindings.",
+        "redistribution": "allowed"
+      },
+      "expected": {
+        "classificationCounts": {
+          "observed-and-modeled": 1,
+          "modeled-not-observed": 0,
+          "observed-but-unmodeled": 0,
+          "ambiguous": 0
+        },
+        "records": [
+          {
+            "id": "observed-and-modeled:edge:service:orders|reads|database:orders",
+            "classification": "observed-and-modeled"
+          }
+        ]
+      }
+    },
+    {
+      "id": "messaging-observed",
+      "description": "Producer and consumer spans cover publish and subscribe edges across two traces.",
+      "families": ["messaging"],
+      "traceIds": [
+        "33333333333333333333333333333333",
+        "44444444444444444444444444444444"
+      ],
+      "staticEdgeIds": [
+        "edge:service:orders|publishes|queue:orders",
+        "edge:queue:orders|subscribes|service:worker"
+      ],
+      "dropSpanIds": [],
+      "dropBindingSpanIds": [],
+      "sampling": {
+        "strategy": "complete",
+        "expectedSpanCount": 4,
+        "observedSpanCount": 4,
+        "missingIsNotAbsence": true,
+        "rationale": "All synthetic producer and consumer spans are retained."
+      },
+      "redaction": {
+        "enabled": false,
+        "fields": ["span.name", "span.serviceName"],
+        "replacement": "[REDACTED]"
+      },
+      "provenance": {
+        "source": "CARTOGRAPH repository-authored synthetic fixture",
+        "license": "Apache-2.0",
+        "reference": "CARTOGRAPH repository history; no external source",
+        "transformation": "Separate producer and consumer traces exercise messaging publication and subscription without a broker or exporter.",
+        "redistribution": "allowed"
+      },
+      "expected": {
+        "classificationCounts": {
+          "observed-and-modeled": 2,
+          "modeled-not-observed": 0,
+          "observed-but-unmodeled": 0,
+          "ambiguous": 0
+        },
+        "records": [
+          {
+            "id": "observed-and-modeled:edge:queue:orders|subscribes|service:worker",
+            "classification": "observed-and-modeled"
+          },
+          {
+            "id": "observed-and-modeled:edge:service:orders|publishes|queue:orders",
+            "classification": "observed-and-modeled"
+          }
+        ]
+      }
+    },
+    {
+      "id": "error-observed",
+      "description": "An error-status child span maps to the modeled error-handler call.",
+      "families": ["errors"],
+      "traceIds": ["55555555555555555555555555555555"],
+      "staticEdgeIds": ["edge:service:orders|calls|service:error-handler"],
+      "dropSpanIds": [],
+      "dropBindingSpanIds": [],
+      "sampling": {
+        "strategy": "complete",
+        "expectedSpanCount": 2,
+        "observedSpanCount": 2,
+        "missingIsNotAbsence": true,
+        "rationale": "The failed child and its parent are both retained."
+      },
+      "redaction": {
+        "enabled": false,
+        "fields": ["span.name", "span.serviceName"],
+        "replacement": "[REDACTED]"
+      },
+      "provenance": {
+        "source": "CARTOGRAPH repository-authored synthetic fixture",
+        "license": "Apache-2.0",
+        "reference": "CARTOGRAPH repository history; no external source",
+        "transformation": "An error-status span pair exercises a modeled failure-handler relationship without copying payloads or status messages.",
+        "redistribution": "allowed"
+      },
+      "expected": {
+        "classificationCounts": {
+          "observed-and-modeled": 1,
+          "modeled-not-observed": 0,
+          "observed-but-unmodeled": 0,
+          "ambiguous": 0
+        },
+        "records": [
+          {
+            "id": "observed-and-modeled:edge:service:orders|calls|service:error-handler",
+            "classification": "observed-and-modeled"
+          }
+        ]
+      }
+    },
+    {
+      "id": "missing-parent",
+      "description": "A retained database child references a parent omitted from the sampled trace.",
+      "families": ["missing-parents", "static-runtime-disagreement"],
+      "traceIds": ["66666666666666666666666666666666"],
+      "staticEdgeIds": ["edge:service:worker|writes|database:orders"],
+      "dropSpanIds": [],
+      "dropBindingSpanIds": [],
+      "sampling": {
+        "strategy": "probabilistic",
+        "expectedSpanCount": 2,
+        "observedSpanCount": 1,
+        "missingIsNotAbsence": true,
+        "rationale": "The sampler retained the child while omitting its parent; the gap is evidence of limited observation, not absence."
+      },
+      "redaction": {
+        "enabled": false,
+        "fields": ["span.name", "span.serviceName"],
+        "replacement": "[REDACTED]"
+      },
+      "provenance": {
+        "source": "CARTOGRAPH repository-authored synthetic fixture",
+        "license": "Apache-2.0",
+        "reference": "CARTOGRAPH repository history; no external source",
+        "transformation": "A child-only trace preserves an absent parent reference and tests fail-closed, unmapped evidence.",
+        "redistribution": "allowed"
+      },
+      "expected": {
+        "classificationCounts": {
+          "observed-and-modeled": 0,
+          "modeled-not-observed": 1,
+          "observed-but-unmodeled": 1,
+          "ambiguous": 0
+        },
+        "records": [
+          {
+            "id": "modeled-not-observed:edge:service:worker|writes|database:orders",
+            "classification": "modeled-not-observed"
+          },
+          {
+            "id": "observed-but-unmodeled:trace:66666666666666666666666666666666:6666666666666662",
+            "classification": "observed-but-unmodeled"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sampling-gap",
+      "description": "Dropping a database child converts an observed edge into modeled-not-observed.",
+      "families": ["database", "sampling"],
+      "traceIds": ["22222222222222222222222222222222"],
+      "staticEdgeIds": ["edge:service:orders|reads|database:orders"],
+      "dropSpanIds": ["22222222222222222222222222222222:2222222222222222"],
+      "dropBindingSpanIds": [
+        "22222222222222222222222222222222:2222222222222222"
+      ],
+      "sampling": {
+        "strategy": "head",
+        "expectedSpanCount": 2,
+        "observedSpanCount": 1,
+        "missingIsNotAbsence": true,
+        "rationale": "The head sample retained the parent and dropped the database child."
+      },
+      "redaction": {
+        "enabled": false,
+        "fields": ["span.name", "span.serviceName"],
+        "replacement": "[REDACTED]"
+      },
+      "provenance": {
+        "source": "CARTOGRAPH repository-authored synthetic fixture",
+        "license": "Apache-2.0",
+        "reference": "CARTOGRAPH repository history; no external source",
+        "transformation": "A deterministic span drop demonstrates that incomplete sampling cannot be interpreted as an absent database relationship.",
+        "redistribution": "allowed"
+      },
+      "expected": {
+        "classificationCounts": {
+          "observed-and-modeled": 0,
+          "modeled-not-observed": 1,
+          "observed-but-unmodeled": 0,
+          "ambiguous": 0
+        },
+        "records": [
+          {
+            "id": "modeled-not-observed:edge:service:orders|reads|database:orders",
+            "classification": "modeled-not-observed"
+          }
+        ]
+      }
+    },
+    {
+      "id": "redacted-http",
+      "description": "The same HTTP ambiguity is evaluated after local name and service redaction.",
+      "families": ["http", "redaction", "static-runtime-disagreement"],
+      "traceIds": ["11111111111111111111111111111111"],
+      "staticEdgeIds": [
+        "edge:service:gateway|requests|service:orders",
+        "edge:service:gateway|calls|service:orders"
+      ],
+      "dropSpanIds": [],
+      "dropBindingSpanIds": [],
+      "sampling": {
+        "strategy": "complete",
+        "expectedSpanCount": 2,
+        "observedSpanCount": 2,
+        "missingIsNotAbsence": true,
+        "rationale": "Both HTTP spans are retained before the local redaction boundary."
+      },
+      "redaction": {
+        "enabled": true,
+        "fields": ["span.name", "span.serviceName"],
+        "replacement": "[REDACTED]"
+      },
+      "provenance": {
+        "source": "CARTOGRAPH repository-authored synthetic fixture",
+        "license": "Apache-2.0",
+        "reference": "CARTOGRAPH repository history; no external source",
+        "transformation": "In-memory synthetic secret-shaped names are redacted before reconciliation and only a result digest is published.",
+        "redistribution": "allowed"
+      },
+      "expected": {
+        "classificationCounts": {
+          "observed-and-modeled": 0,
+          "modeled-not-observed": 0,
+          "observed-but-unmodeled": 0,
+          "ambiguous": 1
+        },
+        "records": [
+          {
+            "id": "ambiguous:service%3Agateway=>service%3Aorders",
+            "classification": "ambiguous"
+          }
+        ]
+      }
+    },
+    {
+      "id": "runtime-only-disagreement",
+      "description": "A runtime worker-to-payments edge is unmodeled while a declared worker write remains unobserved.",
+      "families": ["static-runtime-disagreement"],
+      "traceIds": ["77777777777777777777777777777777"],
+      "staticEdgeIds": ["edge:service:worker|writes|database:orders"],
+      "dropSpanIds": [],
+      "dropBindingSpanIds": [],
+      "sampling": {
+        "strategy": "complete",
+        "expectedSpanCount": 2,
+        "observedSpanCount": 2,
+        "missingIsNotAbsence": true,
+        "rationale": "Both worker and external-service spans are retained; the disagreement is semantic, not a sampling artifact."
+      },
+      "redaction": {
+        "enabled": false,
+        "fields": ["span.name", "span.serviceName"],
+        "replacement": "[REDACTED]"
+      },
+      "provenance": {
+        "source": "CARTOGRAPH repository-authored synthetic fixture",
+        "license": "Apache-2.0",
+        "reference": "CARTOGRAPH repository history; no external source",
+        "transformation": "A runtime-only endpoint and a static-only database write are evaluated together without guessing a missing edge.",
+        "redistribution": "allowed"
+      },
+      "expected": {
+        "classificationCounts": {
+          "observed-and-modeled": 0,
+          "modeled-not-observed": 1,
+          "observed-but-unmodeled": 1,
+          "ambiguous": 0
+        },
+        "records": [
+          {
+            "id": "modeled-not-observed:edge:service:worker|writes|database:orders",
+            "classification": "modeled-not-observed"
+          },
+          {
+            "id": "observed-but-unmodeled:service%3Aworker=>external%3Apayments",
+            "classification": "observed-but-unmodeled"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -164,6 +164,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "runtime-reconciliation-corpus",
+      "path": "runtime-reconciliation-corpus",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Eight family-labeled static/runtime cases exercise HTTP, database, messaging, errors, missing parents, sampling, redaction, and static/runtime disagreement; validation runs only local normalized inputs and publishes digest-only results.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "review-regressions",
       "path": "review-regressions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

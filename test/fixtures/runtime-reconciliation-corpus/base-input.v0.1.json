@@ -1,0 +1,313 @@
+{
+  "schemaVersion": 1,
+  "staticSnapshot": {
+    "schemaVersion": 1,
+    "capabilityRegistryVersion": 1,
+    "revision": { "commitSha": "runtime-corpus-static" },
+    "nodes": [
+      { "id": "service:gateway", "kind": "service", "name": "gateway" },
+      { "id": "service:orders", "kind": "service", "name": "orders" },
+      {
+        "id": "database:orders",
+        "kind": "database_table",
+        "name": "orders"
+      },
+      { "id": "queue:orders", "kind": "queue", "name": "orders" },
+      { "id": "service:worker", "kind": "service", "name": "worker" },
+      {
+        "id": "external:payments",
+        "kind": "external_service",
+        "name": "payments"
+      },
+      {
+        "id": "service:error-handler",
+        "kind": "service",
+        "name": "error-handler"
+      }
+    ],
+    "edges": [
+      {
+        "from": "service:gateway",
+        "to": "service:orders",
+        "kind": "requests",
+        "confidence": "certain",
+        "evidence": [{ "id": "http-request-edge", "kind": "user" }]
+      },
+      {
+        "from": "service:gateway",
+        "to": "service:orders",
+        "kind": "calls",
+        "confidence": "inferred",
+        "evidence": [{ "id": "http-call-edge", "kind": "user" }]
+      },
+      {
+        "from": "service:orders",
+        "to": "database:orders",
+        "kind": "reads",
+        "confidence": "certain",
+        "evidence": [{ "id": "database-read-edge", "kind": "user" }]
+      },
+      {
+        "from": "service:orders",
+        "to": "queue:orders",
+        "kind": "publishes",
+        "confidence": "certain",
+        "evidence": [{ "id": "messaging-publish-edge", "kind": "user" }]
+      },
+      {
+        "from": "queue:orders",
+        "to": "service:worker",
+        "kind": "subscribes",
+        "confidence": "certain",
+        "evidence": [{ "id": "messaging-subscribe-edge", "kind": "user" }]
+      },
+      {
+        "from": "service:orders",
+        "to": "service:error-handler",
+        "kind": "calls",
+        "confidence": "certain",
+        "evidence": [{ "id": "error-handler-edge", "kind": "user" }]
+      },
+      {
+        "from": "service:worker",
+        "to": "database:orders",
+        "kind": "writes",
+        "confidence": "certain",
+        "evidence": [{ "id": "unobserved-write-edge", "kind": "user" }]
+      }
+    ],
+    "diagnostics": []
+  },
+  "runtimeTrace": {
+    "schemaVersion": 1,
+    "contract": "cartograph.runtime-traces",
+    "mediaType": "application/vnd.cartograph.runtime-traces+json",
+    "format": "otlp-json",
+    "spans": [
+      {
+        "traceId": "11111111111111111111111111111111",
+        "spanId": "1111111111111111",
+        "name": "GET /orders",
+        "kind": "server",
+        "startTimeUnixNano": "100",
+        "endTimeUnixNano": "110",
+        "serviceName": "gateway",
+        "status": "ok"
+      },
+      {
+        "traceId": "11111111111111111111111111111111",
+        "spanId": "1111111111111112",
+        "parentSpanId": "1111111111111111",
+        "name": "orders HTTP handler",
+        "kind": "client",
+        "startTimeUnixNano": "111",
+        "endTimeUnixNano": "120",
+        "serviceName": "orders",
+        "status": "ok"
+      },
+      {
+        "traceId": "22222222222222222222222222222222",
+        "spanId": "2222222222222221",
+        "name": "load orders",
+        "kind": "internal",
+        "startTimeUnixNano": "200",
+        "endTimeUnixNano": "210",
+        "serviceName": "orders",
+        "status": "ok"
+      },
+      {
+        "traceId": "22222222222222222222222222222222",
+        "spanId": "2222222222222222",
+        "parentSpanId": "2222222222222221",
+        "name": "SELECT orders",
+        "kind": "client",
+        "startTimeUnixNano": "211",
+        "endTimeUnixNano": "220",
+        "serviceName": "orders-db",
+        "status": "ok"
+      },
+      {
+        "traceId": "33333333333333333333333333333333",
+        "spanId": "3333333333333331",
+        "name": "publish order",
+        "kind": "internal",
+        "startTimeUnixNano": "300",
+        "endTimeUnixNano": "310",
+        "serviceName": "orders",
+        "status": "ok"
+      },
+      {
+        "traceId": "33333333333333333333333333333333",
+        "spanId": "3333333333333332",
+        "parentSpanId": "3333333333333331",
+        "name": "orders.created producer",
+        "kind": "producer",
+        "startTimeUnixNano": "311",
+        "endTimeUnixNano": "320",
+        "serviceName": "orders-queue",
+        "status": "ok"
+      },
+      {
+        "traceId": "44444444444444444444444444444444",
+        "spanId": "4444444444444441",
+        "name": "orders.created consumer",
+        "kind": "consumer",
+        "startTimeUnixNano": "400",
+        "endTimeUnixNano": "410",
+        "serviceName": "orders-queue",
+        "status": "ok"
+      },
+      {
+        "traceId": "44444444444444444444444444444444",
+        "spanId": "4444444444444442",
+        "parentSpanId": "4444444444444441",
+        "name": "process order",
+        "kind": "internal",
+        "startTimeUnixNano": "411",
+        "endTimeUnixNano": "420",
+        "serviceName": "worker",
+        "status": "ok"
+      },
+      {
+        "traceId": "55555555555555555555555555555555",
+        "spanId": "5555555555555551",
+        "name": "handle order",
+        "kind": "internal",
+        "startTimeUnixNano": "500",
+        "endTimeUnixNano": "510",
+        "serviceName": "orders",
+        "status": "ok"
+      },
+      {
+        "traceId": "55555555555555555555555555555555",
+        "spanId": "5555555555555552",
+        "parentSpanId": "5555555555555551",
+        "name": "order failure handler",
+        "kind": "internal",
+        "startTimeUnixNano": "511",
+        "endTimeUnixNano": "520",
+        "serviceName": "error-handler",
+        "status": "error"
+      },
+      {
+        "traceId": "66666666666666666666666666666666",
+        "spanId": "6666666666666662",
+        "parentSpanId": "6666666666666661",
+        "name": "sampled database write",
+        "kind": "client",
+        "startTimeUnixNano": "610",
+        "endTimeUnixNano": "620",
+        "serviceName": "orders-db",
+        "status": "ok"
+      },
+      {
+        "traceId": "77777777777777777777777777777777",
+        "spanId": "7777777777777771",
+        "name": "worker callback",
+        "kind": "internal",
+        "startTimeUnixNano": "700",
+        "endTimeUnixNano": "710",
+        "serviceName": "worker",
+        "status": "ok"
+      },
+      {
+        "traceId": "77777777777777777777777777777777",
+        "spanId": "7777777777777772",
+        "parentSpanId": "7777777777777771",
+        "name": "payments request",
+        "kind": "client",
+        "startTimeUnixNano": "711",
+        "endTimeUnixNano": "720",
+        "serviceName": "payments",
+        "status": "ok"
+      }
+    ],
+    "summary": {
+      "resourceSpans": 7,
+      "scopeSpans": 7,
+      "inputSpans": 13,
+      "normalizedSpans": 13,
+      "discardedAttributes": 0
+    }
+  },
+  "bindings": [
+    {
+      "traceId": "11111111111111111111111111111111",
+      "spanId": "1111111111111111",
+      "nodeId": "service:gateway",
+      "confidence": "certain"
+    },
+    {
+      "traceId": "11111111111111111111111111111111",
+      "spanId": "1111111111111112",
+      "nodeId": "service:orders",
+      "confidence": "certain"
+    },
+    {
+      "traceId": "22222222222222222222222222222222",
+      "spanId": "2222222222222221",
+      "nodeId": "service:orders",
+      "confidence": "certain"
+    },
+    {
+      "traceId": "22222222222222222222222222222222",
+      "spanId": "2222222222222222",
+      "nodeId": "database:orders",
+      "confidence": "certain"
+    },
+    {
+      "traceId": "33333333333333333333333333333333",
+      "spanId": "3333333333333331",
+      "nodeId": "service:orders",
+      "confidence": "certain"
+    },
+    {
+      "traceId": "33333333333333333333333333333333",
+      "spanId": "3333333333333332",
+      "nodeId": "queue:orders",
+      "confidence": "certain"
+    },
+    {
+      "traceId": "44444444444444444444444444444444",
+      "spanId": "4444444444444441",
+      "nodeId": "queue:orders",
+      "confidence": "certain"
+    },
+    {
+      "traceId": "44444444444444444444444444444444",
+      "spanId": "4444444444444442",
+      "nodeId": "service:worker",
+      "confidence": "certain"
+    },
+    {
+      "traceId": "55555555555555555555555555555555",
+      "spanId": "5555555555555551",
+      "nodeId": "service:orders",
+      "confidence": "certain"
+    },
+    {
+      "traceId": "55555555555555555555555555555555",
+      "spanId": "5555555555555552",
+      "nodeId": "service:error-handler",
+      "confidence": "certain"
+    },
+    {
+      "traceId": "66666666666666666666666666666666",
+      "spanId": "6666666666666662",
+      "nodeId": "database:orders",
+      "confidence": "certain"
+    },
+    {
+      "traceId": "77777777777777777777777777777777",
+      "spanId": "7777777777777771",
+      "nodeId": "service:worker",
+      "confidence": "certain"
+    },
+    {
+      "traceId": "77777777777777777777777777777777",
+      "spanId": "7777777777777772",
+      "nodeId": "external:payments",
+      "confidence": "certain"
+    }
+  ]
+}

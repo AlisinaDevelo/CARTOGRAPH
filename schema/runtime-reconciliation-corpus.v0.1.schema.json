@@ -1,0 +1,152 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/runtime-reconciliation-corpus.v0.1.schema.json",
+  "title": "CARTOGRAPH runtime reconciliation corpus report v0.1",
+  "description": "Digest-only offline results for the local runtime reconciliation fixture corpus.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "fixtureId",
+    "evaluatedAt",
+    "fixtureDigest",
+    "releaseGating",
+    "limitations",
+    "cases",
+    "summary",
+    "reportDigest"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.runtime-reconciliation-corpus" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.runtime-reconciliation-corpus+json"
+    },
+    "fixtureId": { "$ref": "#/definitions/identifier" },
+    "evaluatedAt": { "$ref": "#/definitions/dateTime" },
+    "fixtureDigest": { "$ref": "#/definitions/digest" },
+    "releaseGating": { "$ref": "#/definitions/releaseGating" },
+    "limitations": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/text" }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 32,
+      "items": { "$ref": "#/definitions/caseResult" }
+    },
+    "summary": { "$ref": "#/definitions/summary" },
+    "reportDigest": { "$ref": "#/definitions/digest" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "dateTime": { "type": "string", "format": "date-time" },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "text": { "type": "string", "minLength": 1, "maxLength": 1600 },
+    "family": {
+      "enum": [
+        "http",
+        "database",
+        "messaging",
+        "errors",
+        "missing-parents",
+        "sampling",
+        "redaction",
+        "static-runtime-disagreement"
+      ]
+    },
+    "releaseGating": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "reason"],
+      "properties": {
+        "enabled": { "const": false },
+        "reason": { "$ref": "#/definitions/text" }
+      }
+    },
+    "digestOnlyClassificationCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observedAndModeled",
+        "modeledNotObserved",
+        "observedButUnmodeled",
+        "ambiguous"
+      ],
+      "properties": {
+        "observedAndModeled": { "type": "integer", "minimum": 0 },
+        "modeledNotObserved": { "type": "integer", "minimum": 0 },
+        "observedButUnmodeled": { "type": "integer", "minimum": 0 },
+        "ambiguous": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "caseResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "families",
+        "inputDigest",
+        "traceDigest",
+        "resultDigest",
+        "classificationCounts",
+        "redactionApplied"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "families": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/family" }
+        },
+        "inputDigest": { "$ref": "#/definitions/digest" },
+        "traceDigest": { "$ref": "#/definitions/digest" },
+        "resultDigest": { "$ref": "#/definitions/digest" },
+        "classificationCounts": {
+          "$ref": "#/definitions/digestOnlyClassificationCounts"
+        },
+        "redactionApplied": { "type": "boolean" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cases",
+        "families",
+        "classificationCounts",
+        "redactedCases",
+        "network",
+        "exporter"
+      ],
+      "properties": {
+        "cases": { "type": "integer", "minimum": 0 },
+        "families": {
+          "type": "array",
+          "minItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/family" }
+        },
+        "classificationCounts": {
+          "$ref": "#/definitions/digestOnlyClassificationCounts"
+        },
+        "redactedCases": { "type": "integer", "minimum": 0 },
+        "network": { "const": false },
+        "exporter": { "const": false }
+      }
+    }
+  }
+}
