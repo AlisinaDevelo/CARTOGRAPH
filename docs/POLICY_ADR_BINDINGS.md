@@ -58,7 +58,8 @@ silently pass and never authorize an exception. Informational mode still
 returns the report without blocking; enforcing mode returns the normal finding
 exit code.
 
-ADR lifecycle transitions and supersession semantics remain a separate
-follow-on contract; this binding only verifies that the named local reference
-exists, is current for the evaluated graph where available, and covers the
-selected boundary.
+ADR lifecycle transitions and supersession semantics are validated by the
+additive P-016 lifecycle contract before binding evaluation. This binding still
+only verifies that the named local reference exists, is current for the
+evaluated graph where available, and covers the selected boundary; lifecycle
+diagnostics remain visible and cannot authorize a binding.

@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/adr-lifecycle-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH ADR lifecycle fixture corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["fixtureId", "cases"],
+  "properties": {
+    "fixtureId": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "document", "expected"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "kind": { "enum": ["positive", "negative"] },
+        "document": { "type": "object" },
+        "expected": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["parse", "diagnosticCodes"],
+          "properties": {
+            "parse": { "enum": ["ok", "error"] },
+            "diagnosticCodes": {
+              "type": "array",
+              "items": { "type": "string" },
+              "uniqueItems": true
+            }
+          }
+        }
+      }
+    }
+  }
+}

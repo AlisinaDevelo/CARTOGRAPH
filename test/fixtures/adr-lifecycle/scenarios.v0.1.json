@@ -1,0 +1,241 @@
+{
+  "fixtureId": "adr-lifecycle-v0.1",
+  "cases": [
+    {
+      "id": "chained-supersession",
+      "kind": "positive",
+      "document": {
+        "schemaVersion": 1,
+        "references": [
+          {
+            "id": "ADR-0001",
+            "file": "docs/adr/0001.md",
+            "title": "First decision",
+            "status": "superseded",
+            "graphIds": ["node:legacy-a"],
+            "statusHistory": [
+              { "status": "accepted", "effectiveAt": "2027-01-01T00:00:00Z" },
+              { "status": "superseded", "effectiveAt": "2027-02-01T00:00:00Z" }
+            ],
+            "effectiveFrom": "2027-01-01T00:00:00Z",
+            "effectiveTo": "2027-03-01T00:00:00Z"
+          },
+          {
+            "id": "ADR-0002",
+            "file": "docs/adr/0002.md",
+            "title": "Second decision",
+            "status": "superseded",
+            "graphIds": ["node:legacy-b"],
+            "supersedes": ["ADR-0001"],
+            "statusHistory": [
+              { "status": "accepted", "effectiveAt": "2027-03-01T00:00:00Z" },
+              { "status": "superseded", "effectiveAt": "2027-04-01T00:00:00Z" }
+            ]
+          },
+          {
+            "id": "ADR-0003",
+            "file": "docs/adr/0003.md",
+            "title": "Third decision",
+            "status": "accepted",
+            "graphIds": ["node:current"],
+            "supersedes": ["ADR-0002"],
+            "statusHistory": [
+              { "status": "draft", "effectiveAt": "2027-05-01T00:00:00Z" },
+              { "status": "proposed", "effectiveAt": "2027-05-02T00:00:00Z" },
+              { "status": "accepted", "effectiveAt": "2027-05-03T00:00:00Z" }
+            ]
+          }
+        ]
+      },
+      "expected": { "parse": "ok", "diagnosticCodes": [] }
+    },
+    {
+      "id": "supersession-cycle",
+      "kind": "negative",
+      "document": {
+        "schemaVersion": 1,
+        "references": [
+          {
+            "id": "ADR-cycle-a",
+            "file": "docs/adr/cycle-a.md",
+            "title": "Cycle A",
+            "status": "superseded",
+            "graphIds": ["node:cycle-a"],
+            "supersedes": ["ADR-cycle-b"]
+          },
+          {
+            "id": "ADR-cycle-b",
+            "file": "docs/adr/cycle-b.md",
+            "title": "Cycle B",
+            "status": "superseded",
+            "graphIds": ["node:cycle-b"],
+            "supersedes": ["ADR-cycle-a"]
+          }
+        ]
+      },
+      "expected": {
+        "parse": "ok",
+        "diagnosticCodes": ["ADR_REFERENCE_SUPERSESSION_CYCLE"]
+      }
+    },
+    {
+      "id": "missing-supersession-target",
+      "kind": "negative",
+      "document": {
+        "schemaVersion": 1,
+        "references": [
+          {
+            "id": "ADR-new",
+            "file": "docs/adr/new.md",
+            "title": "New decision",
+            "status": "accepted",
+            "graphIds": ["node:new"],
+            "supersedes": ["ADR-not-present"]
+          }
+        ]
+      },
+      "expected": {
+        "parse": "ok",
+        "diagnosticCodes": ["ADR_REFERENCE_SUPERSESSION_TARGET_MISSING"]
+      }
+    },
+    {
+      "id": "status-mismatch-and-missing-link",
+      "kind": "negative",
+      "document": {
+        "schemaVersion": 1,
+        "references": [
+          {
+            "id": "ADR-new",
+            "file": "docs/adr/new.md",
+            "title": "New decision",
+            "status": "accepted",
+            "graphIds": ["node:new"],
+            "supersedes": ["ADR-old"]
+          },
+          {
+            "id": "ADR-old",
+            "file": "docs/adr/old.md",
+            "title": "Old decision",
+            "status": "accepted",
+            "graphIds": ["node:old"]
+          },
+          {
+            "id": "ADR-orphan",
+            "file": "docs/adr/orphan.md",
+            "title": "Orphan decision",
+            "status": "superseded",
+            "graphIds": ["node:orphan"]
+          }
+        ]
+      },
+      "expected": {
+        "parse": "ok",
+        "diagnosticCodes": [
+          "ADR_REFERENCE_SUPERSESSION_STATUS_MISMATCH",
+          "ADR_REFERENCE_SUPERSESSION_LINK_MISSING"
+        ]
+      }
+    },
+    {
+      "id": "invalid-transition",
+      "kind": "negative",
+      "document": {
+        "schemaVersion": 1,
+        "references": [
+          {
+            "id": "ADR-transition",
+            "file": "docs/adr/transition.md",
+            "title": "Invalid transition",
+            "status": "accepted",
+            "graphIds": ["node:transition"],
+            "statusHistory": [
+              { "status": "draft", "effectiveAt": "2028-01-01T00:00:00Z" },
+              { "status": "accepted", "effectiveAt": "2028-01-02T00:00:00Z" }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "parse": "ok",
+        "diagnosticCodes": ["ADR_REFERENCE_INVALID_TRANSITION"]
+      }
+    },
+    {
+      "id": "history-status-mismatch",
+      "kind": "negative",
+      "document": {
+        "schemaVersion": 1,
+        "references": [
+          {
+            "id": "ADR-history-mismatch",
+            "file": "docs/adr/history-mismatch.md",
+            "title": "History mismatch",
+            "status": "accepted",
+            "graphIds": ["node:history-mismatch"],
+            "statusHistory": [
+              {
+                "status": "draft",
+                "effectiveAt": "2028-02-01T00:00:00Z"
+              },
+              {
+                "status": "proposed",
+                "effectiveAt": "2028-02-02T00:00:00Z"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "parse": "ok",
+        "diagnosticCodes": ["ADR_REFERENCE_HISTORY_STATUS_MISMATCH"]
+      }
+    },
+    {
+      "id": "date-order-and-range",
+      "kind": "negative",
+      "document": {
+        "schemaVersion": 1,
+        "references": [
+          {
+            "id": "ADR-dates",
+            "file": "docs/adr/dates.md",
+            "title": "Date checks",
+            "status": "proposed",
+            "graphIds": ["node:dates"],
+            "effectiveFrom": "2028-03-01T00:00:00Z",
+            "effectiveTo": "2028-03-01T00:00:00Z",
+            "statusHistory": [
+              { "status": "draft", "effectiveAt": "2028-03-02T00:00:00Z" },
+              { "status": "proposed", "effectiveAt": "2028-03-01T00:00:00Z" }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "parse": "ok",
+        "diagnosticCodes": [
+          "ADR_REFERENCE_HISTORY_DATE_ORDER",
+          "ADR_REFERENCE_INVALID_EFFECTIVE_RANGE"
+        ]
+      }
+    },
+    {
+      "id": "unknown-status-convention",
+      "kind": "negative",
+      "document": {
+        "schemaVersion": 1,
+        "references": [
+          {
+            "id": "ADR-unknown",
+            "file": "docs/adr/unknown.md",
+            "title": "Unknown convention",
+            "status": "archived",
+            "graphIds": ["node:unknown"]
+          }
+        ]
+      },
+      "expected": { "parse": "error", "diagnosticCodes": [] }
+    }
+  ]
+}

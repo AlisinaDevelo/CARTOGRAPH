@@ -45,6 +45,21 @@
         "superseded"
       ]
     },
+    "dateTime": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "format": "date-time"
+    },
+    "lifecycleTransition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "effectiveAt"],
+      "properties": {
+        "status": { "$ref": "#/definitions/status" },
+        "effectiveAt": { "$ref": "#/definitions/dateTime" }
+      }
+    },
     "graphId": {
       "$ref": "#/definitions/identifier",
       "description": "A graph node ID/stable key, or an edge ID encoded as edge:<from>|<kind>|<to>."
@@ -64,6 +79,21 @@
           "maxItems": 256,
           "items": { "$ref": "#/definitions/graphId" },
           "uniqueItems": true
+        },
+        "supersedes": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/identifier" },
+          "uniqueItems": true,
+          "description": "ADR IDs replaced by this decision, from the newer decision to each older decision."
+        },
+        "effectiveFrom": { "$ref": "#/definitions/dateTime" },
+        "effectiveTo": { "$ref": "#/definitions/dateTime" },
+        "statusHistory": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/lifecycleTransition" },
+          "description": "Chronological status transitions; the final status must equal the reference status."
         }
       }
     }

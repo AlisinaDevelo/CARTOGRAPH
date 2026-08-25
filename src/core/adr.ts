@@ -78,6 +78,40 @@ export const AdrStatusSchema = z.enum([
   "superseded",
 ]);
 
+export const AdrDateTimeSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(64)
+  .refine(
+    (value) => Number.isFinite(Date.parse(value)),
+    "must be a parseable date-time",
+  );
+
+export const AdrLifecycleTransitionSchema = z
+  .object({
+    status: AdrStatusSchema,
+    effectiveAt: AdrDateTimeSchema,
+  })
+  .strict();
+
+const SupersedesSchema = z
+  .array(IdentifierSchema)
+  .max(64)
+  .superRefine((ids, context) => {
+    const seen = new Set<string>();
+    ids.forEach((id, index) => {
+      if (seen.has(id)) {
+        context.addIssue({
+          code: "custom",
+          path: [index],
+          message: `duplicate superseded ADR ID: ${id}`,
+        });
+      }
+      seen.add(id);
+    });
+  });
+
 const GraphIdSchema = IdentifierSchema;
 
 export const AdrReferenceSchema = z
@@ -103,6 +137,10 @@ export const AdrReferenceSchema = z
           seen.add(id);
         });
       }),
+    supersedes: SupersedesSchema.optional(),
+    effectiveFrom: AdrDateTimeSchema.optional(),
+    effectiveTo: AdrDateTimeSchema.optional(),
+    statusHistory: z.array(AdrLifecycleTransitionSchema).max(64).optional(),
   })
   .strict();
 
@@ -141,6 +179,10 @@ export const AdrReferenceDocumentSchema = z
   });
 
 export type AdrStatus = z.infer<typeof AdrStatusSchema>;
+export type AdrDateTime = z.infer<typeof AdrDateTimeSchema>;
+export type AdrLifecycleTransition = z.infer<
+  typeof AdrLifecycleTransitionSchema
+>;
 export type AdrReference = z.infer<typeof AdrReferenceSchema>;
 export type AdrReferenceDocument = z.infer<typeof AdrReferenceDocumentSchema>;
 
@@ -158,6 +200,14 @@ export const ADR_REFERENCE_DIAGNOSTIC_CODES = [
   "ADR_REFERENCE_MALFORMED_GRAPH_ID",
   "ADR_REFERENCE_STALE_GRAPH_ID",
   "ADR_REFERENCE_MISSING_GRAPH_ID",
+  "ADR_REFERENCE_INVALID_EFFECTIVE_RANGE",
+  "ADR_REFERENCE_HISTORY_STATUS_MISMATCH",
+  "ADR_REFERENCE_HISTORY_DATE_ORDER",
+  "ADR_REFERENCE_INVALID_TRANSITION",
+  "ADR_REFERENCE_SUPERSESSION_TARGET_MISSING",
+  "ADR_REFERENCE_SUPERSESSION_STATUS_MISMATCH",
+  "ADR_REFERENCE_SUPERSESSION_LINK_MISSING",
+  "ADR_REFERENCE_SUPERSESSION_CYCLE",
 ] as const;
 
 export const AdrReferenceDiagnosticCodeSchema = z.enum(
@@ -174,6 +224,7 @@ export type AdrReferenceDiagnostic = {
   referenceId?: string;
   file?: string;
   graphId?: string;
+  relatedReferenceId?: string;
   message: string;
 };
 
@@ -186,6 +237,15 @@ export type AdrReferenceValidationOptions = {
 export type AdrReferenceValidationResult = {
   ok: boolean;
   diagnostics: AdrReferenceDiagnostic[];
+};
+
+const allowedAdrTransitions: Record<AdrStatus, readonly AdrStatus[]> = {
+  draft: ["proposed", "rejected"],
+  proposed: ["accepted", "draft", "rejected"],
+  accepted: ["deprecated", "superseded"],
+  rejected: ["deprecated", "proposed"],
+  deprecated: ["superseded"],
+  superseded: [],
 };
 
 const issueText = (issues: z.ZodIssue[]): string =>
@@ -335,12 +395,190 @@ const graphIdExists = (
   };
 };
 
+const dateValue = (value: string): number => Date.parse(value);
+
+const lifecycleDiagnostic = (
+  code: AdrReferenceDiagnosticCode,
+  reference: AdrReference,
+  message: string,
+  relatedReferenceId?: string,
+): AdrReferenceDiagnostic => ({
+  code,
+  severity: "error",
+  referenceId: reference.id,
+  file: reference.file,
+  ...(relatedReferenceId === undefined ? {} : { relatedReferenceId }),
+  message,
+});
+
+const canonicalCycle = (cycle: readonly string[]): string[] => {
+  const nodes = cycle.slice(0, -1);
+  if (nodes.length === 0) return [];
+  let best = nodes;
+  for (let index = 1; index < nodes.length; index += 1) {
+    const candidate = [...nodes.slice(index), ...nodes.slice(0, index)];
+    if (candidate.join("\u0000") < best.join("\u0000")) best = candidate;
+  }
+  return [...best, best[0]!];
+};
+
+export const validateAdrLifecycle = (
+  document: AdrReferenceDocument,
+): AdrReferenceDiagnostic[] => {
+  const diagnostics: AdrReferenceDiagnostic[] = [];
+  const references = [...document.references].sort((left, right) =>
+    left.id.localeCompare(right.id),
+  );
+  const byId = new Map(
+    references.map((reference) => [reference.id, reference]),
+  );
+  const incoming = new Map<string, string[]>();
+  const supersessionGraph = new Map<string, string[]>();
+
+  for (const reference of references) {
+    if (
+      reference.effectiveFrom !== undefined &&
+      reference.effectiveTo !== undefined &&
+      dateValue(reference.effectiveFrom) >= dateValue(reference.effectiveTo)
+    ) {
+      diagnostics.push(
+        lifecycleDiagnostic(
+          "ADR_REFERENCE_INVALID_EFFECTIVE_RANGE",
+          reference,
+          `ADR effectiveFrom must precede effectiveTo: ${JSON.stringify([reference.effectiveFrom, reference.effectiveTo])}`,
+        ),
+      );
+    }
+
+    const history = reference.statusHistory ?? [];
+    if (history.length > 0) {
+      for (let index = 1; index < history.length; index += 1) {
+        const previous = history[index - 1]!;
+        const current = history[index]!;
+        if (dateValue(previous.effectiveAt) >= dateValue(current.effectiveAt)) {
+          diagnostics.push(
+            lifecycleDiagnostic(
+              "ADR_REFERENCE_HISTORY_DATE_ORDER",
+              reference,
+              `ADR statusHistory effectiveAt values must be strictly ascending at index ${index}: ${JSON.stringify([previous.effectiveAt, current.effectiveAt])}`,
+            ),
+          );
+        }
+        if (!allowedAdrTransitions[previous.status].includes(current.status)) {
+          diagnostics.push(
+            lifecycleDiagnostic(
+              "ADR_REFERENCE_INVALID_TRANSITION",
+              reference,
+              `ADR status transition is not allowed: ${previous.status} -> ${current.status}`,
+            ),
+          );
+        }
+      }
+      const finalStatus = history[history.length - 1]!.status;
+      if (finalStatus !== reference.status) {
+        diagnostics.push(
+          lifecycleDiagnostic(
+            "ADR_REFERENCE_HISTORY_STATUS_MISMATCH",
+            reference,
+            `ADR statusHistory ends at ${finalStatus}, but the reference status is ${reference.status}`,
+          ),
+        );
+      }
+    }
+
+    const targets = [...(reference.supersedes ?? [])].sort((left, right) =>
+      left.localeCompare(right),
+    );
+    supersessionGraph.set(reference.id, targets);
+    for (const targetId of targets) {
+      const target = byId.get(targetId);
+      if (!target) {
+        diagnostics.push(
+          lifecycleDiagnostic(
+            "ADR_REFERENCE_SUPERSESSION_TARGET_MISSING",
+            reference,
+            `ADR supersession target does not exist in the reference document: ${targetId}`,
+            targetId,
+          ),
+        );
+        continue;
+      }
+      const links = incoming.get(targetId) ?? [];
+      links.push(reference.id);
+      incoming.set(targetId, links);
+      if (target.status !== "superseded") {
+        diagnostics.push(
+          lifecycleDiagnostic(
+            "ADR_REFERENCE_SUPERSESSION_STATUS_MISMATCH",
+            reference,
+            `ADR supersession target must have status superseded, found ${target.status}: ${targetId}`,
+            targetId,
+          ),
+        );
+      }
+    }
+  }
+
+  for (const reference of references) {
+    if (reference.status === "superseded" && !incoming.has(reference.id)) {
+      diagnostics.push(
+        lifecycleDiagnostic(
+          "ADR_REFERENCE_SUPERSESSION_LINK_MISSING",
+          reference,
+          `ADR has status superseded but no other reference names it in supersedes`,
+        ),
+      );
+    }
+  }
+
+  const state = new Map<string, "visiting" | "visited">();
+  const stack: string[] = [];
+  const reportedCycles = new Set<string>();
+  const visit = (referenceId: string): void => {
+    state.set(referenceId, "visiting");
+    stack.push(referenceId);
+    for (const targetId of supersessionGraph.get(referenceId) ?? []) {
+      if (!byId.has(targetId)) continue;
+      const targetState = state.get(targetId);
+      if (targetState === "visiting") {
+        const cycleStart = stack.indexOf(targetId);
+        const cycle = canonicalCycle([...stack.slice(cycleStart), targetId]);
+        const signature = cycle.join("\u0000");
+        if (!reportedCycles.has(signature)) {
+          reportedCycles.add(signature);
+          const reference = byId.get(referenceId);
+          if (reference) {
+            diagnostics.push(
+              lifecycleDiagnostic(
+                "ADR_REFERENCE_SUPERSESSION_CYCLE",
+                reference,
+                `ADR supersession cycle detected: ${cycle.join(" -> ")}`,
+                targetId,
+              ),
+            );
+          }
+        }
+      } else if (targetState === undefined) {
+        visit(targetId);
+      }
+    }
+    stack.pop();
+    state.set(referenceId, "visited");
+  };
+  for (const reference of references) {
+    if (state.get(reference.id) === undefined) visit(reference.id);
+  }
+
+  diagnostics.sort(compareDiagnostics);
+  return diagnostics;
+};
+
 const compareDiagnostics = (
   left: AdrReferenceDiagnostic,
   right: AdrReferenceDiagnostic,
 ): number => {
-  const leftKey = `${left.referenceId ?? ""}\u0000${left.file ?? ""}\u0000${left.graphId ?? ""}\u0000${left.code}`;
-  const rightKey = `${right.referenceId ?? ""}\u0000${right.file ?? ""}\u0000${right.graphId ?? ""}\u0000${right.code}`;
+  const leftKey = `${left.referenceId ?? ""}\u0000${left.file ?? ""}\u0000${left.graphId ?? ""}\u0000${left.relatedReferenceId ?? ""}\u0000${left.code}\u0000${left.message}`;
+  const rightKey = `${right.referenceId ?? ""}\u0000${right.file ?? ""}\u0000${right.graphId ?? ""}\u0000${right.relatedReferenceId ?? ""}\u0000${right.code}\u0000${right.message}`;
   return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0;
 };
 
@@ -348,7 +586,7 @@ export const validateAdrReferences = (
   document: AdrReferenceDocument,
   options: AdrReferenceValidationOptions = {},
 ): AdrReferenceValidationResult => {
-  const diagnostics: AdrReferenceDiagnostic[] = [];
+  const diagnostics: AdrReferenceDiagnostic[] = validateAdrLifecycle(document);
   const resolvedRoot = options.root ? realpathSync(options.root) : undefined;
   const coveredGraphIds = new Set<string>();
 

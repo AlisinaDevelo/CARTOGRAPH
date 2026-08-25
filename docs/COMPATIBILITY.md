@@ -202,9 +202,11 @@ P-007 publishes a versioned local ADR reference index in
 record identifies an in-repository Markdown file, title, lifecycle status, and
 one or more graph IDs. The runtime checks file metadata and optional graph
 snapshot membership offline, reporting missing, malformed, stale, and
-uncovered references deterministically. This is an additive new contract; ADR
-lifecycle transitions and report rendering remain follow-on roadmap work. P-019
-adds the separate policy-binding contract described below.
+uncovered references deterministically. P-016 adds additive lifecycle history,
+effective-date, and supersession fields with deterministic transition and link
+diagnostics; readers that ignore those optional fields retain the P-007 meaning.
+Report rendering remains follow-on roadmap work. P-019 adds the separate
+policy-binding contract described below.
 
 ## P-019 policy ADR bindings
 
