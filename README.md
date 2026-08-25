@@ -173,6 +173,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Snapshot and identity migration](docs/IDENTITY_MIGRATION.md)
 - [Configuration contract](docs/CONFIGURATION.md)
 - [Local ADR references](docs/ADR_REFERENCES.md)
+- [Policy ADR bindings](docs/POLICY_ADR_BINDINGS.md)
 - [Local adapter contract](docs/ADAPTERS.md)
 - [Local runtime trace import](docs/RUNTIME_TRACES.md)
 - [Runtime trace sampling and cost budgets](docs/RUNTIME_TRACE_BUDGETS.md)

@@ -1,0 +1,299 @@
+{
+  "fixtureId": "policy-adr-bindings-v0.1",
+  "snapshot": {
+    "schemaVersion": 1,
+    "revision": { "commitSha": "policy-adr-binding-fixture" },
+    "nodes": [
+      { "id": "module:a", "kind": "module", "name": "a" },
+      { "id": "module:b", "kind": "module", "name": "b" }
+    ],
+    "edges": [],
+    "diagnostics": []
+  },
+  "cases": [
+    {
+      "id": "boundary-valid",
+      "kind": "positive",
+      "policy": {
+        "policyId": "adr-boundary-valid",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "core-module-required",
+            "target": "node",
+            "selector": { "id": "module:a" },
+            "assertion": "exists"
+          }
+        ],
+        "adrBindings": [
+          {
+            "schemaVersion": 1,
+            "contract": "cartograph.policy-adr-binding",
+            "id": "core-module-adr",
+            "ruleId": "core-module-required",
+            "requirement": "boundary",
+            "scope": { "target": "node", "selector": { "id": "module:a" } },
+            "referenceId": "ADR-0001"
+          }
+        ]
+      },
+      "adrDocument": {
+        "schemaVersion": 1,
+        "references": [
+          {
+            "id": "ADR-0001",
+            "file": "docs/adr/0001-typescript-first-semantic-adapter.md",
+            "title": "Start with a TypeScript 6 semantic adapter",
+            "status": "accepted",
+            "graphIds": ["module:a"]
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "suppressedIds": []
+      }
+    },
+    {
+      "id": "missing-document",
+      "kind": "negative",
+      "policy": {
+        "policyId": "adr-boundary-missing",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "core-module-required",
+            "target": "node",
+            "selector": { "id": "module:a" },
+            "assertion": "exists"
+          }
+        ],
+        "adrBindings": [
+          {
+            "schemaVersion": 1,
+            "contract": "cartograph.policy-adr-binding",
+            "id": "core-module-adr",
+            "ruleId": "core-module-required",
+            "requirement": "boundary",
+            "scope": { "target": "node", "selector": { "id": "module:a" } },
+            "referenceId": "ADR-0001"
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:adr-binding:core-module-adr"],
+        "suppressedIds": []
+      }
+    },
+    {
+      "id": "stale-reference",
+      "kind": "negative",
+      "policy": {
+        "policyId": "adr-boundary-stale",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "core-module-required",
+            "target": "node",
+            "selector": { "id": "module:a" },
+            "assertion": "exists"
+          }
+        ],
+        "adrBindings": [
+          {
+            "schemaVersion": 1,
+            "contract": "cartograph.policy-adr-binding",
+            "id": "core-module-adr",
+            "ruleId": "core-module-required",
+            "requirement": "boundary",
+            "scope": { "target": "node", "selector": { "id": "module:a" } },
+            "referenceId": "ADR-0001"
+          }
+        ]
+      },
+      "adrDocument": {
+        "schemaVersion": 1,
+        "references": [
+          {
+            "id": "ADR-0001",
+            "file": "docs/adr/0001-typescript-first-semantic-adapter.md",
+            "title": "Start with a TypeScript 6 semantic adapter",
+            "status": "accepted",
+            "graphIds": ["module:missing"]
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:adr-binding:core-module-adr"],
+        "suppressedIds": []
+      }
+    },
+    {
+      "id": "mismatched-boundary",
+      "kind": "negative",
+      "policy": {
+        "policyId": "adr-boundary-mismatched",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "core-module-required",
+            "target": "node",
+            "selector": { "id": "module:a" },
+            "assertion": "exists"
+          }
+        ],
+        "adrBindings": [
+          {
+            "schemaVersion": 1,
+            "contract": "cartograph.policy-adr-binding",
+            "id": "core-module-adr",
+            "ruleId": "core-module-required",
+            "requirement": "boundary",
+            "scope": { "target": "node", "selector": { "id": "module:a" } },
+            "referenceId": "ADR-0001"
+          }
+        ]
+      },
+      "adrDocument": {
+        "schemaVersion": 1,
+        "references": [
+          {
+            "id": "ADR-0001",
+            "file": "docs/adr/0001-typescript-first-semantic-adapter.md",
+            "title": "Start with a TypeScript 6 semantic adapter",
+            "status": "accepted",
+            "graphIds": ["module:b"]
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": ["violation:adr-binding:core-module-adr"],
+        "suppressedIds": []
+      }
+    },
+    {
+      "id": "planned-exception-valid",
+      "kind": "positive",
+      "policy": {
+        "policyId": "adr-planned-exception-valid",
+        "version": "1.0.0",
+        "mode": "enforce",
+        "rules": [
+          {
+            "id": "endpoint-required",
+            "target": "node",
+            "selector": { "kind": "endpoint" },
+            "assertion": "exists"
+          }
+        ],
+        "adrBindings": [
+          {
+            "schemaVersion": 1,
+            "contract": "cartograph.policy-adr-binding",
+            "id": "planned-endpoint-adr",
+            "ruleId": "endpoint-required",
+            "requirement": "planned-violation",
+            "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+            "referenceId": "ADR-0001"
+          }
+        ],
+        "exceptions": [
+          {
+            "schemaVersion": 1,
+            "contract": "cartograph.policy-exception",
+            "id": "planned-endpoint",
+            "ruleId": "endpoint-required",
+            "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+            "rationale": "endpoint migration is scheduled",
+            "owner": "architecture-team",
+            "createdAt": "2026-08-01T00:00:00.000Z",
+            "expiresAt": "2026-12-01T00:00:00.000Z",
+            "adrReferenceId": "ADR-0001"
+          }
+        ]
+      },
+      "adrDocument": {
+        "schemaVersion": 1,
+        "references": [
+          {
+            "id": "ADR-0001",
+            "file": "docs/adr/0001-typescript-first-semantic-adapter.md",
+            "title": "Start with a TypeScript 6 semantic adapter",
+            "status": "accepted",
+            "graphIds": ["module:a"]
+          }
+        ]
+      },
+      "expected": {
+        "status": "passed",
+        "violationIds": [],
+        "suppressedIds": ["exception:planned-endpoint"]
+      }
+    },
+    {
+      "id": "planned-exception-missing",
+      "kind": "negative",
+      "policy": {
+        "policyId": "adr-planned-exception-missing",
+        "version": "1.0.0",
+        "mode": "enforce",
+        "rules": [
+          {
+            "id": "endpoint-required",
+            "target": "node",
+            "selector": { "kind": "endpoint" },
+            "assertion": "exists"
+          }
+        ],
+        "adrBindings": [
+          {
+            "schemaVersion": 1,
+            "contract": "cartograph.policy-adr-binding",
+            "id": "planned-endpoint-adr",
+            "ruleId": "endpoint-required",
+            "requirement": "planned-violation",
+            "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+            "referenceId": "ADR-0001"
+          }
+        ],
+        "exceptions": [
+          {
+            "schemaVersion": 1,
+            "contract": "cartograph.policy-exception",
+            "id": "planned-endpoint",
+            "ruleId": "endpoint-required",
+            "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+            "rationale": "endpoint migration is scheduled",
+            "owner": "architecture-team",
+            "createdAt": "2026-08-01T00:00:00.000Z",
+            "expiresAt": "2026-12-01T00:00:00.000Z"
+          }
+        ]
+      },
+      "adrDocument": {
+        "schemaVersion": 1,
+        "references": [
+          {
+            "id": "ADR-0001",
+            "file": "docs/adr/0001-typescript-first-semantic-adapter.md",
+            "title": "Start with a TypeScript 6 semantic adapter",
+            "status": "accepted",
+            "graphIds": ["module:a"]
+          }
+        ]
+      },
+      "expected": {
+        "status": "violations",
+        "violationIds": [
+          "violation:adr-binding:planned-endpoint-adr:planned-endpoint",
+          "violation:endpoint-required"
+        ],
+        "suppressedIds": []
+      }
+    }
+  ]
+}

@@ -260,6 +260,10 @@ export function createCli(): Command {
       policyAsOf,
     )
     .option(
+      "--adr <path>",
+      "repository-relative local ADR reference JSON for policy bindings",
+    )
+    .option(
       "--exception-window-days <days>",
       "days before expiry to classify an exception as expiring",
       exceptionWindowDays,
@@ -271,6 +275,7 @@ export function createCli(): Command {
         root: string,
         options: OutputOptions & {
           diff?: string;
+          adr?: string;
           mode?: PolicyCiMode;
           asOf?: string;
           exceptionWindowDays?: number;
@@ -295,6 +300,7 @@ export function createCli(): Command {
           input,
           inputKind: hasSnapshot ? "snapshot" : "diff",
           ...(options.mode === undefined ? {} : { mode: options.mode }),
+          ...(options.adr === undefined ? {} : { adr: options.adr }),
           ...(options.asOf === undefined ? {} : { asOf: options.asOf }),
           ...(options.exceptionWindowDays === undefined
             ? {}

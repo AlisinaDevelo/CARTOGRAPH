@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/policy-exception.v0.1.schema.json",
-  "title": "CARTOGRAPH local policy exception v0.1",
-  "description": "A bounded, repository-local exception with explicit ownership, rationale, provenance, precedence, and mandatory expiry.",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/policy-adr-binding.v0.1.schema.json",
+  "title": "CARTOGRAPH policy ADR binding v0.1",
+  "description": "A bounded local requirement that a selected policy boundary, exception, or planned violation be justified by a graph-backed local ADR reference.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -10,50 +10,19 @@
     "contract",
     "id",
     "ruleId",
+    "requirement",
     "scope",
-    "rationale",
-    "owner",
-    "createdAt",
-    "expiresAt"
+    "referenceId"
   ],
   "properties": {
     "schemaVersion": { "const": 1 },
-    "contract": { "const": "cartograph.policy-exception" },
+    "contract": { "const": "cartograph.policy-adr-binding" },
     "id": { "$ref": "#/definitions/identifier" },
     "ruleId": { "$ref": "#/definitions/identifier" },
-    "scope": { "$ref": "#/definitions/exceptionScope" },
-    "rationale": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 2048,
-      "pattern": "^[^\\u0000\\r\\n]+$"
-    },
-    "owner": { "$ref": "#/definitions/identifier" },
-    "createdAt": { "$ref": "#/definitions/dateTime" },
-    "expiresAt": { "$ref": "#/definitions/dateTime" },
-    "adrReferenceId": {
-      "$ref": "#/definitions/adrReferenceId",
-      "description": "Optional local ADR reference required by a policy binding for this exception."
-    },
-    "precedence": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 1000,
-      "default": 0
-    }
+    "requirement": { "enum": ["boundary", "exception", "planned-violation"] },
+    "scope": { "$ref": "#/definitions/scope" },
+    "referenceId": { "$ref": "#/definitions/adrReferenceId" }
   },
-  "allOf": [
-    {
-      "if": {
-        "required": ["createdAt", "expiresAt"]
-      },
-      "then": {
-        "properties": {
-          "expiresAt": { "format": "date-time" }
-        }
-      }
-    }
-  ],
   "definitions": {
     "identifier": {
       "type": "string",
@@ -66,12 +35,6 @@
       "minLength": 1,
       "maxLength": 512,
       "pattern": "^[^\\u0000\\r\\n]+$"
-    },
-    "dateTime": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 64,
-      "format": "date-time"
     },
     "selectorValue": {
       "type": "string",
@@ -181,7 +144,7 @@
         { "required": ["classification"] }
       ]
     },
-    "exceptionScope": {
+    "scope": {
       "oneOf": [
         {
           "type": "object",

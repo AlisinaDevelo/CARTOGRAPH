@@ -17,6 +17,7 @@ import {
   parseGraphDiff,
   parseGraphSnapshot,
   parsePolicyConfig,
+  readAdrReferenceDocument,
   defaultCartographConfig,
   readCartographConfig,
   createRemediationReview,
@@ -281,6 +282,7 @@ export type PolicyEvaluationFileOptions = {
   inputKind: PolicyInputKind;
   mode?: PolicyCiMode;
   asOf?: string;
+  adr?: string;
   expiringWithinDays?: number;
   policy: string;
   root: string;
@@ -295,11 +297,31 @@ export async function evaluatePolicyFile(
     options.mode === undefined
       ? parsedPolicy
       : parsePolicyConfig({ ...parsedPolicy, mode: options.mode });
+  const adrContext =
+    options.adr === undefined
+      ? undefined
+      : (() => {
+          try {
+            return {
+              document: readAdrReferenceDocument(root, options.adr),
+              root,
+            };
+          } catch (error) {
+            return {
+              root,
+              loadError:
+                error instanceof Error
+                  ? error.message
+                  : "could not load the local ADR reference document",
+            };
+          }
+        })();
   const evaluationOptions = {
     ...(options.asOf === undefined ? {} : { asOf: options.asOf }),
     ...(options.expiringWithinDays === undefined
       ? {}
       : { expiringWithinDays: options.expiringWithinDays }),
+    ...(adrContext === undefined ? {} : { adr: adrContext }),
   };
   if (options.inputKind === "snapshot") {
     return evaluatePolicyOnSnapshot(

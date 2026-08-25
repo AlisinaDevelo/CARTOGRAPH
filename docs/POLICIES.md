@@ -77,6 +77,24 @@ expiry evaluation and `--exception-window-days <days>` (default seven) for the
 expiring classification boundary. No exception grants merge authority or
 performs a policy mutation.
 
+## Policy ADR bindings
+
+P-019 adds the versioned `cartograph.policy-adr-binding` record through the
+optional `adrBindings` array. A `boundary` binding requires every selected
+graph object to be covered by the named local ADR reference. `exception` and
+`planned-violation` bindings require a matching active or expiring exception to
+carry the same `adrReferenceId`. Missing documents, missing or stale
+references, malformed records, and graph-scope mismatches become stable policy
+violations with ADR and graph evidence; they never silently authorize
+suppression.
+
+Pass the repository-relative reference index with `cartograph policy --adr
+<path>`. Binding evaluation is offline and does not infer ADR approval or
+contact a hosting service. The
+[`policy ADR binding guide`](POLICY_ADR_BINDINGS.md) and
+[`policy-adr-binding fixture corpus`](../test/fixtures/policy-adr-bindings/scenarios.v0.1.json)
+document the complete positive and fail-closed cases.
+
 ## Offline loading
 
 `parsePolicyConfig` validates an in-memory value. `readPolicyConfig` accepts only
@@ -124,3 +142,10 @@ covers active, expiring, expired, malformed, and precedence-selected records in
 informational and enforcing modes. `npm run policy-exceptions:validate` checks
 the exception schema, evaluation report schema, evidence, suppression rules,
 and repeated serialization.
+
+The policy ADR binding fixture at
+[`policy-adr-bindings/scenarios.v0.1.json`](../test/fixtures/policy-adr-bindings/scenarios.v0.1.json)
+covers valid, missing, stale, mismatched, and planned-exception references.
+`npm run policy-adr-bindings:validate` checks both binding and ADR schemas,
+policy evaluation findings, graph evidence, suppression behavior, and repeated
+serialization.

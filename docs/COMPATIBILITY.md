@@ -203,8 +203,20 @@ record identifies an in-repository Markdown file, title, lifecycle status, and
 one or more graph IDs. The runtime checks file metadata and optional graph
 snapshot membership offline, reporting missing, malformed, stale, and
 uncovered references deterministically. This is an additive new contract; ADR
-lifecycle transitions, report rendering, and policy binding remain follow-on
-roadmap work.
+lifecycle transitions and report rendering remain follow-on roadmap work. P-019
+adds the separate policy-binding contract described below.
+
+## P-019 policy ADR bindings
+
+P-019 adds the versioned `policyAdrBindings` contract and the optional
+`adrBindings` policy field. Boundary bindings require selected graph evidence
+to be covered by a local ADR reference; exception and planned-violation
+bindings require the matching expiry-bound exception to name that reference.
+Missing, stale, malformed, and mismatched references become deterministic
+evidence-linked policy violations and cannot authorize suppression. The CLI
+accepts a repository-relative ADR index through `--adr`; no hosted lookup is
+performed. This is additive to policy and evaluation v1 readers that ignore
+the optional binding records.
 
 ## O-001 local OpenTelemetry import
 

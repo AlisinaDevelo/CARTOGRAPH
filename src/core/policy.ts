@@ -11,6 +11,9 @@ export const LOCAL_POLICY_CONTRACT = "cartograph.policy" as const;
 export const LOCAL_POLICY_EXCEPTION_SCHEMA_VERSION = 1 as const;
 export const LOCAL_POLICY_EXCEPTION_CONTRACT =
   "cartograph.policy-exception" as const;
+export const LOCAL_POLICY_ADR_BINDING_SCHEMA_VERSION = 1 as const;
+export const LOCAL_POLICY_ADR_BINDING_CONTRACT =
+  "cartograph.policy-adr-binding" as const;
 export const POLICY_CONFIG_MAX_BYTES = 1024 * 1024;
 
 const IdentifierSchema = z
@@ -21,6 +24,17 @@ const IdentifierSchema = z
   .regex(
     /^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$/u,
     "must be a portable lower-case identifier",
+  );
+
+const AdrReferenceIdSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(512)
+  .refine(
+    (value) =>
+      !value.includes("\0") && !value.includes("\r") && !value.includes("\n"),
+    "must not contain control characters",
   );
 
 const SelectorValueSchema = z
@@ -223,6 +237,7 @@ export const LocalPolicyExceptionSchema = z
     createdAt: PolicyDateTimeSchema,
     expiresAt: PolicyDateTimeSchema,
     precedence: z.number().int().nonnegative().max(1_000).default(0),
+    adrReferenceId: AdrReferenceIdSchema.optional(),
   })
   .strict()
   .superRefine((exception, context) => {
@@ -234,6 +249,29 @@ export const LocalPolicyExceptionSchema = z
       });
     }
   });
+
+export const LocalPolicyAdrBindingRequirementSchema = z.enum([
+  "boundary",
+  "exception",
+  "planned-violation",
+]);
+
+/**
+ * A local policy-to-ADR requirement. Records stay raw in PolicyConfig so a
+ * malformed binding becomes an evidence-bearing policy finding instead of
+ * disappearing during configuration parsing.
+ */
+export const LocalPolicyAdrBindingSchema = z
+  .object({
+    schemaVersion: z.literal(LOCAL_POLICY_ADR_BINDING_SCHEMA_VERSION),
+    contract: z.literal(LOCAL_POLICY_ADR_BINDING_CONTRACT),
+    id: IdentifierSchema,
+    ruleId: IdentifierSchema,
+    requirement: LocalPolicyAdrBindingRequirementSchema,
+    scope: LocalPolicyExceptionScopeSchema,
+    referenceId: AdrReferenceIdSchema,
+  })
+  .strict();
 
 const ruleInvariant = (
   rule: {
@@ -325,6 +363,9 @@ export const PolicyConfigSchema = z
     // behind a configuration parse error. Valid records use the versioned
     // LocalPolicyExceptionSchema below.
     exceptions: z.array(z.unknown()).max(128).default([]),
+    // ADR binding records are intentionally retained raw for the same
+    // fail-closed, visible-malformed behavior as local exceptions.
+    adrBindings: z.array(z.unknown()).max(128).default([]),
     rules: z.array(LocalPolicyRuleSchema).min(1).max(256),
   })
   .strict();
@@ -343,6 +384,10 @@ export type LocalPolicyExceptionScope = z.infer<
   typeof LocalPolicyExceptionScopeSchema
 >;
 export type LocalPolicyException = z.infer<typeof LocalPolicyExceptionSchema>;
+export type LocalPolicyAdrBindingRequirement = z.infer<
+  typeof LocalPolicyAdrBindingRequirementSchema
+>;
+export type LocalPolicyAdrBinding = z.infer<typeof LocalPolicyAdrBindingSchema>;
 export type LocalPolicyRule = z.infer<typeof LocalPolicyRuleSchema>;
 export type PolicyConfig = z.infer<typeof PolicyConfigSchema>;
 

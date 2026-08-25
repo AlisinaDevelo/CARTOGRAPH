@@ -3,9 +3,20 @@ import { z } from "zod";
 import { canonicalizeGraphSnapshot, stableStringify } from "./canonical.js";
 import { canonicalizeGraphDiff } from "./diff.js";
 import {
+  parseAdrReferenceDocument,
+  validateAdrReferences,
+  type AdrReference,
+  type AdrReferenceDiagnostic,
+  type AdrReferenceDocument,
+  type AdrReferenceValidationOptions,
+} from "./adr.js";
+import {
+  LocalPolicyAdrBindingSchema,
   LocalPolicyExceptionSchema,
+  type LocalPolicyAdrBinding,
   parsePolicyConfig,
   type LocalPolicyException,
+  type LocalPolicyExceptionScope,
   type LocalPolicyRule,
   type PolicyConfig,
 } from "./policy.js";
@@ -25,6 +36,17 @@ export const POLICY_EVALUATION_CONTRACT =
 export const POLICY_EXCEPTION_EXPIRING_WINDOW_DAYS = 7 as const;
 
 const IdentifierSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(512)
+  .refine(
+    (value) =>
+      !value.includes("\0") && !value.includes("\r") && !value.includes("\n"),
+    "must not contain control characters",
+  );
+
+const AdrReferenceIdSchema = z
   .string()
   .trim()
   .min(1)
@@ -76,6 +98,7 @@ export const PolicyExceptionReportSchema = z
   .object({
     id: EvaluationIdSchema,
     ruleId: IdentifierSchema.optional(),
+    adrReferenceId: AdrReferenceIdSchema.optional(),
     status: PolicyExceptionStatusSchema,
     precedence: z.number().int().nonnegative().max(1_000).optional(),
     suppresses: z.boolean(),
@@ -89,6 +112,7 @@ export const PolicyViolationSchema = z
     id: EvaluationIdSchema,
     policyId: IdentifierSchema,
     ruleId: IdentifierSchema,
+    adrReferenceId: AdrReferenceIdSchema.optional(),
     target: PolicyTargetSchema,
     assertion: PolicyAssertionSchema,
     effect: PolicyEffectSchema,
@@ -184,6 +208,13 @@ export type PolicyEvaluationInput =
 export type PolicyEvaluationOptions = {
   asOf?: string;
   expiringWithinDays?: number;
+  adr?: PolicyAdrContext;
+};
+
+export type PolicyAdrContext = {
+  document?: unknown;
+  root?: string;
+  loadError?: string;
 };
 
 export class PolicyEvaluationError extends Error {
@@ -215,6 +246,22 @@ type Candidate = {
     classification?: string;
   };
   evidenceRefs: string[];
+};
+
+type AdrContextState = {
+  document?: AdrReferenceDocument;
+  references: Map<string, AdrReference>;
+  diagnostics: Map<string, AdrReferenceDiagnostic[]>;
+  error?: string;
+};
+
+type AdrBindingAnalysis = {
+  index: number;
+  binding: LocalPolicyAdrBinding | undefined;
+  rule: LocalPolicyRule | undefined;
+  reference: AdrReference | undefined;
+  diagnostics: AdrReferenceDiagnostic[];
+  error: string | undefined;
 };
 
 const compareStrings = (left: string, right: string): number => {
@@ -485,6 +532,40 @@ const matchingCandidates = (
   });
 };
 
+const matchesScopeCandidate = (
+  scope: LocalPolicyExceptionScope,
+  candidate: Candidate,
+): boolean => {
+  if (scope.target !== candidate.target) return false;
+  if (scope.target === "node") {
+    return candidate.node ? matchesNode(candidate.node, scope.selector) : false;
+  }
+  if (scope.target === "edge") {
+    return candidate.edge ? matchesEdge(candidate.edge, scope.selector) : false;
+  }
+  return candidate.diff ? matchesDiff(candidate.diff, scope.selector) : false;
+};
+
+const candidateGraphIds = (candidate: Candidate): string[] => {
+  if (candidate.node === undefined && candidate.edge === undefined) {
+    return candidate.evidenceRefs.filter(
+      (reference) =>
+        reference.startsWith("node:") || reference.startsWith("edge:"),
+    );
+  }
+  if (candidate.node !== undefined) {
+    return uniqueSorted([
+      candidate.node.id,
+      candidate.node.stableKey,
+      `node:${candidate.node.id}`,
+      `node:${candidate.node.stableKey}`,
+    ]);
+  }
+  return [
+    `edge:${candidate.edge?.from}|${candidate.edge?.kind}|${candidate.edge?.to}`,
+  ];
+};
+
 type ExceptionAnalysis = {
   parsed?: LocalPolicyException;
   report: PolicyExceptionReport;
@@ -523,22 +604,7 @@ const exceptionSelectorOverlaps = (
 const matchesExceptionCandidate = (
   exception: LocalPolicyException,
   candidate: Candidate,
-): boolean => {
-  if (exception.scope.target !== candidate.target) return false;
-  if (exception.scope.target === "node") {
-    return candidate.node
-      ? matchesNode(candidate.node, exception.scope.selector)
-      : false;
-  }
-  if (exception.scope.target === "edge") {
-    return candidate.edge
-      ? matchesEdge(candidate.edge, exception.scope.selector)
-      : false;
-  }
-  return candidate.diff
-    ? matchesDiff(candidate.diff, exception.scope.selector)
-    : false;
-};
+): boolean => matchesScopeCandidate(exception.scope, candidate);
 
 const exceptionAppliesToRule = (
   exception: LocalPolicyException,
@@ -569,6 +635,251 @@ const safeExceptionIdentifier = (value: unknown): string | undefined => {
   )
     return undefined;
   return value;
+};
+
+const bindingEvidence = (
+  policy: PolicyConfig,
+  index: number,
+  id?: string,
+  ruleId?: string,
+  referenceId?: string,
+): string[] => [
+  "input:policy",
+  `policy:${policy.policyId}`,
+  `policy-adr-binding:index:${index}`,
+  ...(id === undefined ? [] : [`policy-adr-binding:${id}`]),
+  ...(ruleId === undefined ? [] : [`policy-rule:${ruleId}`]),
+  ...(referenceId === undefined ? [] : [`adr-reference:${referenceId}`]),
+];
+
+const boundedReason = (reason: string): string =>
+  reason.length <= 2_048 ? reason : `${reason.slice(0, 2_040)}…`;
+
+const adrContextState = (
+  context: PolicyAdrContext | undefined,
+  inputKind: "snapshot" | "diff",
+  graph: GraphSnapshot | GraphDiff,
+): AdrContextState => {
+  const empty: AdrContextState = {
+    references: new Map(),
+    diagnostics: new Map(),
+  };
+  if (context === undefined) {
+    return { ...empty, error: "no local ADR reference document was supplied" };
+  }
+  if (context.loadError !== undefined) {
+    return { ...empty, error: context.loadError };
+  }
+  if (context.document === undefined) {
+    return {
+      ...empty,
+      error: "local ADR reference document was not provided",
+    };
+  }
+
+  let document: AdrReferenceDocument;
+  try {
+    document = parseAdrReferenceDocument(context.document);
+  } catch (error) {
+    return {
+      ...empty,
+      error:
+        error instanceof Error
+          ? `ADR reference document is malformed: ${error.message}`
+          : "ADR reference document is malformed",
+    };
+  }
+
+  let validation;
+  try {
+    const validationOptions: AdrReferenceValidationOptions =
+      context.root === undefined ? {} : { root: context.root };
+    if (inputKind === "snapshot")
+      validationOptions.snapshot = graph as GraphSnapshot;
+    validation = validateAdrReferences(document, validationOptions);
+  } catch (error) {
+    return {
+      ...empty,
+      document,
+      references: new Map(
+        document.references.map((reference) => [reference.id, reference]),
+      ),
+      error:
+        error instanceof Error
+          ? `ADR reference validation failed: ${error.message}`
+          : "ADR reference validation failed",
+    };
+  }
+  const diagnostics = new Map<string, AdrReferenceDiagnostic[]>();
+  for (const diagnostic of validation.diagnostics) {
+    if (diagnostic.referenceId === undefined) continue;
+    const list = diagnostics.get(diagnostic.referenceId) ?? [];
+    list.push(diagnostic);
+    diagnostics.set(diagnostic.referenceId, list);
+  }
+  return {
+    document,
+    references: new Map(
+      document.references.map((reference) => [reference.id, reference]),
+    ),
+    diagnostics,
+  };
+};
+
+const adrReference = (
+  state: AdrContextState,
+  referenceId: string,
+): {
+  reference?: AdrReference;
+  diagnostics: AdrReferenceDiagnostic[];
+  error?: string;
+} => {
+  if (state.error !== undefined) return { diagnostics: [], error: state.error };
+  const reference = state.references.get(referenceId);
+  if (reference === undefined) {
+    return {
+      diagnostics: [],
+      error: `ADR reference ${referenceId} is missing from the local reference document`,
+    };
+  }
+  const diagnostics = state.diagnostics.get(referenceId) ?? [];
+  if (diagnostics.length > 0) {
+    return {
+      reference,
+      diagnostics,
+      error: `ADR reference ${referenceId} is stale or malformed: ${diagnostics
+        .map((diagnostic) => diagnostic.code)
+        .sort(compareStrings)
+        .join(", ")}`,
+    };
+  }
+  return { reference, diagnostics };
+};
+
+const bindingIssueText = (error: z.ZodError): string => {
+  const first = error.issues[0];
+  if (first === undefined)
+    return "binding does not match the versioned contract";
+  const path = first.path.length > 0 ? first.path.join(".") : "binding";
+  return `${path}: ${first.message}`;
+};
+
+const analyzeAdrBindings = (
+  policy: PolicyConfig,
+  state: AdrContextState,
+): AdrBindingAnalysis[] => {
+  const parsed = policy.adrBindings.map((raw, index) => ({
+    index,
+    result: LocalPolicyAdrBindingSchema.safeParse(raw),
+  }));
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+  for (const item of parsed) {
+    if (!item.result.success) continue;
+    if (seen.has(item.result.data.id)) duplicates.add(item.result.data.id);
+    seen.add(item.result.data.id);
+  }
+  const rules = new Map(policy.rules.map((rule) => [rule.id, rule]));
+
+  return parsed.map(({ index, result }) => {
+    if (!result.success) {
+      return {
+        index,
+        binding: undefined,
+        rule: undefined,
+        reference: undefined,
+        diagnostics: [],
+        error: `ADR binding is malformed: ${bindingIssueText(result.error)}`,
+      };
+    }
+    const binding = result.data;
+    const rule = rules.get(binding.ruleId);
+    if (duplicates.has(binding.id)) {
+      return {
+        index,
+        binding,
+        rule,
+        reference: undefined,
+        diagnostics: [],
+        error: `ADR binding ID ${binding.id} is duplicated`,
+      };
+    }
+    if (rule === undefined) {
+      return {
+        index,
+        binding,
+        rule: undefined,
+        reference: undefined,
+        diagnostics: [],
+        error: `ADR binding references unknown policy rule ${binding.ruleId}`,
+      };
+    }
+    if (rule.target !== binding.scope.target) {
+      return {
+        index,
+        binding,
+        rule,
+        reference: undefined,
+        diagnostics: [],
+        error: `ADR binding scope target ${binding.scope.target} does not match rule target ${rule.target}`,
+      };
+    }
+    const resolved = adrReference(state, binding.referenceId);
+    return {
+      index,
+      binding,
+      rule,
+      reference: resolved.reference,
+      diagnostics: resolved.diagnostics,
+      error: resolved.error,
+    };
+  });
+};
+
+const selectorsCompatible = (
+  left: Record<string, unknown>,
+  right: Record<string, unknown>,
+): boolean =>
+  Object.entries(left).every(
+    ([key, value]) => right[key] === undefined || right[key] === value,
+  ) &&
+  Object.entries(right).every(
+    ([key, value]) => left[key] === undefined || left[key] === value,
+  );
+
+const exceptionMatchesBinding = (
+  exception: LocalPolicyException,
+  binding: LocalPolicyAdrBinding,
+): boolean =>
+  exception.ruleId === binding.ruleId &&
+  exception.scope.target === binding.scope.target &&
+  selectorsCompatible(exception.scope.selector, binding.scope.selector);
+
+const referenceCoverage = (
+  reference: AdrReference,
+  candidates: readonly Candidate[],
+): { ok: boolean; missing: Candidate[]; reason?: string } => {
+  if (candidates.length === 0) {
+    return {
+      ok: false,
+      missing: [],
+      reason: "binding scope matched no graph evidence in the evaluated input",
+    };
+  }
+  const graphIds = new Set(reference.graphIds);
+  const missing = candidates.filter(
+    (candidate) =>
+      !candidateGraphIds(candidate).some((graphId) => graphIds.has(graphId)),
+  );
+  return {
+    ok: missing.length === 0,
+    missing,
+    ...(missing.length === 0
+      ? {}
+      : {
+          reason: `ADR reference ${reference.id} does not cover ${missing.length} selected graph object(s)`,
+        }),
+  };
 };
 
 const analyzeExceptions = (
@@ -618,12 +929,16 @@ const analyzeExceptions = (
     }
 
     const exception = result.data;
-    const evidenceRefs = exceptionEvidence(
-      policy,
-      index,
-      exception.id,
-      exception.ruleId,
-    );
+    const evidenceRefs = [
+      ...exceptionEvidence(policy, index, exception.id, exception.ruleId),
+      ...(exception.adrReferenceId === undefined
+        ? []
+        : [`adr-reference:${exception.adrReferenceId}`]),
+    ];
+    const exceptionAdrReference =
+      exception.adrReferenceId === undefined
+        ? {}
+        : { adrReferenceId: exception.adrReferenceId };
     const rule = ruleById.get(exception.ruleId);
     if (duplicateIds.has(exception.id)) {
       return {
@@ -632,6 +947,7 @@ const analyzeExceptions = (
         report: {
           id: `exception:${exception.id}`,
           ruleId: exception.ruleId,
+          ...exceptionAdrReference,
           status: "malformed",
           precedence: exception.precedence,
           suppresses: false,
@@ -647,6 +963,7 @@ const analyzeExceptions = (
         report: {
           id: `exception:${exception.id}`,
           ruleId: exception.ruleId,
+          ...exceptionAdrReference,
           status: "malformed",
           precedence: exception.precedence,
           suppresses: false,
@@ -662,6 +979,7 @@ const analyzeExceptions = (
         report: {
           id: `exception:${exception.id}`,
           ruleId: exception.ruleId,
+          ...exceptionAdrReference,
           status: "malformed",
           precedence: exception.precedence,
           suppresses: false,
@@ -680,6 +998,7 @@ const analyzeExceptions = (
         report: {
           id: `exception:${exception.id}`,
           ruleId: exception.ruleId,
+          ...exceptionAdrReference,
           status: "malformed",
           precedence: exception.precedence,
           suppresses: false,
@@ -695,6 +1014,7 @@ const analyzeExceptions = (
         report: {
           id: `exception:${exception.id}`,
           ruleId: exception.ruleId,
+          ...exceptionAdrReference,
           status: "expired",
           precedence: exception.precedence,
           suppresses: false,
@@ -710,6 +1030,7 @@ const analyzeExceptions = (
       report: {
         id: `exception:${exception.id}`,
         ruleId: exception.ruleId,
+        ...exceptionAdrReference,
         status,
         precedence: exception.precedence,
         suppresses: false,
@@ -776,6 +1097,143 @@ const ruleViolation = (
   };
 };
 
+const adrBindingViolation = (
+  policy: PolicyConfig,
+  analysis: AdrBindingAnalysis,
+  reason: string,
+  evidenceRefs: readonly string[] = [],
+  matches: readonly Candidate[] = [],
+  suffix = "",
+): PolicyViolation => {
+  const binding = analysis.binding;
+  const rule = analysis.rule;
+  const ruleId = rule?.id ?? binding?.ruleId ?? `adr-binding:${analysis.index}`;
+  const target = rule?.target ?? binding?.scope.target ?? "node";
+  const assertion = rule?.assertion ?? "exists";
+  return {
+    id: `violation:adr-binding:${binding?.id ?? analysis.index}${suffix}`,
+    policyId: policy.policyId,
+    ruleId,
+    ...(binding?.referenceId === undefined
+      ? {}
+      : { adrReferenceId: binding.referenceId }),
+    target,
+    assertion,
+    effect: rule?.effect ?? policy.mode,
+    count: matches.length,
+    expected: 1,
+    matches: matches.map((candidate) => candidate.id).sort(compareStrings),
+    reason: boundedReason(reason),
+    evidenceRefs: uniqueSorted([
+      ...bindingEvidence(
+        policy,
+        analysis.index,
+        binding?.id,
+        rule?.id ?? binding?.ruleId,
+        binding?.referenceId,
+      ),
+      ...evidenceRefs,
+    ]),
+  };
+};
+
+const boundaryBindingViolation = (
+  policy: PolicyConfig,
+  analysis: AdrBindingAnalysis,
+  candidates: { nodes: Candidate[]; edges: Candidate[]; diffs: Candidate[] },
+): PolicyViolation | undefined => {
+  if (analysis.binding?.requirement !== "boundary") return undefined;
+  if (analysis.error !== undefined || analysis.binding === undefined) {
+    return adrBindingViolation(
+      policy,
+      analysis,
+      analysis.error ?? "ADR binding is invalid",
+    );
+  }
+  const rule = analysis.rule;
+  if (rule === undefined || analysis.reference === undefined) {
+    return adrBindingViolation(
+      policy,
+      analysis,
+      analysis.error ?? "ADR binding could not resolve its local ADR reference",
+    );
+  }
+  const selected = matchingCandidates(rule, candidates).filter((candidate) =>
+    matchesScopeCandidate(
+      analysis.binding?.scope as LocalPolicyExceptionScope,
+      candidate,
+    ),
+  );
+  const coverage = referenceCoverage(analysis.reference, selected);
+  if (coverage.ok) return undefined;
+  return adrBindingViolation(
+    policy,
+    analysis,
+    coverage.reason ??
+      "ADR reference does not cover the selected graph boundary",
+    coverage.missing.flatMap((candidate) => candidate.evidenceRefs),
+    selected,
+  );
+};
+
+const exceptionBindingViolations = (
+  policy: PolicyConfig,
+  bindings: readonly AdrBindingAnalysis[],
+  exceptions: ExceptionAnalysis[],
+): PolicyViolation[] => {
+  const findings: PolicyViolation[] = [];
+  for (const exceptionAnalysis of exceptions) {
+    const exception = exceptionAnalysis.parsed;
+    if (
+      exception === undefined ||
+      (exceptionAnalysis.report.status !== "active" &&
+        exceptionAnalysis.report.status !== "expiring")
+    )
+      continue;
+    for (const binding of bindings) {
+      if (
+        binding.binding === undefined ||
+        (binding.binding.requirement !== "exception" &&
+          binding.binding.requirement !== "planned-violation") ||
+        !exceptionMatchesBinding(exception, binding.binding)
+      )
+        continue;
+      const bindingReason =
+        binding.error ??
+        (exception.adrReferenceId === undefined
+          ? `exception ${exception.id} is missing required ADR reference ${binding.binding.referenceId}`
+          : exception.adrReferenceId !== binding.binding.referenceId
+            ? `exception ${exception.id} references ADR ${exception.adrReferenceId}, but binding requires ${binding.binding.referenceId}`
+            : undefined);
+      if (bindingReason !== undefined) {
+        exceptionAnalysis.eligible = false;
+        exceptionAnalysis.report.reason = bindingReason;
+        findings.push(
+          adrBindingViolation(
+            policy,
+            binding,
+            bindingReason,
+            [
+              ...exceptionAnalysis.report.evidenceRefs,
+              ...(exception.adrReferenceId === undefined
+                ? []
+                : [`adr-reference:${exception.adrReferenceId}`]),
+            ],
+            [],
+            `:${exception.id}`,
+          ),
+        );
+        continue;
+      }
+      exceptionAnalysis.report.reason =
+        binding.binding.requirement === "planned-violation"
+          ? `planned violation is justified by ADR ${binding.binding.referenceId}`
+          : `exception is justified by ADR ${binding.binding.referenceId}`;
+    }
+  }
+  return findings;
+};
+
 const unsupportedRule = (
   policy: PolicyConfig,
   rule: LocalPolicyRule,
@@ -826,7 +1284,9 @@ export const evaluatePolicy = (
   const policy = parsePolicyConfig(policyInput);
   const parsedInput = parseInput(input);
   const hasExceptionContext =
-    policy.exceptions.length > 0 || Object.keys(options).length > 0;
+    policy.exceptions.length > 0 ||
+    options.asOf !== undefined ||
+    options.expiringWithinDays !== undefined;
   const asOfText = options.asOf ?? new Date().toISOString();
   const asOf = Date.parse(asOfText);
   if (!Number.isFinite(asOf)) {
@@ -857,7 +1317,20 @@ export const evaluatePolicy = (
   const exceptionAnalyses = hasExceptionContext
     ? analyzeExceptions(policy, asOf, expiringWithinDays)
     : [];
-  const violations: PolicyViolation[] = [];
+  const adrState = adrContextState(
+    options.adr,
+    parsedInput.kind,
+    parsedInput.graph,
+  );
+  const adrBindings = analyzeAdrBindings(policy, adrState);
+  const adrViolations = [
+    ...adrBindings.flatMap((analysis) => {
+      const violation = boundaryBindingViolation(policy, analysis, candidates);
+      return violation === undefined ? [] : [violation];
+    }),
+    ...exceptionBindingViolations(policy, adrBindings, exceptionAnalyses),
+  ];
+  const violations: PolicyViolation[] = [...adrViolations];
   const unsupported: PolicyUnsupported[] = [];
 
   for (const rule of policy.rules) {
@@ -918,8 +1391,12 @@ export const evaluatePolicy = (
         : unsupported.length > 0
           ? "unsupported"
           : "passed",
-    evaluatedRules: policy.rules.length,
-    passedRules: policy.rules.length - violations.length - unsupported.length,
+    evaluatedRules: policy.rules.length + adrViolations.length,
+    passedRules:
+      policy.rules.length +
+      adrViolations.length -
+      violations.length -
+      unsupported.length,
     unsupportedRules: unsupported.length,
     violations,
     unsupported,

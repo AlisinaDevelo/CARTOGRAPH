@@ -42,6 +42,11 @@
       "supportedReaders": [1],
       "reviewedVersions": [1]
     },
+    "policyAdrBindings": {
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
+    },
     "policyCompositions": {
       "current": 1,
       "supportedReaders": [1],

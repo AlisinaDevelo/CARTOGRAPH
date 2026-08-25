@@ -494,6 +494,11 @@ export const composePolicyConfig = (
       .sort((left, right) =>
         compareStrings(stableStringify(left), stableStringify(right)),
       ),
+    adrBindings: loaded
+      .flatMap((source) => source.policy.adrBindings)
+      .sort((left, right) =>
+        compareStrings(stableStringify(left), stableStringify(right)),
+      ),
     rules: entries
       .map((entry) => entry.rule)
       .sort((left, right) => compareStrings(left.id, right.id)),

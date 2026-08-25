@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
 
 import {
+  LocalPolicyAdrBindingSchema,
   LocalPolicyExceptionSchema,
   LocalPolicyRuleSchema,
   PolicyConfigValidationError,
@@ -24,6 +25,12 @@ const schema = JSON.parse(
 const exceptionSchema = JSON.parse(
   readFileSync(
     resolve(repositoryRoot, "schema/policy-exception.v0.1.schema.json"),
+    "utf8",
+  ),
+) as object;
+const adrBindingSchema = JSON.parse(
+  readFileSync(
+    resolve(repositoryRoot, "schema/policy-adr-binding.v0.1.schema.json"),
     "utf8",
   ),
 ) as object;
@@ -66,6 +73,22 @@ describe("local policy configuration", () => {
       }),
     ).toBe(true);
     expect(validateException.errors).toBeNull();
+
+    const validateAdrBinding = new Ajv({ allErrors: true }).compile(
+      adrBindingSchema,
+    );
+    expect(
+      validateAdrBinding({
+        schemaVersion: 1,
+        contract: "cartograph.policy-adr-binding",
+        id: "endpoint-adr",
+        ruleId: "endpoint-count",
+        requirement: "boundary",
+        scope: { target: "node", selector: { kind: "endpoint" } },
+        referenceId: "ADR-0001",
+      }),
+    ).toBe(true);
+    expect(validateAdrBinding.errors).toBeNull();
   });
 
   it("defaults to informational and rejects invalid or unbounded rule shapes", () => {
@@ -88,6 +111,7 @@ describe("local policy configuration", () => {
     expect(parsed.overrideLimit).toBe(0);
     expect(parsed.includes).toEqual([]);
     expect(parsed.exceptions).toEqual([]);
+    expect(parsed.adrBindings).toEqual([]);
 
     expect(
       LocalPolicyExceptionSchema.parse({
@@ -102,6 +126,17 @@ describe("local policy configuration", () => {
         expiresAt: "2026-12-01T00:00:00.000Z",
       }).precedence,
     ).toBe(0);
+    expect(
+      LocalPolicyAdrBindingSchema.parse({
+        schemaVersion: 1,
+        contract: "cartograph.policy-adr-binding",
+        id: "endpoint-adr",
+        ruleId: "endpoint-presence",
+        requirement: "exception",
+        scope: { target: "node", selector: { kind: "endpoint" } },
+        referenceId: "ADR-0001",
+      }).referenceId,
+    ).toBe("ADR-0001");
 
     expect(
       LocalPolicyRuleSchema.safeParse({
