@@ -61,6 +61,18 @@ jobs:
       - name: Validate upgrade policy
         run: npm run upgrade:validate
 
+      - name: Validate release compatibility matrix
+        run: npm run release-compatibility:validate
+
+      - name: Validate policy contract
+        run: npm run policy:validate
+
+      - name: Validate adapter contract
+        run: npm run adapter:validate
+
+      - name: Validate Action fixture
+        run: npm run action:validate
+
       - name: Validate benchmark baseline
         run: npm run benchmark:validate
 

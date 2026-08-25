@@ -270,6 +270,29 @@ try {
   const provenanceText = serializeJson(provenance);
   const sbomSha256 = sha256Digest(sbomText);
   const provenanceSha256 = sha256Digest(provenanceText);
+  const compatibilityName = "compatibility-matrix.json";
+  const compatibilityPath = join(outputRoot, compatibilityName);
+  execFileSync(
+    process.execPath,
+    [
+      join(repositoryRoot, "scripts/release-compatibility.mjs"),
+      "record",
+      "--output",
+      compatibilityPath,
+      "--tag",
+      tag,
+      "--source-commit",
+      sourceCommit,
+    ],
+    {
+      cwd: repositoryRoot,
+      encoding: "utf8",
+      stdio: ["ignore", "ignore", "inherit"],
+    },
+  );
+  const compatibilityText = await readFile(compatibilityPath, "utf8");
+  const compatibility = JSON.parse(compatibilityText);
+  const compatibilitySha256 = sha256Digest(compatibilityText);
   await writeFile(join(outputRoot, sbomName), sbomText);
   await writeFile(join(outputRoot, provenanceName), provenanceText);
   await writeFile(
@@ -278,6 +301,7 @@ try {
       [sha256, tarballName],
       [sbomSha256, sbomName],
       [provenanceSha256, provenanceName],
+      [compatibilitySha256, compatibilityName],
     ]
       .sort((left, right) => left[1].localeCompare(right[1]))
       .map(([digest, file]) => `${digest}  ${file}`)
@@ -308,9 +332,15 @@ try {
       predicateType: provenance.predicateType,
       subjectSha256: sha256,
     },
+    compatibility: {
+      file: compatibilityName,
+      sha256: compatibilitySha256,
+      matrixDigest: compatibility.matrixDigest,
+      combinations: compatibility.combinations,
+    },
     checksums: {
       file: "SHA256SUMS",
-      files: [tarballName, sbomName, provenanceName],
+      files: [tarballName, sbomName, provenanceName, compatibilityName],
     },
     changelog: {
       source: "CHANGELOG.md",
@@ -408,6 +438,7 @@ try {
         contentSha256,
         sbom: sbomName,
         provenance: provenanceName,
+        compatibility: compatibilityName,
         sbomComponents: sbom.components.length,
         smokeTest: "passed",
         output: keepOutput ? outputRoot : "temporary output cleaned",

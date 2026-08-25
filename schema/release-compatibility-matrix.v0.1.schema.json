@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/release-compatibility-matrix.v0.1.schema.json",
+  "title": "CARTOGRAPH release compatibility matrix v0.1",
+  "description": "Supported runtime, artifact-contract, and pinned Action combinations exercised by the release gate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "matrixId",
+    "runtime",
+    "contracts",
+    "actions",
+    "combinations",
+    "release"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.release-compatibility-matrix" },
+    "matrixId": { "$ref": "#/definitions/identifier" },
+    "runtime": { "$ref": "#/definitions/runtime" },
+    "contracts": { "$ref": "#/definitions/contracts" },
+    "actions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/action" }
+    },
+    "combinations": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/combination" }
+    },
+    "release": { "$ref": "#/definitions/release" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "nodeLine": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.x$"
+    },
+    "os": {
+      "type": "string",
+      "enum": ["ubuntu-latest", "macos-latest"]
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node", "os", "actionNode"],
+      "properties": {
+        "node": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/nodeLine" }
+        },
+        "os": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/os" }
+        },
+        "actionNode": { "$ref": "#/definitions/nodeLine" }
+      }
+    },
+    "contracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshot",
+        "diff",
+        "policy",
+        "adapterApi",
+        "adapterCompatibility",
+        "action"
+      ],
+      "properties": {
+        "snapshot": { "type": "integer", "minimum": 1 },
+        "diff": { "type": "integer", "minimum": 1 },
+        "policy": { "type": "integer", "minimum": 1 },
+        "adapterApi": { "type": "integer", "minimum": 1 },
+        "adapterCompatibility": { "type": "integer", "minimum": 1 },
+        "action": { "$ref": "#/definitions/semver" }
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "ref"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^v[0-9]+(?:\\.[0-9]+){1,2}$"
+        },
+        "ref": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      }
+    },
+    "combination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "os",
+        "node",
+        "snapshot",
+        "diff",
+        "policy",
+        "adapterApi",
+        "adapterCompatibility",
+        "action"
+      ],
+      "properties": {
+        "os": { "$ref": "#/definitions/os" },
+        "node": { "$ref": "#/definitions/nodeLine" },
+        "snapshot": { "type": "integer", "minimum": 1 },
+        "diff": { "type": "integer", "minimum": 1 },
+        "policy": { "type": "integer", "minimum": 1 },
+        "adapterApi": { "type": "integer", "minimum": 1 },
+        "adapterCompatibility": { "type": "integer", "minimum": 1 },
+        "action": { "$ref": "#/definitions/semver" }
+      }
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recordFile", "recordSchema", "validatorCommand"],
+      "properties": {
+        "recordFile": { "const": "compatibility-matrix.json" },
+        "recordSchema": {
+          "const": "schema/release-compatibility-record.v0.1.schema.json"
+        },
+        "validatorCommand": {
+          "const": "npm run release-compatibility:validate"
+        }
+      }
+    }
+  }
+}

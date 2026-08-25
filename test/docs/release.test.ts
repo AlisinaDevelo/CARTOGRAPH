@@ -25,6 +25,7 @@ describe("release pipeline contract", () => {
     expect(workflow).toContain("attestations: write");
     expect(workflow).toContain("*.sbom.cdx.json");
     expect(workflow).toContain("*.provenance.json");
+    expect(workflow).toContain("compatibility-matrix.json");
     expect(workflow).toContain("gh attestation verify");
     expect(workflow).toContain("release-metadata.json");
     expect(workflow).toContain("--verify-tag");
@@ -41,12 +42,16 @@ describe("release pipeline contract", () => {
     expect(read("scripts/release-artifact.mjs")).toContain(
       "from 'cartograph-cli'",
     );
+    expect(read("scripts/release-artifact.mjs")).toContain(
+      "release-compatibility.mjs",
+    );
     expect(workflow).not.toContain("npm publish");
   });
 
   it("keeps the release contract documented and generated output ignored", () => {
     const release = read("docs/RELEASE.md");
     const distribution = read("docs/DISTRIBUTION_DECISION.md");
+    const compatibility = read("docs/RELEASE_COMPATIBILITY.md");
     const changelog = read("CHANGELOG.md");
     const ignore = read(".gitignore");
     expect(release).toContain("Rollback and recovery");
@@ -56,6 +61,8 @@ describe("release pipeline contract", () => {
     expect(release).toContain("gh attestation verify");
     expect(release).toContain("isolated offline package");
     expect(release).toContain("consumer smoke test");
+    expect(release).toContain("compatibility-matrix.json");
+    expect(compatibility).toContain("cartograph-release-compatibility-v0.1");
     expect(release).toContain("DISTRIBUTION_DECISION.md");
     expect(distribution).toContain(
       "standalone native executable is explicitly deferred",
