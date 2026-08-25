@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.runtime-reconciliation-evaluation",
+  "mediaType": "application/vnd.cartograph.runtime-reconciliation-evaluation+json",
+  "evaluationId": "runtime-reconciliation-synthetic-baseline",
+  "evaluatedAt": "2026-08-25T00:00:00Z",
+  "fixtureDigest": "sha256:d2435735f55c02d9b1856f1660a0bab7f7443440559ee734b5c80e6df0ea2b29",
+  "releaseGating": {
+    "enabled": false,
+    "reason": "Synthetic baseline requires maintainer review before any release threshold is enabled."
+  },
+  "limitations": [
+    "The oracle uses a hand-authored four-node graph and a five-span trace; it is not representative of production workloads.",
+    "Expected classifications are fixture ground truth and do not estimate population-level precision or recall.",
+    "Explicit span bindings are supplied by the fixture, so binding discovery quality is outside this evaluation."
+  ],
+  "samplingCaveats": [
+    "The sampled case removes the tail span from an otherwise identical trace and compares it with the complete-trace oracle.",
+    "Missing spans can become modeled-not-observed or observed-but-unmodeled; runtime-edge coverage reports retained parent/child edges only.",
+    "Coverage is a bounded sample ratio, not evidence that unobserved production edges do not exist."
+  ],
+  "overall": {
+    "expectedRuntimeSpanEdges": 6,
+    "actualRuntimeSpanEdges": 5,
+    "expectedRecords": 8,
+    "actualRecords": 8,
+    "truePositives": 7,
+    "falsePositives": 1,
+    "falseNegatives": 1,
+    "precision": 0.875,
+    "recall": 0.875,
+    "coverage": 0.8333333333333334,
+    "ambiguousRecords": 2,
+    "ambiguityRate": 0.25
+  },
+  "caseResults": [
+    {
+      "id": "complete-trace",
+      "expectedRuntimeSpanEdges": 3,
+      "actualRuntimeSpanEdges": 3,
+      "expectedRecords": 4,
+      "actualRecords": 4,
+      "truePositives": 4,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "precision": 1,
+      "recall": 1,
+      "coverage": 1,
+      "ambiguousRecords": 1,
+      "ambiguityRate": 0.25
+    },
+    {
+      "id": "sampled-without-tail-span",
+      "expectedRuntimeSpanEdges": 3,
+      "actualRuntimeSpanEdges": 2,
+      "expectedRecords": 4,
+      "actualRecords": 4,
+      "truePositives": 3,
+      "falsePositives": 1,
+      "falseNegatives": 1,
+      "precision": 0.75,
+      "recall": 0.75,
+      "coverage": 0.6666666666666666,
+      "ambiguousRecords": 1,
+      "ambiguityRate": 0.25
+    }
+  ],
+  "reportDigest": "sha256:b72cb6466694af8c0a11a8a511e4e0bf5e8ba8fe485bf743fc0c7c2e7f370110"
+}

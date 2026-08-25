@@ -146,6 +146,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "runtime-reconciliation-evaluation",
+      "path": "runtime-reconciliation-evaluation",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A complete synthetic runtime trace and a deterministic sampled variant exercise known reconciliation classifications, precision/recall, runtime-edge coverage, ambiguity, and sampling caveats without network access or hosted collection.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "review-regressions",
       "path": "review-regressions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

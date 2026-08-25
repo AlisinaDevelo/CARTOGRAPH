@@ -1,0 +1,118 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/runtime-reconciliation-evaluation-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH runtime reconciliation evaluation fixtures v0.1",
+  "description": "Offline synthetic runtime traces with an explicit complete-trace oracle and deterministic sampling perturbations.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "evaluationId",
+    "evaluatedAt",
+    "baseInput",
+    "releaseGating",
+    "limitations",
+    "samplingCaveats",
+    "cases"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": {
+      "const": "cartograph.runtime-reconciliation-evaluation-fixtures"
+    },
+    "evaluationId": { "$ref": "#/definitions/identifier" },
+    "evaluatedAt": { "$ref": "#/definitions/dateTime" },
+    "baseInput": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "releaseGating": { "$ref": "#/definitions/releaseGating" },
+    "limitations": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 16,
+      "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+    },
+    "samplingCaveats": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 16,
+      "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "dateTime": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "spanKey": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}:[0-9a-f]{16}$"
+    },
+    "releaseGating": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "reason"],
+      "properties": {
+        "enabled": { "const": false },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "expectedRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "classification"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "classification": {
+          "enum": [
+            "observed-and-modeled",
+            "modeled-not-observed",
+            "observed-but-unmodeled",
+            "ambiguous"
+          ]
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "dropSpanIds",
+        "dropBindingSpanIds",
+        "expectedRuntimeSpanEdges",
+        "expectedRecords"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "dropSpanIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/spanKey" }
+        },
+        "dropBindingSpanIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/spanKey" }
+        },
+        "expectedRuntimeSpanEdges": { "type": "integer", "minimum": 1 },
+        "expectedRecords": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 200000,
+          "items": { "$ref": "#/definitions/expectedRecord" }
+        }
+      }
+    }
+  }
+}
