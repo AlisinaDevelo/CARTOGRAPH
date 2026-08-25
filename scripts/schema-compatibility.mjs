@@ -71,6 +71,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/policy-composition.ts" ||
       file === "src/core/adr.ts" ||
       file === "src/core/adapters.ts" ||
+      file === "src/core/adapter-compatibility.ts" ||
       file === "src/core/runtime-traces.ts" ||
       file === "src/core/runtime-reconciliation.ts" ||
       file === "src/core/runtime-trace-safety.ts" ||
@@ -96,6 +97,7 @@ const checkHostedVersionChange = () => {
       file === "schema/policy-composition.v0.1.schema.json" ||
       file === "schema/adr-reference.v0.1.schema.json" ||
       file === "schema/adapter.v0.1.schema.json" ||
+      file === "schema/adapter-compatibility.v0.1.schema.json" ||
       file === "schema/runtime-traces.v0.1.schema.json" ||
       file === "schema/runtime-reconciliation.v0.1.schema.json" ||
       file === "schema/runtime-trace-safety.v0.1.schema.json" ||
@@ -141,6 +143,9 @@ const checkCompatibility = () => {
   const adrReferenceSource = readText("src/core/adr.ts");
   const adrCoverageSource = readText("src/report/adr.ts");
   const adapterSource = readText("src/core/adapters.ts");
+  const adapterCompatibilitySource = readText(
+    "src/core/adapter-compatibility.ts",
+  );
   const runtimeTraceSource = readText("src/core/runtime-traces.ts");
   const runtimeReconciliationSource = readText(
     "src/core/runtime-reconciliation.ts",
@@ -186,6 +191,9 @@ const checkCompatibility = () => {
   const adrReferenceSchema = readJson("schema/adr-reference.v0.1.schema.json");
   const adrCoverageSchema = readJson("schema/adr-coverage.v0.1.schema.json");
   const adapterSchema = readJson("schema/adapter.v0.1.schema.json");
+  const adapterCompatibilitySchema = readJson(
+    "schema/adapter-compatibility.v0.1.schema.json",
+  );
   const runtimeTraceSchema = readJson("schema/runtime-traces.v0.1.schema.json");
   const runtimeReconciliationSchema = readJson(
     "schema/runtime-reconciliation.v0.1.schema.json",
@@ -274,6 +282,10 @@ const checkCompatibility = () => {
     "ADR_COVERAGE_SCHEMA_VERSION",
   );
   const adapterVersion = sourceVersion(adapterSource, "ADAPTER_API_VERSION");
+  const adapterCompatibilityVersion = sourceVersion(
+    adapterCompatibilitySource,
+    "ADAPTER_COMPATIBILITY_SCHEMA_VERSION",
+  );
   const runtimeTraceVersion = sourceVersion(
     runtimeTraceSource,
     "RUNTIME_TRACE_SCHEMA_VERSION",
@@ -337,6 +349,7 @@ const checkCompatibility = () => {
     adrReferenceVersion === undefined ||
     adrCoverageVersion === undefined ||
     adapterVersion === undefined ||
+    adapterCompatibilityVersion === undefined ||
     runtimeTraceVersion === undefined ||
     runtimeReconciliationVersion === undefined ||
     runtimeTraceSafetyVersion === undefined ||
@@ -477,6 +490,16 @@ const checkCompatibility = () => {
     "adapter JSON Schema/runtime",
     adapterSchema.properties.apiVersion.const,
     adapterVersion,
+  );
+  requireEqual(
+    "adapter compatibility runtime/policy",
+    adapterCompatibilityVersion,
+    contracts.adapterCompatibilityNegotiation.current,
+  );
+  requireEqual(
+    "adapter compatibility JSON Schema/runtime",
+    adapterCompatibilitySchema.properties.schemaVersion.const,
+    adapterCompatibilityVersion,
   );
   requireEqual(
     "runtime trace runtime/policy",
@@ -635,6 +658,7 @@ const checkCompatibility = () => {
     adrReferenceVersion,
     adrCoverageVersion,
     adapterVersion,
+    adapterCompatibilityVersion,
     runtimeTraceVersion,
     runtimeReconciliationVersion,
     runtimeTraceSafetyVersion,

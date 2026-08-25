@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.adapter-compatibility",
+  "mediaType": "application/vnd.cartograph.adapter-compatibility+json",
+  "current": {
+    "apiVersion": 1,
+    "compatibilityVersion": 1,
+    "capabilityRegistryVersion": 1,
+    "graphSchemaVersion": 1
+  },
+  "migrations": [
+    {
+      "id": "cartograph.adapter.compatibility.v0-to-v1",
+      "from": {
+        "apiVersion": 1,
+        "compatibilityVersion": 0,
+        "capabilityRegistryVersion": 1,
+        "graphSchemaVersion": 1
+      },
+      "to": {
+        "apiVersion": 1,
+        "compatibilityVersion": 1,
+        "capabilityRegistryVersion": 1,
+        "graphSchemaVersion": 1
+      },
+      "status": "deprecated",
+      "expiresOn": "2027-06-30",
+      "guidance": "Upgrade the adapter manifest and output to compatibilityVersion 1 before the migration window closes."
+    }
+  ]
+}

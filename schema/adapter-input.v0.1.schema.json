@@ -41,6 +41,7 @@
       }
     },
     "config": { "$ref": "#/definitions/jsonObject" },
+    "compatibility": { "$ref": "#/definitions/compatibility" },
     "resources": {
       "type": "object",
       "additionalProperties": false,
@@ -113,6 +114,27 @@
       "type": "array",
       "maxItems": 10000,
       "items": { "$ref": "#/definitions/path" }
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "apiVersion",
+        "compatibilityVersion",
+        "capabilityRegistryVersion",
+        "graphSchemaVersion",
+        "allowExperimental"
+      ],
+      "properties": {
+        "apiVersion": { "type": "integer", "minimum": 0 },
+        "compatibilityVersion": { "type": "integer", "minimum": 0 },
+        "capabilityRegistryVersion": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "graphSchemaVersion": { "type": "integer", "minimum": 0 },
+        "allowExperimental": { "type": "boolean" }
+      }
     },
     "jsonValue": {
       "anyOf": [

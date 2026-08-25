@@ -50,7 +50,7 @@ describe("upgrade policy", () => {
       contract: "cartograph.upgrade-policy",
       schemaVersion: 1,
       policyId: "cartograph-public-upgrade-policy",
-      checks: 19,
+      checks: 20,
       owner: "@AlisinaDevelo",
     });
   });

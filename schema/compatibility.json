@@ -82,6 +82,11 @@
       "supportedReaders": [1],
       "reviewedVersions": [1]
     },
+    "adapterCompatibilityNegotiation": {
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
+    },
     "runtimeTraces": {
       "current": 1,
       "supportedReaders": [1],

@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/adapter-compatibility-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH adapter compatibility fixtures v0.1",
+  "description": "Bounded negotiation cases covering current, migratable, experimental, and rejected adapter/core combinations.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "contract", "target", "cases"],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.adapter-compatibility-fixtures" },
+    "target": { "$ref": "#/definitions/tuple" },
+    "cases": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 32,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "tuple": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "apiVersion",
+        "compatibilityVersion",
+        "capabilityRegistryVersion",
+        "graphSchemaVersion"
+      ],
+      "properties": {
+        "apiVersion": { "type": "integer", "minimum": 0 },
+        "compatibilityVersion": { "type": "integer", "minimum": 0 },
+        "capabilityRegistryVersion": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "graphSchemaVersion": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "adapterId",
+        "adapterVersion",
+        "stability",
+        "offered",
+        "allowExperimental",
+        "expectedState"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "adapterId": { "$ref": "#/definitions/identifier" },
+        "adapterVersion": { "type": "string", "minLength": 1 },
+        "stability": { "enum": ["stable", "experimental"] },
+        "offered": { "$ref": "#/definitions/tuple" },
+        "allowExperimental": { "type": "boolean" },
+        "expectedState": {
+          "enum": ["compatible", "migratable", "experimental", "rejected"]
+        },
+        "expectedGuidance": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

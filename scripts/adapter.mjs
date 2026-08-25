@@ -305,6 +305,7 @@ const validate = async () => {
     network: output.capability.execution.network,
     repositoryCodeExecution:
       output.capability.execution.repositoryCodeExecution,
+    compatibility: output.compatibility?.state,
     conformance: {
       cases: conformance.cases.length,
       deterministic: conformance.deterministic,
@@ -314,6 +315,7 @@ const validate = async () => {
     },
     fastify: {
       adapterId: fastifyAdapter.manifest.id,
+      compatibility: fastifyOutput.compatibility?.state,
       cases: fastifyConformance.cases.length,
       deterministic: fastifyConformance.deterministic,
       evidenceComplete: fastifyConformance.evidenceComplete,

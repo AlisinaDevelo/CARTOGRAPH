@@ -8,6 +8,8 @@ const manifest = {
   version: "0.1.0",
   compatibilityVersion: 1,
   capabilityRegistryVersion: 1,
+  graphSchemaVersion: 1,
+  stability: "stable",
   capabilities: [
     {
       id: "isolation.fixture",

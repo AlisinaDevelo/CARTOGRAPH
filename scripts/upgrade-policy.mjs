@@ -120,6 +120,7 @@ const validate = () => {
     capabilities: "capabilities",
     diagnostics: "diagnostics",
     adapters: "adapters",
+    adapterCompatibilityNegotiation: "adapterCompatibilityNegotiation",
   };
   for (const [policyKey, manifestKey] of Object.entries(compatibilityMap)) {
     equal(

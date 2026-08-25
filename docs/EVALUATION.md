@@ -154,6 +154,13 @@ matching uses generic semantic signals rather than a TypeScript assumption,
 then checks the existing sample and Fastify adapters under the same graph
 contract.
 
+E-008 adds the
+[`adapter-compatibility/scenarios.v0.1.json`](../test/fixtures/adapter-compatibility/scenarios.v0.1.json)
+corpus. It covers both shipped adapter IDs under the current API, a legacy
+adapter-compatibility migration, experimental opt-in, and a future capability
+registry rejection. The tests prove negotiation runs before `analyze`, applies
+only the reviewed version rewrite, and preserves deterministic failure guidance.
+
 ## Practical compatibility
 
 R-005 records the first compatibility review in

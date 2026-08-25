@@ -35,7 +35,7 @@ describe("change-control validator", () => {
     expect(JSON.parse(output)).toMatchObject({
       ok: true,
       registerVersion: 1,
-      entries: 10,
+      entries: 11,
       deprecated: 1,
       removed: 0,
       overdue: [],
