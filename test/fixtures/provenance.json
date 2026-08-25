@@ -2,6 +2,15 @@
   "schemaVersion": 1,
   "fixtures": [
     {
+      "id": "adr-lifecycle",
+      "path": "adr-lifecycle",
+      "source": "CARTOGRAPH repository-authored synthetic fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Scenario metadata exercises chained supersession, cycles, missing targets, deterministic status transitions, effective-date diagnostics, and fail-closed unknown conventions without remote authority.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "exclusions",
       "path": "exclusions",
       "source": "CARTOGRAPH repository-authored synthetic fixture",

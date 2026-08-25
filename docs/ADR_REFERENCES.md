@@ -24,8 +24,27 @@ The published JSON Schema is
 and a complete example is in
 [`schema/adr-reference.v0.1.json`](../schema/adr-reference.v0.1.json). Statuses
 are deliberately bounded (`draft`, `proposed`, `accepted`, `rejected`,
-`deprecated`, and `superseded`); lifecycle transitions and supersession
-semantics are a later contract.
+`deprecated`, and `superseded`). The additive lifecycle fields model the
+meaning of a status over time:
+
+- `statusHistory` is an ordered list of `{status, effectiveAt}` entries. The
+  final entry must match `status`, timestamps must increase strictly, and each
+  status change must use one of these transitions:
+  `draft -> proposed|rejected`, `proposed -> draft|accepted|rejected`,
+  `accepted -> deprecated|superseded`, `rejected -> proposed|deprecated`, and
+  `deprecated -> superseded`. `superseded` is terminal.
+- `effectiveFrom` and `effectiveTo` bound the decision's effective period; when
+  both are present, the start must precede the end.
+- `supersedes` points from the newer ADR to the older ADR IDs it replaces. Each
+  target must exist and be marked `superseded`; every `superseded` ADR must have
+  an incoming link. Chains are valid, while cycles, missing targets, status
+  mismatches, and missing incoming links produce deterministic diagnostics.
+
+The parser fails closed for unknown statuses and unknown fields, so an
+unrecognized lifecycle convention cannot silently change architectural meaning.
+The lifecycle fixture corpus is validated by
+`npm run adr-lifecycle:validate` and covers valid chains, cycles, missing
+targets, status changes, date errors, and unknown conventions.
 
 The runtime parser and `readAdrReferenceDocument` accept only a repository-local
 regular JSON file. `validateAdrReferences` can then check each referenced ADR

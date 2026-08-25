@@ -18,6 +18,7 @@ import {
   parseAdrReferenceDocument,
   readAdrReferenceDocument,
   serializeAdrReferenceDocument,
+  validateAdrLifecycle,
   validateAdrReferences,
 } from "../../src/core/index.js";
 
@@ -89,6 +90,123 @@ describe("local ADR references", () => {
         ],
       }).success,
     ).toBe(false);
+  });
+
+  it("accepts a chronological chained supersession history", () => {
+    const document = parseAdrReferenceDocument({
+      schemaVersion: 1,
+      references: [
+        {
+          id: "ADR-0001",
+          file: "docs/adr/one.md",
+          title: "One",
+          status: "superseded",
+          graphIds: ["node:one"],
+        },
+        {
+          id: "ADR-0002",
+          file: "docs/adr/two.md",
+          title: "Two",
+          status: "superseded",
+          graphIds: ["node:two"],
+          supersedes: ["ADR-0001"],
+          statusHistory: [
+            { status: "accepted", effectiveAt: "2028-01-01T00:00:00Z" },
+            { status: "superseded", effectiveAt: "2028-02-01T00:00:00Z" },
+          ],
+        },
+        {
+          id: "ADR-0003",
+          file: "docs/adr/three.md",
+          title: "Three",
+          status: "accepted",
+          graphIds: ["node:three"],
+          supersedes: ["ADR-0002"],
+          statusHistory: [
+            { status: "draft", effectiveAt: "2028-03-01T00:00:00Z" },
+            { status: "proposed", effectiveAt: "2028-03-02T00:00:00Z" },
+            { status: "accepted", effectiveAt: "2028-03-03T00:00:00Z" },
+          ],
+        },
+      ],
+    });
+
+    expect(validateAdrLifecycle(document)).toEqual([]);
+    expect(validateAdrReferences(document)).toEqual({
+      ok: true,
+      diagnostics: [],
+    });
+  });
+
+  it("reports deterministic cycles, missing targets, and status mismatches", () => {
+    const document = parseAdrReferenceDocument({
+      schemaVersion: 1,
+      references: [
+        {
+          id: "ADR-a",
+          file: "docs/adr/a.md",
+          title: "A",
+          status: "superseded",
+          graphIds: ["node:a"],
+          supersedes: ["ADR-b"],
+        },
+        {
+          id: "ADR-b",
+          file: "docs/adr/b.md",
+          title: "B",
+          status: "superseded",
+          graphIds: ["node:b"],
+          supersedes: ["ADR-a"],
+        },
+        {
+          id: "ADR-c",
+          file: "docs/adr/c.md",
+          title: "C",
+          status: "accepted",
+          graphIds: ["node:c"],
+          supersedes: ["ADR-missing"],
+        },
+      ],
+    });
+
+    const first = validateAdrReferences(document);
+    const second = validateAdrReferences(document);
+    expect(first).toEqual(second);
+    expect(first.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "ADR_REFERENCE_SUPERSESSION_CYCLE",
+      "ADR_REFERENCE_SUPERSESSION_TARGET_MISSING",
+    ]);
+  });
+
+  it("rejects invalid lifecycle transitions and effective dates", () => {
+    const document = parseAdrReferenceDocument({
+      schemaVersion: 1,
+      references: [
+        {
+          id: "ADR-invalid",
+          file: "docs/adr/invalid.md",
+          title: "Invalid",
+          status: "accepted",
+          graphIds: ["node:invalid"],
+          effectiveFrom: "2028-04-01T00:00:00Z",
+          effectiveTo: "2028-04-01T00:00:00Z",
+          statusHistory: [
+            { status: "draft", effectiveAt: "2028-04-02T00:00:00Z" },
+            { status: "accepted", effectiveAt: "2028-04-01T00:00:00Z" },
+          ],
+        },
+      ],
+    });
+
+    expect(
+      validateAdrReferences(document).diagnostics.map(
+        (diagnostic) => diagnostic.code,
+      ),
+    ).toEqual([
+      "ADR_REFERENCE_HISTORY_DATE_ORDER",
+      "ADR_REFERENCE_INVALID_EFFECTIVE_RANGE",
+      "ADR_REFERENCE_INVALID_TRANSITION",
+    ]);
   });
 
   it("reads only a repository-local JSON reference file", () => {
