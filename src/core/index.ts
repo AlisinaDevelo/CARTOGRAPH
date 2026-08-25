@@ -122,6 +122,17 @@ export {
   type SnapshotMigrationResult,
 } from "./migrations.js";
 export {
+  AdapterConformanceError,
+  runAdapterConformance,
+  type AdapterConformanceCase,
+  type AdapterConformanceCaseReport,
+  type AdapterConformanceExpectation,
+  type AdapterConformanceIdentityCase,
+  type AdapterConformanceIdentityReport,
+  type AdapterConformanceOptions,
+  type AdapterConformanceReport,
+} from "./adapter-conformance.js";
+export {
   assertSupportedEnvironment,
   currentSupportEnvironment,
   SUPPORT_MATRIX_CONTRACT,

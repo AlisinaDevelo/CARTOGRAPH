@@ -19,10 +19,11 @@ forbidden in v0.1. Configuration is JSON data only; executable-looking keys
 and non-JSON values are rejected. This boundary describes authority and
 compatibility; it does not grant an adapter access to the caller's process.
 
-The no-op implementation in [`src/adapters/sample.ts`](../src/adapters/sample.ts)
-is a conformance fixture. It reads no files and produces an empty graph, so
-the adapter validator can exercise the complete request/result path without
-executing repository code or contacting a remote service.
+The deterministic fixture implementation in
+[`src/adapters/sample.ts`](../src/adapters/sample.ts) is the reference adapter
+for the conformance kit. Its empty, supported, unsupported, and identity cases
+exercise the request/result path without executing repository code or contacting
+a remote service.
 
 ```ts
 const output = runAdapter(adapter, {
@@ -39,6 +40,17 @@ const output = runAdapter(adapter, {
 ```
 
 `npm run adapter:validate` validates the published manifest, runs the sample
-adapter, checks canonical serialization, and proves that an unsafe execution
-declaration is rejected. Framework and language-specific adapters remain
-separate implementations behind this boundary.
+adapter, and invokes `runAdapterConformance`. The kit fails closed unless every
+case has valid canonical output, deterministic serialization across repeated
+runs, complete top-level evidence references, capability-declared diagnostics,
+and a bounded runtime. An identity pair must preserve the expected matches and
+must not silently turn them into added or removed nodes; unsupported cases must
+emit an explicitly declared warning or error diagnostic. The validator also
+proves that an unsafe execution declaration is rejected.
+
+The adapter API, compatibility version, capability IDs, diagnostic codes, and
+execution policy are versioned together. A contract or behavior failure is a
+blocking validation error rather than a warning; adapters may add new
+capabilities only with new fixtures and a reviewed compatibility decision.
+Framework and language-specific adapters remain separate implementations behind
+this boundary.

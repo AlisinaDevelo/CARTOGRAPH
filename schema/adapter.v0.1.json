@@ -8,11 +8,14 @@
   "capabilityRegistryVersion": 1,
   "capabilities": [
     {
-      "id": "sample.noop",
-      "description": "Produces an empty graph for an explicit local fixture.",
-      "diagnosticCodes": [],
-      "confidence": ["certain"],
-      "examples": ["An explicit fixture with no source extraction."]
+      "id": "sample.fixture",
+      "description": "Produces deterministic graph, evidence, identity, and unsupported-diagnostic fixtures.",
+      "diagnosticCodes": ["UNSUPPORTED_SAMPLE_CONSTRUCT"],
+      "confidence": ["certain", "inferred"],
+      "examples": [
+        "A supported fixture with one evidence-backed edge.",
+        "An unsupported fixture with a reviewable diagnostic."
+      ]
     }
   ],
   "execution": {
