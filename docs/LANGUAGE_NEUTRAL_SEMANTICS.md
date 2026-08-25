@@ -99,3 +99,26 @@ The contract is reviewed as `languageNeutralSemantics` in
 [`schema/compatibility.json`](../schema/compatibility.json). This review adds
 documentation and compatibility evidence only; it does not change the
 GraphSnapshot, GraphDiff, capability, or diagnostic registry versions.
+
+## Cross-language equivalence corpus
+
+E-010 makes the language-neutral claim executable with the versioned
+[`language-equivalence.v0.1.schema.json`](../schema/language-equivalence.v0.1.schema.json)
+schema and paired
+[`scenarios.v0.1.json`](../test/fixtures/language-equivalence/scenarios.v0.1.json)
+fixtures. The corpus covers modules, calls, external boundaries, identity,
+source-bound evidence, and unsupported or unknown behavior for the TypeScript
+core and bounded Rust pilot. Each case declares the expected node and edge
+counts, diagnostic code set, evidence minimum, and any intentional difference.
+
+Run `npm run language-equivalence:validate` to analyze both projections and
+receive a deterministic category-level report. The v0.1 baseline contains six
+cases: five equivalent semantic slices and one intentional-difference unknown
+slice. Rust containment edges, inferred-versus-certain boundary confidence,
+adapter-specific detector names, and Rust-specific dynamic-query diagnostics
+are explicit differences; they are not silently normalized away. Identity is
+checked independently for both languages with the same kind/name/path-history
+signals, and every emitted edge or diagnostic remains source-bound. A changed
+count, diagnostic set, evidence requirement, or identity result is reported
+with its semantic category and case instead of being treated as a generic
+snapshot mismatch.

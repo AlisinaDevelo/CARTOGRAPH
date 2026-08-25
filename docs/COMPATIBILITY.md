@@ -403,6 +403,23 @@ This is an additive documentation and fixture contract. Existing GraphSnapshot,
 GraphDiff, capability, diagnostic, Express, and Fastify reader boundaries stay
 at version `1`; no migration or runtime schema bump is required.
 
+## E-010 cross-language semantic equivalence
+
+E-010 publishes the
+[`cartograph.language-equivalence`](../schema/language-equivalence.v0.1.schema.json)
+contract and the paired TypeScript/Rust
+[`scenarios.v0.1.json`](../test/fixtures/language-equivalence/scenarios.v0.1.json)
+corpus. The evaluator runs both projections through their public analyzer
+boundaries and compares declared node/edge counts, exact diagnostic-code sets,
+source-bound evidence, and language-agnostic identity outcomes by semantic
+category. The v0.1 baseline has six cases, five equivalent projections, one
+intentional-difference unknown projection, complete evidence, and two identity
+matches. Rust containment edges, confidence and detector vocabulary, and
+Rust-specific dynamic-query diagnostics are versioned intentional differences;
+they do not change GraphSnapshot v1 or the adapter API. `npm run
+language-equivalence:validate` is the local compatibility gate and reports any
+drift with its category and case.
+
 ## E-008 adapter compatibility negotiation
 
 E-008 adds the reviewed `adapterCompatibilityNegotiation` v1 contract and

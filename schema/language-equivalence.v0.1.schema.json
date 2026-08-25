@@ -1,0 +1,167 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/language-equivalence.v0.1.schema.json",
+  "title": "CARTOGRAPH cross-language semantic equivalence corpus v0.1",
+  "description": "Versioned TypeScript and pilot-language projections, intentional differences, identity cases, evidence requirements, and unknown behavior.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "contract", "corpusId", "cases"],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.language-equivalence" },
+    "corpusId": { "$ref": "#/definitions/identifier" },
+    "cases": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 32,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "repositoryPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!\\\\)(?!~)(?![A-Za-z]:)(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?!.*\\u0000).+"
+    },
+    "category": {
+      "enum": [
+        "modules",
+        "calls",
+        "boundary",
+        "identity",
+        "evidence",
+        "unknown"
+      ]
+    },
+    "languageSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root"],
+      "properties": {
+        "root": { "$ref": "#/definitions/repositoryPath" }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[a-z][a-z0-9_]*$": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "expectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeCounts", "edgeCounts", "diagnosticCodes", "evidence"],
+      "properties": {
+        "nodeCounts": { "$ref": "#/definitions/counts" },
+        "edgeCounts": { "$ref": "#/definitions/counts" },
+        "diagnosticCodes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          }
+        },
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["minEdgeEvidence", "minDiagnosticEvidence"],
+          "properties": {
+            "minEdgeEvidence": { "type": "integer", "minimum": 0 },
+            "minDiagnosticEvidence": { "type": "integer", "minimum": 0 },
+            "sourceBound": { "type": "boolean", "default": true }
+          }
+        }
+      }
+    },
+    "identitySide": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeKind", "nodeName", "beforePath", "afterPath"],
+      "properties": {
+        "nodeKind": {
+          "type": "string",
+          "enum": [
+            "endpoint",
+            "module",
+            "service",
+            "function",
+            "database_table",
+            "queue",
+            "external_service",
+            "file",
+            "unknown"
+          ]
+        },
+        "nodeName": { "type": "string", "minLength": 1 },
+        "beforePath": { "$ref": "#/definitions/repositoryPath" },
+        "afterPath": { "$ref": "#/definitions/repositoryPath" }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "typescript",
+        "rust",
+        "expectedMatches",
+        "expectedAmbiguous",
+        "expectedUnsupported"
+      ],
+      "properties": {
+        "typescript": { "$ref": "#/definitions/identitySide" },
+        "rust": { "$ref": "#/definitions/identitySide" },
+        "expectedMatches": { "type": "integer", "minimum": 0 },
+        "expectedAmbiguous": { "type": "integer", "minimum": 0 },
+        "expectedUnsupported": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "difference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "language", "detail"],
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "language": { "enum": ["typescript", "rust", "both"] },
+        "detail": { "type": "string", "minLength": 1 }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "category",
+        "typescript",
+        "rust",
+        "relation",
+        "typescriptExpected",
+        "rustExpected",
+        "intentionalDifferences"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "category": { "$ref": "#/definitions/category" },
+        "typescript": { "$ref": "#/definitions/languageSource" },
+        "rust": { "$ref": "#/definitions/languageSource" },
+        "relation": { "enum": ["equivalent", "intentional-difference"] },
+        "typescriptExpected": { "$ref": "#/definitions/expectation" },
+        "rustExpected": { "$ref": "#/definitions/expectation" },
+        "identity": { "$ref": "#/definitions/identity" },
+        "intentionalDifferences": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/difference" }
+        }
+      }
+    }
+  }
+}
