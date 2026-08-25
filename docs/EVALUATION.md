@@ -115,7 +115,14 @@ expected suppression, and deterministic repeated evaluation.
 
 ## Practical compatibility
 
-Before v0.1, CARTOGRAPH will analyze at least three representative public TypeScript repositories or recorded snapshots. The report will publish supported, unresolved, and failed construct counts without copying third-party source into the repository.
+R-005 records the first compatibility review in
+[`COMPATIBILITY_REVIEW.md`](COMPATIBILITY_REVIEW.md). It analyzes three public
+TypeScript repositories successfully and retains two additional public runs as
+bounded failures, publishing supported, unknown, and failed counts without
+copying third-party source or graph snapshots. The checked-in aggregate record
+also links feedback to follow-up roadmap issues; `npm run
+compatibility:validate` fails if commits, digests, totals, or failure boundaries
+drift.
 
 ## Performance
 

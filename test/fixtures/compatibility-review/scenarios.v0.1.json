@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.compatibility-review",
+  "reviewId": "r005-v0.1",
+  "reviewedAt": "2026-08-25T04:18:00Z",
+  "tool": {
+    "version": "0.1.0",
+    "commit": "3e473962c96e9738863e6e91573bc5b6c4eceec7",
+    "runtime": "Node.js 26.7.0",
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "sourcePolicy": "Public repository metadata and aggregate analyzer results only; no third-party source, snapshot, or source excerpt is redistributed.",
+  "runs": [
+    {
+      "id": "hono",
+      "repository": "honojs/hono",
+      "url": "https://github.com/honojs/hono",
+      "license": "MIT",
+      "commit": "017000d6ad5bc6a65dd0f9215a4fdfea6ea80aea",
+      "tsconfig": "tsconfig.build.json",
+      "status": "analyzed",
+      "snapshotSha256": "sha256:1b9a2ccd3fbd4e1a47767b6c5ebda1e6fb3fe7f4174050c74e1545aea0ecd045",
+      "counts": {
+        "nodes": 802,
+        "edges": 1186,
+        "diagnostics": 392,
+        "supported": 1186,
+        "unknown": 392,
+        "failed": 0
+      },
+      "supportedConstructs": {
+        "imports": 497,
+        "calls": 689
+      },
+      "unknownDiagnostics": {
+        "UNRESOLVED_CALL": 377,
+        "UNSUPPORTED_DYNAMIC_HTTP_DESTINATION": 1,
+        "UNSUPPORTED_DYNAMIC_IMPORT": 1,
+        "UNSUPPORTED_DYNAMIC_ROUTE": 13
+      },
+      "feedback": "Import and call edges are emitted at scale; unresolved calls dominate the unknown output, while dynamic route and import behavior remains explicit.",
+      "followUps": ["X-011", "X-012"]
+    },
+    {
+      "id": "tsyringe",
+      "repository": "microsoft/tsyringe",
+      "url": "https://github.com/microsoft/tsyringe",
+      "license": "MIT",
+      "commit": "e033769d97cfb6cc4a8569e2b50eb32015453302",
+      "tsconfig": "tsconfig.json",
+      "status": "analyzed",
+      "snapshotSha256": "sha256:7ad0e1afa6f1d863348495ee14df969dcafe7a36f1acd55cd5039566d7184764",
+      "counts": {
+        "nodes": 102,
+        "edges": 225,
+        "diagnostics": 30,
+        "supported": 225,
+        "unknown": 30,
+        "failed": 0
+      },
+      "supportedConstructs": {
+        "imports": 131,
+        "calls": 94
+      },
+      "unknownDiagnostics": {
+        "UNRESOLVED_CALL": 30
+      },
+      "feedback": "The bounded library scan is reproducible and import-rich; dependency-injection and factory indirection produce explicit unresolved-call diagnostics rather than guessed edges.",
+      "followUps": ["X-011"]
+    },
+    {
+      "id": "zustand",
+      "repository": "pmndrs/zustand",
+      "url": "https://github.com/pmndrs/zustand",
+      "license": "MIT",
+      "commit": "b57db4f86ef179285da216eeb291266da82c361c",
+      "tsconfig": "tsconfig.json",
+      "status": "analyzed",
+      "snapshotSha256": "sha256:c6ad0159acca51c0a419fe73216fdfa37c0f229bdd79b8f0d742ac77cb46fe65",
+      "counts": {
+        "nodes": 219,
+        "edges": 145,
+        "diagnostics": 2721,
+        "supported": 145,
+        "unknown": 2721,
+        "failed": 0
+      },
+      "supportedConstructs": {
+        "imports": 81,
+        "calls": 64
+      },
+      "unknownDiagnostics": {
+        "UNRESOLVED_CALL": 2721
+      },
+      "feedback": "The scan remains deterministic, but higher-order store composition creates a high unresolved-call volume; this repository should not be used as a universal call-graph accuracy claim.",
+      "followUps": ["X-011"]
+    },
+    {
+      "id": "zod",
+      "repository": "colinhacks/zod",
+      "url": "https://github.com/colinhacks/zod",
+      "license": "MIT",
+      "commit": "badf0b7894a4f777d41fcd7ed2433e5f8c9c23ea",
+      "tsconfig": "tsconfig.json",
+      "status": "failed",
+      "snapshotSha256": null,
+      "counts": {
+        "nodes": 0,
+        "edges": 0,
+        "diagnostics": 0,
+        "supported": 0,
+        "unknown": 0,
+        "failed": 1
+      },
+      "supportedConstructs": {},
+      "unknownDiagnostics": {},
+      "failure": {
+        "code": "RESOURCE_LIMIT",
+        "stage": "analysis",
+        "message": "analysis exceeded the 1073741824 byte memory ceiling"
+      },
+      "feedback": "The current whole-repository scope exceeds the bounded analyzer memory ceiling; a future review should use explicit package scope or a large-repository budget before making compatibility claims.",
+      "followUps": ["M-001", "D-016"]
+    },
+    {
+      "id": "changesets",
+      "repository": "changesets/changesets",
+      "url": "https://github.com/changesets/changesets",
+      "license": "MIT",
+      "commit": "2eb65ba75368976251fcb36897634272e890707e",
+      "tsconfig": "tsconfig.json",
+      "status": "failed",
+      "snapshotSha256": null,
+      "counts": {
+        "nodes": 0,
+        "edges": 0,
+        "diagnostics": 0,
+        "supported": 0,
+        "unknown": 0,
+        "failed": 1
+      },
+      "supportedConstructs": {},
+      "unknownDiagnostics": {},
+      "failure": {
+        "code": "CONFIGURATION_ERROR",
+        "stage": "configuration",
+        "message": "unsupported tsconfig extends target @tsconfig/node22/tsconfig.json; only in-repository paths are supported"
+      },
+      "feedback": "The analyzer fails closed on a package-provided tsconfig extension instead of silently guessing compiler settings; portability requires a documented local-config or vendored-config path.",
+      "followUps": ["X-007"]
+    }
+  ]
+}
