@@ -8,7 +8,7 @@ import {
   type GraphEdge,
 } from "../core/index.js";
 import { assertReportItemLimit, ResourceLimitError } from "../resources.js";
-import type { AdrReport, AdrReportReference } from "./adr.js";
+import type { AdrCoverage, AdrReport, AdrReportReference } from "./adr.js";
 
 export type ReportFormat = "html" | "json" | "markdown";
 
@@ -180,6 +180,55 @@ const markdownAdrReference = (reference: AdrReportReference): string[] => {
   return lines;
 };
 
+const markdownCoverageKinds = (
+  entries: AdrCoverage["nodes"]["byKind"],
+): string =>
+  entries
+    .map(
+      (entry) =>
+        `${markdownCode(entry.kind)} ${entry.total} total/${entry.linked} linked/${entry.ambiguous} ambiguous/${entry.unlinked} unlinked`,
+    )
+    .join(", ");
+
+const markdownAdrCoverage = (
+  title: string,
+  coverage: AdrCoverage,
+): string[] => {
+  const lines = [
+    `### ${title}`,
+    "",
+    ...(coverage.snapshotRevision === undefined
+      ? []
+      : [`- Snapshot revision: ${markdownCode(coverage.snapshotRevision)}`]),
+    `- ADR references: ${coverage.adrReferences.total} total; ${coverage.adrReferences.linked} linked; ${coverage.adrReferences.ambiguous} ambiguous; ${coverage.adrReferences.unlinked} unlinked`,
+    `- Graph links: ${coverage.graphLinks.total} total; ${coverage.graphLinks.resolved} resolved; ${coverage.graphLinks.ambiguous} ambiguous; ${coverage.graphLinks.unresolved} unresolved`,
+    `- Nodes: ${coverage.nodes.total} total; ${coverage.nodes.linked} linked; ${coverage.nodes.ambiguous} ambiguous; ${coverage.nodes.unlinked} unlinked`,
+    `- Edges: ${coverage.edges.total} total; ${coverage.edges.linked} linked; ${coverage.edges.ambiguous} ambiguous; ${coverage.edges.unlinked} unlinked`,
+    `- Node-kind counts: ${markdownCoverageKinds(coverage.nodes.byKind)}`,
+    `- Edge-kind counts: ${markdownCoverageKinds(coverage.edges.byKind)}`,
+    "",
+    "#### ADR-to-graph index",
+    "",
+  ];
+  for (const entry of coverage.adrToGraph) {
+    lines.push(
+      `- ${markdownCode(entry.id)} — ${markdownCode(entry.status)}; ${entry.links
+        .map(
+          (link) =>
+            `${markdownCode(link.graphId)} (${markdownCode(link.resolution)}${link.targets.length === 0 ? "" : ` → ${link.targets.map((target) => markdownCode(target.id)).join(", ")}`})`,
+        )
+        .join(", ")}`,
+    );
+  }
+  lines.push("", "#### Graph-to-ADR index", "");
+  for (const entry of coverage.graphToAdr) {
+    lines.push(
+      `- ${markdownCode(entry.id)} (${markdownCode(entry.kind)}) — ADRs: ${entry.adrIds.length === 0 ? markdownCode("none") : entry.adrIds.map(markdownCode).join(", ")}; ambiguous ADRs: ${entry.ambiguousAdrIds.length === 0 ? markdownCode("none") : entry.ambiguousAdrIds.map(markdownCode).join(", ")}`,
+    );
+  }
+  return lines;
+};
+
 const markdownAdrSection = (adrReport: AdrReport): string[] => {
   const { summary } = adrReport;
   const lines = [
@@ -220,6 +269,20 @@ const markdownAdrSection = (adrReport: AdrReport): string[] => {
           `- ${markdownCode(diagnostic.code)} — ${markdownCode(diagnostic.message)}`,
       ),
     );
+  }
+  if (adrReport.coverage !== undefined) {
+    lines.push("", "### ADR coverage", "");
+    if (adrReport.coverage.current !== undefined)
+      lines.push(
+        ...markdownAdrCoverage("Current snapshot", adrReport.coverage.current),
+      );
+    if (adrReport.coverage.previous !== undefined)
+      lines.push(
+        ...markdownAdrCoverage(
+          "Previous snapshot",
+          adrReport.coverage.previous,
+        ),
+      );
   }
   return lines;
 };
@@ -404,6 +467,29 @@ const htmlAdrGroup = (
 ): string =>
   `<section aria-label="${escapeHtml(title)}"><h3>${escapeHtml(title)}</h3>${htmlList(references.map(htmlAdrReference))}</section>`;
 
+const htmlCoverageKinds = (entries: AdrCoverage["nodes"]["byKind"]): string[] =>
+  entries.map(
+    (entry) =>
+      `<code>${escapeHtml(entry.kind)}</code> ${entry.total} total/${entry.linked} linked/${entry.ambiguous} ambiguous/${entry.unlinked} unlinked`,
+  );
+
+const htmlAdrCoverage = (title: string, coverage: AdrCoverage): string => {
+  const adrLinks = coverage.adrToGraph.map(
+    (entry) =>
+      `<li><code>${escapeHtml(entry.id)}</code> (${escapeHtml(entry.status)}): ${entry.links
+        .map(
+          (link) =>
+            `<code>${escapeHtml(link.graphId)}</code> <strong>${escapeHtml(link.resolution)}</strong>${link.targets.length === 0 ? "" : ` → ${link.targets.map((target) => `<code>${escapeHtml(target.id)}</code>`).join(", ")}`}`,
+        )
+        .join(", ")}</li>`,
+  );
+  const graphLinks = coverage.graphToAdr.map(
+    (entry) =>
+      `<li><code>${escapeHtml(entry.id)}</code> (${escapeHtml(entry.kind)}): ADRs ${entry.adrIds.length === 0 ? "none" : entry.adrIds.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ")}; ambiguous ADRs ${entry.ambiguousAdrIds.length === 0 ? "none" : entry.ambiguousAdrIds.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ")}</li>`,
+  );
+  return `<section aria-label="${escapeHtml(title)}"><h3>${escapeHtml(title)}</h3>${coverage.snapshotRevision === undefined ? "" : `<p>Snapshot revision: <code>${escapeHtml(coverage.snapshotRevision)}</code></p>`}<div class="summary"><div class="card">ADR references: ${coverage.adrReferences.total} total<br>${coverage.adrReferences.linked} linked; ${coverage.adrReferences.ambiguous} ambiguous; ${coverage.adrReferences.unlinked} unlinked</div><div class="card">Graph links: ${coverage.graphLinks.total} total<br>${coverage.graphLinks.resolved} resolved; ${coverage.graphLinks.ambiguous} ambiguous; ${coverage.graphLinks.unresolved} unresolved</div><div class="card">Nodes: ${coverage.nodes.total} total<br>${coverage.nodes.linked} linked; ${coverage.nodes.ambiguous} ambiguous; ${coverage.nodes.unlinked} unlinked</div><div class="card">Edges: ${coverage.edges.total} total<br>${coverage.edges.linked} linked; ${coverage.edges.ambiguous} ambiguous; ${coverage.edges.unlinked} unlinked</div></div><p>Node-kind counts:</p>${htmlList(htmlCoverageKinds(coverage.nodes.byKind))}<p>Edge-kind counts:</p>${htmlList(htmlCoverageKinds(coverage.edges.byKind))}<h4>ADR-to-graph index</h4>${htmlList(adrLinks)}<h4>Graph-to-ADR index</h4>${htmlList(graphLinks)}</section>`;
+};
+
 const htmlAdrSection = (adrReport: AdrReport): string => {
   const { summary } = adrReport;
   const groups = [
@@ -445,7 +531,11 @@ const htmlAdrSection = (adrReport: AdrReport): string => {
       ),
     );
   }
-  return `<section aria-labelledby="adr-heading"><h2 id="adr-heading">ADR references</h2><div class="summary"><div class="card">${plural(summary.added, "reference")} added<br>${plural(summary.removed, "reference")} removed<br>${plural(summary.changed, "reference")} changed<br>${plural(summary.unchanged, "reference")} unchanged<br>${plural(summary.stale, "reference")} stale</div></div>${sections.join("")}</section>`;
+  const coverageSections =
+    adrReport.coverage === undefined
+      ? ""
+      : `<h3>ADR coverage</h3>${adrReport.coverage.current === undefined ? "" : htmlAdrCoverage("Current snapshot", adrReport.coverage.current)}${adrReport.coverage.previous === undefined ? "" : htmlAdrCoverage("Previous snapshot", adrReport.coverage.previous)}`;
+  return `<section aria-labelledby="adr-heading"><h2 id="adr-heading">ADR references</h2><div class="summary"><div class="card">${plural(summary.added, "reference")} added<br>${plural(summary.removed, "reference")} removed<br>${plural(summary.changed, "reference")} changed<br>${plural(summary.unchanged, "reference")} unchanged<br>${plural(summary.stale, "reference")} stale</div></div>${sections.join("")}${coverageSections}</section>`;
 };
 
 export function renderHtmlReport(

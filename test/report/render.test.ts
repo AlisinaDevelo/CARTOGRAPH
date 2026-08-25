@@ -330,6 +330,18 @@ describe("diff reports", () => {
         expect.objectContaining({ id: "ADR-0002", state: "stale" }),
       ]),
     );
+    expect(adrReport?.coverage?.current?.adrReferences).toEqual({
+      total: 2,
+      linked: 1,
+      ambiguous: 0,
+      unlinked: 1,
+    });
+    expect(adrReport?.coverage?.previous?.adrReferences).toEqual({
+      total: 2,
+      linked: 2,
+      ambiguous: 0,
+      unlinked: 0,
+    });
 
     const markdown = renderMarkdownReport(diff, adrReport);
     const html = renderHtmlReport(diff, adrReport);
@@ -338,9 +350,12 @@ describe("diff reports", () => {
     expect(markdown).toContain("### Stale ADR references");
     expect(markdown).toContain("external:https://payments.example");
     expect(markdown).toContain("ADR_REFERENCE_STALE_GRAPH_ID");
+    expect(markdown).toContain("### ADR coverage");
+    expect(markdown).toContain("#### ADR-to-graph index");
     expect(markdown).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
     expect(html).toContain('aria-label="Stale ADR references"');
     expect(html).toContain("ADR_REFERENCE_STALE_GRAPH_ID");
+    expect(html).toContain("ADR-to-graph index");
     expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
     expect(renderMarkdownReport(diff, adrReport)).toBe(markdown);
     expect(renderHtmlReport(diff, adrReport)).toBe(html);

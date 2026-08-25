@@ -79,3 +79,17 @@ these references through the additive
 [`policy ADR binding contract`](POLICY_ADR_BINDINGS.md). Binding evaluation
 remains local and evidence-backed; it does not infer approval or fetch a
 decision from a hosting service.
+
+## Decision coverage
+
+`buildAdrCoverage` publishes the versioned
+[`ADR coverage schema`](../schema/adr-coverage.v0.1.schema.json) for each graph
+snapshot used by a report. It contains both deterministic indexes: ADR-to-graph
+links retain the declared ID and classify it as resolved, ambiguous, or
+unresolved, while graph-to-ADR entries include every node and edge, including
+objects with no ADR and objects reached only through an ambiguous reference.
+Many-to-many links are preserved rather than collapsed. Counts are descriptive,
+with totals and linked, ambiguous, and unlinked values overall and by every
+supported node or edge kind; they are not a compliance score. Deleted graph
+objects therefore remain visible as unresolved ADR links, and ambiguous IDs
+never count as definite coverage.

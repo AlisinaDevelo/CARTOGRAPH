@@ -70,8 +70,10 @@ of UTF-8 output.
 Pass `diff --adr <path>` to compare a repository-local ADR reference index at
 the exact base and head revisions. Markdown and HTML then show ADR title,
 status, file, graph evidence, added/removed/changed references, and stale-link
-diagnostics. This is a presentation-layer addition; JSON remains the canonical
-GraphDiff v1 artifact.
+diagnostics. They also show deterministic ADR-to-graph and graph-to-ADR coverage
+indexes for each snapshot, including descriptive totals by node and edge kind;
+ambiguous and unresolved links remain visible. This is a presentation-layer
+addition; JSON remains the canonical GraphDiff v1 artifact.
 
 `migrate-snapshot <input>` reads only legacy GraphSnapshot v0 artifacts. It
 emits the migrated v1 snapshot with `--output` and writes a deterministic

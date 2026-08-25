@@ -1,0 +1,148 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/adr-coverage.v0.1.schema.json",
+  "title": "CARTOGRAPH ADR coverage index v0.1",
+  "description": "A deterministic, descriptive bidirectional index between local ADR references and graph nodes or edges.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "adrReferences",
+    "graphLinks",
+    "nodes",
+    "edges",
+    "adrToGraph",
+    "graphToAdr"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "snapshotRevision": { "type": "string", "minLength": 1 },
+    "adrReferences": { "$ref": "#/definitions/referenceCounts" },
+    "graphLinks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "resolved", "ambiguous", "unresolved"],
+      "properties": {
+        "total": { "$ref": "#/definitions/count" },
+        "resolved": { "$ref": "#/definitions/count" },
+        "ambiguous": { "$ref": "#/definitions/count" },
+        "unresolved": { "$ref": "#/definitions/count" }
+      }
+    },
+    "nodes": { "$ref": "#/definitions/objectCounts" },
+    "edges": { "$ref": "#/definitions/objectCounts" },
+    "adrToGraph": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/adrEntry" }
+    },
+    "graphToAdr": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/graphEntry" }
+    }
+  },
+  "definitions": {
+    "count": { "type": "integer", "minimum": 0 },
+    "referenceCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "linked", "ambiguous", "unlinked"],
+      "properties": {
+        "total": { "$ref": "#/definitions/count" },
+        "linked": { "$ref": "#/definitions/count" },
+        "ambiguous": { "$ref": "#/definitions/count" },
+        "unlinked": { "$ref": "#/definitions/count" }
+      }
+    },
+    "objectCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "linked", "ambiguous", "unlinked", "byKind"],
+      "properties": {
+        "total": { "$ref": "#/definitions/count" },
+        "linked": { "$ref": "#/definitions/count" },
+        "ambiguous": { "$ref": "#/definitions/count" },
+        "unlinked": { "$ref": "#/definitions/count" },
+        "byKind": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/kindCount" }
+        }
+      }
+    },
+    "kindCount": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "total", "linked", "ambiguous", "unlinked"],
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "total": { "$ref": "#/definitions/count" },
+        "linked": { "$ref": "#/definitions/count" },
+        "ambiguous": { "$ref": "#/definitions/count" },
+        "unlinked": { "$ref": "#/definitions/count" }
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "kind"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["node", "edge"] },
+        "kind": { "type": "string", "minLength": 1 }
+      }
+    },
+    "graphLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["graphId", "resolution", "targets"],
+      "properties": {
+        "graphId": { "type": "string", "minLength": 1 },
+        "resolution": { "enum": ["resolved", "ambiguous", "unresolved"] },
+        "targets": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/target" }
+        }
+      }
+    },
+    "adrEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "file", "status", "links"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "file": { "type": "string", "minLength": 1 },
+        "status": {
+          "enum": [
+            "draft",
+            "proposed",
+            "accepted",
+            "rejected",
+            "deprecated",
+            "superseded"
+          ]
+        },
+        "links": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/graphLink" }
+        }
+      }
+    },
+    "graphEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "kind", "adrIds", "ambiguousAdrIds"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["node", "edge"] },
+        "kind": { "type": "string", "minLength": 1 },
+        "adrIds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "ambiguousAdrIds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

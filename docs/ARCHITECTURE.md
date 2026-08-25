@@ -37,8 +37,10 @@ repository or materialized Git revision
 The report layer can receive an optional local ADR index for a revision diff.
 It compares the index at the two materialized revisions, validates referenced
 files and graph IDs against the head snapshot, and renders title/status/file,
-source evidence, change states, and stale diagnostics in Markdown and HTML.
-This context is presentation-only; canonical GraphDiff JSON remains unchanged.
+source evidence, change states, stale diagnostics, and bidirectional coverage
+indexes for both snapshots in Markdown and HTML. Coverage is descriptive and
+keeps ambiguous or unresolved links visible. This context is presentation-only;
+canonical GraphDiff JSON remains unchanged.
 
 Configuration is loaded before analysis. Its schema and runtime parser apply
 deterministic defaults, reject unknown keys unless explicit warn mode is
