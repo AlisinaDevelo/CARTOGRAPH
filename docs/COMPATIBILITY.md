@@ -42,9 +42,16 @@ with result details in
 [`schema/architecture-query-result.v0.1.schema.json`](../schema/architecture-query-result.v0.1.schema.json).
 The v0.1 executor supports deterministic node and edge selection, direct
 neighbors, bounded upstream/downstream reachability, shortest dependency paths,
-boundary crossing, and cycle enumeration. Source-body search, remote queries,
-and mutation remain explicit unsupported operations. Query artifacts remain
-local, read-only, source-body-free, deterministic, and resource-bounded.
+boundary crossing, cycle enumeration, and an additive opt-in metadata
+projection. The projection carries already-evaluated policy findings and
+exceptions, ADR lifecycle references and diagnostics, explicit ownership hints,
+and caller-declared unsupported metadata; it never evaluates policy or infers
+an owner. Source-body search, remote queries, and mutation remain explicit
+unsupported operations. Query artifacts remain local, read-only,
+source-body-free, deterministic, and resource-bounded. This Q-003 addition is
+additive to v0.1: callers that omit the projection retain the prior result
+shape and semantics, while readers that ignore the optional metadata section
+remain compatible.
 Local ADR reference indexes use the reviewed `adrReferences` contract and
 [`schema/adr-reference.v0.1.schema.json`](../schema/adr-reference.v0.1.schema.json).
 P-008 adds ADR comparison details only to Markdown and standalone HTML report

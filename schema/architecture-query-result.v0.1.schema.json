@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query-result.v0.1.schema.json",
   "title": "CARTOGRAPH architecture query result v0.1",
-  "description": "A deterministic, evidence-aware result or explicit unsupported/resource-limit response for one local architecture query, including bounded traversal, path, boundary, cycle, and truncation details.",
+  "description": "A deterministic, evidence-aware result or explicit unsupported/resource-limit response for one local architecture query, including bounded traversal, path, boundary, cycle, truncation, and opt-in policy/decision/ownership metadata details.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -54,6 +54,7 @@
       "type": "array",
       "items": { "$ref": "#/definitions/edge" }
     },
+    "metadata": { "$ref": "#/definitions/metadata" },
     "unsupportedOperation": { "$ref": "#/definitions/operation" }
   },
   "allOf": [
@@ -310,6 +311,459 @@
         "root": { "type": "boolean" }
       }
     },
+    "metadataIdentifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "metadataPath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!~)(?!\\\\)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\u0000)(?!.*[\\r\\n]).+$"
+    },
+    "metadataTarget": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "graphId"],
+          "properties": {
+            "kind": { "const": "node" },
+            "graphId": { "$ref": "#/definitions/metadataIdentifier" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "graphId"],
+          "properties": {
+            "kind": { "const": "edge" },
+            "graphId": { "$ref": "#/definitions/metadataIdentifier" }
+          }
+        }
+      ]
+    },
+    "metadataEvidenceRefs": {
+      "type": "array",
+      "maxItems": 256,
+      "items": { "$ref": "#/definitions/metadataIdentifier" }
+    },
+    "ownershipHint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "id",
+        "target",
+        "owners",
+        "status",
+        "evidenceRefs",
+        "matchedGraphIds"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.ownership-hint" },
+        "id": { "$ref": "#/definitions/metadataIdentifier" },
+        "target": { "$ref": "#/definitions/metadataTarget" },
+        "owners": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/metadataIdentifier" }
+        },
+        "status": {
+          "enum": ["declared", "missing", "conflict", "stale", "unsupported"]
+        },
+        "source": { "$ref": "#/definitions/metadataPath" },
+        "revision": { "$ref": "#/definitions/metadataIdentifier" },
+        "observedAt": { "$ref": "#/definitions/metadataIdentifier" },
+        "evidenceRefs": { "$ref": "#/definitions/metadataEvidenceRefs" },
+        "matchedGraphIds": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/metadataIdentifier" }
+        }
+      }
+    },
+    "adrDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "severity", "message"],
+      "properties": {
+        "code": { "$ref": "#/definitions/metadataIdentifier" },
+        "severity": { "const": "error" },
+        "referenceId": { "$ref": "#/definitions/metadataIdentifier" },
+        "file": { "$ref": "#/definitions/metadataPath" },
+        "graphId": { "$ref": "#/definitions/metadataIdentifier" },
+        "relatedReferenceId": { "$ref": "#/definitions/metadataIdentifier" },
+        "message": { "$ref": "#/definitions/metadataIdentifier" }
+      }
+    },
+    "policyRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policyId",
+        "policyVersion",
+        "ruleId",
+        "target",
+        "assertion",
+        "effect",
+        "applicableGraphIds",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "policyId": { "$ref": "#/definitions/metadataIdentifier" },
+        "policyVersion": { "$ref": "#/definitions/metadataIdentifier" },
+        "ruleId": { "$ref": "#/definitions/metadataIdentifier" },
+        "target": { "enum": ["node", "edge", "diff"] },
+        "assertion": {
+          "enum": ["exists", "absent", "count-at-most", "count-at-least"]
+        },
+        "value": { "type": "integer", "minimum": 0 },
+        "effect": { "enum": ["informational", "enforce"] },
+        "applicableGraphIds": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/metadataIdentifier" }
+        },
+        "evidenceRefs": { "$ref": "#/definitions/metadataEvidenceRefs" }
+      }
+    },
+    "policyViolation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "policyId",
+        "ruleId",
+        "target",
+        "assertion",
+        "effect",
+        "count",
+        "matches",
+        "reason",
+        "evidenceRefs",
+        "applicableGraphIds"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/metadataIdentifier" },
+        "policyId": { "$ref": "#/definitions/metadataIdentifier" },
+        "ruleId": { "$ref": "#/definitions/metadataIdentifier" },
+        "adrReferenceId": { "$ref": "#/definitions/metadataIdentifier" },
+        "target": { "enum": ["node", "edge", "diff"] },
+        "assertion": {
+          "enum": ["exists", "absent", "count-at-most", "count-at-least"]
+        },
+        "effect": { "enum": ["informational", "enforce"] },
+        "count": { "type": "integer", "minimum": 0 },
+        "expected": { "type": "integer", "minimum": 0 },
+        "matches": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "#/definitions/metadataIdentifier" }
+        },
+        "reason": { "$ref": "#/definitions/metadataIdentifier" },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": { "$ref": "#/definitions/metadataIdentifier" }
+        },
+        "source": { "$ref": "#/definitions/metadataPath" },
+        "applicableGraphIds": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/metadataIdentifier" }
+        }
+      }
+    },
+    "policyUnsupported": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "policyId",
+        "ruleId",
+        "target",
+        "code",
+        "reason",
+        "evidenceRefs",
+        "applicableGraphIds"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/metadataIdentifier" },
+        "policyId": { "$ref": "#/definitions/metadataIdentifier" },
+        "ruleId": { "$ref": "#/definitions/metadataIdentifier" },
+        "target": { "enum": ["node", "edge", "diff"] },
+        "code": { "enum": ["unsupported-input", "unsupported-target"] },
+        "reason": { "$ref": "#/definitions/metadataIdentifier" },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/metadataIdentifier" }
+        },
+        "source": { "$ref": "#/definitions/metadataPath" },
+        "applicableGraphIds": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/metadataIdentifier" }
+        }
+      }
+    },
+    "policyException": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "suppresses",
+        "reason",
+        "evidenceRefs",
+        "policyId",
+        "policyVersion",
+        "applicableGraphIds"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/metadataIdentifier" },
+        "ruleId": { "$ref": "#/definitions/metadataIdentifier" },
+        "adrReferenceId": { "$ref": "#/definitions/metadataIdentifier" },
+        "status": { "enum": ["active", "expiring", "expired", "malformed"] },
+        "precedence": { "type": "integer", "minimum": 0 },
+        "suppresses": { "type": "boolean" },
+        "reason": { "$ref": "#/definitions/metadataIdentifier" },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/metadataIdentifier" }
+        },
+        "policyId": { "$ref": "#/definitions/metadataIdentifier" },
+        "policyVersion": { "$ref": "#/definitions/metadataIdentifier" },
+        "source": { "$ref": "#/definitions/metadataPath" },
+        "applicableGraphIds": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/metadataIdentifier" }
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policyId",
+        "policyVersion",
+        "rules",
+        "violations",
+        "unsupported",
+        "exceptions"
+      ],
+      "properties": {
+        "policyId": { "$ref": "#/definitions/metadataIdentifier" },
+        "policyVersion": { "$ref": "#/definitions/metadataIdentifier" },
+        "source": { "$ref": "#/definitions/metadataPath" },
+        "evaluationStatus": { "enum": ["passed", "violations", "unsupported"] },
+        "evaluationInputKind": { "enum": ["snapshot", "diff"] },
+        "rules": {
+          "type": "array",
+          "maxItems": 256,
+          "items": { "$ref": "#/definitions/policyRule" }
+        },
+        "violations": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "#/definitions/policyViolation" }
+        },
+        "unsupported": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "#/definitions/policyUnsupported" }
+        },
+        "exceptions": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/policyException" }
+        }
+      }
+    },
+    "adrReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "file",
+        "title",
+        "status",
+        "graphIds",
+        "matchedGraphIds",
+        "diagnostics"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/metadataIdentifier" },
+        "file": { "$ref": "#/definitions/metadataPath" },
+        "title": { "$ref": "#/definitions/metadataIdentifier" },
+        "status": {
+          "enum": [
+            "draft",
+            "proposed",
+            "accepted",
+            "rejected",
+            "deprecated",
+            "superseded"
+          ]
+        },
+        "graphIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "items": { "$ref": "#/definitions/metadataIdentifier" }
+        },
+        "supersedes": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/metadataIdentifier" }
+        },
+        "effectiveFrom": { "$ref": "#/definitions/metadataIdentifier" },
+        "effectiveTo": { "$ref": "#/definitions/metadataIdentifier" },
+        "statusHistory": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["status", "effectiveAt"],
+            "properties": {
+              "status": {
+                "enum": [
+                  "draft",
+                  "proposed",
+                  "accepted",
+                  "rejected",
+                  "deprecated",
+                  "superseded"
+                ]
+              },
+              "effectiveAt": { "$ref": "#/definitions/metadataIdentifier" }
+            }
+          }
+        },
+        "source": { "$ref": "#/definitions/metadataPath" },
+        "matchedGraphIds": {
+          "type": "array",
+          "maxItems": 256,
+          "items": { "$ref": "#/definitions/metadataIdentifier" }
+        },
+        "diagnostics": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "#/definitions/adrDiagnostic" }
+        }
+      }
+    },
+    "decisions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["references", "diagnostics"],
+      "properties": {
+        "source": { "$ref": "#/definitions/metadataPath" },
+        "references": {
+          "type": "array",
+          "maxItems": 512,
+          "items": { "$ref": "#/definitions/adrReference" }
+        },
+        "diagnostics": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "#/definitions/adrDiagnostic" }
+        }
+      }
+    },
+    "metadataUnsupported": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "category", "code", "message", "evidenceRefs"],
+      "properties": {
+        "id": { "$ref": "#/definitions/metadataIdentifier" },
+        "category": { "enum": ["policy", "decision", "ownership", "other"] },
+        "code": { "$ref": "#/definitions/metadataIdentifier" },
+        "message": { "$ref": "#/definitions/metadataIdentifier" },
+        "source": { "$ref": "#/definitions/metadataPath" },
+        "target": { "$ref": "#/definitions/metadataTarget" },
+        "evidenceRefs": { "$ref": "#/definitions/metadataEvidenceRefs" }
+      }
+    },
+    "metadataDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "category",
+        "code",
+        "severity",
+        "message",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/metadataIdentifier" },
+        "category": { "enum": ["policy", "decision", "ownership", "other"] },
+        "code": { "$ref": "#/definitions/metadataIdentifier" },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "message": { "$ref": "#/definitions/metadataIdentifier" },
+        "target": { "$ref": "#/definitions/metadataTarget" },
+        "source": { "$ref": "#/definitions/metadataPath" },
+        "evidenceRefs": { "$ref": "#/definitions/metadataEvidenceRefs" }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "policies",
+        "decisions",
+        "ownership",
+        "unsupported",
+        "diagnostics"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.architecture-query-metadata" },
+        "policies": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/policy" }
+        },
+        "decisions": { "$ref": "#/definitions/decisions" },
+        "ownership": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["hints"],
+          "properties": {
+            "source": { "$ref": "#/definitions/metadataPath" },
+            "hints": {
+              "type": "array",
+              "maxItems": 10000,
+              "items": { "$ref": "#/definitions/ownershipHint" }
+            }
+          }
+        },
+        "unsupported": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "#/definitions/metadataUnsupported" }
+        },
+        "diagnostics": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": { "$ref": "#/definitions/metadataDiagnostic" }
+        }
+      }
+    },
     "limits": {
       "type": "object",
       "additionalProperties": false,
@@ -339,13 +793,15 @@
         "evidence",
         "includeNodes",
         "includeEdges",
-        "includeDiagnostics"
+        "includeDiagnostics",
+        "metadata"
       ],
       "properties": {
         "evidence": { "enum": ["full", "summary", "none"] },
         "includeNodes": { "type": "boolean" },
         "includeEdges": { "type": "boolean" },
-        "includeDiagnostics": { "type": "boolean" }
+        "includeDiagnostics": { "type": "boolean" },
+        "metadata": { "enum": ["full", "summary", "none"] }
       }
     },
     "ordering": {

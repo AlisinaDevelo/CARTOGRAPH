@@ -146,17 +146,21 @@ actionable resource diagnostic rather than truncating the result.
 
 ## Architecture query contract
 
-The Q-001/Q-002 query contract wraps bounded, local questions in a versioned
-request and result shape. v0.1 supports deterministic node and edge selection,
-direct neighbors, upstream/downstream reachability, shortest dependency paths,
-boundary crossings, and cycle reporting. Traversal is restricted to declared
-edge kinds and explicit depth, node, edge, time, and output ceilings. Results
-carry canonical ordering, complete projected evidence, node depths, path/cycle
-details, and explicit depth-truncation diagnostics. Only source-body search,
-remote, and mutation operations remain unsupported; callers receive a stable
-unsupported diagnostic rather than an inferred answer. See the [architecture
-query contract](ARCHITECTURE_QUERIES.md) for selector, traversal, limit,
-privacy, and result semantics.
+The Q-001/Q-002/Q-003 query contract wraps bounded, local questions in a
+versioned request and result shape. v0.1 supports deterministic node and edge
+selection, direct neighbors, upstream/downstream reachability, shortest
+dependency paths, boundary crossings, cycle reporting, and opt-in projections
+of already-evaluated policy findings, ADR lifecycle metadata, and explicit
+ownership hints. Traversal is restricted to declared edge kinds and explicit
+depth, node, edge, time, and output ceilings. Results carry canonical ordering,
+complete projected evidence, node depths, path/cycle details, and explicit
+depth-truncation diagnostics. Metadata projections preserve source evidence,
+surface missing, stale, conflicting, and unsupported records, and never infer
+ownership or re-evaluate policy input. Only source-body search, remote, and
+mutation operations remain unsupported; callers receive a stable unsupported
+diagnostic rather than an inferred answer. See the [architecture query
+contract](ARCHITECTURE_QUERIES.md) for selector, traversal, metadata,
+limit, privacy, and result semantics.
 
 ## Identity
 

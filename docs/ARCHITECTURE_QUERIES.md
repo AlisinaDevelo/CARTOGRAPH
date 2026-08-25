@@ -58,6 +58,33 @@ the top-level `nodes` and `edges` arrays remain canonically ordered for stable
 serialization. Boundary records include the inside and outside node IDs, the
 crossing direction, and the complete projected edge.
 
+## Policy, decision, and ownership projections
+
+Set `projection.metadata` to `full` (or `summary`) and pass a local metadata
+document as the third argument to `executeArchitectureQuery`. The metadata
+document can contain already-parsed local policy configurations and, when
+available, their existing `cartograph.policy-evaluation` reports; an ADR
+reference document plus validation diagnostics; explicit ownership hints; and
+records for metadata that this contract cannot interpret. Projection is
+read-only: it never evaluates a policy, loads a source, contacts a remote
+catalog, or changes the supplied graph or evaluation.
+
+The result keeps only policy rules whose node or edge selectors match returned
+graph objects. Findings and exceptions retain their original IDs and evidence
+references, with canonical `node:<id>` or `edge:<from>|<kind>|<to>` matches
+added for the returned objects. Diff-target rules and any caller-supplied
+unsupported records remain visible as unsupported metadata rather than being
+treated as applicable snapshot rules. A missing policy evaluation is reported
+as `METADATA_POLICY_EVALUATION_MISSING`; the query never recomputes it.
+
+ADR references retain their file, lifecycle status, graph IDs, and validation
+diagnostics. Stale references therefore remain visible when their diagnostic is
+associated with the projection. Ownership is accepted only from explicit
+targeted hints. Missing, stale, unsupported, or disagreeing hints produce
+`METADATA_OWNERSHIP_MISSING`, `METADATA_OWNERSHIP_STALE`,
+`METADATA_OWNERSHIP_UNSUPPORTED`, or `METADATA_OWNERSHIP_CONFLICT`; no owner is
+inferred from a path, node name, contributor, or unmatched selector.
+
 ## Bounds and output
 
 Every request carries limits for depth, nodes, edges, wall-clock time, and

@@ -162,7 +162,7 @@ const validate = async () => {
       if (validRequest)
         fail(`${scenario.id} unexpectedly passes the request schema`);
       try {
-        executeArchitectureQuery(graph, scenario.query);
+        executeArchitectureQuery(graph, scenario.query, scenario.metadata);
         fail(`${scenario.id} unexpectedly executes`);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -178,7 +178,11 @@ const validate = async () => {
       fail(
         `${scenario.id} request schema validation failed: ${JSON.stringify(validateQuery.errors)}`,
       );
-    const result = executeArchitectureQuery(graph, scenario.query);
+    const result = executeArchitectureQuery(
+      graph,
+      scenario.query,
+      scenario.metadata,
+    );
     if (!validateResult(result))
       fail(
         `${scenario.id} result schema validation failed: ${JSON.stringify(validateResult.errors)}`,
@@ -236,9 +240,60 @@ const validate = async () => {
       fail(
         `${scenario.id} expected truncated=${scenario.expected.truncated}, found ${result.truncated}`,
       );
+    if (scenario.expected.metadataPolicyRules !== undefined) {
+      const count = result.metadata?.policies.reduce(
+        (total, policy) => total + policy.rules.length,
+        0,
+      );
+      if (count !== scenario.expected.metadataPolicyRules)
+        fail(
+          `${scenario.id} expected ${scenario.expected.metadataPolicyRules} projected policy rules, found ${count ?? "none"}`,
+        );
+    }
+    if (
+      scenario.expected.metadataDecisions !== undefined &&
+      result.metadata?.decisions.references.length !==
+        scenario.expected.metadataDecisions
+    )
+      fail(
+        `${scenario.id} expected ${scenario.expected.metadataDecisions} projected decisions, found ${result.metadata?.decisions.references.length ?? "none"}`,
+      );
+    if (
+      scenario.expected.metadataOwnershipHints !== undefined &&
+      result.metadata?.ownership.hints.length !==
+        scenario.expected.metadataOwnershipHints
+    )
+      fail(
+        `${scenario.id} expected ${scenario.expected.metadataOwnershipHints} projected ownership hints, found ${result.metadata?.ownership.hints.length ?? "none"}`,
+      );
+    if (scenario.expected.metadataDiagnosticCode !== undefined) {
+      if (
+        !result.metadata?.diagnostics.some(
+          (diagnostic) =>
+            diagnostic.code === scenario.expected.metadataDiagnosticCode,
+        )
+      )
+        fail(
+          `${scenario.id} is missing ${scenario.expected.metadataDiagnosticCode}`,
+        );
+    }
+    if (scenario.expected.metadataUnsupportedCode !== undefined) {
+      if (
+        !result.metadata?.unsupported.some(
+          (entry) => entry.code === scenario.expected.metadataUnsupportedCode,
+        )
+      )
+        fail(
+          `${scenario.id} is missing ${scenario.expected.metadataUnsupportedCode}`,
+        );
+    }
     statuses.add(result.status);
 
-    const repeated = executeArchitectureQuery(graph, scenario.query);
+    const repeated = executeArchitectureQuery(
+      graph,
+      scenario.query,
+      scenario.metadata,
+    );
     if (
       serializeArchitectureQueryResult(result) !==
       serializeArchitectureQueryResult(repeated)
