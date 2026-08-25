@@ -1,0 +1,299 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/policy-drift-evaluation.v0.1.schema.json",
+  "title": "CARTOGRAPH policy and decision drift evaluation report v0.1",
+  "description": "An offline report comparing expected and observed policy/ADR drift with reviewer-noise and milestone-exit evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "evaluationId",
+    "evaluatedAt",
+    "fixtureDigest",
+    "decision",
+    "decisionReason",
+    "thresholds",
+    "summary",
+    "caseResults",
+    "milestoneExit",
+    "reportDigest"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.policy-drift-evaluation" },
+    "evaluationId": { "$ref": "#/definitions/identifier" },
+    "evaluatedAt": { "$ref": "#/definitions/dateTime" },
+    "fixtureDigest": { "$ref": "#/definitions/digest" },
+    "decision": { "enum": ["proceed", "hold"] },
+    "decisionReason": { "type": "string", "minLength": 1, "maxLength": 2048 },
+    "thresholds": { "$ref": "#/definitions/thresholds" },
+    "summary": { "$ref": "#/definitions/summary" },
+    "caseResults": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": { "$ref": "#/definitions/caseResult" }
+    },
+    "milestoneExit": { "$ref": "#/definitions/milestoneExit" },
+    "reportDigest": { "$ref": "#/definitions/digest" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "dateTime": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "format": "date-time"
+    },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "evidenceReference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "findingCategory": {
+      "enum": [
+        "decision-supersession",
+        "removed-architecture",
+        "policy-change",
+        "unreferenced-addition",
+        "exception-handling",
+        "schema-compatibility"
+      ]
+    },
+    "severity": { "enum": ["info", "warning", "error"] },
+    "expectedFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "category", "severity"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "category": { "$ref": "#/definitions/findingCategory" },
+        "severity": { "$ref": "#/definitions/severity" }
+      }
+    },
+    "observedFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "category", "severity", "evidenceRefs", "reason"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "category": { "$ref": "#/definitions/findingCategory" },
+        "severity": { "$ref": "#/definitions/severity" },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/evidenceReference" }
+        },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2048 }
+      }
+    },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minFindingRecall",
+        "maxUnexpectedFindingRate",
+        "maxReviewerFalsePositiveRate",
+        "maxReviewerMinutes",
+        "minEvidenceReviewRate"
+      ],
+      "properties": {
+        "minFindingRecall": { "type": "number", "minimum": 0, "maximum": 1 },
+        "maxUnexpectedFindingRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maxReviewerFalsePositiveRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maxReviewerMinutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1440
+        },
+        "minEvidenceReviewRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "falsePositiveCategory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "count", "caseIds"],
+      "properties": {
+        "category": { "$ref": "#/definitions/identifier" },
+        "count": { "type": "integer", "minimum": 1 },
+        "caseIds": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "reviewerEffort": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cases",
+        "totalMinutes",
+        "meanMinutes",
+        "medianMinutes",
+        "totalSteps",
+        "evidenceReviewed",
+        "evidenceReviewRate",
+        "dispositions"
+      ],
+      "properties": {
+        "cases": { "type": "integer", "minimum": 0 },
+        "totalMinutes": { "type": "integer", "minimum": 0 },
+        "meanMinutes": { "type": "number", "minimum": 0 },
+        "medianMinutes": { "type": "number", "minimum": 0 },
+        "totalSteps": { "type": "integer", "minimum": 0 },
+        "evidenceReviewed": { "type": "integer", "minimum": 0 },
+        "evidenceReviewRate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "dispositions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["accepted", "overridden", "rejected", "unreviewed"],
+          "properties": {
+            "accepted": { "type": "integer", "minimum": 0 },
+            "overridden": { "type": "integer", "minimum": 0 },
+            "rejected": { "type": "integer", "minimum": 0 },
+            "unreviewed": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cases",
+        "expectedFindings",
+        "observedFindings",
+        "matchedFindings",
+        "missingFindings",
+        "unexpectedFindings",
+        "mismatchedFindings",
+        "findingRecall",
+        "reviewerFalsePositiveCases",
+        "reviewerFalsePositiveRate",
+        "falsePositiveCategories",
+        "reviewerEffort"
+      ],
+      "properties": {
+        "cases": { "type": "integer", "minimum": 0 },
+        "expectedFindings": { "type": "integer", "minimum": 0 },
+        "observedFindings": { "type": "integer", "minimum": 0 },
+        "matchedFindings": { "type": "integer", "minimum": 0 },
+        "missingFindings": { "type": "integer", "minimum": 0 },
+        "unexpectedFindings": { "type": "integer", "minimum": 0 },
+        "mismatchedFindings": { "type": "integer", "minimum": 0 },
+        "findingRecall": { "type": "number", "minimum": 0, "maximum": 1 },
+        "reviewerFalsePositiveCases": { "type": "integer", "minimum": 0 },
+        "reviewerFalsePositiveRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "falsePositiveCategories": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/falsePositiveCategory" }
+        },
+        "reviewerEffort": { "$ref": "#/definitions/reviewerEffort" }
+      }
+    },
+    "caseResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "expectedFindings",
+        "observedFindings",
+        "matchedFindings",
+        "missingFindings",
+        "unexpectedFindings",
+        "mismatchedFindings",
+        "reviewerMinutes",
+        "reviewerSteps",
+        "reviewerDisposition"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "kind": { "$ref": "#/definitions/identifier" },
+        "expectedFindings": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/expectedFinding" }
+        },
+        "observedFindings": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/observedFinding" }
+        },
+        "matchedFindings": { "type": "integer", "minimum": 0 },
+        "missingFindings": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "unexpectedFindings": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "mismatchedFindings": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "reviewerMinutes": { "type": "integer", "minimum": 1 },
+        "reviewerSteps": { "type": "integer", "minimum": 1 },
+        "reviewerDisposition": {
+          "enum": ["accepted", "overridden", "rejected", "unreviewed"]
+        },
+        "falsePositiveCategory": { "$ref": "#/definitions/identifier" }
+      }
+    },
+    "thresholdResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "observed", "required"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "status": { "enum": ["passed", "failed"] },
+        "observed": {},
+        "required": {}
+      }
+    },
+    "milestoneExit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["milestone", "gate", "decision", "rationale", "criteria"],
+      "properties": {
+        "milestone": { "const": "Y2-Q3" },
+        "gate": { "const": "policy-decision-drift" },
+        "decision": { "enum": ["proceed", "hold"] },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "criteria": {
+          "type": "array",
+          "minItems": 7,
+          "maxItems": 7,
+          "items": { "$ref": "#/definitions/thresholdResult" }
+        }
+      }
+    }
+  }
+}

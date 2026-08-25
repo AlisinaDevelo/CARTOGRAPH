@@ -1,0 +1,105 @@
+{
+  "$schema": "../../../schema/policy-drift-evaluation-fixtures.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.policy-drift-evaluation-fixtures",
+  "evaluationId": "p018-policy-decision-drift-v0-1",
+  "evaluatedAt": "2028-04-30T00:00:00.000Z",
+  "decisionTarget": "proceed",
+  "thresholds": {
+    "minFindingRecall": 1,
+    "maxUnexpectedFindingRate": 0,
+    "maxReviewerFalsePositiveRate": 0.34,
+    "maxReviewerMinutes": 45,
+    "minEvidenceReviewRate": 1
+  },
+  "cases": [
+    {
+      "id": "decision-supersession",
+      "kind": "decision-supersession",
+      "description": "An accepted ADR supersedes a decision still named by a live policy binding.",
+      "expectedFindings": [
+        {
+          "id": "adr-supersession:adr-0001",
+          "category": "decision-supersession",
+          "severity": "warning"
+        }
+      ],
+      "reviewer": { "minutes": 8, "steps": 4, "disposition": "accepted" }
+    },
+    {
+      "id": "removed-architecture",
+      "kind": "removed-architecture",
+      "description": "A graph object is removed while its ADR reference and policy boundary remain active.",
+      "expectedFindings": [
+        {
+          "id": "removed-architecture:module:payments",
+          "category": "removed-architecture",
+          "severity": "error"
+        }
+      ],
+      "reviewer": { "minutes": 7, "steps": 4, "disposition": "accepted" }
+    },
+    {
+      "id": "policy-change",
+      "kind": "policy-change",
+      "description": "A policy tightens an unknown-edge rule and turns a previously passing graph into a violation.",
+      "expectedFindings": [
+        {
+          "id": "policy-change:unknown-edge-review",
+          "category": "policy-change",
+          "severity": "error"
+        }
+      ],
+      "reviewer": {
+        "minutes": 9,
+        "steps": 5,
+        "disposition": "overridden",
+        "falsePositiveCategory": "policy-noise"
+      }
+    },
+    {
+      "id": "unreferenced-addition",
+      "kind": "unreferenced-addition",
+      "description": "A new service node is added without a local ADR reference covering its graph identity.",
+      "expectedFindings": [
+        {
+          "id": "unreferenced-addition:service:billing",
+          "category": "unreferenced-addition",
+          "severity": "warning"
+        }
+      ],
+      "reviewer": {
+        "minutes": 6,
+        "steps": 3,
+        "disposition": "overridden",
+        "falsePositiveCategory": "intentional-internal-addition"
+      }
+    },
+    {
+      "id": "exception",
+      "kind": "exception",
+      "description": "An active, ADR-backed exception suppresses a missing endpoint rule until expiry.",
+      "expectedFindings": [
+        {
+          "id": "exception-suppressed:endpoint-required",
+          "category": "exception-handling",
+          "severity": "info"
+        }
+      ],
+      "reviewer": { "minutes": 5, "steps": 2, "disposition": "accepted" }
+    },
+    {
+      "id": "mixed-schema",
+      "kind": "mixed-schema",
+      "description": "A schema v1 snapshot is compared with unsupported schema v2 input and fails closed.",
+      "expectedFindings": [
+        {
+          "id": "schema-mismatch:graph-snapshot",
+          "category": "schema-compatibility",
+          "severity": "error"
+        }
+      ],
+      "reviewer": { "minutes": 4, "steps": 2, "disposition": "accepted" }
+    }
+  ]
+}

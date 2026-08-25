@@ -21,6 +21,13 @@
       "title": "Keep remediation assistance rule-only after the S-006 gate",
       "status": "accepted",
       "graphIds": ["module:src/core/remediation-suggestions.ts"]
+    },
+    {
+      "id": "ADR-0004",
+      "file": "docs/adr/0004-policy-decision-drift-evaluation.md",
+      "title": "Proceed with the local policy and decision drift gate",
+      "status": "accepted",
+      "graphIds": ["module:scripts/policy-drift-evaluation.mjs"]
     }
   ]
 }

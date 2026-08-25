@@ -216,8 +216,8 @@ JSON is the canonical machine contract. Markdown is optimized for review summari
 
 The following are roadmap items, not current implementation claims:
 
-- policy/decision drift evaluation beyond the current offline ADR lifecycle,
-  reference, and policy-binding contracts;
+- universal policy/decision drift evaluation beyond the curated offline P-018
+  scenario gate and the current ADR reference/policy-binding contracts;
 - a reusable GitHub Action and Check annotations;
 - the remaining identity quality, portability, and history work;
 - additional framework or language adapters and stronger runtime isolation

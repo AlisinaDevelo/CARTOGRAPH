@@ -67,6 +67,9 @@ jobs:
       - name: Validate policy contract
         run: npm run policy:validate
 
+      - name: Validate policy and decision drift evaluation
+        run: npm run policy-drift:validate
+
       - name: Validate adapter contract
         run: npm run adapter:validate
 
