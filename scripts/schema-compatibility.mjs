@@ -63,6 +63,7 @@ const checkHostedVersionChange = () => {
   const versionChanged = changed.some(
     (file) =>
       file === "src/core/schemas.ts" ||
+      file === "src/core/support.ts" ||
       file === "src/core/capabilities.ts" ||
       file === "src/core/diagnostics.ts" ||
       file === "src/core/policy-bundles.ts" ||
@@ -84,6 +85,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/remediation-evaluation.ts" ||
       file === "src/report/adr.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
+      file === "schema/support-matrix.v0.1.schema.json" ||
       file === "schema/graph-diff.v0.1.schema.json" ||
       file === "schema/capability-registry.v0.1.schema.json" ||
       file === "schema/diagnostic-registry.v0.1.schema.json" ||
@@ -130,6 +132,7 @@ const checkHostedVersionChange = () => {
 const checkCompatibility = () => {
   const policy = readJson("schema/compatibility.json");
   const source = readText("src/core/schemas.ts");
+  const supportSource = readText("src/core/support.ts");
   const capabilitySource = readText("src/core/capabilities.ts");
   const diagnosticSource = readText("src/core/diagnostics.ts");
   const policyBundleSource = readText("src/core/policy-bundles.ts");
@@ -161,6 +164,7 @@ const checkCompatibility = () => {
     "src/core/remediation-evaluation.ts",
   );
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
+  const supportSchema = readJson("schema/support-matrix.v0.1.schema.json");
   const diffSchema = readJson("schema/graph-diff.v0.1.schema.json");
   const capabilitySchema = readJson(
     "schema/capability-registry.v0.1.schema.json",
@@ -227,6 +231,10 @@ const checkCompatibility = () => {
   const snapshotVersion = sourceVersion(
     source,
     "GRAPH_SNAPSHOT_SCHEMA_VERSION",
+  );
+  const supportMatrixVersion = sourceVersion(
+    supportSource,
+    "SUPPORT_MATRIX_SCHEMA_VERSION",
   );
   const diffVersion = sourceVersion(source, "GRAPH_DIFF_SCHEMA_VERSION");
   const capabilityVersion = sourceVersion(
@@ -317,6 +325,7 @@ const checkCompatibility = () => {
 
   if (
     snapshotVersion === undefined ||
+    supportMatrixVersion === undefined ||
     diffVersion === undefined ||
     capabilityVersion === undefined ||
     diagnosticVersion === undefined ||
@@ -353,6 +362,16 @@ const checkCompatibility = () => {
     "GraphSnapshot JSON Schema/runtime",
     snapshotSchema.properties.schemaVersion.const,
     snapshotVersion,
+  );
+  requireEqual(
+    "support matrix runtime/policy",
+    supportMatrixVersion,
+    contracts.supportMatrix.current,
+  );
+  requireEqual(
+    "support matrix JSON Schema/runtime",
+    supportSchema.properties.schemaVersion.const,
+    supportMatrixVersion,
   );
   requireEqual(
     "GraphDiff JSON Schema/runtime",
@@ -604,6 +623,7 @@ const checkCompatibility = () => {
     ok: true,
     policyVersion: policy.policyVersion,
     snapshotVersion,
+    supportMatrixVersion,
     diffVersion,
     capabilityVersion,
     diagnosticVersion,

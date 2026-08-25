@@ -17,6 +17,7 @@ describe("CLI contract", () => {
     expect(policy).toContain("## Supported LTS policy");
     expect(policy).toContain("Node.js 22");
     expect(policy).toContain("Node.js 24");
+    expect(policy).toContain("SUPPORT_MATRIX_UNSUPPORTED_ENVIRONMENT");
     expect(policy).toContain("## Exit codes");
     expect(policy).toContain("Exit code 0");
     expect(policy).toContain("Exit code 1");

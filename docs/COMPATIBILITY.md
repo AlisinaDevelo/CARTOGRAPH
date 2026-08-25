@@ -220,6 +220,17 @@ unresolved and ambiguous links and descriptive counts by node and edge kind.
 Readers that do not render the optional coverage section retain the prior ADR
 reference and GraphDiff v1 meaning.
 
+## R-012 runtime support matrix
+
+R-012 publishes the versioned runtime boundary in
+`schema/support-matrix.v0.1.json` and checks it against package-lock and CI
+metadata. The CLI accepts Node 22.13.0 or newer on Linux and macOS, while the
+declared LTS and CI window remains Node 22.x and 24.x with TypeScript 6.0.3 and
+ts-morph 28.0.0. An unsupported operating system or Node version fails closed
+with `SUPPORT_MATRIX_UNSUPPORTED_ENVIRONMENT`; a newer compatible Node runtime
+is reported as outside the declared LTS window rather than silently expanding
+the support claim.
+
 ## P-019 policy ADR bindings
 
 P-019 adds the versioned `policyAdrBindings` contract and the optional

@@ -16,7 +16,10 @@ The package declares `node >=22.13.0`. Every release check runs the complete
 local test, coverage, roadmap, and build pipeline on Node.js 22 and 24 where
 those runtimes are available. A new LTS line is added only after the same
 device/package checks pass and the support matrix is updated. Odd-numbered or
-unlisted Node.js lines may work but are not a support claim.
+unlisted Node.js lines may work but are not a support claim. The CLI fails
+before analysis on unsupported operating systems or Node versions with
+`SUPPORT_MATRIX_UNSUPPORTED_ENVIRONMENT`; Linux and macOS are the supported
+operating systems.
 
 ## Installation and package smoke
 

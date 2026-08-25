@@ -25,6 +25,7 @@ import {
 } from "./commands.js";
 import {
   readCartographConfig,
+  assertSupportedEnvironment,
   parsePolicyCiMode,
   policyCiExitCode,
   serializeGraphSnapshot,
@@ -374,6 +375,7 @@ export function createCli(): Command {
 export async function runCli(
   argv: readonly string[] = process.argv,
 ): Promise<void> {
+  assertSupportedEnvironment();
   await createCli().parseAsync([...argv]);
 }
 
