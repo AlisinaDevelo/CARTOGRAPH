@@ -1,0 +1,424 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/workspace-privacy.v0.1.schema.json",
+  "title": "CARTOGRAPH workspace privacy and resource boundary contract v0.1",
+  "description": "A local, fail-closed privacy and resource assessment for multi-repository workspace inputs, optional runtime metadata, cache state, reports, and temporary data.",
+  "oneOf": [
+    { "$ref": "#/definitions/request" },
+    { "$ref": "#/definitions/assessment" }
+  ],
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:[._/-][a-z0-9]+)*$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "localPath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!~)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*[\\u0000\\r\\n]).+$"
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxRepositories",
+        "maxNodes",
+        "maxEdges",
+        "maxBytes",
+        "maxCompressedBytes",
+        "maxExpandedBytes",
+        "maxDepth",
+        "maxWallClockMs",
+        "maxMemoryBytes",
+        "maxCacheBytes",
+        "maxCacheEntries",
+        "maxReportBytes",
+        "maxReportItems",
+        "maxPathCount",
+        "maxPathLength",
+        "maxRuntimeMetadataRecords",
+        "maxRuntimeMetadataBytes",
+        "maxTemporaryEntries",
+        "maxExpansionRatio"
+      ],
+      "properties": {
+        "maxRepositories": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "maxNodes": { "type": "integer", "minimum": 1, "maximum": 200000 },
+        "maxEdges": { "type": "integer", "minimum": 1, "maximum": 400000 },
+        "maxBytes": { "type": "integer", "minimum": 1, "maximum": 1073741824 },
+        "maxCompressedBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 268435456
+        },
+        "maxExpandedBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1073741824
+        },
+        "maxDepth": { "type": "integer", "minimum": 1, "maximum": 256 },
+        "maxWallClockMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 300000
+        },
+        "maxMemoryBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1073741824
+        },
+        "maxCacheBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 268435456
+        },
+        "maxCacheEntries": { "type": "integer", "minimum": 1, "maximum": 4096 },
+        "maxReportBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 67108864
+        },
+        "maxReportItems": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000
+        },
+        "maxPathCount": { "type": "integer", "minimum": 0, "maximum": 8192 },
+        "maxPathLength": { "type": "integer", "minimum": 1, "maximum": 1024 },
+        "maxRuntimeMetadataRecords": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1024
+        },
+        "maxRuntimeMetadataBytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65536
+        },
+        "maxTemporaryEntries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4096
+        },
+        "maxExpansionRatio": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        }
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodes",
+        "edges",
+        "bytes",
+        "compressedBytes",
+        "expandedBytes",
+        "maxDepth"
+      ],
+      "properties": {
+        "nodes": { "type": "integer", "minimum": 0 },
+        "edges": { "type": "integer", "minimum": 0 },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "compressedBytes": { "type": "integer", "minimum": 0 },
+        "expandedBytes": { "type": "integer", "minimum": 0 },
+        "maxDepth": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "maxProperties": 128,
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128,
+        "pattern": "^[A-Za-z][A-Za-z0-9_.-]*$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "maxLength": 4096,
+        "pattern": "^(?!.*[\\u0000\\r\\n]).*$"
+      }
+    },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "trust", "status", "metadata", "paths", "pathDigests"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "trust": { "enum": ["trusted", "untrusted"] },
+        "status": { "enum": ["available", "omitted", "failed"] },
+        "snapshot": { "$ref": "#/definitions/snapshot" },
+        "metadata": { "$ref": "#/definitions/metadata" },
+        "paths": {
+          "type": "array",
+          "maxItems": 8192,
+          "items": { "$ref": "#/definitions/localPath" },
+          "uniqueItems": true
+        },
+        "pathDigests": {
+          "type": "array",
+          "maxItems": 8192,
+          "items": { "$ref": "#/definitions/digest" },
+          "uniqueItems": true
+        },
+        "failureCode": {
+          "enum": [
+            "unavailable",
+            "invalid-manifest",
+            "resource-limit",
+            "cancelled"
+          ]
+        }
+      }
+    },
+    "pathExposure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "maxPaths", "maxPathLength"],
+      "properties": {
+        "mode": { "enum": ["none", "relative", "digest"] },
+        "maxPaths": { "type": "integer", "minimum": 0, "maximum": 8192 },
+        "maxPathLength": { "type": "integer", "minimum": 1, "maximum": 1024 }
+      }
+    },
+    "runtimeRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "value"],
+      "properties": {
+        "key": {
+          "enum": [
+            "durationMs",
+            "memoryBytes",
+            "platform",
+            "toolVersion",
+            "cacheHitRatio"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^(?!.*[\\u0000\\r\\n]).*$"
+        }
+      }
+    },
+    "runtimeMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "records"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "records": {
+          "type": "array",
+          "maxItems": 1024,
+          "items": { "$ref": "#/definitions/runtimeRecord" }
+        }
+      }
+    },
+    "cache": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entries", "bytes", "temporaryEntries"],
+      "properties": {
+        "entries": { "type": "integer", "minimum": 0 },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "temporaryEntries": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bytes", "items"],
+      "properties": {
+        "bytes": { "type": "integer", "minimum": 0 },
+        "items": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "observed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["wallClockMs", "memoryBytes"],
+      "properties": {
+        "wallClockMs": { "type": "integer", "minimum": 0 },
+        "memoryBytes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "workspaceId",
+        "repositories",
+        "limits",
+        "pathExposure",
+        "runtimeMetadata",
+        "cache",
+        "report",
+        "observed",
+        "allowMixedTrust",
+        "allowPartial"
+      ],
+      "properties": {
+        "$schema": { "type": "string", "maxLength": 512 },
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.workspace-privacy" },
+        "workspaceId": { "$ref": "#/definitions/identifier" },
+        "repositories": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/repository" }
+        },
+        "limits": { "$ref": "#/definitions/limits" },
+        "pathExposure": { "$ref": "#/definitions/pathExposure" },
+        "runtimeMetadata": { "$ref": "#/definitions/runtimeMetadata" },
+        "cache": { "$ref": "#/definitions/cache" },
+        "report": { "$ref": "#/definitions/report" },
+        "observed": { "$ref": "#/definitions/observed" },
+        "allowMixedTrust": { "type": "boolean" },
+        "allowPartial": { "type": "boolean" }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": {
+          "enum": [
+            "repository-limit",
+            "node-limit",
+            "edge-limit",
+            "byte-limit",
+            "compressed-byte-limit",
+            "expanded-byte-limit",
+            "decompression-limit",
+            "depth-limit",
+            "time-limit",
+            "memory-limit",
+            "cache-limit",
+            "report-limit",
+            "path-exposure",
+            "secret-metadata",
+            "runtime-metadata",
+            "mixed-trust",
+            "partial-failure",
+            "temporary-data",
+            "invalid-path",
+            "invalid-manifest"
+          ]
+        },
+        "scope": { "$ref": "#/definitions/identifier" },
+        "message": { "type": "string", "minLength": 1, "maxLength": 512 }
+      }
+    },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repositories",
+        "nodes",
+        "edges",
+        "bytes",
+        "compressedBytes",
+        "expandedBytes",
+        "maxDepth",
+        "cacheEntries",
+        "cacheBytes",
+        "temporaryEntries",
+        "reportBytes",
+        "reportItems",
+        "pathCount",
+        "runtimeMetadataRecords",
+        "runtimeMetadataBytes"
+      ],
+      "properties": {
+        "repositories": { "type": "integer", "minimum": 0 },
+        "nodes": { "type": "integer", "minimum": 0 },
+        "edges": { "type": "integer", "minimum": 0 },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "compressedBytes": { "type": "integer", "minimum": 0 },
+        "expandedBytes": { "type": "integer", "minimum": 0 },
+        "maxDepth": { "type": "integer", "minimum": 0 },
+        "cacheEntries": { "type": "integer", "minimum": 0 },
+        "cacheBytes": { "type": "integer", "minimum": 0 },
+        "temporaryEntries": { "type": "integer", "minimum": 0 },
+        "reportBytes": { "type": "integer", "minimum": 0 },
+        "reportItems": { "type": "integer", "minimum": 0 },
+        "pathCount": { "type": "integer", "minimum": 0 },
+        "runtimeMetadataRecords": { "type": "integer", "minimum": 0 },
+        "runtimeMetadataBytes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "workspaceId",
+        "status",
+        "trustMode",
+        "limits",
+        "pathExposure",
+        "runtimeMetadata",
+        "repositories",
+        "totals",
+        "diagnostics"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.workspace-privacy" },
+        "workspaceId": { "$ref": "#/definitions/identifier" },
+        "status": { "enum": ["accepted", "partial"] },
+        "trustMode": { "enum": ["homogeneous", "isolated-mixed"] },
+        "limits": { "$ref": "#/definitions/limits" },
+        "pathExposure": { "$ref": "#/definitions/pathExposure" },
+        "runtimeMetadata": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "redacted", "records", "bytes"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "redacted": { "const": true },
+            "records": { "type": "integer", "minimum": 0 },
+            "bytes": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "repositories": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "trust", "status"],
+            "properties": {
+              "id": { "$ref": "#/definitions/identifier" },
+              "trust": { "enum": ["trusted", "untrusted"] },
+              "status": { "enum": ["available", "omitted", "failed"] }
+            }
+          }
+        },
+        "totals": { "$ref": "#/definitions/totals" },
+        "diagnostics": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/diagnostic" }
+        }
+      }
+    }
+  }
+}

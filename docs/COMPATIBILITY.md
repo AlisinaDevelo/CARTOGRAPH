@@ -710,3 +710,24 @@ same-directory temporary file plus atomic rename. An interruption cannot replace
 the previous cache and leaves no temporary state. The contract does not fetch
 repositories, execute package managers, upload source, or infer dependencies
 not declared by the caller.
+
+## W-005 workspace privacy and resource boundaries
+
+W-005 publishes the additive
+[`cartograph.workspace-privacy`](../schema/workspace-privacy.v0.1.schema.json)
+contract. It is the explicit execution boundary for a composed workspace:
+repository count, aggregate graph cardinality, raw/compressed/expanded bytes,
+depth, observed time and memory, cache size, report size, path exposure,
+optional runtime metadata, decompression ratio, and temporary entries are all
+bounded by versioned defaults that callers may lower but cannot raise above
+the published maxima.
+
+The default is fail-closed and local-only. Raw paths and runtime metadata are
+disabled unless an explicit mode and limit are supplied; digest-only paths are
+safe to retain, while relative paths are checked for traversal, URI, control,
+and symbolic-link escapes. Credential-shaped metadata is rejected without
+including the value in a diagnostic. Mixed trust requires explicit isolation,
+and partial repository failures are reported only as an explicit `partial`
+assessment. Temporary workspace helpers always remove their directory in a
+`finally` path, including callback failures. Existing graph, composition,
+identity, boundary, and recomposition readers remain additive and unchanged.

@@ -1,0 +1,98 @@
+{
+  "$schema": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/workspace-privacy.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.workspace-privacy",
+  "workspaceId": "portfolio",
+  "repositories": [
+    {
+      "id": "cartograph",
+      "trust": "trusted",
+      "status": "available",
+      "snapshot": {
+        "nodes": 4,
+        "edges": 3,
+        "bytes": 1200,
+        "compressedBytes": 800,
+        "expandedBytes": 1200,
+        "maxDepth": 5
+      },
+      "metadata": {
+        "adapter": "typescript",
+        "revisionDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "paths": [],
+      "pathDigests": [
+        "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    {
+      "id": "strata",
+      "trust": "untrusted",
+      "status": "available",
+      "snapshot": {
+        "nodes": 3,
+        "edges": 2,
+        "bytes": 900,
+        "compressedBytes": 600,
+        "expandedBytes": 900,
+        "maxDepth": 4
+      },
+      "metadata": {
+        "adapter": "typescript",
+        "revisionDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "paths": [],
+      "pathDigests": [
+        "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    }
+  ],
+  "limits": {
+    "maxRepositories": 8,
+    "maxNodes": 100,
+    "maxEdges": 100,
+    "maxBytes": 1048576,
+    "maxCompressedBytes": 1048576,
+    "maxExpandedBytes": 1048576,
+    "maxDepth": 32,
+    "maxWallClockMs": 30000,
+    "maxMemoryBytes": 1073741824,
+    "maxCacheBytes": 1048576,
+    "maxCacheEntries": 16,
+    "maxReportBytes": 1048576,
+    "maxReportItems": 1000,
+    "maxPathCount": 8,
+    "maxPathLength": 1024,
+    "maxRuntimeMetadataRecords": 8,
+    "maxRuntimeMetadataBytes": 4096,
+    "maxTemporaryEntries": 0,
+    "maxExpansionRatio": 1000
+  },
+  "pathExposure": {
+    "mode": "digest",
+    "maxPaths": 8,
+    "maxPathLength": 1024
+  },
+  "runtimeMetadata": {
+    "enabled": true,
+    "records": [
+      { "key": "durationMs", "value": "4" },
+      { "key": "toolVersion", "value": "1.0.0" }
+    ]
+  },
+  "cache": {
+    "entries": 2,
+    "bytes": 1600,
+    "temporaryEntries": 0
+  },
+  "report": {
+    "bytes": 2400,
+    "items": 12
+  },
+  "observed": {
+    "wallClockMs": 4,
+    "memoryBytes": 33554432
+  },
+  "allowMixedTrust": true,
+  "allowPartial": false
+}

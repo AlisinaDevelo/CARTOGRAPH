@@ -181,6 +181,11 @@
       "current": 1,
       "supportedReaders": [1],
       "reviewedVersions": [1]
+    },
+    "workspacePrivacy": {
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
     }
   }
 }
