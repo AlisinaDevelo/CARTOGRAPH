@@ -92,6 +92,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/workspace-boundaries.ts" ||
       file === "src/core/workspace-recomposition.ts" ||
       file === "src/core/workspace-privacy.ts" ||
+      file === "src/core/scip.ts" ||
       file === "src/report/adr.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
       file === "schema/support-matrix.v0.1.schema.json" ||
@@ -141,7 +142,8 @@ const checkHostedVersionChange = () => {
       file === "schema/workspace-recomposition.v0.1.schema.json" ||
       file === "schema/workspace-privacy.v0.1.schema.json" ||
       file === "schema/adoption-measurement.v0.1.schema.json" ||
-      file === "schema/workspace-federation-evaluation.v0.1.schema.json",
+      file === "schema/workspace-federation-evaluation.v0.1.schema.json" ||
+      file === "schema/scip-interchange.v0.1.schema.json",
   );
   const reviewRecorded = changed.some(
     (file) =>
@@ -205,6 +207,7 @@ const checkCompatibility = () => {
     "src/core/workspace-recomposition.ts",
   );
   const workspacePrivacySource = readText("src/core/workspace-privacy.ts");
+  const scipSource = readText("src/core/scip.ts");
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
   const supportSchema = readJson("schema/support-matrix.v0.1.schema.json");
   const diffSchema = readJson("schema/graph-diff.v0.1.schema.json");
@@ -304,6 +307,9 @@ const checkCompatibility = () => {
   );
   const workspaceFederationEvaluationSchema = readJson(
     "schema/workspace-federation-evaluation.v0.1.schema.json",
+  );
+  const scipInterchangeSchema = readJson(
+    "schema/scip-interchange.v0.1.schema.json",
   );
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
@@ -440,6 +446,10 @@ const checkCompatibility = () => {
     adoptionMeasurementSchema.properties.schemaVersion.const;
   const workspaceFederationEvaluationVersion =
     workspaceFederationEvaluationSchema.properties.schemaVersion.const;
+  const scipInterchangeVersion = sourceVersion(
+    scipSource,
+    "SCIP_INTERCHANGE_SCHEMA_VERSION",
+  );
 
   if (
     snapshotVersion === undefined ||
@@ -476,7 +486,8 @@ const checkCompatibility = () => {
     workspaceBoundaryVersion === undefined ||
     workspaceRecompositionVersion === undefined ||
     workspacePrivacyVersion === undefined ||
-    workspaceFederationEvaluationVersion === undefined
+    workspaceFederationEvaluationVersion === undefined ||
+    scipInterchangeVersion === undefined
   ) {
     throw new Error("runtime schema version constants are missing");
   }
@@ -852,6 +863,16 @@ const checkCompatibility = () => {
     workspaceFederationEvaluationSchema.properties.schemaVersion.const,
     workspaceFederationEvaluationVersion,
   );
+  requireEqual(
+    "SCIP interchange runtime/policy",
+    scipInterchangeVersion,
+    contracts.scipInterchange.current,
+  );
+  requireEqual(
+    "SCIP interchange JSON Schema/runtime",
+    scipInterchangeSchema.properties.schemaVersion.const,
+    scipInterchangeVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -897,6 +918,7 @@ const checkCompatibility = () => {
     workspacePrivacyVersion,
     adoptionMeasurementVersion,
     workspaceFederationEvaluationVersion,
+    scipInterchangeVersion,
   };
 };
 

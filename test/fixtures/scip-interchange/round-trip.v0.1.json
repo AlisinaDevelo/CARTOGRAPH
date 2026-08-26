@@ -1,0 +1,89 @@
+{
+  "$schema": "../../schema/scip-interchange.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.scip-interchange",
+  "mediaType": "application/vnd.cartograph.scip-interchange+json",
+  "fixtureId": "e017-v0.1",
+  "method": {
+    "replayMode": "checked-in-index",
+    "rerunnable": true,
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "credentialsUsed": false,
+    "hiddenTelemetry": false,
+    "command": "npm run scip:validate"
+  },
+  "index": {
+    "metadata": {
+      "version": 0,
+      "toolInfo": {
+        "name": "scip-typescript",
+        "version": "0.5.0",
+        "arguments": []
+      },
+      "projectRoot": "redacted://project-root",
+      "textDocumentEncoding": "UTF16"
+    },
+    "documents": [
+      {
+        "relativePath": "src/index.ts",
+        "language": "typescript",
+        "occurrences": [
+          {
+            "symbol": "scip-typescript npm app 1.0.0 src/index.ts main().",
+            "range": [0, 0, 4],
+            "symbolRoles": 1,
+            "cartographEvidenceRefs": [
+              "scip://fixture/evidence/main-definition"
+            ]
+          },
+          {
+            "symbol": "scip-typescript npm app 1.0.0 dep().",
+            "range": [1, 0, 4],
+            "symbolRoles": 8,
+            "enclosingRange": [0, 0, 3, 1],
+            "cartographEvidenceRefs": ["scip://fixture/evidence/dep-read"]
+          }
+        ],
+        "symbols": [
+          {
+            "symbol": "scip-typescript npm app 1.0.0 src/index.ts main().",
+            "kind": "Function",
+            "documentation": ["Main entry documentation is report-only."],
+            "relationships": [
+              {
+                "symbol": "scip-typescript npm app 1.0.0 dep().",
+                "isReference": true,
+                "cartographEvidenceRefs": ["scip://fixture/evidence/main-dep"]
+              }
+            ],
+            "cartographStableKey": "function:src/index.ts#main"
+          }
+        ],
+        "cartographStableKey": "module:src/index.ts"
+      }
+    ],
+    "externalSymbols": [
+      {
+        "symbol": "scip-typescript npm app 1.0.0 dep().",
+        "kind": "Function",
+        "documentation": [],
+        "relationships": [],
+        "cartographStableKey": "function:src/dep.ts#dep"
+      }
+    ]
+  },
+  "expected": {
+    "stableKeys": [
+      "module:src/index.ts",
+      "function:src/index.ts#main",
+      "function:src/dep.ts#dep"
+    ],
+    "evidenceReferences": [
+      "scip://fixture/evidence/main-definition",
+      "scip://fixture/evidence/dep-read",
+      "scip://fixture/evidence/main-dep"
+    ],
+    "unsupportedCodes": ["SCIP_SYMBOL_DOCUMENTATION", "SCIP_ENCLOSING_RANGE"]
+  }
+}
