@@ -845,3 +845,22 @@ provenance record carries `authorityGranted: false`. The checked-in
 corpus is replayed with `npm run architecture-waivers:validate`; this additive
 contract does not change GraphSnapshot, GraphDiff, or STRATA's compiler-backed
 semantic analysis boundary.
+
+## G-004 ownership and waiver drift
+
+G-004 adds the reviewed additive `ownershipWaiverDrift` contract and
+[`cartograph.ownership-waiver-drift`](../schema/ownership-waiver-drift.v0.1.schema.json)
+v1 schema. It reads versioned ownership and waiver reports plus safe
+digest-oriented key and waiver projections. Stable target identity makes
+repository moves and owner reassignment visible; policy/evidence revision,
+scope, expiry, signature, key-rotation, and partial-workspace changes are
+diagnosed with stable `DRIFT_*` codes.
+
+The report preserves prior decision-trail records and appends current
+decisions. It never auto-extends a waiver, grants authority, includes source
+bodies, or serializes signature/private-key material. The
+[`scenarios.v0.1.json`](../test/fixtures/ownership-waiver-drift/scenarios.v0.1.json)
+fixture is replayed by `npm run ownership-waiver-drift:validate`; the contract
+is local, offline, deterministic, and additive. Readers that do not implement
+the contract must retain the artifact as an unsupported report rather than
+interpreting it as a clean review.

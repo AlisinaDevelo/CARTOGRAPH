@@ -437,6 +437,26 @@ records always set `authorityGranted: false`. The
 fixture define this review boundary; no checkout, source body, network, or
 repository execution is involved.
 
+## G-004 ownership and waiver drift
+
+The [`cartograph.ownership-waiver-drift`](../schema/ownership-waiver-drift.v0.1.schema.json)
+contract compares point-in-time ownership and waiver decisions by stable
+identity. It retains prior decision entries while making owner disappearance,
+ambiguous reassignment, repository moves, partial workspaces, waiver scope and
+policy/evidence drift, expiry, signature failures, and signing-key rotation
+explicit. It consumes local reports rather than rescanning source or querying a
+hosted authority.
+
+The report is digest-oriented and deterministic. It carries revision- and
+evidence-linked diagnostics, omits signature/private-key material, and marks
+both `authorityGranted` and `autoExtended` false. Expired or expiring waivers
+remain visible and require a new explicit decision; comparison never renews or
+authorizes an exception. The checked-in
+[`ownership-waiver-drift` fixture](../test/fixtures/ownership-waiver-drift/scenarios.v0.1.json)
+is replayed with `npm run ownership-waiver-drift:validate`. This additive
+contract does not change GraphSnapshot, GraphDiff, or STRATA's compiler-backed
+semantic analysis boundary.
+
 ## Topology summaries
 
 `diffGraphSnapshots` accepts an optional `topology` configuration. The resulting
