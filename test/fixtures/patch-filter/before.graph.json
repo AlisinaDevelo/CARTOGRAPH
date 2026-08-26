@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "capabilityRegistryVersion": 1,
+  "revision": {
+    "commitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "branch": "main"
+  },
+  "nodes": [
+    {
+      "id": "node-old",
+      "stableKey": "function:src/old.ts:handler",
+      "kind": "function",
+      "name": "handler",
+      "language": "typescript",
+      "location": { "path": "src/old.ts", "line": 1 }
+    },
+    {
+      "id": "node-context",
+      "stableKey": "function:src/context.ts:context",
+      "kind": "function",
+      "name": "context",
+      "language": "typescript",
+      "location": { "path": "src/context.ts", "line": 1 }
+    },
+    {
+      "id": "node-two-hop",
+      "stableKey": "function:src/two-hop.ts:twoHop",
+      "kind": "function",
+      "name": "twoHop",
+      "language": "typescript",
+      "location": { "path": "src/two-hop.ts", "line": 1 }
+    },
+    {
+      "id": "node-generated",
+      "stableKey": "file:generated/types.ts",
+      "kind": "file",
+      "name": "types.ts",
+      "location": { "path": "generated/types.ts", "line": 1 }
+    },
+    {
+      "id": "node-unrelated",
+      "stableKey": "function:src/unrelated.ts:unrelated",
+      "kind": "function",
+      "name": "unrelated",
+      "language": "typescript",
+      "location": { "path": "src/unrelated.ts", "line": 1 }
+    }
+  ],
+  "edges": [
+    {
+      "from": "node-old",
+      "to": "node-context",
+      "kind": "calls",
+      "confidence": "certain",
+      "evidence": [
+        {
+          "id": "before-old-call",
+          "kind": "source",
+          "path": "src/old.ts",
+          "line": 4,
+          "detector": "cartograph.fixture@1",
+          "contentHash": "1111111111111111111111111111111111111111111111111111111111111111"
+        }
+      ]
+    },
+    {
+      "from": "node-context",
+      "to": "node-two-hop",
+      "kind": "calls",
+      "confidence": "inferred",
+      "evidence": [
+        {
+          "id": "before-context-call",
+          "kind": "source",
+          "path": "src/context.ts",
+          "line": 5,
+          "detector": "cartograph.fixture@1",
+          "contentHash": "2222222222222222222222222222222222222222222222222222222222222222"
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "diagnostic-old",
+      "code": "LEGACY_HANDLER",
+      "severity": "warning",
+      "message": "the old handler needs review",
+      "nodeId": "node-old",
+      "evidence": [
+        {
+          "id": "before-old-diagnostic",
+          "kind": "source",
+          "path": "src/old.ts",
+          "line": 7,
+          "detector": "cartograph.fixture@1",
+          "contentHash": "3333333333333333333333333333333333333333333333333333333333333333"
+        }
+      ]
+    }
+  ]
+}

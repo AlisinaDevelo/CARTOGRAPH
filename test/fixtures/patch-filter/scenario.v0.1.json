@@ -1,0 +1,61 @@
+{
+  "$schema": "../../../schema/patch-filter-fixtures.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.patch-filter-fixtures",
+  "fixtureId": "d014-v0.1",
+  "before": "before.graph.json",
+  "after": "after.graph.json",
+  "request": {
+    "schemaVersion": 1,
+    "contract": "cartograph.patch-filter",
+    "filterId": "d014-rename-generated",
+    "changedFiles": [
+      {
+        "path": "generated/types.ts",
+        "status": "modified",
+        "generated": true
+      },
+      {
+        "path": "src/new.ts",
+        "status": "renamed",
+        "previousPath": "src/old.ts",
+        "generated": false
+      }
+    ],
+    "contextDepth": 1,
+    "includeGenerated": false,
+    "maxNodes": 100,
+    "maxEdges": 100,
+    "maxDiagnostics": 100,
+    "maxOmittedRegions": 100
+  },
+  "policy": {
+    "schemaVersion": 1,
+    "policyId": "d014-policy",
+    "version": "1.0.0",
+    "mode": "enforce",
+    "rules": [
+      {
+        "id": "unknown-edge-forbidden",
+        "target": "diff",
+        "selector": {
+          "kind": "edge-added",
+          "id": "edge-added:edge:node-generated|unknown|node-context"
+        },
+        "assertion": "absent"
+      }
+    ]
+  },
+  "expected": {
+    "beforeNodeIds": ["node-old", "node-context"],
+    "afterNodeIds": ["node-new", "node-context"],
+    "beforeEdgeIds": ["node-old|calls|node-context"],
+    "afterEdgeIds": ["node-new|calls|node-context"],
+    "generatedOmittedFiles": ["generated/types.ts"],
+    "renameIdentity": "function:src/old.ts:handler=>function:src/new.ts:handler",
+    "policyStatus": "violations",
+    "omittedViolationCount": 1,
+    "deterministic": true,
+    "readOnly": true
+  }
+}

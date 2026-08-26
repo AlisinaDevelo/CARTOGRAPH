@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "capabilityRegistryVersion": 1,
+  "revision": {
+    "commitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "branch": "main"
+  },
+  "nodes": [
+    {
+      "id": "node-new",
+      "stableKey": "function:src/new.ts:handler",
+      "kind": "function",
+      "name": "handler",
+      "language": "typescript",
+      "location": { "path": "src/new.ts", "line": 1 }
+    },
+    {
+      "id": "node-context",
+      "stableKey": "function:src/context.ts:context",
+      "kind": "function",
+      "name": "context",
+      "language": "typescript",
+      "location": { "path": "src/context.ts", "line": 1 }
+    },
+    {
+      "id": "node-two-hop",
+      "stableKey": "function:src/two-hop.ts:twoHop",
+      "kind": "function",
+      "name": "twoHop",
+      "language": "typescript",
+      "location": { "path": "src/two-hop.ts", "line": 1 }
+    },
+    {
+      "id": "node-generated",
+      "stableKey": "file:generated/types.ts",
+      "kind": "file",
+      "name": "types.ts",
+      "location": { "path": "generated/types.ts", "line": 1 }
+    },
+    {
+      "id": "node-unrelated",
+      "stableKey": "function:src/unrelated.ts:unrelated",
+      "kind": "function",
+      "name": "unrelated",
+      "language": "typescript",
+      "location": { "path": "src/unrelated.ts", "line": 1 }
+    }
+  ],
+  "edges": [
+    {
+      "from": "node-new",
+      "to": "node-context",
+      "kind": "calls",
+      "confidence": "certain",
+      "evidence": [
+        {
+          "id": "after-new-call",
+          "kind": "source",
+          "path": "src/new.ts",
+          "line": 4,
+          "detector": "cartograph.fixture@1",
+          "contentHash": "4444444444444444444444444444444444444444444444444444444444444444"
+        }
+      ]
+    },
+    {
+      "from": "node-context",
+      "to": "node-two-hop",
+      "kind": "calls",
+      "confidence": "inferred",
+      "evidence": [
+        {
+          "id": "after-context-call",
+          "kind": "source",
+          "path": "src/context.ts",
+          "line": 5,
+          "detector": "cartograph.fixture@1",
+          "contentHash": "5555555555555555555555555555555555555555555555555555555555555555"
+        }
+      ]
+    },
+    {
+      "from": "node-generated",
+      "to": "node-context",
+      "kind": "unknown",
+      "confidence": "inferred",
+      "evidence": [
+        {
+          "id": "after-generated-edge",
+          "kind": "source",
+          "path": "generated/types.ts",
+          "line": 9,
+          "detector": "cartograph.fixture@1",
+          "contentHash": "6666666666666666666666666666666666666666666666666666666666666666"
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "diagnostic-new",
+      "code": "LEGACY_HANDLER",
+      "severity": "warning",
+      "message": "the renamed handler needs review",
+      "nodeId": "node-new",
+      "evidence": [
+        {
+          "id": "after-new-diagnostic",
+          "kind": "source",
+          "path": "src/new.ts",
+          "line": 7,
+          "detector": "cartograph.fixture@1",
+          "contentHash": "7777777777777777777777777777777777777777777777777777777777777777"
+        }
+      ]
+    },
+    {
+      "id": "diagnostic-generated",
+      "code": "GENERATED_EDGE",
+      "severity": "warning",
+      "message": "generated edge could not be resolved",
+      "nodeId": "node-generated",
+      "evidence": [
+        {
+          "id": "after-generated-diagnostic",
+          "kind": "source",
+          "path": "generated/types.ts",
+          "line": 10,
+          "detector": "cartograph.fixture@1",
+          "contentHash": "8888888888888888888888888888888888888888888888888888888888888888"
+        }
+      ]
+    }
+  ]
+}

@@ -82,6 +82,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/remediation-suggestions.ts" ||
       file === "src/core/remediation-rules.ts" ||
       file === "src/core/patch-previews.ts" ||
+      file === "src/core/patch-filter.ts" ||
       file === "src/core/remediation-review.ts" ||
       file === "src/core/remediation-evaluation.ts" ||
       file === "src/core/query.ts" ||
@@ -129,6 +130,8 @@ const checkHostedVersionChange = () => {
       file === "schema/remediation-rules.v0.1.schema.json" ||
       file === "schema/patch-preview.v0.1.schema.json" ||
       file === "schema/patch-preview-report.v0.1.schema.json" ||
+      file === "schema/patch-filter.v0.1.schema.json" ||
+      file === "schema/patch-filter-fixtures.v0.1.schema.json" ||
       file === "schema/remediation-review.v0.1.schema.json" ||
       file === "schema/remediation-evaluation.v0.1.schema.json" ||
       file === "schema/architecture-query.v0.1.schema.json" ||
@@ -203,6 +206,7 @@ const checkCompatibility = () => {
   );
   const remediationRulesSource = readText("src/core/remediation-rules.ts");
   const patchPreviewSource = readText("src/core/patch-previews.ts");
+  const patchFilterSource = readText("src/core/patch-filter.ts");
   const remediationReviewSource = readText("src/core/remediation-review.ts");
   const remediationEvaluationSource = readText(
     "src/core/remediation-evaluation.ts",
@@ -288,6 +292,7 @@ const checkCompatibility = () => {
   const patchPreviewReportSchema = readJson(
     "schema/patch-preview-report.v0.1.schema.json",
   );
+  const patchFilterSchema = readJson("schema/patch-filter.v0.1.schema.json");
   const remediationReviewSchema = readJson(
     "schema/remediation-review.v0.1.schema.json",
   );
@@ -439,6 +444,10 @@ const checkCompatibility = () => {
     patchPreviewSource,
     "PATCH_PREVIEW_SCHEMA_VERSION",
   );
+  const patchFilterVersion = sourceVersion(
+    patchFilterSource,
+    "PATCH_FILTER_SCHEMA_VERSION",
+  );
   const remediationReviewVersion = sourceVersion(
     remediationReviewSource,
     "REMEDIATION_REVIEW_SCHEMA_VERSION",
@@ -535,6 +544,7 @@ const checkCompatibility = () => {
     remediationSuggestionVersion === undefined ||
     remediationRulesVersion === undefined ||
     patchPreviewVersion === undefined ||
+    patchFilterVersion === undefined ||
     remediationReviewVersion === undefined ||
     remediationEvaluationVersion === undefined ||
     architectureQueryVersion === undefined ||
@@ -808,6 +818,16 @@ const checkCompatibility = () => {
     patchPreviewVersion,
   );
   requireEqual(
+    "patch filter runtime/policy",
+    patchFilterVersion,
+    contracts.patchFilters.current,
+  );
+  requireEqual(
+    "patch filter JSON Schema/runtime",
+    patchFilterSchema.properties.schemaVersion.const,
+    patchFilterVersion,
+  );
+  requireEqual(
     "remediation review runtime/policy",
     remediationReviewVersion,
     contracts.remediationReviews.current,
@@ -1031,6 +1051,7 @@ const checkCompatibility = () => {
     remediationSuggestionVersion,
     remediationRulesVersion,
     patchPreviewVersion,
+    patchFilterVersion,
     remediationReviewVersion,
     remediationEvaluationVersion,
     architectureQueryVersion,

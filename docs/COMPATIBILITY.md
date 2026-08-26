@@ -52,6 +52,19 @@ source-body-free, deterministic, and resource-bounded. This Q-003 addition is
 additive to v0.1: callers that omit the projection retain the prior result
 shape and semantics, while readers that ignore the optional metadata section
 remain compatible.
+Patch-scoped graph views use the reviewed `patchFilters` contract and
+[`schema/patch-filter.v0.1.schema.json`](../schema/patch-filter.v0.1.schema.json).
+D-014 adds a separate report contract rather than changing GraphSnapshot or
+GraphDiff. Writers bind the request, revisions, selected records, omitted
+regions, and full-diff policy evaluation to canonical digests. Changed-file
+evidence, rename pairs, and optional one-hop context are selected
+deterministically; generated files remain omitted unless explicitly included.
+The report preserves every full-diff policy violation and refuses to claim
+`passed` when no full-diff evaluation is supplied. Readers that do not support
+the contract must retain it as an unsupported report, not treat its filtered
+view as a complete graph or clean policy result. A future change to selection,
+omission, or policy-visibility meaning requires a new patch-filter version or
+an explicit migration review.
 Evidence-backed change-impact scenarios use the separately reviewed
 `architectureImpacts` contract and
 [`schema/architecture-impact.v0.1.schema.json`](../schema/architecture-impact.v0.1.schema.json).
@@ -902,3 +915,20 @@ governance evidence only: it does not change GraphSnapshot, GraphDiff,
 review-summary, ownership, waiver, signing, or Action wire shapes. A future
 change to metric meaning requires a new evaluation version or an explicit
 migration review. Replay it with `npm run review-workflow:evaluation:validate`.
+
+## D-014 patch-filter review
+
+D-014 publishes the additive `patchFilters` v1 contract. The runtime and
+published schema describe a patch-scoped projection around an existing
+GraphDiff, with explicit changed-file roots, rename identity, zero/one-hop
+context, generated-file omission, omitted graph regions, cardinality limits,
+and deterministic request/report digests. It does not alter GraphSnapshot or
+GraphDiff and has no network, source execution, or mutation capability.
+
+Policy visibility is intentionally fail-closed: callers may provide only a
+policy evaluation whose `inputKind` is the complete GraphDiff, and the report
+retains its exact status, digest, violation IDs, and retained/omitted
+partition. Missing evaluation is `not-provided`, never `passed`. The checked-in
+rename/generated fixture and JSON Schema are replayed by
+`npm run patch-filter:validate`; a future semantic change requires a new
+contract version or an explicit migration review.

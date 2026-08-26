@@ -682,6 +682,15 @@
       "reference": "G-006 review workflow usability, integrity, and load evaluation; no external source data",
       "transformation": "Representative synthetic observations derive triage, owner-resolution, waiver, stale-state, reviewer-task, maintainer-load, and failure-recovery metrics while six abuse cases exercise forgery, replay, broad waivers, owner spoofing, fork pull requests, and compromised keys without source bodies, credentials, telemetry, or network access.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "patch-filter",
+      "path": "patch-filter",
+      "source": "CARTOGRAPH repository-authored synthetic patch-filter fixture",
+      "license": "Apache-2.0",
+      "reference": "D-014 patch-scoped graph and policy filtering contract; no external source data",
+      "transformation": "A bounded before/after graph pair exercises rename evidence, one-hop context, generated-file omission, deterministic selection, and full-diff policy preservation without source bodies, execution, credentials, or network access.",
+      "redistribution": "allowed"
     }
   ]
 }

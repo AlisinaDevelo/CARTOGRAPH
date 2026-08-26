@@ -67,6 +67,18 @@ CI analyzes the same fixture with varied discovery order and asserts byte-identi
 
 Mutation fixtures introduce one known change at a time: an endpoint, dependency, data access, outbound request, removal, rename, cycle, or unresolved construct. The graph-diff golden fixture also combines the contract-level added, removed, changed, endpoint-rewire, evidence-only, confidence-change, and unresolved-diagnostic cases so the semantic categories cannot regress while individual analyzer fixtures evolve. Rewire pairing fails closed when multiple candidates are equally plausible, and golden diffs must remain stable under unrelated graph ordering changes while retaining evidence from the correct revision.
 
+D-014 adds the offline
+[`patch-filter/scenario.v0.1.json`](../test/fixtures/patch-filter/scenario.v0.1.json)
+fixture. It combines a file rename, a generated-file change, a changed edge,
+one-hop context, an out-of-context node, and a full-diff policy violation. The
+validator checks the published report schema, exact selected node/edge IDs,
+rename identity, generated-file omissions, deterministic repeated
+serialization, read-only flags, revision/path validation, and the retained
+policy violation partition. A second run explicitly includes generated files;
+the policy status remains `violations` while the omitted violation count drops
+to zero. Run `npm run patch-filter:validate`; this is a local contract fixture,
+not a claim of complete graph coverage for arbitrary repositories.
+
 Impact traversal uses a hand-authored reachability fixture with a cycle, an
 unresolved edge, and a known depth boundary. Forward and reverse runs assert
 the exact node and edge sets, confidence/evidence preservation, cycle paths,
