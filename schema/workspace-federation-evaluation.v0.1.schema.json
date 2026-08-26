@@ -1,0 +1,527 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/workspace-federation-evaluation.v0.1.schema.json",
+  "title": "CARTOGRAPH workspace federation evaluation v0.1",
+  "description": "Aggregate-only, deterministic evidence for bounded offline federation across representative repository portfolios.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "evaluationId",
+    "reviewedAt",
+    "tool",
+    "method",
+    "portfolios",
+    "summary",
+    "decision",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.workspace-federation-evaluation" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.workspace-federation-evaluation+json"
+    },
+    "evaluationId": { "const": "w006-v0.1" },
+    "reviewedAt": { "type": "string", "format": "date-time" },
+    "tool": { "$ref": "#/definitions/tool" },
+    "method": { "$ref": "#/definitions/method" },
+    "portfolios": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/definitions/portfolio" }
+    },
+    "summary": { "$ref": "#/definitions/summary" },
+    "decision": { "$ref": "#/definitions/decision" },
+    "provenance": { "$ref": "#/definitions/provenance" }
+  },
+  "definitions": {
+    "portableText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000,
+      "pattern": "^[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F]+$"
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,64}$"
+    },
+    "nonNegativeInteger": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ratio": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "commit", "runtime", "platform", "architecture"],
+      "properties": {
+        "version": { "type": "string", "minLength": 1 },
+        "commit": { "$ref": "#/definitions/revision" },
+        "runtime": { "type": "string", "minLength": 1 },
+        "platform": { "type": "string", "minLength": 1 },
+        "architecture": { "type": "string", "minLength": 1 }
+      }
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "replayMode",
+        "rerunnable",
+        "command",
+        "network",
+        "sourceBodiesIncluded",
+        "credentialsUsed",
+        "hiddenTelemetry",
+        "userDataIncluded",
+        "sourceAcquisition",
+        "limitations"
+      ],
+      "properties": {
+        "replayMode": { "const": "aggregate-fixture" },
+        "rerunnable": { "const": true },
+        "command": {
+          "const": "npm run workspace:federation:evaluation:validate"
+        },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "credentialsUsed": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "userDataIncluded": { "const": false },
+        "sourceAcquisition": { "const": "not-run" },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/portableText" }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "reference",
+        "revision",
+        "license",
+        "sourceBodiesIncluded"
+      ],
+      "properties": {
+        "kind": { "enum": ["public-record", "sanitized-record"] },
+        "reference": { "$ref": "#/definitions/portableText" },
+        "revision": { "$ref": "#/definitions/revision" },
+        "license": { "$ref": "#/definitions/portableText" },
+        "sourceBodiesIncluded": { "const": false }
+      }
+    },
+    "declaredSize": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repositories", "graphNodes", "graphEdges"],
+      "properties": {
+        "repositories": { "type": "integer", "minimum": 3 },
+        "graphNodes": { "$ref": "#/definitions/nonNegativeInteger" },
+        "graphEdges": { "$ref": "#/definitions/nonNegativeInteger" }
+      }
+    },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "role",
+        "status",
+        "identity",
+        "version",
+        "revision",
+        "graphNodes",
+        "graphEdges",
+        "sourceBodiesIncluded"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "role": { "enum": ["package", "service", "schema"] },
+        "status": { "enum": ["present", "missing"] },
+        "identity": { "$ref": "#/definitions/portableText" },
+        "version": {
+          "oneOf": [
+            { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+            { "type": "null" }
+          ]
+        },
+        "revision": {
+          "oneOf": [{ "$ref": "#/definitions/revision" }, { "type": "null" }]
+        },
+        "graphNodes": { "$ref": "#/definitions/nonNegativeInteger" },
+        "graphEdges": { "$ref": "#/definitions/nonNegativeInteger" },
+        "sourceBodiesIncluded": { "const": false }
+      }
+    },
+    "scenarioOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "count"],
+      "properties": {
+        "state": { "enum": ["resolved", "unresolved", "replayed", "unknown"] },
+        "count": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "description",
+        "expected",
+        "observed",
+        "evidenceRef",
+        "reproducible"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "kind": {
+          "enum": [
+            "package",
+            "service",
+            "schema",
+            "missing-repository",
+            "version-skew",
+            "cross-boundary-change"
+          ]
+        },
+        "description": { "$ref": "#/definitions/portableText" },
+        "expected": { "$ref": "#/definitions/scenarioOutcome" },
+        "observed": { "$ref": "#/definitions/scenarioOutcome" },
+        "evidenceRef": { "$ref": "#/definitions/portableText" },
+        "reproducible": { "const": true }
+      }
+    },
+    "resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "truePositives",
+        "falsePositives",
+        "falseNegatives",
+        "precision",
+        "recall"
+      ],
+      "properties": {
+        "truePositives": { "type": "integer", "minimum": 0 },
+        "falsePositives": { "type": "integer", "minimum": 0 },
+        "falseNegatives": { "type": "integer", "minimum": 0 },
+        "precision": { "$ref": "#/definitions/ratio" },
+        "recall": { "$ref": "#/definitions/ratio" }
+      }
+    },
+    "unknownCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["knownRecords", "unknownRecords", "totalRecords", "rate"],
+      "properties": {
+        "knownRecords": { "type": "integer", "minimum": 0 },
+        "unknownRecords": { "type": "integer", "minimum": 0 },
+        "totalRecords": { "type": "integer", "minimum": 1 },
+        "rate": { "$ref": "#/definitions/ratio" }
+      }
+    },
+    "identityStability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stableIdentities",
+        "changedIdentities",
+        "ambiguousIdentities",
+        "comparedIdentities",
+        "stability"
+      ],
+      "properties": {
+        "stableIdentities": { "type": "integer", "minimum": 0 },
+        "changedIdentities": { "type": "integer", "minimum": 0 },
+        "ambiguousIdentities": { "type": "integer", "minimum": 0 },
+        "comparedIdentities": { "type": "integer", "minimum": 1 },
+        "stability": { "$ref": "#/definitions/ratio" }
+      }
+    },
+    "incrementalPerformance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coldDurationMs",
+        "warmDurationMs",
+        "speedup",
+        "totalUnits",
+        "changedUnits",
+        "recomputedUnits",
+        "reusedUnits"
+      ],
+      "properties": {
+        "coldDurationMs": { "type": "integer", "minimum": 1 },
+        "warmDurationMs": { "type": "integer", "minimum": 1 },
+        "speedup": { "type": "number", "minimum": 1 },
+        "totalUnits": { "type": "integer", "minimum": 1 },
+        "changedUnits": { "type": "integer", "minimum": 1 },
+        "recomputedUnits": { "type": "integer", "minimum": 1 },
+        "reusedUnits": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "reviewerUsefulness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "taskCount",
+        "completedTasks",
+        "completionRate",
+        "reason"
+      ],
+      "properties": {
+        "status": { "enum": ["observed", "not-observed"] },
+        "taskCount": { "type": "integer", "minimum": 0 },
+        "completedTasks": { "type": "integer", "minimum": 0 },
+        "completionRate": {
+          "oneOf": [{ "$ref": "#/definitions/ratio" }, { "type": "null" }]
+        },
+        "reason": { "$ref": "#/definitions/portableText" }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "network",
+        "hiddenTelemetry",
+        "sourceBodiesIncluded",
+        "findingCount",
+        "findings"
+      ],
+      "properties": {
+        "status": { "enum": ["pass", "limited"] },
+        "network": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "findingCount": { "type": "integer", "minimum": 1 },
+        "findings": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/portableText" }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resolution",
+        "unknownCoverage",
+        "identityStability",
+        "incrementalPerformance",
+        "reviewerUsefulness",
+        "privacy"
+      ],
+      "properties": {
+        "resolution": { "$ref": "#/definitions/resolution" },
+        "unknownCoverage": { "$ref": "#/definitions/unknownCoverage" },
+        "identityStability": { "$ref": "#/definitions/identityStability" },
+        "incrementalPerformance": {
+          "$ref": "#/definitions/incrementalPerformance"
+        },
+        "reviewerUsefulness": { "$ref": "#/definitions/reviewerUsefulness" },
+        "privacy": { "$ref": "#/definitions/privacy" }
+      }
+    },
+    "portfolio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "source",
+        "sizeTier",
+        "declaredSize",
+        "repositories",
+        "scenarios",
+        "metrics",
+        "limitations"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "title": { "$ref": "#/definitions/portableText" },
+        "source": { "$ref": "#/definitions/source" },
+        "sizeTier": { "enum": ["tiny", "small", "medium", "large"] },
+        "declaredSize": { "$ref": "#/definitions/declaredSize" },
+        "repositories": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "$ref": "#/definitions/repository" }
+        },
+        "scenarios": {
+          "type": "array",
+          "minItems": 6,
+          "items": { "$ref": "#/definitions/scenario" }
+        },
+        "metrics": { "$ref": "#/definitions/metrics" },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/portableText" }
+        }
+      }
+    },
+    "aggregateResolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "truePositives",
+        "falsePositives",
+        "falseNegatives",
+        "precision",
+        "recall"
+      ],
+      "properties": {
+        "truePositives": { "type": "integer", "minimum": 0 },
+        "falsePositives": { "type": "integer", "minimum": 0 },
+        "falseNegatives": { "type": "integer", "minimum": 0 },
+        "precision": { "$ref": "#/definitions/ratio" },
+        "recall": { "$ref": "#/definitions/ratio" }
+      }
+    },
+    "aggregateUnknownCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["knownRecords", "unknownRecords", "totalRecords", "rate"],
+      "properties": {
+        "knownRecords": { "type": "integer", "minimum": 0 },
+        "unknownRecords": { "type": "integer", "minimum": 0 },
+        "totalRecords": { "type": "integer", "minimum": 1 },
+        "rate": { "$ref": "#/definitions/ratio" }
+      }
+    },
+    "aggregateIdentityStability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stableIdentities",
+        "changedIdentities",
+        "ambiguousIdentities",
+        "comparedIdentities",
+        "stability"
+      ],
+      "properties": {
+        "stableIdentities": { "type": "integer", "minimum": 0 },
+        "changedIdentities": { "type": "integer", "minimum": 0 },
+        "ambiguousIdentities": { "type": "integer", "minimum": 0 },
+        "comparedIdentities": { "type": "integer", "minimum": 1 },
+        "stability": { "$ref": "#/definitions/ratio" }
+      }
+    },
+    "aggregatePerformance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coldDurationMs",
+        "warmDurationMs",
+        "speedup",
+        "totalUnits",
+        "changedUnits",
+        "recomputedUnits",
+        "reusedUnits"
+      ],
+      "properties": {
+        "coldDurationMs": { "type": "integer", "minimum": 1 },
+        "warmDurationMs": { "type": "integer", "minimum": 1 },
+        "speedup": { "type": "number", "minimum": 1 },
+        "totalUnits": { "type": "integer", "minimum": 1 },
+        "changedUnits": { "type": "integer", "minimum": 1 },
+        "recomputedUnits": { "type": "integer", "minimum": 1 },
+        "reusedUnits": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "portfolioCount",
+        "scenarioKinds",
+        "resolution",
+        "unknownCoverage",
+        "identityStability",
+        "incrementalPerformance",
+        "reviewerUsefulnessStatus",
+        "privacyFindingCount"
+      ],
+      "properties": {
+        "portfolioCount": { "type": "integer", "minimum": 3 },
+        "scenarioKinds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 6,
+          "uniqueItems": true
+        },
+        "resolution": { "$ref": "#/definitions/aggregateResolution" },
+        "unknownCoverage": { "$ref": "#/definitions/aggregateUnknownCoverage" },
+        "identityStability": {
+          "$ref": "#/definitions/aggregateIdentityStability"
+        },
+        "incrementalPerformance": {
+          "$ref": "#/definitions/aggregatePerformance"
+        },
+        "reviewerUsefulnessStatus": { "enum": ["observed", "not-observed"] },
+        "privacyFindingCount": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "rationale",
+        "allowedScope",
+        "requiredBeforeChange",
+        "nextReview"
+      ],
+      "properties": {
+        "outcome": { "enum": ["graduate", "narrow", "defer"] },
+        "rationale": { "$ref": "#/definitions/portableText" },
+        "allowedScope": { "$ref": "#/definitions/portableText" },
+        "requiredBeforeChange": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/portableText" }
+        },
+        "nextReview": { "type": "string", "format": "date-time" }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "license",
+        "reference",
+        "transformation",
+        "redistribution"
+      ],
+      "properties": {
+        "source": { "$ref": "#/definitions/portableText" },
+        "license": { "$ref": "#/definitions/portableText" },
+        "reference": { "$ref": "#/definitions/portableText" },
+        "transformation": { "$ref": "#/definitions/portableText" },
+        "redistribution": {
+          "enum": ["allowed", "restricted", "not-redistributable"]
+        }
+      }
+    }
+  }
+}

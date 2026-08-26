@@ -610,6 +610,15 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "A bounded mixed-trust request exercises aggregate graph and byte ceilings, decompression-ratio protection, digest-only paths, redacted runtime metadata, cache/report/temporary limits, partial failure, secret rejection, symlink containment, and temporary-directory cleanup without source bodies, execution, or network access.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "workspace-federation-evaluation",
+      "path": "workspace-federation-evaluation",
+      "source": "CARTOGRAPH repository-authored aggregate federation evaluation fixture",
+      "license": "Apache-2.0",
+      "reference": "W-006 representative portfolio evaluation; no source bodies retained",
+      "transformation": "Three pinned sanitized portfolios exercise package, service, schema, missing-repository, version-skew, and cross-boundary scenarios with aggregate resolution, unknown, identity, incremental, reviewer-missingness, and privacy metrics without source acquisition or network access.",
+      "redistribution": "allowed"
     }
   ]
 }
