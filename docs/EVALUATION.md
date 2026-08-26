@@ -187,6 +187,16 @@ by refactor family. It compares the deterministic quality digest with the
 checked-in baseline and enforces the documented thresholds and expiring
 exception process before release.
 
+R-008 extends the existing offline Action fixture with check-summary and line
+annotation assertions. The fixture verifies counts, edge-confidence totals,
+unresolved diagnostics, the run/artifact link, deterministic annotation caps,
+portable source locations, workflow-command escaping, and the absence of
+source bodies, absolute paths, credentials, or arbitrary payloads. The separate
+Action security fixture replays a synthetic fork pull request and rejects write
+permissions, `pull_request_target`, secrets, and unpinned Actions. Run
+`npm run action:validate` and `npm run action:security:validate`; both are local,
+network-free release gates.
+
 O-005 adds an uncertainty-aware runtime reconciliation corpus. Its complete,
 head-sampled, and probabilistic cases preserve the same static/runtime oracle
 while varying sampling metadata, clock precision, service aliases, and an

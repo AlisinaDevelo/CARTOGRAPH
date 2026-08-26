@@ -22,5 +22,8 @@ add `policy: .cartograph/policy.json`; it remains informational unless
 `policy-mode: enforce` is also supplied. Enforced findings return exit code 2.
 The optional policy report is uploaded separately. For a sensitive repository,
 add `upload-report: false` to keep the summary while skipping artifact upload.
-Reports never include source bodies, source snippets, tokens, absolute local
-paths, or arbitrary payloads.
+The summary includes bounded counts, edge-confidence totals, unresolved
+diagnostic counts, a run/artifact link, and evidence-backed line annotations;
+set `annotation-limit: 0` to disable annotations. Reports and annotations
+never include source bodies, source snippets, tokens, absolute local paths, or
+arbitrary payloads.

@@ -2,8 +2,11 @@
 
 `action.yml` exposes the first hosted integration boundary for CARTOGRAPH. With
 its defaults it is informational: the Action reads a pull request, writes a
-concise job summary, and (unless opted out) uploads bounded HTML/JSON diff and
-review-summary artifacts. A repository can opt into local policy evaluation
+bounded check summary with graph counts, edge confidence, unresolved findings,
+line-annotation totals, and a link to the Actions run where its artifact is
+available, and (unless
+opted out) uploads bounded HTML/JSON diff and review-summary artifacts. A
+repository can opt into local policy evaluation
 with the `policy` input and provide already-materialized lifecycle, ownership,
 waiver, drift, and ADR context with `review-context`. The `review-context`
 input is source-free local JSON; it is never fetched or executed. A repository
@@ -99,6 +102,26 @@ with:
 `upload-report` defaults to `true`. The Action still validates the retention
 input and produces the report in the runner's temporary directory for the local
 rendering step, but no artifact is uploaded when the opt-out is set.
+
+## Evidence-backed line annotations
+
+The Action emits at most 20 workflow-command annotations by default. Set
+`annotation-limit` to a smaller integer, including `0`, when a repository wants
+fewer annotations:
+
+```yaml
+with:
+  annotation-limit: 10
+```
+
+Only source evidence with a repository-relative path and positive line span can
+produce an annotation. Added, removed, changed, and rewired edges use `notice`;
+diagnostic severity maps to `error`, `warning`, or `notice`. Annotation messages
+contain only bounded change metadata and never source bodies, evidence
+references, absolute paths, or credentials. Paths and command properties are
+encoded for GitHub workflow-command parsing, and duplicate locations are
+deduplicated before the deterministic cap is applied. The job summary reports
+how many candidate annotations were prepared and how many were emitted.
 
 ## Optional policy gate
 

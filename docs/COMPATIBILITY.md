@@ -837,6 +837,21 @@ contract. `npm run accessibility:validate` replays the checked-in
 fixture and fails if changed nodes, diagnostics, remediation, evidence links,
 semantic tables, disclosures, or the offline/resource boundary disappear.
 
+## R-008 Action check summary and annotations
+
+R-008 keeps the existing read-only Action inputs and artifact contracts while
+adding a bounded job summary with node/edge/diagnostic counts, edge-confidence
+totals, unresolved counts, and a link to the Actions run containing the
+artifact. The Action emits at most 20 deterministic line annotations by
+default (configurable from 0 through 20). An annotation requires source
+evidence with a portable repository-relative path and positive line span;
+workflow-command properties are encoded, duplicate locations are removed, and
+messages contain no source body, evidence reference, absolute path, or
+credential. Fork runs continue to use `pull_request` with `contents: read` and
+no secrets or write permissions. These additions are presentation-only and do
+not change GraphSnapshot, GraphDiff, or STRATA's compiler-backed semantic
+analysis boundary.
+
 ## G-001 explicit ownership resolution
 
 G-001 adds the reviewed additive `ownershipResolution` contract and

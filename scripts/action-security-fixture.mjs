@@ -82,6 +82,7 @@ const validatePolicy = (candidateWorkflow, candidateAction) => {
   }
   requireText(candidateAction, 'default: "7"', "retention default");
   requireText(candidateAction, 'default: "true"', "report upload default");
+  requireText(candidateAction, 'default: "20"', "annotation limit default");
   requireText(candidateAction, "default: informational", "policy mode default");
   requireText(
     candidateAction,
@@ -108,6 +109,16 @@ const validatePolicy = (candidateWorkflow, candidateAction) => {
     candidateAction,
     "CARTOGRAPH_REVIEW_CONTEXT_PATH",
     "review context opt-in",
+  );
+  requireText(
+    candidateAction,
+    "CARTOGRAPH_ANNOTATION_LIMIT",
+    "annotation limit validation",
+  );
+  requireText(
+    candidateAction,
+    "annotation-limit must be an integer from 0 through 20",
+    "annotation limit bound",
   );
   requireText(candidateAction, "--mode", "policy mode forwarding");
   requireText(candidateAction, "policy-exit-code", "policy status handoff");
@@ -199,6 +210,8 @@ requireText(docs, "Fork pull requests and permissions", "Action docs");
 requireText(docs, "Pin and update policy", "Action docs");
 requireText(docs, "Sensitive repositories", "Action retention docs");
 requireText(docs, "source snippet", "Action redaction docs");
+requireText(docs, "Evidence-backed line annotations", "Action annotation docs");
+requireText(docs, "at most 20", "Action annotation cap docs");
 
 console.log(
   JSON.stringify({

@@ -46,6 +46,10 @@ inputs:
     description: Optional repository-relative JSON context for lifecycle, ownership, waiver, and ADR review output
     required: false
     default: ""
+  annotation-limit:
+    description: Maximum number of evidence-backed pull-request line annotations (0-20)
+    required: false
+    default: "20"
 
 runs:
   using: composite
@@ -80,6 +84,7 @@ runs:
         CARTOGRAPH_POLICY_PATH: ${{ inputs.policy }}
         CARTOGRAPH_POLICY_MODE: ${{ inputs.policy-mode }}
         CARTOGRAPH_REVIEW_CONTEXT_PATH: ${{ inputs.review-context }}
+        CARTOGRAPH_ANNOTATION_LIMIT: ${{ inputs.annotation-limit }}
       run: |
         set -euo pipefail
         base_ref="${CARTOGRAPH_BASE_INPUT:-${CARTOGRAPH_PR_BASE_SHA:-}}"
@@ -113,6 +118,10 @@ runs:
             exit 1
             ;;
         esac
+        if [[ ! "$CARTOGRAPH_ANNOTATION_LIMIT" =~ ^(0|[1-9]|1[0-9]|20)$ ]]; then
+          echo "CARTOGRAPH annotation-limit must be an integer from 0 through 20" >&2
+          exit 1
+        fi
 
         report_dir="$RUNNER_TEMP/cartograph-report"
         mkdir -p "$report_dir"
