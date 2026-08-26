@@ -583,6 +583,15 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "A bounded composition with canonical, aliased, forked, duplicate-origin, logical-name-collision, and unavailable-origin repositories exercises deterministic namespaces, explicit ambiguity, relocation portability, and non-destructive snapshot retention without source bodies, execution, or network access.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "workspace-recomposition",
+      "path": "workspace-recomposition",
+      "source": "CARTOGRAPH repository-authored synthetic incremental workspace fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Cold, warm, partial-change, forged-cache, and interrupted-atomic-write scenarios exercise component-complete keys, proven dependent invalidation, byte-stable results, cache cleanup, and offline resource bounds without source bodies, execution, or network access.",
+      "redistribution": "allowed"
     }
   ]
 }

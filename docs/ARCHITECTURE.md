@@ -31,6 +31,7 @@ repository or materialized Git revision
 - `src/core/workspace-composition.ts`: bounded offline workspace manifests, local-path validation, snapshot/version compatibility, and omission/boundary metadata.
 - `src/core/workspace-identity.ts`: deterministic cross-repository origin namespaces, ambiguity records, and non-destructive composed node identities.
 - `src/core/workspace-boundaries.ts`: conservative package/service boundary resolution, selected evidence provenance, unresolved states, and cycle summaries.
+- `src/core/workspace-recomposition.ts`: provenance-aware cache keys, dependency-scoped invalidation, deterministic recomposition plans, and atomic local cache persistence.
 - `src/analyzers/typescript`: TypeScript program loading and language-level relationships.
 - `src/analyzers/api-boundaries`: bounded GraphQL SDL/template and OpenAPI operation discovery with resolver/handler links.
 - `src/analyzers/prisma-schema`: bounded Prisma datasource, model, relation, and generated-client discovery without database access.
@@ -301,6 +302,27 @@ rewrites a local graph identity. Resource ceilings bound repositories,
 declarations, references, candidates, edges, evidence records, and cycles.
 Materialized snapshots are additionally bounded by aggregate node, edge, and
 diagnostic ceilings before boundary matching.
+
+## W-004 provenance-aware incremental recomposition
+
+W-004 adds the additive
+[`cartograph.workspace-recomposition`](../schema/workspace-recomposition.v0.1.schema.json)
+contract. A request names every content, contract, adapter, policy, workspace,
+and tool input by digest and explicit version token. Each recomposition unit
+declares the input identities it actually consumes and any upstream units it
+depends on. Its cache key is canonical and unit-scoped, so a changed input
+invalidates only units with a declared dependency and their proven dependents;
+unrelated units remain reusable.
+
+Cache entries retain the exact input state, key digest, result digest, and
+deterministic result. Invalid or forged entries fail closed. Recomposition
+plans distinguish cache hits, cold misses, invalidated units, and recomputed
+units, and remove stale entries from the next cache. Cache files are bounded,
+local-only, reject symlinks and path escapes, and are written through a
+same-directory temporary file followed by an atomic rename. Interrupted writes
+clean up their temporary directory and leave the prior cache untouched. No
+network, source upload, package-manager execution, or implicit invalidation is
+performed.
 
 ## Topology summaries
 

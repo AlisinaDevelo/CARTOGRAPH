@@ -1,0 +1,104 @@
+{
+  "$schema": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/workspace-recomposition.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.workspace-recomposition",
+  "workspaceId": "portfolio",
+  "inputs": [
+    {
+      "id": "alpha-content",
+      "kind": "content",
+      "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "beta-content",
+      "kind": "content",
+      "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "id": "graph-contract",
+      "kind": "contract",
+      "version": "1.0.0",
+      "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    {
+      "id": "typescript-adapter",
+      "kind": "adapter",
+      "version": "1.4.0",
+      "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    {
+      "id": "default-policy",
+      "kind": "policy",
+      "version": "1.0.0",
+      "digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    {
+      "id": "portfolio-manifest",
+      "kind": "workspace",
+      "version": "1.0.0",
+      "digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    },
+    {
+      "id": "cartograph-tool",
+      "kind": "tool",
+      "version": "0.1.0",
+      "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    }
+  ],
+  "units": [
+    {
+      "id": "alpha-snapshot",
+      "inputIds": [
+        "alpha-content",
+        "graph-contract",
+        "typescript-adapter",
+        "default-policy",
+        "portfolio-manifest",
+        "cartograph-tool"
+      ],
+      "result": {
+        "repositoryId": "alpha",
+        "nodes": ["alpha/root", "alpha/api"],
+        "edges": ["alpha/root->alpha/api"]
+      }
+    },
+    {
+      "id": "beta-snapshot",
+      "inputIds": [
+        "beta-content",
+        "graph-contract",
+        "typescript-adapter",
+        "default-policy",
+        "portfolio-manifest",
+        "cartograph-tool"
+      ],
+      "result": {
+        "repositoryId": "beta",
+        "nodes": ["beta/root", "beta/api"],
+        "edges": ["beta/root->beta/api"]
+      }
+    },
+    {
+      "id": "boundary-composition",
+      "inputIds": [
+        "graph-contract",
+        "typescript-adapter",
+        "default-policy",
+        "portfolio-manifest",
+        "cartograph-tool"
+      ],
+      "dependsOn": ["alpha-snapshot", "beta-snapshot"],
+      "result": {
+        "repositories": ["alpha", "beta"],
+        "edges": ["alpha/api->beta/api"]
+      }
+    }
+  ],
+  "limits": {
+    "maxInputs": 64,
+    "maxUnits": 64,
+    "maxDependencies": 256,
+    "maxCacheEntries": 64,
+    "maxResultBytes": 1048576
+  }
+}

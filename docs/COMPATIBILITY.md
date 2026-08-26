@@ -690,3 +690,23 @@ provenance from both repositories; unresolved records include a reason and any
 candidate evidence. Monorepo-local edges and deterministic cross-repository
 cycle summaries are additive report data. The resolver is bounded, read-only,
 offline, and does not rewrite GraphSnapshot identities.
+
+## W-004 provenance-aware incremental workspace recomposition
+
+W-004 publishes the additive
+[`cartograph.workspace-recomposition`](../schema/workspace-recomposition.v0.1.schema.json)
+contract. Requests and cache entries carry canonical SHA-256 input state across
+content, contract, adapter, policy, workspace, and tool dimensions. A unit's
+key includes only its declared inputs; upstream unit dependencies are checked
+separately. A changed input therefore invalidates only proven dependents rather
+than the entire portfolio, while missing, corrupt, forged, or workspace-mismatched
+caches fail closed.
+
+Cold, warm, partial-change, corrupt-cache, and interrupted-write fixtures are
+validated locally. Warm plans reuse byte-identical results, partial plans retain
+unrelated units, and stale cache entries are omitted from the next cache. Cache
+writes are bounded and local, reject symlinks and path escapes, and use a
+same-directory temporary file plus atomic rename. An interruption cannot replace
+the previous cache and leaves no temporary state. The contract does not fetch
+repositories, execute package managers, upload source, or infer dependencies
+not declared by the caller.
