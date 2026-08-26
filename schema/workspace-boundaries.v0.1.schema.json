@@ -1,0 +1,327 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/workspace-boundaries.v0.1.schema.json",
+  "title": "CARTOGRAPH cross-repository boundary resolution v0.1",
+  "description": "A bounded, offline resolution report for explicitly declared package and service boundaries with provenance and conservative unresolved states.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "repositories",
+    "evidenceSources",
+    "resolutions",
+    "edges",
+    "cycles"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.workspace-boundaries" },
+    "repositories": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": { "$ref": "#/definitions/repositorySummary" }
+    },
+    "evidenceSources": {
+      "type": "array",
+      "maxItems": 8192,
+      "items": { "$ref": "#/definitions/evidenceSource" }
+    },
+    "resolutions": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": { "$ref": "#/definitions/resolution" }
+    },
+    "edges": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": { "$ref": "#/definitions/edge" }
+    },
+    "cycles": {
+      "type": "array",
+      "maxItems": 256,
+      "items": { "$ref": "#/definitions/cycle" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:[._/-][a-z0-9]+)*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[^\\u0000\\r\\n\\s]+$"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "shortText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "nodeId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "localPath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!~)(?!//)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?!.*\\u0000).+$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(?:sha256:)?[0-9a-f]{64}$"
+    },
+    "evidenceSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "repositoryId", "kind", "revision"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "repositoryId": { "$ref": "#/definitions/identifier" },
+        "kind": {
+          "enum": [
+            "manifest",
+            "source",
+            "lockfile",
+            "service-catalog",
+            "runtime",
+            "user"
+          ]
+        },
+        "path": { "$ref": "#/definitions/localPath" },
+        "reference": { "$ref": "#/definitions/text" },
+        "revision": { "$ref": "#/definitions/identifier" },
+        "contentHash": { "$ref": "#/definitions/hash" },
+        "nodeId": { "$ref": "#/definitions/nodeId" }
+      },
+      "anyOf": [{ "required": ["path"] }, { "required": ["reference"] }]
+    },
+    "repositorySummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repositoryId", "logicalName", "aliases", "availability"],
+      "properties": {
+        "repositoryId": { "$ref": "#/definitions/identifier" },
+        "logicalName": { "$ref": "#/definitions/name" },
+        "namespace": { "$ref": "#/definitions/text" },
+        "aliases": {
+          "type": "array",
+          "maxItems": 32,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "revision": { "$ref": "#/definitions/identifier" },
+        "availability": { "enum": ["available", "unavailable"] },
+        "omissionReason": { "$ref": "#/definitions/shortText" }
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "name", "aliases", "external"],
+      "properties": {
+        "kind": { "enum": ["package", "service", "schema", "runtime"] },
+        "name": { "$ref": "#/definitions/name" },
+        "aliases": {
+          "type": "array",
+          "maxItems": 32,
+          "items": { "$ref": "#/definitions/name" }
+        },
+        "repositoryId": { "$ref": "#/definitions/identifier" },
+        "version": { "$ref": "#/definitions/semver" },
+        "external": { "type": "boolean" },
+        "externalReference": { "$ref": "#/definitions/text" }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repositoryId",
+        "logicalName",
+        "declarationId",
+        "kind",
+        "name",
+        "aliases",
+        "nodeId",
+        "matchedBy",
+        "evidence"
+      ],
+      "properties": {
+        "repositoryId": { "$ref": "#/definitions/identifier" },
+        "logicalName": { "$ref": "#/definitions/name" },
+        "declarationId": { "$ref": "#/definitions/identifier" },
+        "kind": { "enum": ["package", "service"] },
+        "name": { "$ref": "#/definitions/name" },
+        "aliases": {
+          "type": "array",
+          "maxItems": 32,
+          "items": { "$ref": "#/definitions/name" }
+        },
+        "version": { "$ref": "#/definitions/semver" },
+        "nodeId": { "$ref": "#/definitions/nodeId" },
+        "workspacePath": { "$ref": "#/definitions/localPath" },
+        "matchedBy": { "enum": ["name", "alias"] },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": { "$ref": "#/definitions/evidenceSource" }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "from": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": { "$ref": "#/definitions/evidenceSource" }
+        },
+        "to": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": { "$ref": "#/definitions/evidenceSource" }
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "referenceId",
+        "scope",
+        "fromRepository",
+        "toRepository",
+        "fromDeclarationId",
+        "toDeclarationId",
+        "relation",
+        "fromNodeId",
+        "toNodeId",
+        "provenance"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "referenceId": { "$ref": "#/definitions/identifier" },
+        "scope": { "enum": ["local", "cross-repository"] },
+        "fromRepository": { "$ref": "#/definitions/identifier" },
+        "toRepository": { "$ref": "#/definitions/identifier" },
+        "fromDeclarationId": { "$ref": "#/definitions/identifier" },
+        "toDeclarationId": { "$ref": "#/definitions/identifier" },
+        "relation": {
+          "enum": [
+            "depends-on",
+            "references",
+            "calls",
+            "requests",
+            "contains",
+            "unknown"
+          ]
+        },
+        "fromNodeId": { "$ref": "#/definitions/nodeId" },
+        "toNodeId": { "$ref": "#/definitions/nodeId" },
+        "provenance": { "$ref": "#/definitions/provenance" }
+      }
+    },
+    "resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "fromRepository",
+        "fromDeclarationId",
+        "relation",
+        "target",
+        "status",
+        "sourceEvidence",
+        "candidates"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "fromRepository": { "$ref": "#/definitions/identifier" },
+        "fromDeclarationId": { "$ref": "#/definitions/identifier" },
+        "relation": {
+          "enum": [
+            "depends-on",
+            "references",
+            "calls",
+            "requests",
+            "contains",
+            "unknown"
+          ]
+        },
+        "target": { "$ref": "#/definitions/target" },
+        "status": {
+          "enum": [
+            "resolved",
+            "ambiguous",
+            "external",
+            "unavailable",
+            "unsupported"
+          ]
+        },
+        "sourceEvidence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": { "$ref": "#/definitions/evidenceSource" }
+        },
+        "candidates": {
+          "type": "array",
+          "maxItems": 8192,
+          "items": { "$ref": "#/definitions/candidate" }
+        },
+        "edge": { "$ref": "#/definitions/edge" },
+        "unresolvedReason": { "$ref": "#/definitions/shortText" }
+      }
+    },
+    "cycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "repositoryIds", "nodeIds", "edgeIds"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "repositoryIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "nodeIds": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 8192,
+          "items": { "$ref": "#/definitions/nodeId" }
+        },
+        "edgeIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    }
+  }
+}

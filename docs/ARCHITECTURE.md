@@ -30,6 +30,7 @@ repository or materialized Git revision
 - `src/core`: versioned graph, diff, and configuration contracts, validation, canonicalization, and comparison.
 - `src/core/workspace-composition.ts`: bounded offline workspace manifests, local-path validation, snapshot/version compatibility, and omission/boundary metadata.
 - `src/core/workspace-identity.ts`: deterministic cross-repository origin namespaces, ambiguity records, and non-destructive composed node identities.
+- `src/core/workspace-boundaries.ts`: conservative package/service boundary resolution, selected evidence provenance, unresolved states, and cycle summaries.
 - `src/analyzers/typescript`: TypeScript program loading and language-level relationships.
 - `src/analyzers/api-boundaries`: bounded GraphQL SDL/template and OpenAPI operation discovery with resolver/handler links.
 - `src/analyzers/prisma-schema`: bounded Prisma datasource, model, relation, and generated-client discovery without database access.
@@ -277,6 +278,29 @@ rewritten. When origin metadata is unavailable, the layer emits an explicit
 `origin-unavailable` record and uses a repository-scoped fallback namespace, so
 the result cannot silently claim relocation continuity. Canonical snapshots are
 retained in the result and are never mutated or uploaded.
+
+## W-003 declared cross-repository boundaries
+
+W-003 publishes the additive
+[`cartograph.workspace-boundaries`](../schema/workspace-boundaries.v0.1.schema.json)
+resolution contract. Callers provide materialized GraphSnapshots, explicit
+package/service declarations, repository-relative workspace paths, and selected
+evidence source records. A reference is resolved only when its declared kind,
+name or alias, optional repository alias, and exact requested version identify
+one declaration. Multiple matches remain `ambiguous`; an explicitly external
+target is `external`; an omitted or version-incompatible target is
+`unavailable`; and schema/runtime target kinds or unknown relations remain
+`unsupported`. No name-only guess creates an edge.
+
+Resolved edges retain provenance from both the declaring and target repositories.
+Unresolved records carry an explicit reason and candidate evidence where
+available. The resolver preserves local monorepo relationships, reports
+cross-repository strongly connected components as deterministic cycle summaries,
+and never uploads source, fetches a repository, executes a package manager, or
+rewrites a local graph identity. Resource ceilings bound repositories,
+declarations, references, candidates, edges, evidence records, and cycles.
+Materialized snapshots are additionally bounded by aggregate node, edge, and
+diagnostic ceilings before boundary matching.
 
 ## Topology summaries
 
