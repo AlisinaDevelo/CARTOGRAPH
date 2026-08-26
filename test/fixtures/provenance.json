@@ -574,6 +574,15 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "A minimal two-repository manifest with mixed compatible adapter versions, an explicit missing repository, and local boundary metadata exercises deterministic offline composition without source bodies, execution, or network access.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "workspace-identity",
+      "path": "workspace-identity",
+      "source": "CARTOGRAPH repository-authored synthetic cross-repository identity fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A bounded composition with canonical, aliased, forked, duplicate-origin, logical-name-collision, and unavailable-origin repositories exercises deterministic namespaces, explicit ambiguity, relocation portability, and non-destructive snapshot retention without source bodies, execution, or network access.",
+      "redistribution": "allowed"
     }
   ]
 }

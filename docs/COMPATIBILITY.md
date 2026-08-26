@@ -653,3 +653,22 @@ implicit remote inputs. Reading a manifest performs only bounded local file
 I/O; it never fetches a repository, embeds source, executes code, or opens a
 network path. Existing GraphSnapshot, GraphDiff, adapter, and diagnostic
 consumers are unchanged.
+
+## W-002 cross-repository identity namespaces
+
+W-002 publishes the additive
+[`cartograph.workspace-identity`](../schema/workspace-identity.v0.1.schema.json)
+composition contract. It normalizes explicit Git origin references into stable
+transport-independent namespaces and prefixes every local node stable key with
+that namespace. Local checkout paths are metadata only, so relocation does not
+change identity. Fork metadata is retained as a relationship and never treated
+as permission to merge independently produced snapshots.
+
+Canonical origin duplicates, origin/repository alias collisions, and logical-name
+collisions are deterministic ambiguity records. Ambiguous namespaces retain each
+underlying snapshot and receive a repository disambiguator rather than silently
+coalescing nodes. Missing origin metadata is explicit `origin-unavailable`
+evidence with a repository-scoped fallback namespace. The composition is
+read-only, bounded by repository/node/ambiguity limits, does not fetch or open a
+network path, and preserves canonical local snapshots for later boundary
+resolution.

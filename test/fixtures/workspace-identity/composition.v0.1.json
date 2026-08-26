@@ -1,0 +1,105 @@
+{
+  "$schema": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/workspace-identity.v0.1.schema.json",
+  "repositories": [
+    {
+      "repositoryId": "cartograph",
+      "logicalName": "Cartograph",
+      "localPath": "repos/cartograph",
+      "origin": {
+        "availability": "available",
+        "canonical": "https://github.com/AlisinaDevelo/CARTOGRAPH.git",
+        "aliases": ["git@github.com:AlisinaDevelo/CARTOGRAPH.git"]
+      },
+      "aliases": ["primary"],
+      "snapshot": {
+        "schemaVersion": 1,
+        "revision": { "commitSha": "cartograph-fixture-0001" },
+        "nodes": [
+          {
+            "id": "module-index",
+            "stableKey": "module:src/index.ts",
+            "kind": "module",
+            "name": "index",
+            "language": "typescript",
+            "location": { "path": "src/index.ts", "line": 1 }
+          }
+        ],
+        "edges": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "repositoryId": "cartograph-fork",
+      "logicalName": "Cartograph",
+      "localPath": "repos/cartograph-fork",
+      "origin": {
+        "availability": "available",
+        "canonical": "https://github.com/example/cartograph-fork",
+        "forkOf": "https://github.com/AlisinaDevelo/CARTOGRAPH.git"
+      },
+      "aliases": ["shared-name"],
+      "snapshot": {
+        "schemaVersion": 1,
+        "revision": { "commitSha": "cartograph-fork-fixture-0001" },
+        "nodes": [
+          {
+            "id": "module-index",
+            "stableKey": "module:src/index.ts",
+            "kind": "module",
+            "name": "index",
+            "language": "typescript",
+            "location": { "path": "src/index.ts", "line": 1 }
+          }
+        ],
+        "edges": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "repositoryId": "cartograph-mirror",
+      "logicalName": "Mirror",
+      "origin": {
+        "availability": "available",
+        "canonical": "ssh://git@github.com/AlisinaDevelo/CARTOGRAPH.git"
+      },
+      "aliases": ["shared-name"],
+      "snapshot": {
+        "schemaVersion": 1,
+        "revision": { "commitSha": "cartograph-mirror-fixture-0001" },
+        "nodes": [
+          {
+            "id": "module-index",
+            "stableKey": "module:src/index.ts",
+            "kind": "module",
+            "name": "index",
+            "language": "typescript",
+            "location": { "path": "src/index.ts", "line": 1 }
+          }
+        ],
+        "edges": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "repositoryId": "unavailable-repo",
+      "logicalName": "Unavailable",
+      "localPath": "repos/unavailable",
+      "snapshot": {
+        "schemaVersion": 1,
+        "revision": { "commitSha": "unavailable-fixture-0001" },
+        "nodes": [
+          {
+            "id": "module-index",
+            "stableKey": "module:src/index.ts",
+            "kind": "module",
+            "name": "index",
+            "language": "typescript",
+            "location": { "path": "src/index.ts", "line": 1 }
+          }
+        ],
+        "edges": [],
+        "diagnostics": []
+      }
+    }
+  ]
+}
