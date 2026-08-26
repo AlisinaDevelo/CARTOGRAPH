@@ -81,6 +81,13 @@ It does not change GraphSnapshot, GraphDiff, query, impact, or explanation
 wire shapes; it records threshold results and conservative scope decisions for
 those existing v1 contracts. A future gate revision that changes metric
 meaning requires a new report version or explicit migration review.
+Q-007 adds optional deterministic pagination to the architecture query v1
+request and result projections. Writers emit page size, total/returned counts,
+`hasMore`, and opaque cursors bound to the canonical snapshot and normalized
+query; readers that do not use pagination retain the unpaged default. Cursor
+validation fails closed with an explicit diagnostic, and no match is silently
+discarded. This is additive to the v1 contract and does not require a schema
+version or migration change.
 Local ADR reference indexes use the reviewed `adrReferences` contract and
 [`schema/adr-reference.v0.1.schema.json`](../schema/adr-reference.v0.1.schema.json).
 P-008 adds ADR comparison details only to Markdown and standalone HTML report

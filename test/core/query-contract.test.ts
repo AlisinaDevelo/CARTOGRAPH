@@ -228,6 +228,96 @@ describe("architecture query contract", () => {
     expect(result.edges[0]?.evidence[0]?.reference).toBeUndefined();
   });
 
+  it("paginates node matches with stable cursors without dropping later pages", () => {
+    const firstQuery = {
+      schemaVersion: 1 as const,
+      contract: ARCHITECTURE_QUERY_CONTRACT,
+      queryId: "paged-functions",
+      operation: "select-nodes" as const,
+      selectors: { nodes: [{ kind: "function" as const }] },
+      pagination: { pageSize: 1 },
+    };
+    const first = executeArchitectureQuery(graph, firstQuery);
+    const repeated = executeArchitectureQuery(graph, firstQuery);
+
+    expect(first.nodes.map((node) => node.id)).toEqual(["node-a"]);
+    expect(first.pagination).toMatchObject({
+      cursor: null,
+      pageSize: 1,
+      total: 2,
+      returned: 1,
+      hasMore: true,
+    });
+    expect(first.pagination.nextCursor).toEqual(expect.any(String));
+    expect(first.truncated).toBe(true);
+    expect(serializeArchitectureQueryResult(first)).toBe(
+      serializeArchitectureQueryResult(repeated),
+    );
+
+    const nextCursor = first.pagination.nextCursor;
+    if (nextCursor === undefined) throw new Error("next cursor missing");
+    const second = executeArchitectureQuery(graph, {
+      ...firstQuery,
+      pagination: { pageSize: 1, cursor: nextCursor },
+    });
+    expect(second.status).toBe("ok");
+    expect(second.nodes.map((node) => node.id)).toEqual(["node-b"]);
+    expect(second.pagination).toEqual({
+      cursor: nextCursor,
+      pageSize: 1,
+      total: 2,
+      returned: 1,
+      hasMore: false,
+    });
+    expect(second.truncated).toBe(false);
+
+    const unpaged = executeArchitectureQuery(graph, {
+      ...firstQuery,
+      pagination: { pageSize: 200_000 },
+    });
+    expect(
+      [...first.nodes, ...second.nodes].map((node) => node.id).sort(),
+    ).toEqual(unpaged.nodes.map((node) => node.id).sort());
+  });
+
+  it("fails closed for malformed or query-bound cursors", () => {
+    const query = {
+      schemaVersion: 1 as const,
+      contract: ARCHITECTURE_QUERY_CONTRACT,
+      queryId: "cursor-source",
+      operation: "select-nodes" as const,
+      selectors: { nodes: [{ kind: "function" as const }] },
+      pagination: { pageSize: 1 },
+    };
+    const first = executeArchitectureQuery(graph, query);
+    const cursor = first.pagination.nextCursor;
+    if (cursor === undefined) throw new Error("next cursor missing");
+
+    const malformed = executeArchitectureQuery(graph, {
+      ...query,
+      pagination: { pageSize: 1, cursor: "not-a-valid-cursor" },
+    });
+    expect(malformed).toMatchObject({
+      status: "resource-limit",
+      pagination: {
+        cursor: "not-a-valid-cursor",
+        pageSize: 1,
+        total: 0,
+        returned: 0,
+        hasMore: false,
+      },
+    });
+    expect(malformed.diagnostics[0]?.code).toBe("QUERY_CURSOR_INVALID");
+
+    const wrongQuery = executeArchitectureQuery(graph, {
+      ...query,
+      queryId: "different-query",
+      pagination: { pageSize: 1, cursor },
+    });
+    expect(wrongQuery.status).toBe("resource-limit");
+    expect(wrongQuery.diagnostics[0]?.code).toBe("QUERY_CURSOR_INVALID");
+  });
+
   it("returns explicit unsupported and resource-limit diagnostics", () => {
     const unsupported = executeArchitectureQuery(graph, {
       schemaVersion: 1,

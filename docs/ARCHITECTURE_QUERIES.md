@@ -92,6 +92,20 @@ serialized result bytes. The ceilings are `maxDepth <= 64`, `maxNodes <= 100,000
 `maxEdges <= 200,000`, `maxTimeMs <= 120,000`, and `maxResultBytes <= 16 MiB`.
 Defaults are depth 8, 10,000 nodes, 20,000 edges, 5,000 ms, and 4 MiB.
 
+Results also accept an explicit `pagination` block. `pageSize` is a positive
+cardinality limit up to 200,000 (the default preserves the unpaged result), and
+the optional opaque `cursor` is supplied from the previous page's
+`pagination.nextCursor`. Every result reports `pagination.total`,
+`pagination.returned`, `pagination.hasMore`, the requested `pageSize`, and the
+echoed cursor. Cursors are base64url tokens bound to the canonical snapshot,
+normalized query, and page size; changing any of those inputs invalidates the
+cursor. The executor sorts the complete match set before slicing, so repeated
+queries over the same graph produce byte-identical pages. A page with more
+matches sets `truncated: true` and emits a `nextCursor`; it never silently
+discards the remaining matches. Malformed, stale, or mismatched cursors return
+`status: "resource-limit"` with a `QUERY_CURSOR_INVALID` diagnostic instead of
+restarting from the first page.
+
 Depth boundaries do not silently discard evidence. They return `truncated: true`,
 the canonical `truncatedEdges` list, and a `QUERY_TRUNCATED` diagnostic for
 each withheld continuation edge. Node, edge, time, and output ceilings fail

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query-result.v0.1.schema.json",
   "title": "CARTOGRAPH architecture query result v0.1",
-  "description": "A deterministic, evidence-aware result or explicit unsupported/resource-limit response for one local architecture query, including bounded traversal, path, boundary, cycle, truncation, and opt-in policy/decision/ownership metadata details.",
+  "description": "A deterministic, evidence-aware result or explicit unsupported/resource-limit response for one local architecture query, including bounded traversal, path, boundary, cycle, pagination, truncation, and opt-in policy/decision/ownership metadata details.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -49,6 +49,7 @@
       "type": "array",
       "items": { "$ref": "#/definitions/nodeDepth" }
     },
+    "pagination": { "$ref": "#/definitions/pagination" },
     "truncated": { "type": "boolean" },
     "truncatedEdges": {
       "type": "array",
@@ -310,6 +311,33 @@
         "nodeId": { "$ref": "#/definitions/selectorValue" },
         "depth": { "type": "integer", "minimum": 0 },
         "root": { "type": "boolean" }
+      }
+    },
+    "pagination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cursor", "pageSize", "total", "returned", "hasMore"],
+      "properties": {
+        "cursor": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "nextCursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "pageSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200000
+        },
+        "total": { "type": "integer", "minimum": 0 },
+        "returned": { "type": "integer", "minimum": 0 },
+        "hasMore": { "type": "boolean" }
       }
     },
     "metadataIdentifier": {
