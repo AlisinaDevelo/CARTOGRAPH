@@ -223,6 +223,26 @@ describe("review summary contract", () => {
       "CARTOGRAPH review summary",
     );
     expect(renderReviewSummaryHtml(report)).not.toContain("<script");
+
+    const escapedReport = buildReviewSummary({
+      schemaVersion: 1,
+      contract: "cartograph.review-summary",
+      diff,
+      context: {
+        artifacts: [
+          {
+            id: "escape`b\\c",
+            label: "Escaping fixture",
+            kind: "review",
+            path: "review.json",
+            local: true,
+          },
+        ],
+      },
+    });
+    expect(renderReviewSummaryMarkdown(escapedReport)).toContain(
+      "- `escape\\`b\\\\c` — Escaping fixture",
+    );
   });
 
   it("rejects absolute paths and credential-shaped context", () => {
