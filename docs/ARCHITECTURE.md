@@ -29,6 +29,7 @@ repository or materialized Git revision
 
 - `src/core`: versioned graph, diff, and configuration contracts, validation, canonicalization, and comparison.
 - `src/core/workspace-composition.ts`: bounded offline workspace manifests, local-path validation, snapshot/version compatibility, and omission/boundary metadata.
+- `src/core/workspace-identity.ts`: deterministic cross-repository origin namespaces, ambiguity records, and non-destructive composed node identities.
 - `src/analyzers/typescript`: TypeScript program loading and language-level relationships.
 - `src/analyzers/api-boundaries`: bounded GraphQL SDL/template and OpenAPI operation discovery with resolver/handler links.
 - `src/analyzers/prisma-schema`: bounded Prisma datasource, model, relation, and generated-client discovery without database access.
@@ -263,6 +264,20 @@ for reviewer action. The matcher does not rewrite stable keys or mutate
 snapshots. The diff pipeline consumes this contract without rewriting
 canonical stable keys.
 
+The W-002 workspace identity layer composes those local keys without treating a
+repository name or checkout path as a global identity. An available canonical
+Git origin becomes an `origin:<host>/<path>` namespace; protocol and `.git`
+spelling variants are normalized without contacting the remote. A relocation
+therefore leaves the composed key unchanged, while a fork keeps its own
+canonical namespace and records `forkOf` metadata instead of merging nodes.
+Repository aliases and logical names are indexed only as review hints. Duplicate
+origins, alias collisions, and logical-name collisions produce deterministic
+ambiguity records and disambiguated composed keys; no underlying stable key is
+rewritten. When origin metadata is unavailable, the layer emits an explicit
+`origin-unavailable` record and uses a repository-scoped fallback namespace, so
+the result cannot silently claim relocation continuity. Canonical snapshots are
+retained in the result and are never mutated or uploaded.
+
 ## Topology summaries
 
 `diffGraphSnapshots` accepts an optional `topology` configuration. The resulting
@@ -314,7 +329,8 @@ The following are roadmap items, not current implementation claims:
 - universal policy/decision drift evaluation beyond the curated offline P-018
   scenario gate and the current ADR reference/policy-binding contracts;
 - a reusable GitHub Action and Check annotations;
-- the remaining identity quality, portability, and history work;
+- further identity quality, portability, and history work beyond the W-002
+  cross-repository namespace contract;
 - additional framework or language adapters and stronger runtime isolation
   enforcement beyond the v0.1 data-only adapter policy;
 - broader automated decision binding beyond the v0.1 local ADR and policy

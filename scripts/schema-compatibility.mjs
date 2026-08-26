@@ -88,6 +88,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/query-explanation.ts" ||
       file === "src/core/impact-model.ts" ||
       file === "src/core/workspace-composition.ts" ||
+      file === "src/core/workspace-identity.ts" ||
       file === "src/report/adr.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
       file === "schema/support-matrix.v0.1.schema.json" ||
@@ -131,7 +132,8 @@ const checkHostedVersionChange = () => {
       file === "schema/architecture-impact-fixtures.v0.1.schema.json" ||
       file === "schema/architecture-impact-evaluation.v0.1.schema.json" ||
       file === "schema/adr-coverage.v0.1.schema.json" ||
-      file === "schema/workspace-composition.v0.1.schema.json",
+      file === "schema/workspace-composition.v0.1.schema.json" ||
+      file === "schema/workspace-identity.v0.1.schema.json",
   );
   const reviewRecorded = changed.some(
     (file) =>
@@ -189,6 +191,7 @@ const checkCompatibility = () => {
   const workspaceCompositionSource = readText(
     "src/core/workspace-composition.ts",
   );
+  const workspaceIdentitySource = readText("src/core/workspace-identity.ts");
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
   const supportSchema = readJson("schema/support-matrix.v0.1.schema.json");
   const diffSchema = readJson("schema/graph-diff.v0.1.schema.json");
@@ -270,6 +273,9 @@ const checkCompatibility = () => {
   );
   const workspaceCompositionSchema = readJson(
     "schema/workspace-composition.v0.1.schema.json",
+  );
+  const workspaceIdentitySchema = readJson(
+    "schema/workspace-identity.v0.1.schema.json",
   );
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
@@ -386,6 +392,10 @@ const checkCompatibility = () => {
     workspaceCompositionSource,
     "WORKSPACE_COMPOSITION_SCHEMA_VERSION",
   );
+  const workspaceIdentityVersion = sourceVersion(
+    workspaceIdentitySource,
+    "WORKSPACE_IDENTITY_SCHEMA_VERSION",
+  );
 
   if (
     snapshotVersion === undefined ||
@@ -417,7 +427,8 @@ const checkCompatibility = () => {
     architectureQueryVersion === undefined ||
     architectureQueryExplanationVersion === undefined ||
     architectureImpactVersion === undefined ||
-    workspaceCompositionVersion === undefined
+    workspaceCompositionVersion === undefined ||
+    workspaceIdentityVersion === undefined
   ) {
     throw new Error("runtime schema version constants are missing");
   }
@@ -737,6 +748,16 @@ const checkCompatibility = () => {
     workspaceCompositionSchema.properties.schemaVersion.const,
     workspaceCompositionVersion,
   );
+  requireEqual(
+    "workspace identity runtime/policy",
+    workspaceIdentityVersion,
+    contracts.workspaceIdentities.current,
+  );
+  requireEqual(
+    "workspace identity JSON Schema/runtime",
+    workspaceIdentitySchema.properties.schemaVersion.const,
+    workspaceIdentityVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -776,6 +797,7 @@ const checkCompatibility = () => {
     architectureQueryExplanationVersion,
     architectureImpactVersion,
     workspaceCompositionVersion,
+    workspaceIdentityVersion,
   };
 };
 
