@@ -383,6 +383,22 @@ the review surface for this additive contract. STRATA remains the
 compiler-backed semantic analyzer; CARTOGRAPH owns the broader graph/report/
 policy/reconciliation interchange layer.
 
+## G-001 explicit ownership resolution
+
+The [`cartograph.ownership-resolution`](../schema/ownership-resolution.v0.1.schema.json)
+contract resolves graph-object ownership only from an explicit local owner
+registry, versioned local rules, and a bounded CODEOWNERS subset supplied by the
+caller. Sources are repository-scoped and carry precedence, revisions, rule
+order, and evidence references. Local rules use explicit priority; CODEOWNERS
+uses last matching line at its selected precedence. Aliases, unavailable
+owners, conflicts, unknown references, renamed paths, fallbacks, and explicit
+no-owner outcomes remain visible in the result rather than being inferred.
+
+The resolver is deterministic, source-free in its output, and offline. It never
+reads a checkout, executes code, contacts GitHub, or substitutes for STRATA's
+compiler-backed semantic analysis. The [`ownership guide`](OWNERSHIP.md) and
+G-001 fixture are the review surface for this additive contract.
+
 ## Topology summaries
 
 `diffGraphSnapshots` accepts an optional `topology` configuration. The resulting

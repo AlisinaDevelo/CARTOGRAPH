@@ -787,3 +787,21 @@ stable `SCIP_*` codes and a preservation strategy; they are not silently
 dropped. `npm run scip:validate` is the offline replay gate, and the contract
 does not change GraphSnapshot, GraphDiff, or STRATA's compiler-backed semantic
 analysis boundary.
+
+## G-001 explicit ownership resolution
+
+G-001 adds the reviewed additive `ownershipResolution` contract and
+[`cartograph.ownership-resolution`](../schema/ownership-resolution.v0.1.schema.json)
+v1 schema. The runtime accepts versioned local ownership rules and a bounded
+CODEOWNERS subset, resolves only sources for the target repository, and emits
+source/rule evidence for every matched result. Precedence, aliases, fallback,
+rename handling, conflicts, unavailable owners, unknown references, and explicit
+no-owner outcomes are part of the versioned result; no owner is inferred from a
+name or path.
+
+The checked-in
+[`report.v0.1.json`](../test/fixtures/ownership-resolution/report.v0.1.json)
+fixture is replayed by `npm run ownership:validate`. The contract is local and
+offline, does not retain source bodies in reports, and does not change
+GraphSnapshot, GraphDiff, or STRATA's compiler-backed semantic analysis
+boundary.

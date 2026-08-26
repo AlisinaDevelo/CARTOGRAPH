@@ -1,0 +1,271 @@
+{
+  "$schema": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/ownership-resolution.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.ownership-resolution",
+  "mediaType": "application/vnd.cartograph.ownership-resolution+json",
+  "fixtureId": "g001-v0.1",
+  "method": {
+    "replayMode": "checked-in-ownership-sources",
+    "rerunnable": true,
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "credentialsUsed": false,
+    "hiddenTelemetry": false,
+    "command": "npm run ownership:validate"
+  },
+  "request": {
+    "schemaVersion": 1,
+    "contract": "cartograph.ownership-resolution",
+    "repositoryId": "repo-a",
+    "owners": [
+      {
+        "id": "team:api",
+        "kind": "team",
+        "aliases": ["@api"],
+        "availability": "available"
+      },
+      {
+        "id": "team:conflict-a",
+        "kind": "team",
+        "aliases": ["@conflict-a", "@shared"],
+        "availability": "available"
+      },
+      {
+        "id": "team:conflict-b",
+        "kind": "team",
+        "aliases": ["@conflict-b", "@shared"],
+        "availability": "available"
+      },
+      {
+        "id": "team:docs",
+        "kind": "team",
+        "aliases": ["@docs"],
+        "availability": "available"
+      },
+      {
+        "id": "team:legacy",
+        "kind": "team",
+        "aliases": ["@legacy"],
+        "availability": "unavailable"
+      },
+      {
+        "id": "team:new",
+        "kind": "team",
+        "aliases": ["@new"],
+        "availability": "available"
+      },
+      {
+        "id": "team:platform",
+        "kind": "team",
+        "aliases": ["@platform"],
+        "availability": "available"
+      },
+      {
+        "id": "team:service",
+        "kind": "service",
+        "aliases": ["@service"],
+        "availability": "available"
+      }
+    ],
+    "sources": [
+      {
+        "id": "repo-a-local",
+        "repositoryId": "repo-a",
+        "kind": "local",
+        "path": ".cartograph/ownership.json",
+        "revision": "local-v1",
+        "precedence": 200,
+        "rules": [
+          {
+            "id": "api",
+            "pattern": "packages/api/**",
+            "ownerRefs": ["team:api"],
+            "priority": 10,
+            "order": 1
+          },
+          {
+            "id": "conflict-a",
+            "pattern": "packages/conflict/**",
+            "ownerRefs": ["team:conflict-a"],
+            "priority": 10,
+            "order": 2
+          },
+          {
+            "id": "conflict-b",
+            "pattern": "packages/conflict/**",
+            "ownerRefs": ["team:conflict-b"],
+            "priority": 10,
+            "order": 3
+          },
+          {
+            "id": "legacy",
+            "pattern": "packages/legacy/**",
+            "ownerRefs": ["team:legacy"],
+            "priority": 10,
+            "order": 4
+          },
+          {
+            "id": "renamed",
+            "pattern": "packages/renamed/old.mdx",
+            "ownerRefs": ["team:new"],
+            "priority": 10,
+            "order": 5
+          },
+          {
+            "id": "unknown",
+            "pattern": "packages/unknown/**",
+            "ownerRefs": ["@ghost"],
+            "priority": 10,
+            "order": 6
+          },
+          {
+            "id": "unowned",
+            "pattern": "packages/unowned/**",
+            "ownerRefs": [],
+            "priority": 10,
+            "order": 7
+          }
+        ]
+      }
+    ],
+    "sourceDiagnostics": [],
+    "fallback": {
+      "ownerRefs": ["team:legacy"],
+      "sourceId": "fallback-default",
+      "sourcePath": ".cartograph/fallback-ownership.json"
+    },
+    "targets": [
+      {
+        "id": "api-file",
+        "repositoryId": "repo-a",
+        "path": "packages/api/src/index.ts",
+        "kind": "file"
+      },
+      {
+        "id": "conflict-file",
+        "repositoryId": "repo-a",
+        "path": "packages/conflict/file.ts",
+        "kind": "file"
+      },
+      {
+        "id": "cross-repository",
+        "repositoryId": "repo-b",
+        "path": "services/api.ts",
+        "kind": "file"
+      },
+      {
+        "id": "docs-file",
+        "repositoryId": "repo-a",
+        "path": "docs/guide.md",
+        "kind": "file"
+      },
+      {
+        "id": "fallback-file",
+        "repositoryId": "repo-a",
+        "path": "unknown.bin",
+        "kind": "file"
+      },
+      {
+        "id": "legacy-file",
+        "repositoryId": "repo-a",
+        "path": "packages/legacy/file.ts",
+        "kind": "file"
+      },
+      {
+        "id": "nested-file",
+        "repositoryId": "repo-a",
+        "path": "packages/nested/file.ts",
+        "kind": "file"
+      },
+      {
+        "id": "renamed-file",
+        "repositoryId": "repo-a",
+        "path": "packages/renamed/new.mdx",
+        "previousPath": "packages/renamed/old.mdx",
+        "kind": "file"
+      },
+      {
+        "id": "unknown-owner-file",
+        "repositoryId": "repo-a",
+        "path": "packages/unknown/file.ts",
+        "kind": "file"
+      },
+      {
+        "id": "unowned-file",
+        "repositoryId": "repo-a",
+        "path": "packages/unowned/file.ts",
+        "kind": "file"
+      }
+    ]
+  },
+  "codeowners": [
+    {
+      "id": "repo-a-codeowners",
+      "repositoryId": "repo-a",
+      "path": ".github/CODEOWNERS",
+      "revision": "codeowners-a-v1",
+      "precedence": 100,
+      "text": "# CODEOWNERS uses last-match semantics\n*.ts @platform\ndocs/** @docs\npackages/nested/** @service\n!generated/** @platform\n"
+    },
+    {
+      "id": "repo-b-codeowners",
+      "repositoryId": "repo-b",
+      "path": "CODEOWNERS",
+      "revision": "codeowners-b-v1",
+      "precedence": 100,
+      "text": "services/** @service\n"
+    }
+  ],
+  "expected": {
+    "summary": {
+      "targets": 10,
+      "resolved": 5,
+      "unowned": 1,
+      "ambiguous": 1,
+      "unavailable": 2,
+      "unsupported": 1,
+      "matchedRules": 11
+    },
+    "statuses": {
+      "api-file": "resolved",
+      "conflict-file": "ambiguous",
+      "cross-repository": "resolved",
+      "docs-file": "resolved",
+      "fallback-file": "unavailable",
+      "legacy-file": "unavailable",
+      "nested-file": "resolved",
+      "renamed-file": "resolved",
+      "unknown-owner-file": "unsupported",
+      "unowned-file": "unowned"
+    },
+    "owners": {
+      "api-file": ["team:api"],
+      "conflict-file": ["team:conflict-a", "team:conflict-b"],
+      "cross-repository": ["team:service"],
+      "docs-file": ["team:docs"],
+      "fallback-file": ["team:legacy"],
+      "legacy-file": ["team:legacy"],
+      "nested-file": ["team:service"],
+      "renamed-file": ["team:new"],
+      "unknown-owner-file": [],
+      "unowned-file": []
+    },
+    "diagnosticCodes": [
+      "OWNERSHIP_ALIAS_CONFLICT",
+      "OWNERSHIP_CONFLICT",
+      "OWNERSHIP_OWNER_UNAVAILABLE",
+      "OWNERSHIP_OWNER_UNKNOWN",
+      "OWNERSHIP_RENAME_FALLBACK"
+    ],
+    "sourceDiagnosticCodes": ["OWNERSHIP_NEGATION_UNSUPPORTED"],
+    "evidencePrefixes": [
+      "ownership://source/repo-a-local",
+      "ownership://source/repo-a-codeowners",
+      "ownership://source/repo-b-codeowners",
+      "ownership://rule/repo-a-local",
+      "ownership://rule/repo-a-codeowners",
+      "ownership://rule/repo-b-codeowners",
+      "ownership://fallback/fallback-default"
+    ]
+  }
+}

@@ -92,6 +92,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/workspace-boundaries.ts" ||
       file === "src/core/workspace-recomposition.ts" ||
       file === "src/core/workspace-privacy.ts" ||
+      file === "src/core/ownership.ts" ||
       file === "src/core/scip.ts" ||
       file === "src/report/adr.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
@@ -141,6 +142,7 @@ const checkHostedVersionChange = () => {
       file === "schema/workspace-boundaries.v0.1.schema.json" ||
       file === "schema/workspace-recomposition.v0.1.schema.json" ||
       file === "schema/workspace-privacy.v0.1.schema.json" ||
+      file === "schema/ownership-resolution.v0.1.schema.json" ||
       file === "schema/adoption-measurement.v0.1.schema.json" ||
       file === "schema/workspace-federation-evaluation.v0.1.schema.json" ||
       file === "schema/scip-interchange.v0.1.schema.json",
@@ -207,6 +209,7 @@ const checkCompatibility = () => {
     "src/core/workspace-recomposition.ts",
   );
   const workspacePrivacySource = readText("src/core/workspace-privacy.ts");
+  const ownershipSource = readText("src/core/ownership.ts");
   const scipSource = readText("src/core/scip.ts");
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
   const supportSchema = readJson("schema/support-matrix.v0.1.schema.json");
@@ -310,6 +313,9 @@ const checkCompatibility = () => {
   );
   const scipInterchangeSchema = readJson(
     "schema/scip-interchange.v0.1.schema.json",
+  );
+  const ownershipResolutionSchema = readJson(
+    "schema/ownership-resolution.v0.1.schema.json",
   );
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
@@ -450,6 +456,10 @@ const checkCompatibility = () => {
     scipSource,
     "SCIP_INTERCHANGE_SCHEMA_VERSION",
   );
+  const ownershipResolutionVersion = sourceVersion(
+    ownershipSource,
+    "OWNERSHIP_SCHEMA_VERSION",
+  );
 
   if (
     snapshotVersion === undefined ||
@@ -487,7 +497,8 @@ const checkCompatibility = () => {
     workspaceRecompositionVersion === undefined ||
     workspacePrivacyVersion === undefined ||
     workspaceFederationEvaluationVersion === undefined ||
-    scipInterchangeVersion === undefined
+    scipInterchangeVersion === undefined ||
+    ownershipResolutionVersion === undefined
   ) {
     throw new Error("runtime schema version constants are missing");
   }
@@ -873,6 +884,16 @@ const checkCompatibility = () => {
     scipInterchangeSchema.properties.schemaVersion.const,
     scipInterchangeVersion,
   );
+  requireEqual(
+    "ownership resolution runtime/policy",
+    ownershipResolutionVersion,
+    contracts.ownershipResolution.current,
+  );
+  requireEqual(
+    "ownership resolution JSON Schema/runtime",
+    ownershipResolutionSchema.properties.schemaVersion.const,
+    ownershipResolutionVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -919,6 +940,7 @@ const checkCompatibility = () => {
     adoptionMeasurementVersion,
     workspaceFederationEvaluationVersion,
     scipInterchangeVersion,
+    ownershipResolutionVersion,
   };
 };
 

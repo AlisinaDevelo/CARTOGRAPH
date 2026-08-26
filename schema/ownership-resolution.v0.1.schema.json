@@ -1,0 +1,297 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/ownership-resolution.v0.1.schema.json",
+  "title": "CARTOGRAPH ownership resolution fixture v0.1",
+  "description": "A bounded, offline fixture for resolving architecture ownership from versioned local rules and a supported CODEOWNERS subset.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "fixtureId",
+    "method",
+    "request",
+    "codeowners",
+    "expected"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.ownership-resolution" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.ownership-resolution+json"
+    },
+    "fixtureId": { "const": "g001-v0.1" },
+    "method": { "$ref": "#/definitions/method" },
+    "request": { "$ref": "#/definitions/request" },
+    "codeowners": {
+      "type": "array",
+      "maxItems": 256,
+      "items": { "$ref": "#/definitions/codeowners" }
+    },
+    "expected": { "$ref": "#/definitions/expected" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "pattern": "^[^\\u0000-\\u001F]+$"
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!~)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000]+$"
+    },
+    "owner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "aliases", "availability"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "kind": { "enum": ["user", "team", "service"] },
+        "aliases": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "availability": { "enum": ["available", "unavailable"] }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "pattern", "ownerRefs", "priority", "order"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "pattern": { "$ref": "#/definitions/identifier" },
+        "ownerRefs": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "priority": { "type": "integer", "minimum": -1000, "maximum": 1000 },
+        "order": { "type": "integer", "minimum": 0, "maximum": 1000000 }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "repositoryId", "kind", "path", "precedence", "rules"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "repositoryId": { "$ref": "#/definitions/identifier" },
+        "kind": { "enum": ["local", "codeowners"] },
+        "path": { "$ref": "#/definitions/path" },
+        "revision": { "$ref": "#/definitions/identifier" },
+        "precedence": { "type": "integer", "minimum": 0, "maximum": 1000 },
+        "rules": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": { "$ref": "#/definitions/rule" }
+        }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "code", "severity", "message", "evidenceRefs"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "code": { "type": "string", "pattern": "^OWNERSHIP_[A-Z0-9_]+$" },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "message": { "$ref": "#/definitions/identifier" },
+        "targetId": { "$ref": "#/definitions/identifier" },
+        "sourceId": { "$ref": "#/definitions/identifier" },
+        "ruleId": { "$ref": "#/definitions/identifier" },
+        "evidenceRefs": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "repositoryId", "path", "kind"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "repositoryId": { "$ref": "#/definitions/identifier" },
+        "path": { "$ref": "#/definitions/path" },
+        "previousPath": { "$ref": "#/definitions/path" },
+        "stableKey": { "$ref": "#/definitions/identifier" },
+        "kind": { "enum": ["node", "edge", "diff", "file"] }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "repositoryId",
+        "owners",
+        "sources",
+        "sourceDiagnostics",
+        "fallback",
+        "targets"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.ownership-resolution" },
+        "repositoryId": { "$ref": "#/definitions/identifier" },
+        "owners": {
+          "type": "array",
+          "maxItems": 1024,
+          "items": { "$ref": "#/definitions/owner" }
+        },
+        "sources": {
+          "type": "array",
+          "maxItems": 256,
+          "items": { "$ref": "#/definitions/source" }
+        },
+        "sourceDiagnostics": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/diagnostic" }
+        },
+        "fallback": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ownerRefs", "sourceId", "sourcePath"],
+          "properties": {
+            "ownerRefs": {
+              "type": "array",
+              "maxItems": 64,
+              "items": { "$ref": "#/definitions/identifier" }
+            },
+            "sourceId": { "$ref": "#/definitions/identifier" },
+            "sourcePath": { "$ref": "#/definitions/path" }
+          }
+        },
+        "targets": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/target" }
+        }
+      }
+    },
+    "codeowners": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "repositoryId",
+        "path",
+        "revision",
+        "precedence",
+        "text"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "repositoryId": { "$ref": "#/definitions/identifier" },
+        "path": { "$ref": "#/definitions/path" },
+        "revision": { "$ref": "#/definitions/identifier" },
+        "precedence": { "type": "integer", "minimum": 0, "maximum": 1000 },
+        "text": {
+          "type": "string",
+          "maxLength": 1048576,
+          "pattern": "^[^\\u0000]*$"
+        }
+      }
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "replayMode",
+        "rerunnable",
+        "network",
+        "sourceBodiesIncluded",
+        "credentialsUsed",
+        "hiddenTelemetry",
+        "command"
+      ],
+      "properties": {
+        "replayMode": { "const": "checked-in-ownership-sources" },
+        "rerunnable": { "const": true },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "credentialsUsed": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "command": { "const": "npm run ownership:validate" }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "statuses",
+        "owners",
+        "diagnosticCodes",
+        "sourceDiagnosticCodes",
+        "evidencePrefixes"
+      ],
+      "properties": {
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "targets",
+            "resolved",
+            "unowned",
+            "ambiguous",
+            "unavailable",
+            "unsupported",
+            "matchedRules"
+          ],
+          "properties": {
+            "targets": { "type": "integer", "minimum": 0 },
+            "resolved": { "type": "integer", "minimum": 0 },
+            "unowned": { "type": "integer", "minimum": 0 },
+            "ambiguous": { "type": "integer", "minimum": 0 },
+            "unavailable": { "type": "integer", "minimum": 0 },
+            "unsupported": { "type": "integer", "minimum": 0 },
+            "matchedRules": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "statuses": {
+          "type": "object",
+          "additionalProperties": {
+            "enum": [
+              "resolved",
+              "unowned",
+              "ambiguous",
+              "unavailable",
+              "unsupported"
+            ]
+          }
+        },
+        "owners": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/identifier" }
+          }
+        },
+        "diagnosticCodes": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^OWNERSHIP_[A-Z0-9_]+$" }
+        },
+        "sourceDiagnosticCodes": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^OWNERSHIP_[A-Z0-9_]+$" }
+        },
+        "evidencePrefixes": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^ownership://" }
+        }
+      }
+    }
+  }
+}
