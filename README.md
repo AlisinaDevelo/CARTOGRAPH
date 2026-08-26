@@ -249,6 +249,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Local-first investment ADR](docs/adr/0007-local-first-investment-boundary.md)
 - [Conditional Year 4 investment charter](docs/YEAR4_INVESTMENT_CHARTER.md)
 - [Architecture query contract](docs/ARCHITECTURE_QUERIES.md)
+- [Graph and diff query language](docs/ARCHITECTURE.md#d-015-query-language)
 - [Patch-scoped graph and policy filtering](docs/PATCH_FILTER.md)
 - [Release gate](docs/RELEASE.md)
 - [Release acceptance and rollback rehearsal](docs/RELEASE_REHEARSAL.md)

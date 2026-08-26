@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.graph-query-language-fixtures",
+  "fixtureId": "graph-query-language-v0.1",
+  "scope": {
+    "network": false,
+    "filesystemWrites": false,
+    "sourceBodiesIncluded": false,
+    "execution": false,
+    "deterministic": true
+  },
+  "cases": [
+    {
+      "id": "node-kind-and-path",
+      "scenario": "positive",
+      "query": "query v1 nodes where kind = function and evidence.path ^= src/",
+      "expected": { "status": "ok", "target": "nodes", "predicateCount": 2 }
+    },
+    {
+      "id": "edge-confidence-and-path",
+      "scenario": "positive",
+      "query": "v1 edges where kind = calls and confidence >= inferred and evidence.path ^= src/",
+      "expected": { "status": "ok", "target": "edges", "predicateCount": 3 }
+    },
+    {
+      "id": "bounded-traversal",
+      "scenario": "positive",
+      "query": "v1 nodes where kind=function traverse downstream depth=2 edges=[calls,imports] limit maxNodes=50",
+      "expected": {
+        "status": "ok",
+        "target": "nodes",
+        "traversal": true,
+        "predicateCount": 1
+      }
+    },
+    {
+      "id": "revision-changes",
+      "scenario": "positive",
+      "query": "v1 changes where change in [node-added,edge-changed] revision from base to head",
+      "expected": { "status": "ok", "target": "changes", "predicateCount": 1 }
+    },
+    {
+      "id": "equivalent-ordering",
+      "scenario": "canonical",
+      "query": "v1 nodes where kind=function and evidence.path ^= src/",
+      "equivalentQuery": "query v1 select nodes where evidence.path^=\"src/\" and node.kind = function",
+      "expected": { "status": "ok", "target": "nodes", "predicateCount": 2 }
+    },
+    {
+      "id": "stable-parser-error",
+      "scenario": "malformed",
+      "query": "v2 nodes where kind=function",
+      "expected": {
+        "status": "error",
+        "errorCode": "QUERY_PARSE_UNSUPPORTED_VERSION"
+      }
+    }
+  ]
+}

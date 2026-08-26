@@ -488,6 +488,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "query-language",
+      "path": "query-language",
+      "source": "CARTOGRAPH repository-authored synthetic query-language fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Versioned local text queries exercise node and edge kinds, evidence paths, confidence ordering, exact revision-change selection, bounded traversal, stable parser errors, and canonical normalization without source bodies, execution, or network access.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "architecture-impact",
       "path": "architecture-impact",
       "source": "CARTOGRAPH repository-authored synthetic impact fixture",

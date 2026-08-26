@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/graph-query-language-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH graph query language fixtures v0.1",
+  "description": "Local deterministic grammar, canonicalization, and stable parser-error fixtures for the graph and diff query language.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "contract", "fixtureId", "scope", "cases"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.graph-query-language-fixtures" },
+    "fixtureId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "network",
+        "filesystemWrites",
+        "sourceBodiesIncluded",
+        "execution",
+        "deterministic"
+      ],
+      "properties": {
+        "network": { "const": false },
+        "filesystemWrites": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "execution": { "const": false },
+        "deterministic": { "const": true }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "scenario", "query", "expected"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+          },
+          "scenario": { "enum": ["positive", "malformed", "canonical"] },
+          "query": { "type": "string", "minLength": 1, "maxLength": 16384 },
+          "equivalentQuery": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16384
+          },
+          "expected": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["status"],
+            "properties": {
+              "status": { "enum": ["ok", "error"] },
+              "target": { "enum": ["nodes", "edges", "changes"] },
+              "errorCode": { "type": "string", "minLength": 1 },
+              "traversal": { "type": "boolean" },
+              "predicateCount": { "type": "integer", "minimum": 0 }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,177 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/graph-query-language-result.v0.1.schema.json",
+  "title": "CARTOGRAPH graph and diff query result v0.1",
+  "description": "A deterministic, fail-closed result for a local graph or diff query, including the normalized AST, selected records, revision context, and stable diagnostics.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "queryId",
+    "target",
+    "status",
+    "query",
+    "nodes",
+    "edges",
+    "changes",
+    "diagnostics",
+    "truncated"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.graph-query-language" },
+    "queryId": {
+      "$ref": "#/definitions/identifier"
+    },
+    "target": { "enum": ["nodes", "edges", "changes"] },
+    "status": { "enum": ["ok", "resource-limit", "invalid"] },
+    "query": { "type": "object" },
+    "snapshotRevision": {
+      "$ref": "#/definitions/value"
+    },
+    "revisions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "from": {
+          "$ref": "#/definitions/value"
+        },
+        "to": {
+          "$ref": "#/definitions/value"
+        }
+      }
+    },
+    "nodes": { "type": "array", "items": { "type": "object" } },
+    "edges": { "type": "array", "items": { "type": "object" } },
+    "changes": { "type": "array", "items": { "$ref": "#/definitions/change" } },
+    "diagnostics": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/diagnostic" }
+    },
+    "truncated": { "type": "boolean" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "value": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "portablePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!/)(?!~)(?!\\\\)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\u0000)(?!.*[\\r\\n]).+$"
+    },
+    "nodeKind": {
+      "enum": [
+        "endpoint",
+        "module",
+        "package",
+        "service",
+        "function",
+        "database_table",
+        "queue",
+        "external_service",
+        "file",
+        "unknown"
+      ]
+    },
+    "edgeKind": {
+      "enum": [
+        "calls",
+        "imports",
+        "reads",
+        "writes",
+        "publishes",
+        "subscribes",
+        "requests",
+        "contains",
+        "routes_to",
+        "depends_on",
+        "implements",
+        "unknown"
+      ]
+    },
+    "changeKind": {
+      "enum": [
+        "node-added",
+        "node-removed",
+        "node-changed",
+        "edge-added",
+        "edge-removed",
+        "edge-changed",
+        "edge-rewired",
+        "diagnostic-added",
+        "diagnostic-removed",
+        "diagnostic-changed",
+        "identity-matched",
+        "identity-ambiguous",
+        "identity-unsupported"
+      ]
+    },
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "revision", "evidencePaths"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "kind": {
+          "$ref": "#/definitions/changeKind"
+        },
+        "revision": { "enum": ["from", "to", "both"] },
+        "nodeKind": {
+          "$ref": "#/definitions/nodeKind"
+        },
+        "edgeKind": {
+          "$ref": "#/definitions/edgeKind"
+        },
+        "confidence": {
+          "enum": ["certain", "inferred", "observed", "user_confirmed"]
+        },
+        "evidencePaths": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/portablePath"
+          }
+        },
+        "node": { "type": "object" },
+        "beforeNode": { "type": "object" },
+        "afterNode": { "type": "object" },
+        "edge": { "type": "object" },
+        "beforeEdge": { "type": "object" },
+        "afterEdge": { "type": "object" },
+        "diagnostic": { "type": "object" }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "code", "severity", "message"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "code": { "type": "string", "minLength": 1 },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "message": { "type": "string", "minLength": 1 },
+        "limit": {
+          "enum": [
+            "maxDepth",
+            "maxNodes",
+            "maxEdges",
+            "maxChanges",
+            "maxTimeMs",
+            "maxResultBytes"
+          ]
+        }
+      }
+    }
+  }
+}

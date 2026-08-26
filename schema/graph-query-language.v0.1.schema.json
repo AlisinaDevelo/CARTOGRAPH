@@ -1,0 +1,196 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/graph-query-language.v0.1.schema.json",
+  "title": "CARTOGRAPH graph and diff query language AST v0.1",
+  "description": "A normalized, versioned, local query AST produced by the deterministic graph and diff query language. The grammar is read-only and resource bounded.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "queryId",
+    "target",
+    "predicates",
+    "traversal",
+    "limits"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.graph-query-language" },
+    "queryId": { "$ref": "#/definitions/identifier" },
+    "target": { "enum": ["nodes", "edges", "changes"] },
+    "predicates": {
+      "type": "array",
+      "maxItems": 64,
+      "items": { "$ref": "#/definitions/predicate" }
+    },
+    "traversal": { "$ref": "#/definitions/traversal" },
+    "revision": { "$ref": "#/definitions/revision" },
+    "limits": { "$ref": "#/definitions/limits" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "value": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "portablePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!/)(?!~)(?!\\\\)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\u0000)(?!.*[\\r\\n]).+$"
+    },
+    "predicate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field", "operator", "values"],
+      "properties": {
+        "field": {
+          "enum": [
+            "kind",
+            "node.kind",
+            "edge.kind",
+            "id",
+            "stableKey",
+            "name",
+            "language",
+            "from",
+            "to",
+            "evidence.path",
+            "path",
+            "confidence",
+            "change",
+            "change.kind",
+            "revision"
+          ]
+        },
+        "operator": { "enum": ["=", "!=", "^=", "in", "<", "<=", ">", ">="] },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": { "$ref": "#/definitions/value" }
+        }
+      }
+    },
+    "traversal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "direction",
+        "edgeKinds",
+        "maxDepth",
+        "includeUnresolved"
+      ],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "direction": {
+          "enum": ["forward", "reverse", "both", "downstream", "upstream"]
+        },
+        "edgeKinds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/edgeKind" }
+        },
+        "maxDepth": { "type": "integer", "minimum": 0, "maximum": 64 },
+        "includeUnresolved": { "type": "boolean" }
+      }
+    },
+    "revision": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "from": { "$ref": "#/definitions/value" },
+        "to": { "$ref": "#/definitions/value" },
+        "changes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 13,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/changeKind" }
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxDepth",
+        "maxNodes",
+        "maxEdges",
+        "maxChanges",
+        "maxTimeMs",
+        "maxResultBytes"
+      ],
+      "properties": {
+        "maxDepth": { "type": "integer", "minimum": 0, "maximum": 64 },
+        "maxNodes": { "type": "integer", "minimum": 1, "maximum": 100000 },
+        "maxEdges": { "type": "integer", "minimum": 1, "maximum": 200000 },
+        "maxChanges": { "type": "integer", "minimum": 1, "maximum": 200000 },
+        "maxTimeMs": { "type": "integer", "minimum": 1, "maximum": 120000 },
+        "maxResultBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16777216
+        }
+      }
+    },
+    "nodeKind": {
+      "enum": [
+        "endpoint",
+        "module",
+        "package",
+        "service",
+        "function",
+        "database_table",
+        "queue",
+        "external_service",
+        "file",
+        "unknown"
+      ]
+    },
+    "edgeKind": {
+      "enum": [
+        "calls",
+        "imports",
+        "reads",
+        "writes",
+        "publishes",
+        "subscribes",
+        "requests",
+        "contains",
+        "routes_to",
+        "depends_on",
+        "implements",
+        "unknown"
+      ]
+    },
+    "changeKind": {
+      "enum": [
+        "node-added",
+        "node-removed",
+        "node-changed",
+        "edge-added",
+        "edge-removed",
+        "edge-changed",
+        "edge-rewired",
+        "diagnostic-added",
+        "diagnostic-removed",
+        "diagnostic-changed",
+        "identity-matched",
+        "identity-ambiguous",
+        "identity-unsupported"
+      ]
+    }
+  }
+}
