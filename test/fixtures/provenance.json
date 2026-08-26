@@ -506,6 +506,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "accessibility",
+      "path": "accessibility",
+      "source": "CARTOGRAPH repository-authored synthetic accessibility fixture",
+      "license": "Apache-2.0",
+      "reference": "D-020 accessible HTML report contract; no external source data",
+      "transformation": "A bounded local diff exercises changed-node, diagnostic, remediation, evidence-link, semantic-table, details-disclosure, focus, navigation, live-status, reduced-motion, and no-external-resource checks without source bodies, execution, credentials, or network access.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "graph-interchange",
       "path": "graph-interchange",
       "source": "CARTOGRAPH repository-authored synthetic graph interchange fixture",

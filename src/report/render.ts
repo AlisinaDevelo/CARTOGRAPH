@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+import { createHash } from "node:crypto";
 
 import {
   GRAPH_DIFF_SCHEMA_VERSION,
@@ -466,11 +467,94 @@ const htmlList = (items: readonly string[]): string =>
     ? '<p class="empty">None</p>'
     : `<ul>${items.map((item) => `<li>${item}</li>`).join("")}</ul>`;
 
+const htmlTable = (
+  id: string,
+  caption: string,
+  headers: readonly string[],
+  rows: readonly string[],
+): string =>
+  `<div class="table-scroll" role="region" aria-labelledby="${escapeHtml(id)}-caption" tabindex="0"><table id="${escapeHtml(id)}"><caption id="${escapeHtml(id)}-caption">${escapeHtml(caption)}</caption><thead><tr>${headers.map((header) => `<th scope="col">${escapeHtml(header)}</th>`).join("")}</tr></thead><tbody>${rows.length === 0 ? `<tr><td colspan="${headers.length}">None</td></tr>` : rows.join("")}</tbody></table></div>`;
+
+const htmlSummaryTable = (summary: GraphDiff["summary"]): string =>
+  htmlTable(
+    "summary-table",
+    "Architecture diff summary",
+    ["Record type", "Added", "Removed", "Changed"],
+    [
+      `<tr><th scope="row">Nodes</th><td>${summary.nodesAdded}</td><td>${summary.nodesRemoved}</td><td>${summary.nodesChanged}</td></tr>`,
+      `<tr><th scope="row">Edges</th><td>${summary.edgesAdded}</td><td>${summary.edgesRemoved}</td><td>${summary.edgesChanged}</td></tr>`,
+      `<tr><th scope="row">Diagnostics</th><td>${summary.diagnosticsAdded}</td><td>${summary.diagnosticsRemoved}</td><td>${summary.diagnosticsChanged}</td></tr>`,
+    ],
+  );
+
+const evidenceAnchor = (id: string): string =>
+  `evidence-${createHash("sha256").update(id, "utf8").digest("hex").slice(0, 16)}`;
+
+const htmlEvidenceLink = (evidence: Evidence): string =>
+  `<a href="#${evidenceAnchor(evidence.id)}"><code>${escapeHtml(evidenceLabel(evidence))}</code></a>`;
+
+const htmlEvidenceLinks = (evidence: readonly Evidence[]): string =>
+  evidence.length === 0 ? "none" : evidence.map(htmlEvidenceLink).join(", ");
+
+const collectDiffEvidence = (diff: GraphDiff): Evidence[] => {
+  const records = new Map<string, Evidence>();
+  const add = (evidence: Evidence): void => {
+    if (!records.has(evidence.id)) records.set(evidence.id, evidence);
+  };
+  const edgeGroups = [
+    ...diff.edges.added,
+    ...diff.edges.removed,
+    ...diff.edges.changed.flatMap((edge) => [edge.before, edge.after]),
+    ...diff.edges.rewired.flatMap((edge) => [edge.before, edge.after]),
+  ];
+  for (const edge of edgeGroups) edge.evidence.forEach(add);
+  const diagnosticGroups = [
+    ...diff.diagnostics.added,
+    ...diff.diagnostics.removed,
+    ...diff.diagnostics.changed.flatMap((diagnostic) => [
+      diagnostic.before,
+      diagnostic.after,
+    ]),
+  ];
+  for (const diagnostic of diagnosticGroups) diagnostic.evidence.forEach(add);
+  if (diff.topology !== undefined) {
+    for (const topology of [diff.topology.before, diff.topology.after]) {
+      for (const cycle of topology.cycles)
+        cycle.edges.flatMap((edge) => edge.evidence).forEach(add);
+      topology.violations
+        .flatMap((violation) => violation.edge.evidence)
+        .forEach(add);
+      topology.diagnostics
+        .flatMap((diagnostic) => diagnostic.evidence)
+        .forEach(add);
+    }
+  }
+  return [...records.values()].sort((left, right) =>
+    left.id.localeCompare(right.id),
+  );
+};
+
+const htmlEvidenceIndex = (evidence: readonly Evidence[]): string =>
+  `<section aria-label="Evidence links"><h2>Evidence links</h2><details id="evidence-heading" open><summary>Show or hide evidence links</summary><p>Internal links below jump from changed records to their canonical evidence.</p>${htmlTable(
+    "evidence-table",
+    "Evidence referenced by this report",
+    ["Evidence ID", "Kind", "Location", "Reference"],
+    evidence.map(
+      (item) =>
+        `<tr id="${evidenceAnchor(item.id)}"><th scope="row"><code>${escapeHtml(item.id)}</code></th><td>${escapeHtml(item.kind)}</td><td>${escapeHtml(evidenceLabel(item))}</td><td>${item.reference === undefined ? "none" : escapeHtml(item.reference)}</td></tr>`,
+    ),
+  )}</details></section>`;
+
+const htmlCategorySection = (
+  label: string,
+  headingId: string,
+  content: string,
+): string =>
+  `<section aria-label="${escapeHtml(label)}"><h2>${escapeHtml(label)}</h2><details id="${escapeHtml(headingId)}" open><summary>Show or hide ${escapeHtml(label.toLowerCase())}</summary>${content}</details></section>`;
+
 const htmlEvidence = (edge: GraphEdge): string => {
   if (edge.evidence.length > 0) {
-    return edge.evidence
-      .map((item) => `<code>${escapeHtml(evidenceLabel(item))}</code>`)
-      .join(", ");
+    return htmlEvidenceLinks(edge.evidence);
   }
   return `<span class="unknown">unresolved: ${escapeHtml(edge.unresolvedReason ?? "unspecified")}</span>`;
 };
@@ -481,7 +565,7 @@ const htmlEdge = (edge: GraphEdge): string =>
 const htmlTopologyEdge = (
   edge: GraphTopologySummary["cycles"][number]["edges"][number],
 ): string =>
-  `<code>${escapeHtml(edge.from)}</code> <strong>${escapeHtml(edge.kind)}</strong> <code>${escapeHtml(edge.to)}</code><div class="evidence">evidence: ${edge.evidence.length === 0 ? "none" : edge.evidence.map((item) => `<code>${escapeHtml(evidenceLabel(item))}</code>`).join(", ")}</div>`;
+  `<code>${escapeHtml(edge.from)}</code> <strong>${escapeHtml(edge.kind)}</strong> <code>${escapeHtml(edge.to)}</code><div class="evidence">evidence: ${htmlEvidenceLinks(edge.evidence)}</div>`;
 
 const htmlTopologySummary = (
   title: string,
@@ -504,7 +588,7 @@ const htmlTopologySummary = (
 };
 
 const htmlNode = (node: GraphDiff["nodes"]["added"][number]): string =>
-  `<code>${escapeHtml(node.name)}</code> <span class="kind">${escapeHtml(node.kind)}</span>`;
+  `<code>${escapeHtml(node.name)}</code> <span class="kind">${escapeHtml(node.kind)}</span><div class="evidence">ID: <code>${escapeHtml(node.id)}</code>; stable key: <code>${escapeHtml(node.stableKey)}</code></div>`;
 
 const htmlDiagnostic = (
   diagnostic: GraphDiff["diagnostics"]["added"][number],
@@ -512,7 +596,11 @@ const htmlDiagnostic = (
   const remediation = diagnostic.remediation
     ? `<div class="remediation">Remediation: ${escapeHtml(diagnostic.remediation)}</div>`
     : "";
-  return `<strong>${escapeHtml(diagnostic.severity)} ${escapeHtml(diagnostic.code)}</strong>: ${escapeHtml(diagnostic.message)}${remediation}`;
+  const evidence =
+    diagnostic.evidence.length === 0
+      ? ""
+      : `<div class="evidence">Evidence: ${htmlEvidenceLinks(diagnostic.evidence)}</div>`;
+  return `<strong>${escapeHtml(diagnostic.severity)} ${escapeHtml(diagnostic.code)}</strong>: ${escapeHtml(diagnostic.message)}${remediation}${evidence}`;
 };
 
 const htmlChanges = (changes: readonly { readonly path: string }[]): string =>
@@ -632,7 +720,7 @@ export function renderHtmlReport(
   const removedNodes = diff.nodes.removed.map(htmlNode);
   const changedNodes = diff.nodes.changed.map(
     (node) =>
-      `<code>${escapeHtml(node.stableKey)}</code><div class="evidence">${htmlChanges(node.changes)}</div>`,
+      `<code>${escapeHtml(node.stableKey)}</code><div class="evidence">${htmlChanges(node.changes)}; current name: ${escapeHtml(node.after.name)}</div>`,
   );
   const matchedIdentities = diff.identity.matches.map(htmlIdentityMatch);
   const ambiguousIdentities = diff.identity.ambiguous.map(
@@ -653,12 +741,34 @@ export function renderHtmlReport(
   const removedDiagnostics = diff.diagnostics.removed.map(htmlDiagnostic);
   const changedDiagnostics = diff.diagnostics.changed.map(
     (diagnostic) =>
-      `<code>${escapeHtml(diagnostic.id)}</code><div class="evidence">${htmlChanges(diagnostic.changes)}</div>`,
+      `${htmlDiagnostic(diagnostic.after)}<div class="evidence">${escapeHtml(diagnostic.id)}; changed fields: ${htmlChanges(diagnostic.changes)}</div>`,
   );
   const topology =
     diff.topology === undefined
       ? ""
-      : `<section aria-label="Topology"><h2>Topology</h2>${htmlTopologySummary("Before", diff.topology.before)}${htmlTopologySummary("After", diff.topology.after)}</section>`;
+      : `<section aria-label="Topology"><h2>Topology</h2><details id="topology-heading" open><summary>Show or hide topology</summary>${htmlTopologySummary("Before", diff.topology.before)}${htmlTopologySummary("After", diff.topology.after)}</details></section>`;
+  const evidence = collectDiffEvidence(diff);
+  const statusText = `Report status: ${plural(summary.nodesAdded, "node")} added, ${plural(summary.nodesRemoved, "node")} removed, ${plural(summary.nodesChanged, "node")} changed; ${plural(summary.edgesAdded, "edge")} added, ${plural(summary.edgesRemoved, "edge")} removed, ${plural(summary.edgesChanged, "edge")} changed; ${plural(summary.diagnosticsAdded, "diagnostic")} added, ${plural(summary.diagnosticsRemoved, "diagnostic")} removed, ${plural(summary.diagnosticsChanged, "diagnostic")} changed.`;
+  const navigation = [
+    ["Summary", "summary-heading"],
+    ["Added nodes", "added-nodes-heading"],
+    ["Removed nodes", "removed-nodes-heading"],
+    ["Changed nodes", "changed-nodes-heading"],
+    ["Matched identities", "matched-identities-heading"],
+    ["Ambiguous identities", "ambiguous-identities-heading"],
+    ["Unsupported identities", "unsupported-identities-heading"],
+    ["Added edges", "added-edges-heading"],
+    ["Removed edges", "removed-edges-heading"],
+    ["Changed edges", "changed-edges-heading"],
+    ["Rewired edges", "rewired-edges-heading"],
+    ["Added diagnostics", "added-diagnostics-heading"],
+    ["Removed diagnostics", "removed-diagnostics-heading"],
+    ["Changed diagnostics", "changed-diagnostics-heading"],
+    ["Evidence links", "evidence-heading"],
+    ...(diff.topology === undefined ? [] : [["Topology", "topology-heading"]]),
+    ...(adrReport === undefined ? [] : [["ADR references", "adr-heading"]]),
+  ] as const;
+  const navigationHtml = `<nav class="report-navigation" aria-labelledby="navigation-heading"><h2 id="navigation-heading" class="visually-hidden">Report sections</h2><ol>${navigation.map(([label, id]) => `<li><a href="#${id}">${label}</a></li>`).join("")}</ol></nav>`;
 
   const report = `<!doctype html>
 <html lang="en">
@@ -671,19 +781,34 @@ export function renderHtmlReport(
     :root { color-scheme: light dark; font-family: ui-sans-serif, system-ui, sans-serif; }
     body { margin: 0 auto; max-width: 72rem; padding: 2rem; line-height: 1.5; }
     h1, h2 { line-height: 1.2; }
+    a { color: LinkText; }
+    a:focus-visible, summary:focus-visible, [tabindex="0"]:focus-visible, [tabindex="-1"]:focus-visible { outline: .2rem solid Highlight; outline-offset: .2rem; }
+    .visually-hidden { border: 0; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; white-space: nowrap; width: 1px; }
     .summary { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
     .card { border: 1px solid #7777; border-radius: .5rem; padding: 1rem; }
     code { overflow-wrap: anywhere; }
     .evidence, .kind, .empty { color: #777; font-size: .9rem; }
     .unknown { color: #a45b00; }
+    .status { border: 2px solid currentColor; border-radius: .5rem; font-weight: 600; padding: .75rem 1rem; }
+    .report-navigation ol { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; padding-left: 1.25rem; }
+    .report-navigation a { display: inline-block; padding: .25rem; }
+    .table-scroll { margin: 1rem 0; overflow-x: auto; }
+    table { border-collapse: collapse; min-width: 100%; }
+    caption { font-size: 1.05rem; font-weight: 700; padding: .5rem 0; text-align: left; }
+    th, td { border: 1px solid #7777; padding: .5rem .75rem; text-align: left; vertical-align: top; }
+    summary { cursor: pointer; padding: .25rem; }
+    summary h2, summary h3 { display: inline; }
     .skip-link { position: absolute; left: -10000px; top: auto; }
     .skip-link:focus { left: 1rem; top: 1rem; background: Canvas; color: CanvasText; padding: .5rem .75rem; z-index: 1; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
   </style>
 </head>
 <body>
   <a class="skip-link" href="#summary-heading">Skip to summary</a>
   <main id="report" tabindex="-1">
-    <h1>Architecture diff</h1>
+    <h1 id="report-title">Architecture diff</h1>
     <p>From <code>${escapeHtml(shortRevision(diff.fromRevision.commitSha))}</code> to <code>${escapeHtml(shortRevision(diff.toRevision.commitSha))}</code>.</p>
     ${
       diff.comparison === undefined
@@ -691,27 +816,26 @@ export function renderHtmlReport(
         : `<p>Comparison <code>${escapeHtml(diff.comparison.mode)}</code>: <code>${escapeHtml(diff.comparison.baseRef)}</code> (${escapeHtml(shortRevision(diff.comparison.baseCommitSha))}) → <code>${escapeHtml(diff.comparison.headRef)}</code> (${escapeHtml(shortRevision(diff.comparison.headCommitSha))})${diff.comparison.mergeBaseSha === undefined ? "" : `; merge base <code>${escapeHtml(shortRevision(diff.comparison.mergeBaseSha))}</code>`}.</p>`
     }
     <p>Tool <code>${escapeHtml(REPORT_TOOL_VERSION)}</code>; GraphDiff schema <code>${escapeHtml(String(GRAPH_DIFF_SCHEMA_VERSION))}</code>; capability registry <code>${escapeHtml(String(diff.capabilityRegistryVersion))}</code>.</p>
+    <p id="report-status" class="status" role="status" aria-live="polite">${statusText}</p>
+    ${navigationHtml}
     <section aria-labelledby="summary-heading">
       <h2 id="summary-heading">Summary</h2>
-      <div class="summary">
-        <div class="card">${plural(summary.nodesAdded, "node")} added<br>${plural(summary.nodesRemoved, "node")} removed<br>${plural(summary.nodesChanged, "node")} changed</div>
-        <div class="card">${plural(summary.edgesAdded, "edge")} added<br>${plural(summary.edgesRemoved, "edge")} removed<br>${plural(summary.edgesChanged, "edge")} changed</div>
-        <div class="card">${plural(summary.diagnosticsAdded, "diagnostic")} added<br>${plural(summary.diagnosticsRemoved, "diagnostic")} removed<br>${plural(summary.diagnosticsChanged, "diagnostic")} changed</div>
-      </div>
+      ${htmlSummaryTable(summary)}
     </section>
-    <section aria-label="Added nodes"><h2>Added nodes</h2>${htmlList(addedNodes)}</section>
-    <section aria-label="Removed nodes"><h2>Removed nodes</h2>${htmlList(removedNodes)}</section>
-    <section aria-label="Changed nodes"><h2>Changed nodes</h2>${htmlList(changedNodes)}</section>
-    <section aria-label="Matched identities"><h2>Matched identities</h2>${htmlList(matchedIdentities)}</section>
-    <section aria-label="Ambiguous identities"><h2>Ambiguous identities</h2>${htmlList(ambiguousIdentities)}</section>
-    <section aria-label="Unsupported identities"><h2>Unsupported identities</h2>${htmlList(unsupportedIdentities)}</section>
-    <section aria-label="Added edges"><h2>Added edges</h2>${htmlList(diff.edges.added.map(htmlEdge))}</section>
-    <section aria-label="Removed edges"><h2>Removed edges</h2>${htmlList(diff.edges.removed.map(htmlEdge))}</section>
-    <section aria-label="Changed edges"><h2>Changed edges</h2>${htmlList(changedEdges)}</section>
-    <section aria-label="Rewired edges"><h2>Rewired edges</h2>${htmlList(rewiredEdges)}</section>
-    <section aria-label="Added diagnostics"><h2>Added diagnostics</h2>${htmlList(addedDiagnostics)}</section>
-    <section aria-label="Removed diagnostics"><h2>Removed diagnostics</h2>${htmlList(removedDiagnostics)}</section>
-    <section aria-label="Changed diagnostics"><h2>Changed diagnostics</h2>${htmlList(changedDiagnostics)}</section>
+    ${htmlCategorySection("Added nodes", "added-nodes-heading", htmlList(addedNodes))}
+    ${htmlCategorySection("Removed nodes", "removed-nodes-heading", htmlList(removedNodes))}
+    ${htmlCategorySection("Changed nodes", "changed-nodes-heading", htmlList(changedNodes))}
+    ${htmlCategorySection("Matched identities", "matched-identities-heading", htmlList(matchedIdentities))}
+    ${htmlCategorySection("Ambiguous identities", "ambiguous-identities-heading", htmlList(ambiguousIdentities))}
+    ${htmlCategorySection("Unsupported identities", "unsupported-identities-heading", htmlList(unsupportedIdentities))}
+    ${htmlCategorySection("Added edges", "added-edges-heading", htmlList(diff.edges.added.map(htmlEdge)))}
+    ${htmlCategorySection("Removed edges", "removed-edges-heading", htmlList(diff.edges.removed.map(htmlEdge)))}
+    ${htmlCategorySection("Changed edges", "changed-edges-heading", htmlList(changedEdges))}
+    ${htmlCategorySection("Rewired edges", "rewired-edges-heading", htmlList(rewiredEdges))}
+    ${htmlCategorySection("Added diagnostics", "added-diagnostics-heading", htmlList(addedDiagnostics))}
+    ${htmlCategorySection("Removed diagnostics", "removed-diagnostics-heading", htmlList(removedDiagnostics))}
+    ${htmlCategorySection("Changed diagnostics", "changed-diagnostics-heading", htmlList(changedDiagnostics))}
+    ${htmlEvidenceIndex(evidence)}
     ${topology}
     ${adrReport === undefined ? "" : htmlAdrSection(adrReport)}
   </main>

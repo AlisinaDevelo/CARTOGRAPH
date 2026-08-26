@@ -468,6 +468,22 @@ The [portable interchange guide](GRAPH_INTERCHANGE.md) and its checked-in
 round-trip fixture are the acceptance surface; no source body, network input,
 credential, repository execution, or renderer dependency is introduced.
 
+## D-020 accessible HTML reports
+
+HTML diff reports retain the static, no-request rendering boundary while adding
+semantic summary and evidence tables, native `details` disclosures for each
+change category, ordered internal section navigation, a focusable main
+landmark, and visible live status text. Evidence references in changed edges
+and diagnostics link only to deterministic in-document evidence rows; no
+repository or network URL is emitted.
+
+The report styles expose `:focus-visible` outlines, keep the DOM order as the
+keyboard focus order without positive `tabindex` values, and honor
+`prefers-reduced-motion: reduce` for animation, transition, and scrolling
+behavior. The checked-in accessibility fixture and `npm run
+accessibility:validate` gate cover changed nodes, diagnostics, remediation,
+evidence links, CSP/resource safety, and the manual keyboard review worksheet.
+
 ## G-001 explicit ownership resolution
 
 The [`cartograph.ownership-resolution`](../schema/ownership-resolution.v0.1.schema.json)

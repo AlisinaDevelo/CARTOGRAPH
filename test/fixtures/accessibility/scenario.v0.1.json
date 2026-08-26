@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.report-accessibility-fixture",
+  "fixtureId": "d020-v0.1",
+  "method": {
+    "replayMode": "checked-in-snapshot",
+    "rerunnable": true,
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "credentialsUsed": false,
+    "hiddenTelemetry": false,
+    "command": "npm run accessibility:validate"
+  },
+  "review": {
+    "changedNodeText": "Application",
+    "diagnosticCode": "UNRESOLVED_PROVIDER",
+    "evidenceIds": ["evidence:request", "evidence:provider"],
+    "requiredFeatures": [
+      "semantic-summary-table",
+      "native-details",
+      "ordered-internal-navigation",
+      "visible-live-status",
+      "focus-visible-styles",
+      "reduced-motion-styles",
+      "internal-evidence-links"
+    ]
+  }
+}

@@ -140,6 +140,13 @@ rendered report at 16 MiB; every next step is explicitly `mutates: false`. The
 canonical JSON contract is
 [`review-summary.v0.1.schema.json`](../schema/review-summary.v0.1.schema.json).
 
+When `--format html` is selected, the static report includes a semantic summary
+table, native keyboard disclosures, ordered in-document navigation, visible
+live status text, and an evidence index with fragment-only links. The report
+has no scripts or external resources and honors `prefers-reduced-motion`; use
+`npm run accessibility:validate` to replay the checked-in accessibility
+fixture.
+
 ## Output and diagnostic streams
 
 Successful commands write exactly one artifact to stdout when `--output` is
