@@ -592,6 +592,15 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "Cold, warm, partial-change, forged-cache, and interrupted-atomic-write scenarios exercise component-complete keys, proven dependent invalidation, byte-stable results, cache cleanup, and offline resource bounds without source bodies, execution, or network access.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "workspace-privacy",
+      "path": "workspace-privacy",
+      "source": "CARTOGRAPH repository-authored synthetic workspace privacy fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A bounded mixed-trust request exercises aggregate graph and byte ceilings, decompression-ratio protection, digest-only paths, redacted runtime metadata, cache/report/temporary limits, partial failure, secret rejection, symlink containment, and temporary-directory cleanup without source bodies, execution, or network access.",
+      "redistribution": "allowed"
     }
   ]
 }

@@ -32,6 +32,7 @@ repository or materialized Git revision
 - `src/core/workspace-identity.ts`: deterministic cross-repository origin namespaces, ambiguity records, and non-destructive composed node identities.
 - `src/core/workspace-boundaries.ts`: conservative package/service boundary resolution, selected evidence provenance, unresolved states, and cycle summaries.
 - `src/core/workspace-recomposition.ts`: provenance-aware cache keys, dependency-scoped invalidation, deterministic recomposition plans, and atomic local cache persistence.
+- `src/core/workspace-privacy.ts`: fail-closed workspace privacy/resource policy, digest-only path controls, secret-shaped metadata rejection, mixed-trust isolation, and temporary-directory cleanup.
 - `src/analyzers/typescript`: TypeScript program loading and language-level relationships.
 - `src/analyzers/api-boundaries`: bounded GraphQL SDL/template and OpenAPI operation discovery with resolver/handler links.
 - `src/analyzers/prisma-schema`: bounded Prisma datasource, model, relation, and generated-client discovery without database access.
@@ -323,6 +324,27 @@ same-directory temporary file followed by an atomic rename. Interrupted writes
 clean up their temporary directory and leave the prior cache untouched. No
 network, source upload, package-manager execution, or implicit invalidation is
 performed.
+
+## W-005 workspace privacy and resource boundaries
+
+W-005 adds the additive
+[`cartograph.workspace-privacy`](../schema/workspace-privacy.v0.1.schema.json)
+contract. A caller declares explicit ceilings for repository count, aggregate
+nodes and edges, source/compressed/expanded bytes, graph depth, wall-clock and
+memory observations, cache entries/bytes, report bytes/items, path exposure,
+runtime metadata retention, expansion ratio, and temporary entries. The parser
+fails closed before an assessment is emitted when any ceiling is exceeded.
+
+Raw paths are disabled by default; relative paths require an explicit bounded
+mode and digest-only mode retains only path digests. Metadata is bounded and
+credential-shaped values are rejected without echoing their contents. Runtime
+metadata is disabled by default, restricted to an allowlist when enabled, and
+the assessment records only a redacted count and byte size. Mixed trusted and
+untrusted repositories require explicit isolation, while failed repositories
+can only produce a `partial` assessment after explicit opt-in. Path preflight
+rejects traversal and symbolic-link components, and temporary materialization
+is wrapped in an async `finally` cleanup helper. The contract remains local,
+offline, source-free, and does not execute repository code or package managers.
 
 ## Topology summaries
 

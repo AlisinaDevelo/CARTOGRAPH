@@ -91,6 +91,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/workspace-identity.ts" ||
       file === "src/core/workspace-boundaries.ts" ||
       file === "src/core/workspace-recomposition.ts" ||
+      file === "src/core/workspace-privacy.ts" ||
       file === "src/report/adr.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
       file === "schema/support-matrix.v0.1.schema.json" ||
@@ -137,7 +138,8 @@ const checkHostedVersionChange = () => {
       file === "schema/workspace-composition.v0.1.schema.json" ||
       file === "schema/workspace-identity.v0.1.schema.json" ||
       file === "schema/workspace-boundaries.v0.1.schema.json" ||
-      file === "schema/workspace-recomposition.v0.1.schema.json",
+      file === "schema/workspace-recomposition.v0.1.schema.json" ||
+      file === "schema/workspace-privacy.v0.1.schema.json",
   );
   const reviewRecorded = changed.some(
     (file) =>
@@ -200,6 +202,7 @@ const checkCompatibility = () => {
   const workspaceRecompositionSource = readText(
     "src/core/workspace-recomposition.ts",
   );
+  const workspacePrivacySource = readText("src/core/workspace-privacy.ts");
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
   const supportSchema = readJson("schema/support-matrix.v0.1.schema.json");
   const diffSchema = readJson("schema/graph-diff.v0.1.schema.json");
@@ -290,6 +293,9 @@ const checkCompatibility = () => {
   );
   const workspaceRecompositionSchema = readJson(
     "schema/workspace-recomposition.v0.1.schema.json",
+  );
+  const workspacePrivacySchema = readJson(
+    "schema/workspace-privacy.v0.1.schema.json",
   );
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
@@ -418,6 +424,10 @@ const checkCompatibility = () => {
     workspaceRecompositionSource,
     "WORKSPACE_RECOMPOSITION_SCHEMA_VERSION",
   );
+  const workspacePrivacyVersion = sourceVersion(
+    workspacePrivacySource,
+    "WORKSPACE_PRIVACY_SCHEMA_VERSION",
+  );
 
   if (
     snapshotVersion === undefined ||
@@ -452,7 +462,8 @@ const checkCompatibility = () => {
     workspaceCompositionVersion === undefined ||
     workspaceIdentityVersion === undefined ||
     workspaceBoundaryVersion === undefined ||
-    workspaceRecompositionVersion === undefined
+    workspaceRecompositionVersion === undefined ||
+    workspacePrivacyVersion === undefined
   ) {
     throw new Error("runtime schema version constants are missing");
   }
@@ -803,6 +814,16 @@ const checkCompatibility = () => {
       .const,
     workspaceRecompositionVersion,
   );
+  requireEqual(
+    "workspace privacy runtime/policy",
+    workspacePrivacyVersion,
+    contracts.workspacePrivacy.current,
+  );
+  requireEqual(
+    "workspace privacy JSON Schema/runtime",
+    workspacePrivacySchema.definitions.request.properties.schemaVersion.const,
+    workspacePrivacyVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -845,6 +866,7 @@ const checkCompatibility = () => {
     workspaceIdentityVersion,
     workspaceBoundaryVersion,
     workspaceRecompositionVersion,
+    workspacePrivacyVersion,
   };
 };
 

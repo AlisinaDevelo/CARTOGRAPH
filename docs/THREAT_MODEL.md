@@ -59,6 +59,36 @@ report integration, collectors, and hosted retention remain outside the
 boundary. Runtime behavior is not treated as an architectural fact, and the
 normalized input is still not collected or retained implicitly.
 
+## Workspace privacy and resource boundary (W-005)
+
+Multi-repository composition adds a second-order privacy and availability risk:
+each repository can contribute paths, graph cardinality, compressed archives,
+metadata, cache entries, and optional runtime observations. The additive
+`cartograph.workspace-privacy` contract applies before a composed assessment is
+published. Its fail-closed defaults bound repository count, aggregate nodes and
+edges, source/compressed/expanded bytes, graph depth, observed wall-clock and
+memory, cache entries/bytes, report bytes/items, path count/length, runtime
+metadata records/bytes, decompression ratio, and temporary entries. A caller
+may lower a ceiling but cannot raise it above the published maximum.
+
+| W-005 input risk                          | Default control                                                                                       | Negative evidence                        |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| Malicious or duplicate workspace manifest | Strict versioned schema, unique repository identities, no implicit snapshot for failed/omitted inputs | malformed/duplicate manifest tests       |
+| Symlink or traversal escape               | Portable relative paths, repository-root containment, `lstat` rejection of every symlink component    | traversal and symlink fixture tests      |
+| Decompression bomb                        | Independent compressed/expanded byte ceilings and an expansion-ratio ceiling                          | compressed/expanded/ratio negative tests |
+| Graph bomb                                | Aggregate node, edge, and depth ceilings before assessment                                            | node/edge/depth limit tests              |
+| Secret-bearing metadata                   | Bounded key/value metadata with credential-shaped pattern rejection and value-free diagnostics        | secret metadata and runtime-value tests  |
+| Mixed trust                               | Trusted/untrusted inputs require explicit isolation opt-in; assessment records the isolated mode      | mixed-trust opt-in/negative tests        |
+| Partial repository failure                | Failed inputs require a stable code and explicit partial opt-in; complete status is never emitted     | partial assessment tests                 |
+| Cache/report/temp exhaustion              | Cache, report, and temporary-entry ceilings plus async `finally` cleanup                              | cache/report/temp and cleanup tests      |
+| Optional runtime metadata leakage         | Disabled by default, allowlisted keys, bounded bytes, and redacted assessment summary                 | disabled/secret runtime metadata tests   |
+
+The W-005 implementation does not fetch archives, decompress data, execute
+repository code, upload source, or retain raw paths/runtime values. The
+separate budget helper checks wall-clock, memory, and cancellation while a
+caller performs local work; an aborted or failed temporary callback removes its
+directory before the error is returned.
+
 ## Optional model-provider boundary
 
 The model-provider boundary is design-only and disabled by default. No provider
