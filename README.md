@@ -72,8 +72,9 @@ node dist/cli.js diff /path/to/repository \
 ```
 
 Run the read-only [GitHub Action](docs/ACTION.md) on a pull request with a
-full-history checkout. It uses the event's exact base and head SHAs, emits an
-informational job summary, and uploads a self-contained HTML/JSON artifact:
+full-history checkout. It uses the event's exact base and head SHAs, emits a
+bounded summary with confidence/unresolved counts and evidence-backed line
+annotations, and uploads a self-contained HTML/JSON artifact:
 
 ```yaml
 permissions:

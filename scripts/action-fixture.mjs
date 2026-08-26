@@ -22,7 +22,7 @@ const execFileAsync = promisify(execFile);
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const fixtureRoot = resolve(repositoryRoot, "examples/github-action-fixture");
 
-const run = async (binary, args, cwd) => {
+const run = async (binary, args, cwd, extraEnv = {}) => {
   try {
     return await execFileAsync(binary, args, {
       cwd,
@@ -31,6 +31,7 @@ const run = async (binary, args, cwd) => {
         ...process.env,
         GIT_CONFIG_NOSYSTEM: "1",
         GIT_TERMINAL_PROMPT: "0",
+        ...extraEnv,
       },
     });
   } catch (error) {
@@ -118,6 +119,14 @@ const runFixture = async () => {
       "architecture-diff-no-upload.html",
     );
     const noUploadSummaryPath = join(outputDir, "summary-no-upload.md");
+    const zeroAnnotationHtmlPath = join(
+      outputDir,
+      "architecture-diff-zero-annotations.html",
+    );
+    const zeroAnnotationSummaryPath = join(
+      outputDir,
+      "summary-zero-annotations.md",
+    );
     const policyPath = join(outputDir, "policy.json");
     const policyReportPath = join(outputDir, "policy-evaluation.json");
     const reviewContextPath = join(outputDir, "review-context.json");
@@ -186,6 +195,43 @@ const runFixture = async () => {
       ],
       root,
     );
+    const zeroAnnotationResult = await run(
+      process.execPath,
+      [
+        resolve(repositoryRoot, "scripts/action-report.mjs"),
+        jsonPath,
+        zeroAnnotationHtmlPath,
+        zeroAnnotationSummaryPath,
+        "cartograph-fixture-report",
+        "true",
+      ],
+      root,
+      {
+        CARTOGRAPH_EMIT_ANNOTATIONS: "true",
+        CARTOGRAPH_ANNOTATION_LIMIT: "0",
+        GITHUB_SERVER_URL: "https://github.com",
+        GITHUB_REPOSITORY: "fixture-owner/fixture-repository",
+        GITHUB_RUN_ID: "123456",
+      },
+    );
+    await expectFailure(
+      "invalid annotation limit",
+      () =>
+        run(
+          process.execPath,
+          [
+            resolve(repositoryRoot, "scripts/action-report.mjs"),
+            jsonPath,
+            join(outputDir, "architecture-diff-invalid.html"),
+          ],
+          root,
+          {
+            CARTOGRAPH_EMIT_ANNOTATIONS: "true",
+            CARTOGRAPH_ANNOTATION_LIMIT: "21",
+          },
+        ),
+      /annotation-limit must be an integer from 0 through 20/u,
+    );
     const informationalPolicyExit = await runExitCode(
       process.execPath,
       [
@@ -228,7 +274,7 @@ const runFixture = async () => {
       throw new Error(
         `enforcing policy mode returned ${enforcingPolicyExit} instead of 2`,
       );
-    await run(
+    const reportResult = await run(
       process.execPath,
       [
         resolve(repositoryRoot, "scripts/action-report.mjs"),
@@ -243,6 +289,13 @@ const runFixture = async () => {
         reviewHtmlPath,
       ],
       root,
+      {
+        CARTOGRAPH_EMIT_ANNOTATIONS: "true",
+        CARTOGRAPH_ANNOTATION_LIMIT: "20",
+        GITHUB_SERVER_URL: "https://github.com",
+        GITHUB_REPOSITORY: "fixture-owner/fixture-repository",
+        GITHUB_RUN_ID: "123456",
+      },
     );
     await run(
       process.execPath,
@@ -265,12 +318,22 @@ const runFixture = async () => {
     const html = await readFile(htmlPath, "utf8");
     const summary = await readFile(summaryPath, "utf8");
     const noUploadSummary = await readFile(noUploadSummaryPath, "utf8");
+    const zeroAnnotationSummary = await readFile(
+      zeroAnnotationSummaryPath,
+      "utf8",
+    );
     const policyReport = JSON.parse(await readFile(policyReportPath, "utf8"));
     const review = JSON.parse(await readFile(reviewJsonPath, "utf8"));
     const reviewHtml = await readFile(reviewHtmlPath, "utf8");
     const noUploadReview = JSON.parse(
       await readFile(noUploadReviewJsonPath, "utf8"),
     );
+    const annotations = reportResult.stdout
+      .split("\n")
+      .filter((line) => /^::(?:notice|warning|error) /u.test(line));
+    const zeroAnnotations = zeroAnnotationResult.stdout
+      .split("\n")
+      .filter((line) => /^::(?:notice|warning|error) /u.test(line));
     const serializedDiff = JSON.stringify(diff);
     const reportBytes = Buffer.byteLength(serializedDiff, "utf8");
     const htmlBytes = Buffer.byteLength(html, "utf8");
@@ -306,6 +369,43 @@ const runFixture = async () => {
       throw new Error("fixture report is not a CARTOGRAPH static HTML report");
     if (!summary.includes("### CARTOGRAPH architecture diff"))
       throw new Error("fixture summary was not emitted");
+    if (
+      !summary.includes("- Edge confidence:") ||
+      !summary.includes("- Unresolved diagnostics:") ||
+      !summary.includes("- Line annotations:") ||
+      !summary.includes(
+        "[artifact `cartograph\\-fixture\\-report`](https://github.com/fixture-owner/fixture-repository/actions/runs/123456)",
+      )
+    )
+      throw new Error("fixture summary omitted bounded review metadata");
+    if (annotations.length === 0 || annotations.length > 20)
+      throw new Error(
+        `fixture emitted ${annotations.length} annotations outside the 1-20 bound`,
+      );
+    if (
+      zeroAnnotations.length !== 0 ||
+      !zeroAnnotationSummary.includes("- Line annotations: 0 emitted")
+    )
+      throw new Error("fixture zero annotation limit was not enforced");
+    for (const annotation of annotations) {
+      const file = annotation.match(/\bfile=([^,]+)/u)?.[1];
+      const line = annotation.match(/\bline=(\d+)/u)?.[1];
+      if (
+        file === undefined ||
+        line === undefined ||
+        file.startsWith("/") ||
+        file.startsWith("~") ||
+        file.includes("..") ||
+        file.includes("%0A") ||
+        annotation.includes(root) ||
+        annotation.includes(privateSourceSnippet) ||
+        annotation.includes(privateToken) ||
+        /(?:ghp_|github_pat_|xox[baprs]-|BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY)/iu.test(
+          annotation,
+        )
+      )
+        throw new Error("fixture annotation violated the evidence boundary");
+    }
     if (
       review.contract !== "cartograph.review-summary" ||
       review.context.policy.available !== true ||

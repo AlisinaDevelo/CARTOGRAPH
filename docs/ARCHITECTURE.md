@@ -57,6 +57,13 @@ indexes for both snapshots in Markdown and HTML. Coverage is descriptive and
 keeps ambiguous or unresolved links visible. This context is presentation-only;
 canonical GraphDiff JSON remains unchanged.
 
+The read-only Action projects the same diff into a bounded pull-request check
+summary. It publishes counts, edge-confidence totals, unresolved diagnostics,
+and a run link for uploaded artifacts. At most 20 evidence-backed source-line
+annotations are emitted by default; paths are repository-relative and messages
+contain bounded metadata only. The Action retains `contents: read`, exact-SHA
+fork checkout, no secrets, no repository execution, and no write authority.
+
 Configuration is loaded before analysis. Its schema and runtime parser apply
 deterministic defaults, reject unknown keys unless explicit warn mode is
 selected, and validate every path as repository-relative. The analyzer receives
@@ -649,7 +656,8 @@ The following are roadmap items, not current implementation claims:
 
 - universal policy/decision drift evaluation beyond the curated offline P-018
   scenario gate and the current ADR reference/policy-binding contracts;
-- a reusable GitHub Action and Check annotations;
+- hosted review workflows or annotations beyond the read-only R-008 Action
+  projection;
 - further identity quality, portability, and history work beyond the W-002
   cross-repository namespace contract;
 - additional framework or language adapters and stronger runtime isolation
