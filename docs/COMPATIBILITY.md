@@ -672,3 +672,21 @@ evidence with a repository-scoped fallback namespace. The composition is
 read-only, bounded by repository/node/ambiguity limits, does not fetch or open a
 network path, and preserves canonical local snapshots for later boundary
 resolution.
+
+## W-003 declared cross-repository boundaries
+
+W-003 publishes the additive
+[`cartograph.workspace-boundaries`](../schema/workspace-boundaries.v0.1.schema.json)
+v1 contract. The local resolver accepts materialized GraphSnapshots, explicit
+package/service declarations, and selected manifest, source, lockfile,
+service-catalog, runtime, or user evidence. Exact declaration names, aliases,
+optional repository aliases, and exact requested versions are required before
+an edge is emitted; multiple candidates remain `ambiguous`.
+
+Targets are classified as `resolved`, `ambiguous`, `external`, `unavailable`, or
+`unsupported`. Omitted repositories and version mismatches remain unavailable,
+while external targets must be explicitly marked. Resolved edges include
+provenance from both repositories; unresolved records include a reason and any
+candidate evidence. Monorepo-local edges and deterministic cross-repository
+cycle summaries are additive report data. The resolver is bounded, read-only,
+offline, and does not rewrite GraphSnapshot identities.

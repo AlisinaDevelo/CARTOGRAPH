@@ -1,0 +1,431 @@
+{
+  "$schema": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/workspace-boundaries.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.workspace-boundaries",
+  "repositories": [
+    {
+      "repositoryId": "alpha",
+      "logicalName": "Alpha",
+      "namespace": "origin:github.com/example/alpha",
+      "aliases": ["portfolio-alpha"],
+      "snapshot": {
+        "schemaVersion": 1,
+        "revision": { "commitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+        "nodes": [
+          {
+            "id": "package:alpha-app",
+            "stableKey": "package:alpha-app",
+            "kind": "package",
+            "name": "@acme/app"
+          },
+          {
+            "id": "package:alpha-shared",
+            "stableKey": "package:alpha-shared",
+            "kind": "package",
+            "name": "shared"
+          },
+          {
+            "id": "service:alpha-api",
+            "stableKey": "service:alpha-api",
+            "kind": "service",
+            "name": "alpha-api"
+          }
+        ],
+        "edges": [],
+        "diagnostics": []
+      },
+      "declarations": [
+        {
+          "id": "app",
+          "kind": "package",
+          "name": "@acme/app",
+          "aliases": ["app"],
+          "version": "1.0.0",
+          "nodeId": "package:alpha-app",
+          "workspacePath": "packages/app",
+          "evidenceSourceIds": ["alpha-app-manifest"]
+        },
+        {
+          "id": "shared",
+          "kind": "package",
+          "name": "shared",
+          "aliases": ["@acme/shared"],
+          "version": "1.0.0",
+          "nodeId": "package:alpha-shared",
+          "workspacePath": "packages/shared",
+          "evidenceSourceIds": ["alpha-shared-manifest"]
+        },
+        {
+          "id": "api",
+          "kind": "service",
+          "name": "alpha-api",
+          "aliases": ["alpha"],
+          "nodeId": "service:alpha-api",
+          "workspacePath": "services/api",
+          "evidenceSourceIds": ["alpha-api-catalog"]
+        }
+      ]
+    },
+    {
+      "repositoryId": "beta",
+      "logicalName": "Beta",
+      "namespace": "origin:github.com/example/beta",
+      "aliases": ["portfolio-beta"],
+      "snapshot": {
+        "schemaVersion": 1,
+        "revision": { "commitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" },
+        "nodes": [
+          {
+            "id": "package:beta-core",
+            "stableKey": "package:beta-core",
+            "kind": "package",
+            "name": "@acme/core"
+          },
+          {
+            "id": "package:beta-legacy",
+            "stableKey": "package:beta-legacy",
+            "kind": "package",
+            "name": "@acme/legacy"
+          },
+          {
+            "id": "service:beta-orders",
+            "stableKey": "service:beta-orders",
+            "kind": "service",
+            "name": "orders"
+          }
+        ],
+        "edges": [],
+        "diagnostics": []
+      },
+      "declarations": [
+        {
+          "id": "core",
+          "kind": "package",
+          "name": "@acme/core",
+          "aliases": ["core"],
+          "version": "2.0.0",
+          "nodeId": "package:beta-core",
+          "workspacePath": "packages/core",
+          "evidenceSourceIds": ["beta-core-manifest"]
+        },
+        {
+          "id": "legacy",
+          "kind": "package",
+          "name": "@acme/legacy",
+          "version": "1.0.0",
+          "nodeId": "package:beta-legacy",
+          "workspacePath": "packages/legacy",
+          "evidenceSourceIds": ["beta-legacy-manifest"]
+        },
+        {
+          "id": "orders",
+          "kind": "service",
+          "name": "orders",
+          "aliases": ["orders-api"],
+          "nodeId": "service:beta-orders",
+          "workspacePath": "services/orders",
+          "evidenceSourceIds": ["beta-orders-catalog"]
+        }
+      ]
+    },
+    {
+      "repositoryId": "gamma",
+      "logicalName": "Gamma",
+      "namespace": "origin:github.com/example/gamma",
+      "snapshot": {
+        "schemaVersion": 1,
+        "revision": { "commitSha": "cccccccccccccccccccccccccccccccccccccccc" },
+        "nodes": [
+          {
+            "id": "package:gamma-core",
+            "stableKey": "package:gamma-core",
+            "kind": "package",
+            "name": "@acme/core"
+          }
+        ],
+        "edges": [],
+        "diagnostics": []
+      },
+      "declarations": [
+        {
+          "id": "core",
+          "kind": "package",
+          "name": "@acme/core",
+          "aliases": ["core"],
+          "version": "2.0.0",
+          "nodeId": "package:gamma-core",
+          "workspacePath": "packages/core",
+          "evidenceSourceIds": ["gamma-core-manifest"]
+        }
+      ]
+    }
+  ],
+  "omissions": [
+    {
+      "repositoryId": "delta",
+      "logicalName": "Delta",
+      "aliases": ["portfolio-delta"],
+      "reason": "snapshot was not materialized locally"
+    }
+  ],
+  "evidenceSources": [
+    {
+      "id": "alpha-app-manifest",
+      "repositoryId": "alpha",
+      "kind": "manifest",
+      "path": "packages/app/package.json",
+      "reference": "name",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "alpha-shared-manifest",
+      "repositoryId": "alpha",
+      "kind": "manifest",
+      "path": "packages/shared/package.json",
+      "reference": "name",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "alpha-api-catalog",
+      "repositoryId": "alpha",
+      "kind": "service-catalog",
+      "path": "services/catalog.yaml",
+      "reference": "services.alpha-api",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "beta-core-manifest",
+      "repositoryId": "beta",
+      "kind": "manifest",
+      "path": "packages/core/package.json",
+      "reference": "name",
+      "revision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "id": "beta-legacy-manifest",
+      "repositoryId": "beta",
+      "kind": "manifest",
+      "path": "packages/legacy/package.json",
+      "reference": "name",
+      "revision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "id": "beta-orders-catalog",
+      "repositoryId": "beta",
+      "kind": "service-catalog",
+      "path": "services/catalog.yaml",
+      "reference": "services.orders",
+      "revision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "id": "gamma-core-manifest",
+      "repositoryId": "gamma",
+      "kind": "manifest",
+      "path": "packages/core/package.json",
+      "reference": "name",
+      "revision": "cccccccccccccccccccccccccccccccccccccccc"
+    },
+    {
+      "id": "ref-alpha-core",
+      "repositoryId": "alpha",
+      "kind": "source",
+      "path": "packages/app/package.json",
+      "reference": "dependencies.@acme/core",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "ref-beta-alpha-api",
+      "repositoryId": "beta",
+      "kind": "source",
+      "path": "packages/core/src/client.ts",
+      "reference": "alpha-api",
+      "revision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "id": "ref-alpha-orders",
+      "repositoryId": "alpha",
+      "kind": "source",
+      "path": "packages/app/src/orders.ts",
+      "reference": "orders-api",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "ref-alpha-cycle",
+      "repositoryId": "alpha",
+      "kind": "source",
+      "path": "services/api/src/client.ts",
+      "reference": "@acme/core",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "ref-alpha-ambiguous",
+      "repositoryId": "alpha",
+      "kind": "source",
+      "path": "packages/app/package.json",
+      "reference": "dependencies.core",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "ref-alpha-skew",
+      "repositoryId": "alpha",
+      "kind": "source",
+      "path": "packages/app/package.json",
+      "reference": "dependencies.@acme/legacy",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "ref-alpha-missing",
+      "repositoryId": "alpha",
+      "kind": "source",
+      "path": "packages/app/package.json",
+      "reference": "dependencies.delta",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "ref-alpha-external",
+      "repositoryId": "alpha",
+      "kind": "runtime",
+      "path": "services/api/src/external.ts",
+      "reference": "payments",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "ref-alpha-unsupported",
+      "repositoryId": "alpha",
+      "kind": "source",
+      "path": "packages/app/src/schema.ts",
+      "reference": "contracts",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "ref-alpha-alias",
+      "repositoryId": "alpha",
+      "kind": "source",
+      "path": "packages/app/src/orders.ts",
+      "reference": "orders-api",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "ref-alpha-local",
+      "repositoryId": "alpha",
+      "kind": "manifest",
+      "path": "packages/app/package.json",
+      "reference": "workspaces",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ],
+  "references": [
+    {
+      "id": "alpha-core",
+      "fromRepository": "alpha",
+      "fromDeclarationId": "app",
+      "relation": "depends-on",
+      "target": {
+        "kind": "package",
+        "name": "@acme/core",
+        "repositoryId": "beta",
+        "version": "2.0.0"
+      },
+      "evidenceSourceIds": ["ref-alpha-core"]
+    },
+    {
+      "id": "beta-alpha-api",
+      "fromRepository": "beta",
+      "fromDeclarationId": "core",
+      "relation": "requests",
+      "target": {
+        "kind": "service",
+        "name": "alpha-api",
+        "repositoryId": "alpha"
+      },
+      "evidenceSourceIds": ["ref-beta-alpha-api"]
+    },
+    {
+      "id": "alpha-cycle-back",
+      "fromRepository": "alpha",
+      "fromDeclarationId": "api",
+      "relation": "depends-on",
+      "target": {
+        "kind": "package",
+        "name": "@acme/core",
+        "repositoryId": "beta",
+        "version": "2.0.0"
+      },
+      "evidenceSourceIds": ["ref-alpha-cycle"]
+    },
+    {
+      "id": "alpha-ambiguous",
+      "fromRepository": "alpha",
+      "fromDeclarationId": "app",
+      "relation": "depends-on",
+      "target": { "kind": "package", "name": "core" },
+      "evidenceSourceIds": ["ref-alpha-ambiguous"]
+    },
+    {
+      "id": "alpha-version-skew",
+      "fromRepository": "alpha",
+      "fromDeclarationId": "app",
+      "relation": "depends-on",
+      "target": {
+        "kind": "package",
+        "name": "@acme/legacy",
+        "repositoryId": "beta",
+        "version": "2.0.0"
+      },
+      "evidenceSourceIds": ["ref-alpha-skew"]
+    },
+    {
+      "id": "alpha-missing",
+      "fromRepository": "alpha",
+      "fromDeclarationId": "app",
+      "relation": "depends-on",
+      "target": { "kind": "package", "name": "delta", "repositoryId": "delta" },
+      "evidenceSourceIds": ["ref-alpha-missing"]
+    },
+    {
+      "id": "alpha-external",
+      "fromRepository": "alpha",
+      "fromDeclarationId": "api",
+      "relation": "requests",
+      "target": {
+        "kind": "service",
+        "name": "payments",
+        "external": true,
+        "externalReference": "https://payments.example"
+      },
+      "evidenceSourceIds": ["ref-alpha-external"]
+    },
+    {
+      "id": "alpha-unsupported",
+      "fromRepository": "alpha",
+      "fromDeclarationId": "app",
+      "relation": "references",
+      "target": { "kind": "schema", "name": "contracts" },
+      "evidenceSourceIds": ["ref-alpha-unsupported"]
+    },
+    {
+      "id": "alpha-alias",
+      "fromRepository": "alpha",
+      "fromDeclarationId": "app",
+      "relation": "requests",
+      "target": {
+        "kind": "service",
+        "name": "orders-api",
+        "repositoryId": "beta"
+      },
+      "evidenceSourceIds": ["ref-alpha-alias"]
+    },
+    {
+      "id": "alpha-local-monorepo",
+      "fromRepository": "alpha",
+      "fromDeclarationId": "app",
+      "relation": "depends-on",
+      "target": {
+        "kind": "package",
+        "name": "@acme/shared",
+        "repositoryId": "alpha"
+      },
+      "evidenceSourceIds": ["ref-alpha-local"]
+    }
+  ]
+}
