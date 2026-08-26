@@ -824,3 +824,24 @@ architecture, regression, concurrent records, and tampered events. Replay is
 local and offline through `npm run finding-lifecycle:validate`; reports do not
 include source bodies and the contract does not change GraphSnapshot, GraphDiff,
 or STRATA's compiler-backed semantic analysis boundary.
+
+## G-003 locally verifiable architecture waivers
+
+G-003 adds the reviewed additive `architectureWaiver` contract and
+[`cartograph.architecture-waiver`](../schema/architecture-waiver.v0.1.schema.json)
+v1 schema. A waiver binds one policy rule, exact selector, canonical input
+digest, affected graph identities, policy/evidence revisions, rationale,
+distinct owner and approver, expiry, and explicit local trust roots. Optional
+Ed25519 signature metadata is digest-bound and verified through the local
+assurance-signing contract; private keys and authority are never part of the
+record or report.
+
+Verification is fail-closed and offline. Malformed, unsigned, tampered,
+broadened, replayed, stale, expired, revoked, untrusted, or otherwise invalid
+records remain visible and cannot suppress policy enforcement. Suppression is
+possible only for a fully verified exact-scope match, and every suppression and
+provenance record carries `authorityGranted: false`. The checked-in
+[`scenarios.v0.1.json`](../test/fixtures/architecture-waivers/scenarios.v0.1.json)
+corpus is replayed with `npm run architecture-waivers:validate`; this additive
+contract does not change GraphSnapshot, GraphDiff, or STRATA's compiler-backed
+semantic analysis boundary.

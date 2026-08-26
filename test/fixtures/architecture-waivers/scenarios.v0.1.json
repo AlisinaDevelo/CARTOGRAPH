@@ -1,0 +1,442 @@
+{
+  "$schema": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-waiver-fixtures.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.architecture-waiver",
+  "mediaType": "application/vnd.cartograph.architecture-waiver+json",
+  "fixtureId": "g003-v0.1",
+  "asOf": "2030-06-01T00:00:00.000Z",
+  "expiringWithinDays": 30,
+  "evidenceRevision": "evidence-v1",
+  "policy": {
+    "schemaVersion": 1,
+    "policyId": "g003-policy",
+    "version": "1.0.0",
+    "mode": "enforce",
+    "rules": [
+      {
+        "id": "no-endpoints",
+        "target": "node",
+        "selector": { "kind": "endpoint" },
+        "assertion": "absent"
+      }
+    ],
+    "exceptions": []
+  },
+  "input": {
+    "schemaVersion": 1,
+    "revision": { "commitSha": "g003-fixture-revision" },
+    "nodes": [
+      {
+        "id": "module:a",
+        "stableKey": "module:a",
+        "kind": "module",
+        "name": "a"
+      },
+      {
+        "id": "endpoint:health",
+        "stableKey": "endpoint:health",
+        "kind": "endpoint",
+        "name": "health"
+      }
+    ],
+    "edges": [],
+    "diagnostics": []
+  },
+  "inputDigest": "sha256:94bd1ee573a7addaacddc87da551227cc15d15e214af1cb0d4172d1205173451",
+  "cases": [
+    {
+      "id": "signed-active",
+      "kind": "positive",
+      "signatureScenario": "valid",
+      "waivers": [
+        {
+          "schemaVersion": 1,
+          "contract": "cartograph.architecture-waiver",
+          "mediaType": "application/vnd.cartograph.architecture-waiver+json",
+          "id": "waiver-signed-active",
+          "ruleId": "no-endpoints",
+          "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+          "changeScope": {
+            "inputKind": "snapshot",
+            "inputDigest": "sha256:94bd1ee573a7addaacddc87da551227cc15d15e214af1cb0d4172d1205173451",
+            "affectedIds": ["node:endpoint:health"]
+          },
+          "rationale": "The endpoint is retained during the bounded migration.",
+          "owner": "team:platform",
+          "approver": "team:security",
+          "createdAt": "2030-01-01T00:00:00.000Z",
+          "expiresAt": "2030-12-31T23:59:59.000Z",
+          "policyVersion": "1.0.0",
+          "evidenceRevision": "evidence-v1",
+          "evidenceRefs": ["graph://g003/revision#endpoint-health"],
+          "trustRootIds": ["root-local"],
+          "authority": "none",
+          "precedence": 10,
+          "digest": "sha256:9161e1fb17eac7f89d2643624803e902e9b24b4ee1b298f126484044a3bed81e"
+        }
+      ],
+      "expected": {
+        "status": "passed",
+        "policyStatus": "violations",
+        "violationIds": [],
+        "suppressedViolationIds": ["violation:no-endpoints"],
+        "waiverStatuses": ["active"],
+        "waiverCodes": ["WAIVER_ACTIVE"],
+        "authorityGranted": false
+      }
+    },
+    {
+      "id": "unsigned",
+      "kind": "negative",
+      "signatureScenario": "unsigned",
+      "waivers": [
+        {
+          "schemaVersion": 1,
+          "contract": "cartograph.architecture-waiver",
+          "mediaType": "application/vnd.cartograph.architecture-waiver+json",
+          "id": "waiver-unsigned",
+          "ruleId": "no-endpoints",
+          "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+          "changeScope": {
+            "inputKind": "snapshot",
+            "inputDigest": "sha256:94bd1ee573a7addaacddc87da551227cc15d15e214af1cb0d4172d1205173451",
+            "affectedIds": ["node:endpoint:health"]
+          },
+          "rationale": "An unsigned record is retained for review only.",
+          "owner": "team:platform",
+          "approver": "team:security",
+          "createdAt": "2030-01-01T00:00:00.000Z",
+          "expiresAt": "2030-12-31T23:59:59.000Z",
+          "policyVersion": "1.0.0",
+          "evidenceRevision": "evidence-v1",
+          "evidenceRefs": ["graph://g003/revision#endpoint-health"],
+          "trustRootIds": ["root-local"],
+          "authority": "none",
+          "precedence": 1,
+          "digest": "sha256:1655b8f2d02b8707cf2c072f4fe1365e5c0a2c0e94545b22b8d1455c5273fa73"
+        }
+      ],
+      "expected": {
+        "status": "violations",
+        "policyStatus": "violations",
+        "violationIds": ["violation:no-endpoints"],
+        "suppressedViolationIds": [],
+        "waiverStatuses": ["unsigned"],
+        "waiverCodes": ["WAIVER_UNSIGNED"],
+        "authorityGranted": false
+      }
+    },
+    {
+      "id": "invalid-signature",
+      "kind": "negative",
+      "signatureScenario": "invalid",
+      "waivers": [
+        {
+          "schemaVersion": 1,
+          "contract": "cartograph.architecture-waiver",
+          "mediaType": "application/vnd.cartograph.architecture-waiver+json",
+          "id": "waiver-invalid-signature",
+          "ruleId": "no-endpoints",
+          "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+          "changeScope": {
+            "inputKind": "snapshot",
+            "inputDigest": "sha256:94bd1ee573a7addaacddc87da551227cc15d15e214af1cb0d4172d1205173451",
+            "affectedIds": ["node:endpoint:health"]
+          },
+          "rationale": "A tampered signature must not suppress the finding.",
+          "owner": "team:platform",
+          "approver": "team:security",
+          "createdAt": "2030-01-01T00:00:00.000Z",
+          "expiresAt": "2030-12-31T23:59:59.000Z",
+          "policyVersion": "1.0.0",
+          "evidenceRevision": "evidence-v1",
+          "evidenceRefs": ["graph://g003/revision#endpoint-health"],
+          "trustRootIds": ["root-local"],
+          "authority": "none",
+          "precedence": 1,
+          "digest": "sha256:a6090eed3658840e9373419b9969a2ac9e0ceee0a6ddaf0d08e61a8b695814c6"
+        }
+      ],
+      "expected": {
+        "status": "violations",
+        "policyStatus": "violations",
+        "violationIds": ["violation:no-endpoints"],
+        "suppressedViolationIds": [],
+        "waiverStatuses": ["signature-invalid"],
+        "waiverCodes": ["WAIVER_SIGNATURE_INVALID"],
+        "authorityGranted": false
+      }
+    },
+    {
+      "id": "broadened",
+      "kind": "negative",
+      "signatureScenario": "valid",
+      "waivers": [
+        {
+          "schemaVersion": 1,
+          "contract": "cartograph.architecture-waiver",
+          "mediaType": "application/vnd.cartograph.architecture-waiver+json",
+          "id": "waiver-broadened",
+          "ruleId": "no-endpoints",
+          "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+          "changeScope": {
+            "inputKind": "snapshot",
+            "inputDigest": "sha256:94bd1ee573a7addaacddc87da551227cc15d15e214af1cb0d4172d1205173451",
+            "affectedIds": ["node:endpoint:health", "node:module:a"]
+          },
+          "rationale": "A broadened scope must remain visible for review.",
+          "owner": "team:platform",
+          "approver": "team:security",
+          "createdAt": "2030-01-01T00:00:00.000Z",
+          "expiresAt": "2030-12-31T23:59:59.000Z",
+          "policyVersion": "1.0.0",
+          "evidenceRevision": "evidence-v1",
+          "evidenceRefs": ["graph://g003/revision#endpoint-health"],
+          "trustRootIds": ["root-local"],
+          "authority": "none",
+          "precedence": 1,
+          "digest": "sha256:26a09b5ccb3f76d49fcf41a1f52c30f9a34a3c799680431dee1ea21653125145"
+        }
+      ],
+      "expected": {
+        "status": "violations",
+        "policyStatus": "violations",
+        "violationIds": ["violation:no-endpoints"],
+        "suppressedViolationIds": [],
+        "waiverStatuses": ["broadened"],
+        "waiverCodes": ["WAIVER_BROADENED"],
+        "authorityGranted": false
+      }
+    },
+    {
+      "id": "replayed",
+      "kind": "negative",
+      "signatureScenario": "valid",
+      "waivers": [
+        {
+          "schemaVersion": 1,
+          "contract": "cartograph.architecture-waiver",
+          "mediaType": "application/vnd.cartograph.architecture-waiver+json",
+          "id": "waiver-replayed",
+          "ruleId": "no-endpoints",
+          "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+          "changeScope": {
+            "inputKind": "snapshot",
+            "inputDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "affectedIds": ["node:endpoint:health"]
+          },
+          "rationale": "A prior revision cannot be replayed on this graph.",
+          "owner": "team:platform",
+          "approver": "team:security",
+          "createdAt": "2030-01-01T00:00:00.000Z",
+          "expiresAt": "2030-12-31T23:59:59.000Z",
+          "policyVersion": "1.0.0",
+          "evidenceRevision": "evidence-v1",
+          "evidenceRefs": ["graph://g003/revision#endpoint-health"],
+          "trustRootIds": ["root-local"],
+          "authority": "none",
+          "precedence": 1,
+          "digest": "sha256:6ea920dabe4292a18f4c0db73ba3ecaf79e510a648d58994548e277c522e8fe1"
+        },
+        {
+          "schemaVersion": 1,
+          "contract": "cartograph.architecture-waiver",
+          "mediaType": "application/vnd.cartograph.architecture-waiver+json",
+          "id": "waiver-replayed",
+          "ruleId": "no-endpoints",
+          "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+          "changeScope": {
+            "inputKind": "snapshot",
+            "inputDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "affectedIds": ["node:endpoint:health"]
+          },
+          "rationale": "A duplicate replay record remains visible.",
+          "owner": "team:platform",
+          "approver": "team:security",
+          "createdAt": "2030-01-01T00:00:00.000Z",
+          "expiresAt": "2030-12-31T23:59:59.000Z",
+          "policyVersion": "1.0.0",
+          "evidenceRevision": "evidence-v1",
+          "evidenceRefs": ["graph://g003/revision#endpoint-health"],
+          "trustRootIds": ["root-local"],
+          "authority": "none",
+          "precedence": 1,
+          "digest": "sha256:4f655479ace862fb679967e0990b3fce69769f7fbb633b87cada3badb65b6135"
+        }
+      ],
+      "expected": {
+        "status": "violations",
+        "policyStatus": "violations",
+        "violationIds": ["violation:no-endpoints"],
+        "suppressedViolationIds": [],
+        "waiverStatuses": ["replayed", "replayed"],
+        "waiverCodes": ["WAIVER_REPLAYED", "WAIVER_REPLAYED"],
+        "authorityGranted": false
+      }
+    },
+    {
+      "id": "revoked",
+      "kind": "negative",
+      "signatureScenario": "revoked",
+      "waivers": [
+        {
+          "schemaVersion": 1,
+          "contract": "cartograph.architecture-waiver",
+          "mediaType": "application/vnd.cartograph.architecture-waiver+json",
+          "id": "waiver-revoked",
+          "ruleId": "no-endpoints",
+          "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+          "changeScope": {
+            "inputKind": "snapshot",
+            "inputDigest": "sha256:94bd1ee573a7addaacddc87da551227cc15d15e214af1cb0d4172d1205173451",
+            "affectedIds": ["node:endpoint:health"]
+          },
+          "rationale": "A revoked signing key cannot authorize a waiver.",
+          "owner": "team:platform",
+          "approver": "team:security",
+          "createdAt": "2030-01-01T00:00:00.000Z",
+          "expiresAt": "2030-12-31T23:59:59.000Z",
+          "policyVersion": "1.0.0",
+          "evidenceRevision": "evidence-v1",
+          "evidenceRefs": ["graph://g003/revision#endpoint-health"],
+          "trustRootIds": ["root-local"],
+          "authority": "none",
+          "precedence": 1,
+          "digest": "sha256:737b94b3d7a947695711d9ad55355fadecb150eb45d6d02b69bc3f550ff50fba"
+        }
+      ],
+      "expected": {
+        "status": "violations",
+        "policyStatus": "violations",
+        "violationIds": ["violation:no-endpoints"],
+        "suppressedViolationIds": [],
+        "waiverStatuses": ["revoked"],
+        "waiverCodes": ["WAIVER_SIGNATURE_REVOKED"],
+        "authorityGranted": false
+      }
+    },
+    {
+      "id": "expired",
+      "kind": "negative",
+      "signatureScenario": "valid",
+      "waivers": [
+        {
+          "schemaVersion": 1,
+          "contract": "cartograph.architecture-waiver",
+          "mediaType": "application/vnd.cartograph.architecture-waiver+json",
+          "id": "waiver-expired",
+          "ruleId": "no-endpoints",
+          "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+          "changeScope": {
+            "inputKind": "snapshot",
+            "inputDigest": "sha256:94bd1ee573a7addaacddc87da551227cc15d15e214af1cb0d4172d1205173451",
+            "affectedIds": ["node:endpoint:health"]
+          },
+          "rationale": "An expired waiver must remain visible without suppression.",
+          "owner": "team:platform",
+          "approver": "team:security",
+          "createdAt": "2029-01-01T00:00:00.000Z",
+          "expiresAt": "2030-01-01T00:00:00.000Z",
+          "policyVersion": "1.0.0",
+          "evidenceRevision": "evidence-v1",
+          "evidenceRefs": ["graph://g003/revision#endpoint-health"],
+          "trustRootIds": ["root-local"],
+          "authority": "none",
+          "precedence": 1,
+          "digest": "sha256:21a5c8b4f0a8bc8f0e29561112c19c576e310ef498a6edfc116b0738c603d466"
+        }
+      ],
+      "expected": {
+        "status": "violations",
+        "policyStatus": "violations",
+        "violationIds": ["violation:no-endpoints"],
+        "suppressedViolationIds": [],
+        "waiverStatuses": ["expired"],
+        "waiverCodes": ["WAIVER_EXPIRED"],
+        "authorityGranted": false
+      }
+    },
+    {
+      "id": "evidence-changed",
+      "kind": "negative",
+      "signatureScenario": "valid",
+      "waivers": [
+        {
+          "schemaVersion": 1,
+          "contract": "cartograph.architecture-waiver",
+          "mediaType": "application/vnd.cartograph.architecture-waiver+json",
+          "id": "waiver-evidence-changed",
+          "ruleId": "no-endpoints",
+          "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+          "changeScope": {
+            "inputKind": "snapshot",
+            "inputDigest": "sha256:94bd1ee573a7addaacddc87da551227cc15d15e214af1cb0d4172d1205173451",
+            "affectedIds": ["node:endpoint:health"]
+          },
+          "rationale": "Changed evidence requires a fresh waiver review.",
+          "owner": "team:platform",
+          "approver": "team:security",
+          "createdAt": "2030-01-01T00:00:00.000Z",
+          "expiresAt": "2030-12-31T23:59:59.000Z",
+          "policyVersion": "1.0.0",
+          "evidenceRevision": "evidence-old",
+          "evidenceRefs": ["graph://g003/revision#endpoint-health"],
+          "trustRootIds": ["root-local"],
+          "authority": "none",
+          "precedence": 1,
+          "digest": "sha256:f6d33783453c32ede6933f4954e4169158ccd09a862ec6cc45dc67e5d196cbdd"
+        }
+      ],
+      "expected": {
+        "status": "violations",
+        "policyStatus": "violations",
+        "violationIds": ["violation:no-endpoints"],
+        "suppressedViolationIds": [],
+        "waiverStatuses": ["scope-mismatch"],
+        "waiverCodes": ["WAIVER_EVIDENCE_CHANGED"],
+        "authorityGranted": false
+      }
+    },
+    {
+      "id": "policy-changed",
+      "kind": "negative",
+      "signatureScenario": "valid",
+      "waivers": [
+        {
+          "schemaVersion": 1,
+          "contract": "cartograph.architecture-waiver",
+          "mediaType": "application/vnd.cartograph.architecture-waiver+json",
+          "id": "waiver-policy-changed",
+          "ruleId": "no-endpoints",
+          "scope": { "target": "node", "selector": { "kind": "endpoint" } },
+          "changeScope": {
+            "inputKind": "snapshot",
+            "inputDigest": "sha256:94bd1ee573a7addaacddc87da551227cc15d15e214af1cb0d4172d1205173451",
+            "affectedIds": ["node:endpoint:health"]
+          },
+          "rationale": "A policy revision requires a fresh approval.",
+          "owner": "team:platform",
+          "approver": "team:security",
+          "createdAt": "2030-01-01T00:00:00.000Z",
+          "expiresAt": "2030-12-31T23:59:59.000Z",
+          "policyVersion": "2.0.0",
+          "evidenceRevision": "evidence-v1",
+          "evidenceRefs": ["graph://g003/revision#endpoint-health"],
+          "trustRootIds": ["root-local"],
+          "authority": "none",
+          "precedence": 1,
+          "digest": "sha256:0307000e016ab586cbe0d86ad1caadadc202d349505ad1df4a4009943bc5f18e"
+        }
+      ],
+      "expected": {
+        "status": "violations",
+        "policyStatus": "violations",
+        "violationIds": ["violation:no-endpoints"],
+        "suppressedViolationIds": [],
+        "waiverStatuses": ["scope-mismatch"],
+        "waiverCodes": ["WAIVER_POLICY_CHANGED"],
+        "authorityGranted": false
+      }
+    }
+  ]
+}

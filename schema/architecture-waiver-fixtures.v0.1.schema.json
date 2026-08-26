@@ -1,0 +1,251 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-waiver-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH architecture waiver fixture corpus v0.1",
+  "description": "Offline scenario metadata for locally verifiable, expiry-bound architecture waivers. Signed records are generated in memory by the validator; private keys never enter the fixture.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "fixtureId",
+    "asOf",
+    "expiringWithinDays",
+    "evidenceRevision",
+    "policy",
+    "input",
+    "inputDigest",
+    "cases"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.architecture-waiver" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.architecture-waiver+json"
+    },
+    "fixtureId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "asOf": { "$ref": "#/definitions/dateTime" },
+    "expiringWithinDays": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3650
+    },
+    "evidenceRevision": { "$ref": "#/definitions/identifier" },
+    "policy": { "type": "object" },
+    "input": { "type": "object" },
+    "inputDigest": { "$ref": "#/definitions/digest" },
+    "cases": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 128,
+      "items": { "$ref": "#/definitions/case" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "dateTime": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "format": "date-time"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "selector"],
+      "properties": {
+        "target": { "enum": ["node", "edge", "diff"] },
+        "selector": {
+          "type": "object",
+          "minProperties": 1,
+          "maxProperties": 4,
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    },
+    "changeScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inputKind", "inputDigest", "affectedIds"],
+      "properties": {
+        "inputKind": { "enum": ["snapshot", "diff"] },
+        "inputDigest": { "$ref": "#/definitions/digest" },
+        "baselineDigest": { "$ref": "#/definitions/digest" },
+        "candidateDigest": { "$ref": "#/definitions/digest" },
+        "affectedIds": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "manifestDigest",
+        "signerKeyId",
+        "algorithm",
+        "algorithmVersion",
+        "signature",
+        "signedAt",
+        "expiresAt"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.assurance-signing" },
+        "manifestDigest": { "$ref": "#/definitions/digest" },
+        "signerKeyId": { "$ref": "#/definitions/identifier" },
+        "algorithm": { "type": "string", "minLength": 1 },
+        "algorithmVersion": { "type": "integer", "minimum": 1 },
+        "signature": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "signedAt": { "$ref": "#/definitions/dateTime" },
+        "expiresAt": { "$ref": "#/definitions/dateTime" }
+      }
+    },
+    "waiver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "mediaType",
+        "id",
+        "ruleId",
+        "scope",
+        "changeScope",
+        "rationale",
+        "owner",
+        "approver",
+        "createdAt",
+        "expiresAt",
+        "policyVersion",
+        "evidenceRevision",
+        "evidenceRefs",
+        "trustRootIds",
+        "authority",
+        "precedence",
+        "digest"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.architecture-waiver" },
+        "mediaType": {
+          "const": "application/vnd.cartograph.architecture-waiver+json"
+        },
+        "id": { "$ref": "#/definitions/identifier" },
+        "ruleId": { "$ref": "#/definitions/identifier" },
+        "scope": { "$ref": "#/definitions/scope" },
+        "changeScope": { "$ref": "#/definitions/changeScope" },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "pattern": "^[^\\u0000\\r\\n]+$"
+        },
+        "owner": { "$ref": "#/definitions/identifier" },
+        "approver": { "$ref": "#/definitions/identifier" },
+        "createdAt": { "$ref": "#/definitions/dateTime" },
+        "expiresAt": { "$ref": "#/definitions/dateTime" },
+        "policyVersion": { "$ref": "#/definitions/semver" },
+        "evidenceRevision": { "$ref": "#/definitions/identifier" },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "trustRootIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "authority": { "const": "none" },
+        "precedence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "digest": { "$ref": "#/definitions/digest" },
+        "signature": { "$ref": "#/definitions/signature" }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "policyStatus",
+        "violationIds",
+        "suppressedViolationIds",
+        "waiverStatuses",
+        "waiverCodes",
+        "authorityGranted"
+      ],
+      "properties": {
+        "status": { "enum": ["passed", "violations", "unsupported"] },
+        "policyStatus": {
+          "enum": ["passed", "violations", "unsupported"]
+        },
+        "violationIds": { "type": "array", "items": { "type": "string" } },
+        "suppressedViolationIds": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "waiverStatuses": { "type": "array", "items": { "type": "string" } },
+        "waiverCodes": { "type": "array", "items": { "type": "string" } },
+        "authorityGranted": { "const": false }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "signatureScenario", "waivers", "expected"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "kind": { "enum": ["positive", "negative"] },
+        "signatureScenario": {
+          "enum": [
+            "valid",
+            "unsigned",
+            "invalid",
+            "revoked",
+            "missing-key",
+            "missing-trust-root"
+          ]
+        },
+        "waivers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/waiver" }
+        },
+        "expected": { "$ref": "#/definitions/expected" }
+      }
+    }
+  }
+}

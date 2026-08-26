@@ -94,6 +94,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/workspace-privacy.ts" ||
       file === "src/core/ownership.ts" ||
       file === "src/core/finding-lifecycle.ts" ||
+      file === "src/core/architecture-waivers.ts" ||
       file === "src/core/scip.ts" ||
       file === "src/report/adr.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
@@ -145,6 +146,7 @@ const checkHostedVersionChange = () => {
       file === "schema/workspace-privacy.v0.1.schema.json" ||
       file === "schema/ownership-resolution.v0.1.schema.json" ||
       file === "schema/finding-lifecycle.v0.1.schema.json" ||
+      file === "schema/architecture-waiver.v0.1.schema.json" ||
       file === "schema/adoption-measurement.v0.1.schema.json" ||
       file === "schema/workspace-federation-evaluation.v0.1.schema.json" ||
       file === "schema/scip-interchange.v0.1.schema.json",
@@ -213,6 +215,7 @@ const checkCompatibility = () => {
   const workspacePrivacySource = readText("src/core/workspace-privacy.ts");
   const ownershipSource = readText("src/core/ownership.ts");
   const findingLifecycleSource = readText("src/core/finding-lifecycle.ts");
+  const architectureWaiverSource = readText("src/core/architecture-waivers.ts");
   const scipSource = readText("src/core/scip.ts");
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
   const supportSchema = readJson("schema/support-matrix.v0.1.schema.json");
@@ -322,6 +325,9 @@ const checkCompatibility = () => {
   );
   const findingLifecycleSchema = readJson(
     "schema/finding-lifecycle.v0.1.schema.json",
+  );
+  const architectureWaiverSchema = readJson(
+    "schema/architecture-waiver.v0.1.schema.json",
   );
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
@@ -470,6 +476,10 @@ const checkCompatibility = () => {
     findingLifecycleSource,
     "FINDING_LIFECYCLE_SCHEMA_VERSION",
   );
+  const architectureWaiverVersion = sourceVersion(
+    architectureWaiverSource,
+    "ARCHITECTURE_WAIVER_SCHEMA_VERSION",
+  );
 
   if (
     snapshotVersion === undefined ||
@@ -509,7 +519,8 @@ const checkCompatibility = () => {
     workspaceFederationEvaluationVersion === undefined ||
     scipInterchangeVersion === undefined ||
     ownershipResolutionVersion === undefined ||
-    findingLifecycleVersion === undefined
+    findingLifecycleVersion === undefined ||
+    architectureWaiverVersion === undefined
   ) {
     throw new Error("runtime schema version constants are missing");
   }
@@ -915,6 +926,16 @@ const checkCompatibility = () => {
     findingLifecycleSchema.properties.schemaVersion.const,
     findingLifecycleVersion,
   );
+  requireEqual(
+    "architecture waiver runtime/policy",
+    architectureWaiverVersion,
+    contracts.architectureWaiver.current,
+  );
+  requireEqual(
+    "architecture waiver JSON Schema/runtime",
+    architectureWaiverSchema.properties.schemaVersion.const,
+    architectureWaiverVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -963,6 +984,7 @@ const checkCompatibility = () => {
     scipInterchangeVersion,
     ownershipResolutionVersion,
     findingLifecycleVersion,
+    architectureWaiverVersion,
   };
 };
 
