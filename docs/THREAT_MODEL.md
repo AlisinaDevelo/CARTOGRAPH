@@ -59,6 +59,23 @@ report integration, collectors, and hosted retention remain outside the
 boundary. Runtime behavior is not treated as an architectural fact, and the
 normalized input is still not collected or retained implicitly.
 
+## Adoption measurement boundary (M-014)
+
+The telemetry-free adoption protocol is a manual governance artifact, not a
+runtime collector. It accepts only opt-in public reports, issue-template
+signals, release metadata, manually reproducible repository runs, and
+consented anonymized summaries. It rejects hidden telemetry, source upload,
+raw input retention, personal data, and unreviewed private material. Sampling
+bias and missingness remain explicit; the current snapshot keeps the technical
+sample separate from adoption claims.
+
+Raw material is discarded after review. Only aggregate values and evidence
+digests may remain for the bounded retention window. The evidence publisher,
+CARTOGRAPH maintainer, and release owner each have a deletion responsibility;
+withdrawn summaries are removed from the next snapshot and its dependent
+digests. A future change to the source or metric boundary requires a new
+protocol version and review.
+
 ## Workspace privacy and resource boundary (W-005)
 
 Multi-repository composition adds a second-order privacy and availability risk:

@@ -245,6 +245,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "adoption-measurement",
+      "path": "adoption-measurement",
+      "source": "CARTOGRAPH repository-authored telemetry-free adoption measurement protocol fixture",
+      "license": "Apache-2.0",
+      "reference": "M-014 telemetry-free adoption measurement; M-004 community feedback; R-017 repository adoption evaluation; no external source retained",
+      "transformation": "The protocol defines opt-in public evidence sources, aggregate metrics, sampling limitations, retention, anonymization, deletion responsibilities, and a deferred claim boundary; it retains no source bodies, private messages, credentials, or hidden telemetry.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "year4-investment-charter",
       "path": "year4-charter",
       "source": "CARTOGRAPH repository-authored conditional Year 4 governance fixture",

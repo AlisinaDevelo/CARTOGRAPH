@@ -1,0 +1,359 @@
+{
+  "$schema": "../../schema/adoption-measurement.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.adoption-measurement",
+  "mediaType": "application/vnd.cartograph.adoption-measurement+json",
+  "protocolId": "adoption-measurement-v0.1",
+  "asOf": "2026-08-26T00:00:00Z",
+  "window": {
+    "kind": "snapshot",
+    "start": "2026-08-01T00:00:00Z",
+    "end": "2026-08-26T00:00:00Z",
+    "timezone": "UTC"
+  },
+  "scope": {
+    "publicOnly": true,
+    "optInOnly": true,
+    "network": false,
+    "hiddenTelemetry": false,
+    "sourceUpload": false,
+    "rawInputsRetained": false,
+    "personalData": false,
+    "collectionMode": "manual-public-evidence",
+    "allowedSources": [
+      "public-report",
+      "public-issue",
+      "public-pr",
+      "release-metadata",
+      "manual-repository-run",
+      "consented-summary"
+    ]
+  },
+  "metricCatalog": [
+    {
+      "id": "opt-in-public-reports",
+      "label": "Opt-in public reports",
+      "description": "Public reports that a publisher explicitly offered for aggregate protocol review.",
+      "unit": "reports",
+      "sourceKinds": ["public-report"],
+      "collectionRule": "Count only a report with a public reference and explicit publication or sharing permission.",
+      "requiresExplicitOptIn": true
+    },
+    {
+      "id": "issue-template-signals",
+      "label": "Issue-template signals",
+      "description": "Consent-marked adopter or contributor signals submitted through public issue or pull-request templates.",
+      "unit": "issue-templates",
+      "sourceKinds": ["public-issue", "public-pr"],
+      "collectionRule": "Count only a public template submission whose author selected the consent and anonymization fields.",
+      "requiresExplicitOptIn": true
+    },
+    {
+      "id": "release-metadata-events",
+      "label": "Release metadata events",
+      "description": "Public release and package metadata events that are useful as chronology, never as a user count.",
+      "unit": "release-events",
+      "sourceKinds": ["release-metadata"],
+      "collectionRule": "Record a version, date, and local verification reference only when the release is public and reproducible.",
+      "requiresExplicitOptIn": true
+    },
+    {
+      "id": "manual-repository-runs",
+      "label": "Manually reproducible repository runs",
+      "description": "Pinned local replays of public or explicitly authorized repositories, reported as technical evidence rather than adoption.",
+      "unit": "repository-runs",
+      "sourceKinds": ["manual-repository-run"],
+      "collectionRule": "Count a run only when its revision, command, aggregate output, limitations, and local replay path are recorded.",
+      "requiresExplicitOptIn": true
+    },
+    {
+      "id": "repeat-consented-runs",
+      "label": "Repeat consented runs",
+      "description": "A second or later run by the same participant, retained only as an anonymized consented summary.",
+      "unit": "repeat-runs",
+      "sourceKinds": ["consented-summary", "manual-repository-run"],
+      "collectionRule": "Count only a separately consented summary that documents the repeat workflow without identifying the participant.",
+      "requiresExplicitOptIn": true
+    },
+    {
+      "id": "consented-feedback-records",
+      "label": "Consented feedback records",
+      "description": "Anonymized feedback records that identify a confirmed, unresolved, or rejected review signal without retaining the original message.",
+      "unit": "feedback-records",
+      "sourceKinds": ["consented-summary"],
+      "collectionRule": "Count only an anonymized summary with explicit consent, a public or digest-only evidence reference, and a backlog decision.",
+      "requiresExplicitOptIn": true
+    }
+  ],
+  "observations": [
+    {
+      "id": "observation-opt-in-public-reports",
+      "metricId": "opt-in-public-reports",
+      "status": "not-observed",
+      "value": null,
+      "denominator": null,
+      "claim": "not-a-claim",
+      "sourceKinds": [],
+      "records": [],
+      "evidenceRefs": ["docs/OUTREACH.md", "docs/COMMUNITY_FEEDBACK.md"],
+      "limitations": [
+        "No external public report is retained in this snapshot.",
+        "The protocol is ready for opt-in evidence but does not infer adoption from its absence."
+      ]
+    },
+    {
+      "id": "observation-issue-template-signals",
+      "metricId": "issue-template-signals",
+      "status": "not-observed",
+      "value": null,
+      "denominator": null,
+      "claim": "not-a-claim",
+      "sourceKinds": [],
+      "records": [],
+      "evidenceRefs": [
+        "docs/ADOPTER_FEEDBACK_TEMPLATE.md",
+        "docs/COMMUNITY_FEEDBACK.md"
+      ],
+      "limitations": [
+        "No consented external issue-template signal is present.",
+        "Public issue volume and views are deliberately excluded as adoption proxies."
+      ]
+    },
+    {
+      "id": "observation-release-metadata-events",
+      "metricId": "release-metadata-events",
+      "status": "not-observed",
+      "value": null,
+      "denominator": null,
+      "claim": "not-a-claim",
+      "sourceKinds": [],
+      "records": [],
+      "evidenceRefs": ["docs/RELEASE.md", "docs/OSS_HEALTH_SCORECARD.md"],
+      "limitations": [
+        "No public release series exists in this snapshot.",
+        "A local package rehearsal is not a release-stability or adoption observation."
+      ]
+    },
+    {
+      "id": "observation-manual-repository-runs",
+      "metricId": "manual-repository-runs",
+      "status": "observed",
+      "value": 5,
+      "denominator": 5,
+      "claim": "technical-sample-only",
+      "sourceKinds": ["manual-repository-run"],
+      "records": [
+        {
+          "id": "run-hono-r005",
+          "sourceKind": "manual-repository-run",
+          "reference": "test/fixtures/adoption-evaluation/report.v0.1.json#hono",
+          "authorization": "public-opt-in",
+          "reproducible": true,
+          "anonymized": true,
+          "sourcePayloadRetained": false,
+          "rawInputRetained": false
+        },
+        {
+          "id": "run-tsyringe-r005",
+          "sourceKind": "manual-repository-run",
+          "reference": "test/fixtures/adoption-evaluation/report.v0.1.json#tsyringe",
+          "authorization": "public-opt-in",
+          "reproducible": true,
+          "anonymized": true,
+          "sourcePayloadRetained": false,
+          "rawInputRetained": false
+        },
+        {
+          "id": "run-zustand-r005",
+          "sourceKind": "manual-repository-run",
+          "reference": "test/fixtures/adoption-evaluation/report.v0.1.json#zustand",
+          "authorization": "public-opt-in",
+          "reproducible": true,
+          "anonymized": true,
+          "sourcePayloadRetained": false,
+          "rawInputRetained": false
+        },
+        {
+          "id": "run-bounded-failure-a-r005",
+          "sourceKind": "manual-repository-run",
+          "reference": "docs/ADOPTION_EVALUATION.md#what-is-replayable",
+          "authorization": "public-opt-in",
+          "reproducible": true,
+          "anonymized": true,
+          "sourcePayloadRetained": false,
+          "rawInputRetained": false
+        },
+        {
+          "id": "run-bounded-failure-b-r005",
+          "sourceKind": "manual-repository-run",
+          "reference": "docs/ADOPTION_EVALUATION.md#interpretation-boundary",
+          "authorization": "public-opt-in",
+          "reproducible": true,
+          "anonymized": true,
+          "sourcePayloadRetained": false,
+          "rawInputRetained": false
+        }
+      ],
+      "evidenceRefs": [
+        "docs/ADOPTION_EVALUATION.md",
+        "test/fixtures/adoption-evaluation/report.v0.1.json"
+      ],
+      "limitations": [
+        "Five pinned records are a compatibility sample with three successful and two bounded runs, not adoption or representative accuracy.",
+        "The records contain aggregate counts and digests only; no source, credentials, or participant identity is retained."
+      ]
+    },
+    {
+      "id": "observation-repeat-consented-runs",
+      "metricId": "repeat-consented-runs",
+      "status": "not-observed",
+      "value": null,
+      "denominator": null,
+      "claim": "not-a-claim",
+      "sourceKinds": [],
+      "records": [],
+      "evidenceRefs": ["docs/COMMUNITY_FEEDBACK.md", "docs/OUTREACH.md"],
+      "limitations": [
+        "No consented repeat-run summary is retained.",
+        "A rerun performed by a maintainer does not establish participant retention."
+      ]
+    },
+    {
+      "id": "observation-consented-feedback-records",
+      "metricId": "consented-feedback-records",
+      "status": "not-observed",
+      "value": null,
+      "denominator": null,
+      "claim": "not-a-claim",
+      "sourceKinds": [],
+      "records": [],
+      "evidenceRefs": [
+        "docs/COMMUNITY_FEEDBACK.md",
+        "test/fixtures/community-feedback/summary.v0.1.json"
+      ],
+      "limitations": [
+        "The current feedback snapshot contains a synthetic maintainer baseline and zero external records.",
+        "No traction, retention, or reviewer-usefulness claim is made."
+      ]
+    }
+  ],
+  "sampling": {
+    "method": "purposive-public-opt-in",
+    "biases": [
+      {
+        "id": "public-selection",
+        "description": "Only public or explicitly authorized material can enter the protocol.",
+        "effect": "Private, unsuccessful, or non-public use may be systematically absent.",
+        "mitigation": "Publish the inclusion rule and report the eligible denominator rather than extrapolating to a population."
+      },
+      {
+        "id": "survivorship",
+        "description": "A retained report is more likely to represent a completed or reviewable workflow.",
+        "effect": "Abandoned pilots and failed first runs can be underrepresented.",
+        "mitigation": "Retain bounded failures and explicit non-observed states when they are voluntarily published."
+      },
+      {
+        "id": "self-reporting",
+        "description": "Adopters choose whether to submit a report or consented summary.",
+        "effect": "Satisfied, highly engaged, or unusually blocked participants may be overrepresented.",
+        "mitigation": "Separate descriptive signals from adoption claims and publish the recruitment path and missingness."
+      },
+      {
+        "id": "revision-drift",
+        "description": "A manually replayed repository and CARTOGRAPH revision can change after a report is written.",
+        "effect": "Later readers may mistake a historical result for current behavior.",
+        "mitigation": "Pin revisions, commands, tool versions, artifact digests, and snapshot windows."
+      },
+      {
+        "id": "small-cells",
+        "description": "Small cohorts can make a single report identifiable or unstable.",
+        "effect": "Counts can reveal a participant or encourage overinterpretation.",
+        "mitigation": "Suppress or defer cells below the minimum anonymization size and keep individual records out of the repository."
+      }
+    ],
+    "exclusions": [
+      "Downloads, stars, views, issue volume, and CI executions are not adoption measures.",
+      "Private source, credentials, raw conversations, and unconsented repository runs are excluded.",
+      "A successful compatibility run is not converted into a user, accuracy, certification, or support count.",
+      "No metric is estimated from missing data, nonresponse, or hidden product activity."
+    ],
+    "reviewCadence": "Review the protocol at each public release or before adding a new source kind; record a new snapshot and decision when semantics change.",
+    "minimumEvidence": "A publishable adoption claim would require multiple independently consented, reproducible observations across the declared source kinds plus a documented limitations review."
+  },
+  "retention": {
+    "rawInputs": "discard-after-review",
+    "summaries": "versioned-aggregate-only",
+    "evidenceDigests": "retain-with-summary",
+    "defaultDays": 365,
+    "withdrawalRule": "A publisher may withdraw consent before the next snapshot; the maintainer removes the summary and regenerates dependent aggregate counts and digests.",
+    "owner": "evidence-publisher"
+  },
+  "anonymization": {
+    "required": true,
+    "method": "aggregate-and-digest-only",
+    "directIdentifiers": "removed",
+    "quasiIdentifiers": "generalized-or-suppressed",
+    "minimumCellSize": 3,
+    "consentEvidence": "boolean-and-public-reference-only",
+    "review": "A maintainer checks every proposed summary for names, contact details, private URLs, source excerpts, credentials, and combinations that could identify a small participant cohort."
+  },
+  "deletion": {
+    "requestRoute": "Use the public feedback process for ordinary withdrawal requests and the private SECURITY.md route when a request contains sensitive material; do not place the material in an issue.",
+    "responsibilities": [
+      {
+        "actor": "evidence-publisher",
+        "action": "Delete or withdraw the original report, conversation, or authorized checkout from the publisher-controlled location and notify the maintainer before the next snapshot.",
+        "verification": "Confirm the publisher-controlled source is no longer available and provide only a digest or public reference for the withdrawal record."
+      },
+      {
+        "actor": "CARTOGRAPH-maintainer",
+        "action": "Remove the withdrawn summary, regenerate aggregate observations and provenance digests, and preserve no raw source or message copy.",
+        "verification": "Run the offline validator and inspect the diff to confirm that the withdrawn record and dependent counts are absent."
+      },
+      {
+        "actor": "release-owner",
+        "action": "Do not copy withdrawn summaries into a future release; document any immutable public release reference that cannot be rewritten and exclude it from current aggregates.",
+        "verification": "Check the next release manifest and adoption snapshot for the withdrawn identifier and updated aggregate digest."
+      }
+    ],
+    "verification": "Deletion is complete only when raw material is absent from the repository and the next versioned snapshot no longer counts the withdrawn signal.",
+    "exceptions": [
+      "Immutable public release metadata may remain publicly addressable, but it is not reused in a current aggregate after withdrawal.",
+      "Security or legal records follow their applicable private reporting and retention route and are never copied into this protocol."
+    ]
+  },
+  "decision": {
+    "state": "defer",
+    "claimBoundary": "no-adoption-claim",
+    "rationale": "The protocol is implemented and the existing five-run technical sample is reproducible, but no consented external retention, repeat-use, or adopter series is available to support a traction claim.",
+    "requiredBeforeChange": [
+      "At least one new versioned snapshot with independently consented public or digest-only records.",
+      "A bias and missingness review that keeps bounded failures visible and does not turn technical runs into user counts.",
+      "A deletion rehearsal proving that a withdrawn summary disappears from future aggregates and dependent digests.",
+      "A maintainer review that preserves the no-network, no-source-upload, and no-hidden-telemetry defaults."
+    ],
+    "nextReview": "2026-11-01T00:00:00Z",
+    "backlogRef": "M-014"
+  },
+  "summary": {
+    "metricCount": 6,
+    "observedMetrics": 1,
+    "notObservedMetrics": 5,
+    "suppressedMetrics": 0,
+    "recordCount": 5,
+    "publicRecords": 5,
+    "consentedRecords": 0,
+    "adoptionClaim": "deferred",
+    "network": false,
+    "hiddenTelemetry": false,
+    "sourceUpload": false,
+    "personalData": false
+  },
+  "provenance": {
+    "source": "CARTOGRAPH repository-authored telemetry-free adoption measurement protocol fixture",
+    "license": "Apache-2.0",
+    "reference": "M-014 telemetry-free adoption measurement; M-004 community feedback; R-017 repository adoption evaluation; no external source retained",
+    "transformation": "The protocol defines opt-in public evidence sources, aggregate metrics, sampling limitations, retention, anonymization, deletion responsibilities, and a deferred claim boundary; it retains no source bodies, private messages, credentials, or hidden telemetry.",
+    "redistribution": "allowed"
+  }
+}
