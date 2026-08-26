@@ -1,0 +1,7 @@
+{
+  "name": "lockfile-pnpm",
+  "private": true,
+  "dependencies": {
+    "beta": "2.3.4"
+  }
+}

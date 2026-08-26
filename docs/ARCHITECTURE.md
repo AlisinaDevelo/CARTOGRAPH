@@ -32,6 +32,7 @@ repository or materialized Git revision
 - `src/analyzers/api-boundaries`: bounded GraphQL SDL/template and OpenAPI operation discovery with resolver/handler links.
 - `src/analyzers/prisma-schema`: bounded Prisma datasource, model, relation, and generated-client discovery without database access.
 - `src/analyzers/workspace`: bounded npm, pnpm, and Yarn workspace manifest discovery and package ownership edges.
+- `src/analyzers/lockfiles`: bounded npm, pnpm, Yarn, and Bun lockfile normalization with offline dependency evidence.
 - `src/analyzers/express`: bounded Express route semantics.
 - `src/git`: read-only Git validation and revision materialization in narrow temporary directories.
 - `src/report`: deterministic JSON, Markdown, and standalone HTML rendering.
@@ -120,6 +121,14 @@ and supported client generators contain generated module nodes. Multiple schema
 files, unsupported providers, duplicate declarations, and unsafe output paths
 remain evidence-backed diagnostics; no database connection or generation command
 is run.
+
+The lockfile analyzer reads only package-manager lockfiles at the repository root
+and declared workspace package roots. Supported npm, pnpm, Yarn, and JSON Bun
+records become deterministic `package`-to-`module` or workspace-package
+`depends_on` edges with lockfile source hashes. Unsupported versions, missing
+integrity/checksum metadata, ambiguous manager files, malformed JSON, and Bun
+binary lockfiles remain diagnostics; no package manager, network, or install step
+is executed.
 
 ## Diff semantics
 

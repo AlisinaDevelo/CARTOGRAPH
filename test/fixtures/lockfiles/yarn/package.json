@@ -1,0 +1,7 @@
+{
+  "name": "lockfile-yarn",
+  "private": true,
+  "dependencies": {
+    "gamma": "^3.4.5"
+  }
+}

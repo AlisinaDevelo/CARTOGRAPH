@@ -1,0 +1,15 @@
+lockfileVersion: "9.0"
+
+importers:
+  .:
+    dependencies:
+      beta:
+        specifier: 2.3.4
+        version: 2.3.4
+
+packages:
+  beta@2.3.4:
+    resolution: { integrity: sha512-beta }
+
+snapshots:
+  beta@2.3.4: {}

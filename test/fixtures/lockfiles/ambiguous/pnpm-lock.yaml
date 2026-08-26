@@ -1,0 +1,12 @@
+lockfileVersion: "4.0"
+
+importers:
+  .:
+    dependencies:
+      epsilon:
+        specifier: 5.0.0
+        version: 5.0.0
+
+packages:
+  epsilon@5.0.0:
+    resolution: { integrity: sha512-epsilon }

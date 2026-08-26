@@ -94,18 +94,19 @@ New output files are created with private permissions and are not overwritten un
 
 ## What the first analyzer understands
 
-| Construct                                                                                                                              | Current behavior                                                              |
-| -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| TypeScript `.ts`, `.tsx`, `.mts`, and `.cts` files                                                                                     | Scanned; declaration files and generated/dependency directories are excluded  |
-| Local and external imports, re-exports, literal dynamic imports, and literal `require`                                                 | Module edges with source evidence                                             |
-| Named functions, class methods, and variable-bound arrow functions                                                                     | Function nodes; semantically resolvable calls become edges                    |
-| Direct Express `app`/`router` routes and bounded `use` middleware with literal paths                                                   | Endpoint and handler relationships                                            |
-| GraphQL SDL root fields and OpenAPI path operations with local resolver/handler links                                                  | Evidence-backed endpoint boundaries and `routes_to` relationships             |
-| Prisma datasources, models, relations, and bounded generated-client references                                                         | Typed database, service, and module nodes with schema evidence                |
-| Literal EventEmitter events, bounded Bull/BullMQ queues, timers, and local callbacks                                                   | Queue publication/registration and handler relationships with source evidence |
-| Literal `fetch` and Axios destinations                                                                                                 | Outbound request relationships                                                |
-| Conventional Prisma model operations                                                                                                   | Read/write relationships to data nodes                                        |
-| Dynamic routes, API schema generation/aliases, imports, HTTP destinations, event/queue names, reflective handlers, or unresolved calls | Stable diagnostics with source evidence and remediation; no guessed edge      |
+| Construct                                                                                                                                                              | Current behavior                                                              |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| TypeScript `.ts`, `.tsx`, `.mts`, and `.cts` files                                                                                                                     | Scanned; declaration files and generated/dependency directories are excluded  |
+| Local and external imports, re-exports, literal dynamic imports, and literal `require`                                                                                 | Module edges with source evidence                                             |
+| Named functions, class methods, and variable-bound arrow functions                                                                                                     | Function nodes; semantically resolvable calls become edges                    |
+| Direct Express `app`/`router` routes and bounded `use` middleware with literal paths                                                                                   | Endpoint and handler relationships                                            |
+| GraphQL SDL root fields and OpenAPI path operations with local resolver/handler links                                                                                  | Evidence-backed endpoint boundaries and `routes_to` relationships             |
+| Prisma datasources, models, relations, and bounded generated-client references                                                                                         | Typed database, service, and module nodes with schema evidence                |
+| npm, pnpm, Yarn, and Bun lockfile dependency records                                                                                                                   | Deterministic offline `depends_on` edges with lockfile evidence               |
+| Literal EventEmitter events, bounded Bull/BullMQ queues, timers, and local callbacks                                                                                   | Queue publication/registration and handler relationships with source evidence |
+| Literal `fetch` and Axios destinations                                                                                                                                 | Outbound request relationships                                                |
+| Conventional Prisma model operations                                                                                                                                   | Read/write relationships to data nodes                                        |
+| Dynamic routes, API schema generation/aliases, imports, HTTP destinations, event/queue names, reflective handlers, unresolved calls, or ambiguous/mismatched lockfiles | Stable diagnostics with source evidence and remediation; no guessed edge      |
 
 JavaScript files, generated routes, framework metaprogramming, and complete runtime behavior are not supported. A plausible-looking result outside the table is not a support claim.
 

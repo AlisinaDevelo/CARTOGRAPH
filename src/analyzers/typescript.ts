@@ -73,6 +73,14 @@ import {
   type WorkspaceDiscovery,
   type WorkspacePackage,
 } from "./workspace.js";
+import {
+  LOCKFILE_DETECTOR,
+  discoverLockfiles,
+  type LockfileDependency,
+  type LockfileDiagnostic,
+  type LockfileDiscovery,
+  type LockfileSource,
+} from "./lockfiles.js";
 import { createResourceBudget, ResourceLimitError } from "../resources.js";
 
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts"]);
@@ -232,6 +240,8 @@ interface AnalyzerContext {
   edges: Map<string, GraphEdge>;
   fileHashes: Map<string, string>;
   filesByPath: Map<string, SourceFile>;
+  lockfileDependencies: readonly LockfileDependency[];
+  lockfileDiagnostics: readonly LockfileDiagnostic[];
   nodes: Map<string, GraphNode>;
   prismaDatasources: readonly PrismaDatasource[];
   prismaDiagnostics: readonly PrismaPartialDiagnostic[];
@@ -1698,6 +1708,107 @@ const addWorkspaceEdges = (context: AnalyzerContext): void => {
       moduleForFile(context, sourceFile),
       "contains",
       workspacePackage.evidence,
+    );
+  }
+};
+
+const evidenceForLockfileSource = (
+  source: LockfileSource,
+  suffix: string,
+): Evidence => ({
+  id: evidenceKey(
+    source.path,
+    source.line,
+    source.column,
+    `${LOCKFILE_DETECTOR}/${suffix}`,
+  ),
+  kind: "source",
+  path: source.path,
+  line: source.line,
+  column: source.column,
+  detector: `${LOCKFILE_DETECTOR}/${suffix}`,
+  contentHash: source.contentHash,
+});
+
+const addLockfileDiagnostic = (
+  context: AnalyzerContext,
+  diagnostic: LockfileDiagnostic,
+): void => {
+  const definition = getDiagnosticDefinition(diagnostic.code);
+  if (!definition)
+    throw new Error(`unregistered diagnostic code: ${diagnostic.code}`);
+  const location: SourceLocation = {
+    path: diagnostic.source.path,
+    line: diagnostic.source.line,
+    column: diagnostic.source.column,
+  };
+  const message = diagnostic.detail
+    ? `${definition.message} ${diagnostic.detail}`
+    : definition.message;
+  const record: Diagnostic = {
+    id: diagnosticKey(diagnostic.code, location, message),
+    code: diagnostic.code,
+    severity: definition.severity,
+    message,
+    remediation: definition.remediation,
+    location,
+    evidence: [evidenceForLockfileSource(diagnostic.source, "diagnostic")],
+  };
+  context.diagnostics.set(record.id, record);
+};
+
+const lockfileOwnerNode = (
+  context: AnalyzerContext,
+  dependency: LockfileDependency,
+): GraphNode => {
+  const workspacePackage = context.workspace?.packages.find(
+    (candidate) =>
+      candidate.relativeRoot === dependency.ownerRoot ||
+      candidate.name === dependency.ownerName,
+  );
+  if (workspacePackage) return workspacePackageNode(context, workspacePackage);
+  const relativeRoot =
+    dependency.ownerRoot === "." ? "root" : dependency.ownerRoot;
+  return addNode(
+    context,
+    `package:${relativeRoot}`,
+    "package",
+    dependency.ownerName ??
+      (dependency.ownerRoot === "." ? "root" : dependency.ownerRoot),
+    {
+      path: dependency.source.path,
+      line: dependency.source.line,
+      column: dependency.source.column,
+    },
+    "json",
+  );
+};
+
+const lockfileDependencyNode = (
+  context: AnalyzerContext,
+  dependency: LockfileDependency,
+): GraphNode => {
+  const workspacePackage = context.workspace?.packages.find(
+    (candidate) => candidate.name === dependency.name,
+  );
+  if (workspacePackage) return workspacePackageNode(context, workspacePackage);
+  const name = safeModuleSpecifier(dependency.name);
+  return addNode(context, `module:external:${name}`, "module", name);
+};
+
+const addLockfileEdges = (context: AnalyzerContext): void => {
+  for (const diagnostic of context.lockfileDiagnostics)
+    addLockfileDiagnostic(context, diagnostic);
+  for (const dependency of context.lockfileDependencies) {
+    const owner = lockfileOwnerNode(context, dependency);
+    const target = lockfileDependencyNode(context, dependency);
+    addEdge(
+      context,
+      owner,
+      target,
+      "depends_on",
+      evidenceForLockfileSource(dependency.source, "dependency"),
+      "certain",
     );
   }
 };
@@ -3915,6 +4026,12 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
     resources,
     options.signal,
   );
+  const lockfileDiscovery: LockfileDiscovery = discoverLockfiles(
+    rootDir,
+    workspace,
+    resources,
+    checkBudget,
+  );
   const loaded = loadedProjectSources(
     rootDir,
     options.tsconfigPath,
@@ -3965,6 +4082,8 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
   );
   for (const [path, contentHash] of prismaDiscovery.fileHashes)
     fileHashes.set(path, contentHash);
+  for (const [path, contentHash] of lockfileDiscovery.fileHashes)
+    fileHashes.set(path, contentHash);
 
   return {
     apiBoundaries: apiDiscovery.boundaries,
@@ -3977,6 +4096,8 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
     edges: new Map(),
     fileHashes,
     filesByPath,
+    lockfileDependencies: lockfileDiscovery.dependencies,
+    lockfileDiagnostics: lockfileDiscovery.diagnostics,
     nodes: new Map(),
     prismaDatasources: prismaDiscovery.datasources,
     prismaDiagnostics: prismaDiscovery.diagnostics,
@@ -4008,6 +4129,7 @@ export const analyzeTypeScriptRepository = (
     moduleForFile(context, sourceFile);
   }
   addWorkspaceEdges(context);
+  addLockfileEdges(context);
   registerCallables(context);
   addApiBoundaryEdges(context);
   importSourceFiles(context);

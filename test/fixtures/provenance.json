@@ -537,6 +537,15 @@
           "reason": "Synthetic generated-client declaration used to verify explicit output-path provenance without running Prisma generation."
         }
       ]
+    },
+    {
+      "id": "lockfiles",
+      "path": "lockfiles",
+      "source": "CARTOGRAPH repository-authored synthetic lockfile fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Npm, pnpm, Yarn, Bun, ambiguous-manager, version-mismatch, and missing-integrity records exercise deterministic offline dependency evidence without network access or package-manager execution.",
+      "redistribution": "allowed"
     }
   ]
 }

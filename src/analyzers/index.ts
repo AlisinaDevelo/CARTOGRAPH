@@ -39,6 +39,16 @@ export {
   type PrismaSchemaDiscovery,
   type PrismaSchemaSource,
 } from "./prisma-schema.js";
+export {
+  LOCKFILE_DETECTOR,
+  discoverLockfiles,
+  type LockfileDependency,
+  type LockfileDiagnostic,
+  type LockfileDiagnosticCode,
+  type LockfileDiscovery,
+  type LockfileManager,
+  type LockfileSource,
+} from "./lockfiles.js";
 export { CancellationError } from "../resources.js";
 export {
   analyzeExpressRouteCall,

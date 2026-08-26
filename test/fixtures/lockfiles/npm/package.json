@@ -1,0 +1,7 @@
+{
+  "name": "lockfile-npm",
+  "private": true,
+  "dependencies": {
+    "alpha": "1.2.3"
+  }
+}
