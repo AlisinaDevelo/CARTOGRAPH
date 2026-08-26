@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+import { createHash } from "node:crypto";
 import { performance } from "node:perf_hooks";
 
 import { ZodError, z } from "zod";
@@ -55,6 +56,8 @@ const MAX_SELECTOR_PREDICATES = 32;
 const MAX_QUERY_IDENTIFIER_LENGTH = 160;
 const MAX_SELECTOR_VALUE_LENGTH = 512;
 const MAX_RESULT_BYTES = 16 * 1024 * 1024;
+const MAX_QUERY_PAGE_SIZE = 200_000;
+const QUERY_CURSOR_PATTERN = /^[A-Za-z0-9_-]{1,512}$/u;
 
 export const ArchitectureQueryOperationSchema = z.enum([
   ...ARCHITECTURE_QUERY_SUPPORTED_OPERATIONS,
@@ -228,6 +231,24 @@ export const ArchitectureQueryLimitsSchema = z
     maxResultBytes: 4 * 1024 * 1024,
   });
 
+export const ArchitectureQueryPaginationSchema = z
+  .object({
+    pageSize: z
+      .number()
+      .int()
+      .positive()
+      .max(MAX_QUERY_PAGE_SIZE)
+      .default(MAX_QUERY_PAGE_SIZE),
+    cursor: z
+      .string()
+      .min(1)
+      .max(512)
+      .regex(QUERY_CURSOR_PATTERN, "must be an opaque base64url cursor")
+      .optional(),
+  })
+  .strict()
+  .default({ pageSize: MAX_QUERY_PAGE_SIZE });
+
 export const ArchitectureQueryProjectionSchema = z
   .object({
     evidence: z.enum(["full", "summary", "none"]).default("full"),
@@ -347,6 +368,7 @@ export const ArchitectureQuerySchema = z
     projection: ArchitectureQueryProjectionSchema,
     ordering: ArchitectureQueryOrderingSchema,
     traversal: ArchitectureQueryTraversalSchema,
+    pagination: ArchitectureQueryPaginationSchema,
     path: ArchitectureQueryPathSchema.optional(),
   })
   .strict()
@@ -489,6 +511,34 @@ export const ArchitectureQueryNodeDepthSchema = z
   })
   .strict();
 
+export const ArchitectureQueryPaginationResultSchema = z
+  .object({
+    cursor: z
+      .string()
+      .min(1)
+      .max(512)
+      .regex(QUERY_CURSOR_PATTERN, "must be an opaque base64url cursor")
+      .nullable(),
+    nextCursor: z
+      .string()
+      .min(1)
+      .max(512)
+      .regex(QUERY_CURSOR_PATTERN, "must be an opaque base64url cursor")
+      .optional(),
+    pageSize: z.number().int().positive().max(MAX_QUERY_PAGE_SIZE),
+    total: z.number().int().nonnegative(),
+    returned: z.number().int().nonnegative(),
+    hasMore: z.boolean(),
+  })
+  .strict()
+  .default({
+    cursor: null,
+    pageSize: MAX_QUERY_PAGE_SIZE,
+    total: 0,
+    returned: 0,
+    hasMore: false,
+  });
+
 export const ArchitectureQueryResultSchema = z
   .object({
     schemaVersion: z.literal(ARCHITECTURE_QUERY_SCHEMA_VERSION),
@@ -506,6 +556,7 @@ export const ArchitectureQueryResultSchema = z
     cycles: z.array(ArchitectureQueryCycleSchema).default([]),
     boundaries: z.array(ArchitectureQueryBoundarySchema).default([]),
     nodeDepths: z.array(ArchitectureQueryNodeDepthSchema).default([]),
+    pagination: ArchitectureQueryPaginationResultSchema,
     truncated: z.boolean().default(false),
     truncatedEdges: z.array(ArchitectureQueryEdgeSchema).default([]),
     metadata: ArchitectureQueryMetadataResultSchema.optional(),
@@ -570,6 +621,12 @@ export type ArchitectureQueryBoundary = z.infer<
 >;
 export type ArchitectureQueryNodeDepth = z.infer<
   typeof ArchitectureQueryNodeDepthSchema
+>;
+export type ArchitectureQueryPagination = z.infer<
+  typeof ArchitectureQueryPaginationSchema
+>;
+export type ArchitectureQueryPaginationResult = z.infer<
+  typeof ArchitectureQueryPaginationResultSchema
 >;
 export type ArchitectureQueryMetadata = ArchitectureQueryMetadataResult;
 export type ArchitectureQueryResult = z.infer<
@@ -750,9 +807,20 @@ type QueryResultDetails = Partial<
     | "nodeDepths"
     | "truncated"
     | "truncatedEdges"
+    | "pagination"
     | "metadata"
   >
 >;
+
+const emptyPagination = (
+  query: ArchitectureQuery,
+): ArchitectureQueryPaginationResult => ({
+  cursor: query.pagination.cursor ?? null,
+  pageSize: query.pagination.pageSize,
+  total: 0,
+  returned: 0,
+  hasMore: false,
+});
 
 const buildResult = (
   query: ArchitectureQuery,
@@ -788,6 +856,7 @@ const buildResult = (
     truncatedEdges: [...(details.truncatedEdges ?? [])].sort((left, right) =>
       compareEdges(left, right),
     ),
+    pagination: details.pagination ?? emptyPagination(query),
     ...(details.metadata === undefined ? {} : { metadata: details.metadata }),
     ...(unsupportedOperation === undefined ? {} : { unsupportedOperation }),
   };
@@ -1013,6 +1082,302 @@ const resultWithByteLimit = (
         `query result exceeds the ${query.limits.maxResultBytes} byte output ceiling`,
       )
     : result;
+
+const queryCursorFingerprint = (
+  snapshot: GraphSnapshot,
+  query: ArchitectureQuery,
+): string => {
+  const queryWithoutCursor = {
+    ...query,
+    pagination: { pageSize: query.pagination.pageSize },
+  };
+  return createHash("sha256")
+    .update(
+      stableStringify({
+        snapshot,
+        query: queryWithoutCursor,
+      }),
+      "utf8",
+    )
+    .digest("hex");
+};
+
+const encodeQueryCursor = (fingerprint: string, offset: number): string =>
+  Buffer.from(
+    stableStringify({ version: 1, fingerprint, offset }),
+    "utf8",
+  ).toString("base64url");
+
+const decodeQueryCursor = (
+  cursor: string,
+  fingerprint: string,
+): number | undefined => {
+  try {
+    const decoded = Buffer.from(cursor, "base64url").toString("utf8");
+    const payload = JSON.parse(decoded) as unknown;
+    if (
+      !payload ||
+      typeof payload !== "object" ||
+      Array.isArray(payload) ||
+      (payload as { version?: unknown }).version !== 1 ||
+      (payload as { fingerprint?: unknown }).fingerprint !== fingerprint ||
+      !Number.isSafeInteger((payload as { offset?: unknown }).offset) ||
+      ((payload as { offset?: number }).offset ?? -1) < 0 ||
+      Buffer.from(decoded, "utf8").toString("base64url") !== cursor
+    ) {
+      return undefined;
+    }
+    return (payload as { offset: number }).offset;
+  } catch {
+    return undefined;
+  }
+};
+
+type PaginationCollection =
+  "nodes" | "edges" | "paths" | "cycles" | "boundaries";
+
+const paginationCollection = (
+  operation: ArchitectureQueryOperation,
+): PaginationCollection => {
+  if (operation === "select-edges") return "edges";
+  if (operation === "dependency-path") return "paths";
+  if (operation === "cycles") return "cycles";
+  if (operation === "boundary-crossing") return "boundaries";
+  return "nodes";
+};
+
+const edgeKeySet = (
+  edges: readonly Pick<GraphEdge, "from" | "to" | "kind">[],
+): Set<string> => new Set(edges.map((edge) => edgeResultKey(edge)));
+
+const projectPaginationPage = (
+  result: ArchitectureQueryResult,
+  collection: PaginationCollection,
+  pageItems: readonly unknown[],
+): ArchitectureQueryResult => {
+  const pageResult: ArchitectureQueryResult = {
+    ...result,
+    nodes: [...result.nodes],
+    edges: [...result.edges],
+    diagnostics: [...result.diagnostics],
+    paths: [...result.paths],
+    cycles: [...result.cycles],
+    boundaries: [...result.boundaries],
+    nodeDepths: [...result.nodeDepths],
+    truncatedEdges: [...result.truncatedEdges],
+  };
+
+  if (collection === "nodes") {
+    const pageNodes = pageItems as readonly GraphNode[];
+    const nodeIds = new Set(pageNodes.map((node) => node.id));
+    pageResult.nodes = [...pageNodes];
+    pageResult.edges = result.edges.filter(
+      (edge) => nodeIds.has(edge.from) || nodeIds.has(edge.to),
+    );
+    pageResult.nodeDepths = result.nodeDepths.filter((depth) =>
+      nodeIds.has(depth.nodeId),
+    );
+    pageResult.paths = result.paths.filter((path) =>
+      path.nodes.some((nodeId) => nodeIds.has(nodeId)),
+    );
+    pageResult.cycles = result.cycles.filter((cycle) =>
+      cycle.nodes.some((nodeId) => nodeIds.has(nodeId)),
+    );
+    pageResult.boundaries = result.boundaries.filter(
+      (boundary) =>
+        nodeIds.has(boundary.insideNodeId) ||
+        nodeIds.has(boundary.outsideNodeId),
+    );
+    pageResult.truncatedEdges = result.truncatedEdges.filter(
+      (edge) => nodeIds.has(edge.from) || nodeIds.has(edge.to),
+    );
+  } else if (collection === "edges") {
+    const pageEdges = pageItems as readonly ArchitectureQueryEdge[];
+    const pageEdgeKeys = edgeKeySet(pageEdges);
+    const pageNodeIds = new Set(
+      pageEdges.flatMap((edge) => [edge.from, edge.to]),
+    );
+    pageResult.nodes = result.nodes.filter((node) => pageNodeIds.has(node.id));
+    pageResult.edges = [...pageEdges];
+    pageResult.nodeDepths = result.nodeDepths.filter((depth) =>
+      pageNodeIds.has(depth.nodeId),
+    );
+    pageResult.paths = result.paths.filter((path) =>
+      path.edges.some((edge) => pageEdgeKeys.has(edgeResultKey(edge))),
+    );
+    pageResult.cycles = result.cycles.filter((cycle) =>
+      cycle.edges.some((edge) => pageEdgeKeys.has(edgeResultKey(edge))),
+    );
+    pageResult.boundaries = result.boundaries.filter((boundary) =>
+      pageEdgeKeys.has(edgeResultKey(boundary.edge)),
+    );
+    pageResult.truncatedEdges = result.truncatedEdges.filter((edge) =>
+      pageEdgeKeys.has(edgeResultKey(edge)),
+    );
+  } else if (collection === "paths") {
+    const pagePaths = pageItems as readonly ArchitectureQueryPathResult[];
+    const pageNodeIds = new Set(pagePaths.flatMap((path) => path.nodes));
+    const pageEdgeKeys = edgeKeySet(pagePaths.flatMap((path) => path.edges));
+    pageResult.paths = [...pagePaths];
+    pageResult.nodes = result.nodes.filter((node) => pageNodeIds.has(node.id));
+    pageResult.edges = result.edges.filter((edge) =>
+      pageEdgeKeys.has(edgeResultKey(edge)),
+    );
+    pageResult.nodeDepths = result.nodeDepths.filter((depth) =>
+      pageNodeIds.has(depth.nodeId),
+    );
+    pageResult.cycles = result.cycles.filter((cycle) =>
+      cycle.nodes.some((nodeId) => pageNodeIds.has(nodeId)),
+    );
+    pageResult.boundaries = result.boundaries.filter(
+      (boundary) =>
+        pageNodeIds.has(boundary.insideNodeId) ||
+        pageNodeIds.has(boundary.outsideNodeId),
+    );
+    pageResult.truncatedEdges = result.truncatedEdges.filter((edge) =>
+      pageEdgeKeys.has(edgeResultKey(edge)),
+    );
+  } else if (collection === "cycles") {
+    const pageCycles = pageItems as readonly ArchitectureQueryCycle[];
+    const pageNodeIds = new Set(pageCycles.flatMap((cycle) => cycle.nodes));
+    const pageEdgeKeys = edgeKeySet(pageCycles.flatMap((cycle) => cycle.edges));
+    pageResult.cycles = [...pageCycles];
+    pageResult.nodes = result.nodes.filter((node) => pageNodeIds.has(node.id));
+    pageResult.edges = result.edges.filter((edge) =>
+      pageEdgeKeys.has(edgeResultKey(edge)),
+    );
+    pageResult.nodeDepths = result.nodeDepths.filter((depth) =>
+      pageNodeIds.has(depth.nodeId),
+    );
+    pageResult.paths = result.paths.filter((path) =>
+      path.nodes.some((nodeId) => pageNodeIds.has(nodeId)),
+    );
+    pageResult.boundaries = result.boundaries.filter(
+      (boundary) =>
+        pageNodeIds.has(boundary.insideNodeId) ||
+        pageNodeIds.has(boundary.outsideNodeId),
+    );
+    pageResult.truncatedEdges = result.truncatedEdges.filter((edge) =>
+      pageEdgeKeys.has(edgeResultKey(edge)),
+    );
+  } else {
+    const pageBoundaries = pageItems as readonly ArchitectureQueryBoundary[];
+    const pageEdgeKeys = edgeKeySet(pageBoundaries.map((item) => item.edge));
+    const pageNodeIds = new Set(
+      pageBoundaries.flatMap((boundary) => [
+        boundary.insideNodeId,
+        boundary.outsideNodeId,
+      ]),
+    );
+    pageResult.boundaries = [...pageBoundaries];
+    pageResult.nodes = result.nodes.filter((node) => pageNodeIds.has(node.id));
+    pageResult.edges = result.edges.filter((edge) =>
+      pageEdgeKeys.has(edgeResultKey(edge)),
+    );
+    pageResult.nodeDepths = result.nodeDepths.filter((depth) =>
+      pageNodeIds.has(depth.nodeId),
+    );
+    pageResult.paths = result.paths.filter((path) =>
+      path.nodes.some((nodeId) => pageNodeIds.has(nodeId)),
+    );
+    pageResult.cycles = result.cycles.filter((cycle) =>
+      cycle.nodes.some((nodeId) => pageNodeIds.has(nodeId)),
+    );
+    pageResult.truncatedEdges = result.truncatedEdges.filter((edge) =>
+      pageEdgeKeys.has(edgeResultKey(edge)),
+    );
+  }
+
+  return parseQueryContract(
+    (input) => ArchitectureQueryResultSchema.parse(input),
+    pageResult,
+    "ArchitectureQueryResult",
+  );
+};
+
+const paginateQueryResult = (
+  query: ArchitectureQuery,
+  snapshot: GraphSnapshot,
+  result: ArchitectureQueryResult,
+): ArchitectureQueryResult => {
+  const collection = paginationCollection(query.operation);
+  const source = result[collection] as readonly unknown[];
+  let fingerprint: string | undefined;
+  let offset = 0;
+
+  if (query.pagination.cursor !== undefined) {
+    fingerprint = queryCursorFingerprint(snapshot, query);
+    const decodedOffset = decodeQueryCursor(
+      query.pagination.cursor,
+      fingerprint,
+    );
+    if (decodedOffset === undefined || decodedOffset > source.length) {
+      return buildResult(
+        query,
+        "resource-limit",
+        [],
+        [],
+        [
+          queryDiagnostic(
+            query,
+            "QUERY_CURSOR_INVALID",
+            "pagination cursor is malformed or belongs to a different canonical graph or query",
+            "error",
+            {
+              remediation:
+                "Restart the query without a cursor and follow the emitted nextCursor values in order.",
+            },
+          ),
+        ],
+        undefined,
+        {
+          pagination: {
+            cursor: query.pagination.cursor,
+            pageSize: query.pagination.pageSize,
+            total: 0,
+            returned: 0,
+            hasMore: false,
+          },
+        },
+      );
+    }
+    offset = decodedOffset;
+  }
+
+  const end = Math.min(offset + query.pagination.pageSize, source.length);
+  const pageItems = source.slice(offset, end);
+  const hasMore = end < source.length;
+  const nextCursorFingerprint = hasMore
+    ? (fingerprint ?? queryCursorFingerprint(snapshot, query))
+    : undefined;
+  const pagination: ArchitectureQueryPaginationResult = {
+    cursor: query.pagination.cursor ?? null,
+    pageSize: query.pagination.pageSize,
+    total: source.length,
+    returned: pageItems.length,
+    hasMore,
+    ...(nextCursorFingerprint === undefined
+      ? {}
+      : { nextCursor: encodeQueryCursor(nextCursorFingerprint, end) }),
+  };
+  if (query.pagination.cursor === undefined && !hasMore) {
+    return parseQueryContract(
+      (input) => ArchitectureQueryResultSchema.parse(input),
+      { ...result, pagination },
+      "ArchitectureQueryResult",
+    );
+  }
+  const pageResult = projectPaginationPage(result, collection, pageItems);
+  return parseQueryContract(
+    (input) => ArchitectureQueryResultSchema.parse(input),
+    {
+      ...pageResult,
+      pagination,
+      truncated: pageResult.truncated || hasMore,
+    },
+    "ArchitectureQueryResult",
+  );
+};
 
 const pathResult = (
   query: ArchitectureQuery,
@@ -1439,7 +1804,10 @@ export const executeArchitectureQuery = (
         detailProjection,
       );
       enforceBudget();
-      return resultWithByteLimit(query, result);
+      return resultWithByteLimit(
+        query,
+        paginateQueryResult(query, snapshot, result),
+      );
     } catch (error) {
       if (error instanceof ResourceLimitError) {
         const resource = resourceLimitFromError(error);
@@ -1512,7 +1880,10 @@ export const executeArchitectureQuery = (
     undefined,
     metadata === undefined ? {} : { metadata },
   );
-  return resultWithByteLimit(query, result);
+  return resultWithByteLimit(
+    query,
+    paginateQueryResult(query, snapshot, result),
+  );
 };
 
 export const serializeArchitectureQueryResult = (input: unknown): string =>
