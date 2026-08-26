@@ -637,6 +637,15 @@
       "reference": "G-001 explicit ownership resolution contract; CODEOWNERS semantics are represented as bounded local configuration text",
       "transformation": "Versioned local ownership rules and a supported CODEOWNERS subset exercise precedence, aliases, last-match behavior, negation diagnostics, renamed paths, cross-repository isolation, unavailable owners, conflicts, unknown owners, and explicit no-owner outcomes without network access or repository execution.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "finding-lifecycle",
+      "path": "finding-lifecycle",
+      "source": "CARTOGRAPH repository-authored synthetic finding lifecycle fixture",
+      "license": "Apache-2.0",
+      "reference": "G-002 auditable finding lifecycle contract; no external source data",
+      "transformation": "An append-only hash-chain replay exercises finding states and transitions, identity migration, supersession, concurrent records, policy and evidence revisions, removed architecture, regression, and explicit tamper rejection without source bodies, execution, or network access.",
+      "redistribution": "allowed"
     }
   ]
 }

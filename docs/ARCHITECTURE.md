@@ -399,6 +399,23 @@ reads a checkout, executes code, contacts GitHub, or substitutes for STRATA's
 compiler-backed semantic analysis. The [`ownership guide`](OWNERSHIP.md) and
 G-001 fixture are the review surface for this additive contract.
 
+## G-002 auditable finding lifecycle
+
+The [`cartograph.finding-lifecycle`](../schema/finding-lifecycle.v0.1.schema.json)
+contract gives each architecture finding an explicit identity, state, actor,
+timestamp, rationale, policy/evidence revisions, and append-only hash-chain
+event history. It allows only reviewed transitions among `open`,
+`acknowledged`, `remediated`, `waived`, `regressed`, and terminal `obsolete`.
+Invalid transitions, sequence gaps, concurrent records, chain mismatches, and
+tampered event or identity-migration digests remain visible and are not applied.
+
+Identity migrations and supersession are explicit, repository-local records;
+removed architecture is an evidence-backed `obsolete` transition, and policy or
+evidence revision changes are diagnostic rather than silently rewritten. Replay
+is deterministic, source-free in its output, and offline. The
+[`finding lifecycle guide`](FINDING_LIFECYCLE.md) and replay fixture define the
+review boundary for this additive contract.
+
 ## Topology summaries
 
 `diffGraphSnapshots` accepts an optional `topology` configuration. The resulting

@@ -805,3 +805,22 @@ fixture is replayed by `npm run ownership:validate`. The contract is local and
 offline, does not retain source bodies in reports, and does not change
 GraphSnapshot, GraphDiff, or STRATA's compiler-backed semantic analysis
 boundary.
+
+## G-002 auditable finding lifecycle
+
+G-002 adds the reviewed additive `findingLifecycle` contract and
+[`cartograph.finding-lifecycle`](../schema/finding-lifecycle.v0.1.schema.json)
+v1 schema. Findings carry stable identity, initial state, policy/evidence
+revisions, and source-bound evidence. Digest-bound append-only events carry an
+actor, timestamp, rationale, transition, sequence, and previous digest. The
+runtime allows only the documented state transitions and fails closed for
+invalid transitions, gaps, chain mismatches, concurrent conflicts, missing
+identity-migration targets, and tampering.
+
+The checked-in
+[`replay.v0.1.json`](../test/fixtures/finding-lifecycle/replay.v0.1.json)
+fixture covers identity migration, supersession, policy changes, removed
+architecture, regression, concurrent records, and tampered events. Replay is
+local and offline through `npm run finding-lifecycle:validate`; reports do not
+include source bodies and the contract does not change GraphSnapshot, GraphDiff,
+or STRATA's compiler-backed semantic analysis boundary.
