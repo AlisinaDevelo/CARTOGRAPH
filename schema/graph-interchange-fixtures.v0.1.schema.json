@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/graph-interchange-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH graph interchange fixture descriptor v0.1",
+  "description": "A bounded offline scenario for JSON, JSON-LD, and edge-list graph interchange round trips.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "fixtureId",
+    "method",
+    "snapshotFile",
+    "formats",
+    "expected"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.graph-interchange-fixtures" },
+    "fixtureId": { "const": "d018-v0.1" },
+    "method": { "$ref": "#/definitions/method" },
+    "snapshotFile": { "$ref": "#/definitions/portablePath" },
+    "formats": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": { "enum": ["json", "json-ld", "edge-list"] }
+    },
+    "expected": { "$ref": "#/definitions/expected" }
+  },
+  "definitions": {
+    "portablePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!/)(?!~)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)(?!.*\\u0000).+$"
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "replayMode",
+        "rerunnable",
+        "network",
+        "sourceBodiesIncluded",
+        "credentialsUsed",
+        "hiddenTelemetry",
+        "command"
+      ],
+      "properties": {
+        "replayMode": { "const": "checked-in-snapshot" },
+        "rerunnable": { "const": true },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "credentialsUsed": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "command": { "const": "npm run graph-interchange:validate" }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodes",
+        "edges",
+        "diagnostics",
+        "edgeIdentities",
+        "evidenceIds",
+        "evidenceReferences",
+        "unresolvedReasons"
+      ],
+      "properties": {
+        "nodes": { "type": "integer", "minimum": 0, "maximum": 100000 },
+        "edges": { "type": "integer", "minimum": 0, "maximum": 200000 },
+        "diagnostics": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 50000
+        },
+        "edgeIdentities": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "evidenceReferences": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "unresolvedReasons": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

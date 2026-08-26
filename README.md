@@ -142,6 +142,13 @@ turn a policy violation into a pass. The versioned contract is defined in
 [`schema/patch-filter.v0.1.schema.json`](schema/patch-filter.v0.1.schema.json)
 and validated locally with `npm run patch-filter:validate`.
 
+`graph-interchange` exports a canonical snapshot as strict JSON, inline-context
+JSON-LD, or streaming edge-list NDJSON for consumers that do not use
+CARTOGRAPH's renderer. All formats preserve typed edge identities, complete
+evidence, confidence, unresolved reasons, and diagnostics; unknown fields fail
+closed. See the [portable graph interchange guide](docs/GRAPH_INTERCHANGE.md)
+and run `npm run graph-interchange:validate` for the offline round-trip gate.
+
 The Git revision flow validates refs, archives each commit into an isolated temporary directory, rejects archived symbolic links, analyzes without executing repository code, and cleans the temporary tree. It never checks out, resets, cleans, fetches, or stashes the caller's worktree. `direct` compares the resolved base tree to the resolved head tree. `merge-base` implements pull-request semantics by comparing the resolved merge base to the head; it fails closed for shallow repositories, unrelated histories, or multiple merge bases instead of fetching or guessing. Direct mode remains available for explicitly comparing unrelated trees.
 
 ## Evidence contract
@@ -207,6 +214,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Maintainer resilience and onboarding](docs/MAINTAINER_RESILIENCE.md)
 - [Compatibility and versioning](docs/COMPATIBILITY.md)
 - [Language-neutral graph semantics](docs/LANGUAGE_NEUTRAL_SEMANTICS.md)
+- [Portable graph interchange](docs/GRAPH_INTERCHANGE.md)
 - [Snapshot and identity migration](docs/IDENTITY_MIGRATION.md)
 - [Configuration contract](docs/CONFIGURATION.md)
 - [Local ADR references](docs/ADR_REFERENCES.md)

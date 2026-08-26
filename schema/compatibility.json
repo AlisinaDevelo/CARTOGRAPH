@@ -217,6 +217,11 @@
       "supportedReaders": [1],
       "reviewedVersions": [1]
     },
+    "graphInterchange": {
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
+    },
     "ownershipResolution": {
       "current": 1,
       "supportedReaders": [1],

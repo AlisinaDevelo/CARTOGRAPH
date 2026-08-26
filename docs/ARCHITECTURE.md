@@ -452,6 +452,22 @@ the review surface for this additive contract. STRATA remains the
 compiler-backed semantic analyzer; CARTOGRAPH owns the broader graph/report/
 policy/reconciliation interchange layer.
 
+## D-018 portable graph interchange
+
+The [`cartograph.graph-interchange`](../schema/graph-interchange.v0.1.schema.json)
+boundary projects a canonical GraphSnapshot v1 into strict JSON, inline-context
+JSON-LD, and a streaming edge-list NDJSON format. Each projection retains node
+IDs and stable keys, typed edge identities, complete evidence, confidence,
+unresolved reasons, diagnostics, revision metadata, and the capability registry
+version. JSON-LD adds digest-bound `@id` values for the snapshot and edges;
+edge-list records are canonicalized and ordered for deterministic streaming.
+
+The readers reject unknown fields, malformed line records, unsupported versions,
+duplicate/conflicting records, invalid evidence, and mismatched JSON-LD digests.
+The [portable interchange guide](GRAPH_INTERCHANGE.md) and its checked-in
+round-trip fixture are the acceptance surface; no source body, network input,
+credential, repository execution, or renderer dependency is introduced.
+
 ## G-001 explicit ownership resolution
 
 The [`cartograph.ownership-resolution`](../schema/ownership-resolution.v0.1.schema.json)
