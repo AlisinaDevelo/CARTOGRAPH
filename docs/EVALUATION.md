@@ -112,6 +112,17 @@ executable resources. This is a local synthetic corpus: it exercises report
 interpretability and privacy boundaries, not analyzer accuracy over a production
 repository. Validate it with `npm run query:explanation:validate`.
 
+D-020 adds the checked-in
+[`accessibility/scenario.v0.1.json`](../test/fixtures/accessibility/scenario.v0.1.json)
+review worksheet. The offline gate renders a diff containing a changed node,
+an added diagnostic with remediation, and evidence records, then checks the
+semantic summary/evidence tables, native disclosures, ordered fragment
+navigation, visible live status, focus-visible styling, reduced-motion rule,
+and absence of executable or external resources. It also verifies that each
+evidence link lands on its deterministic in-document row. The fixture is a
+manual review aid rather than a claim of assistive-technology conformance for
+every browser; run `npm run accessibility:validate`.
+
 Q-006 publishes the digest-bound
 [`architecture-query-quality-gate/report.v0.1.json`](../test/fixtures/architecture-query-quality-gate/report.v0.1.json)
 and the public

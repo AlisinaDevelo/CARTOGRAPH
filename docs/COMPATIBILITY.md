@@ -821,6 +821,22 @@ boundary is source-free, local, offline, and independent of STRATA's
 compiler-backed semantic analyzer; `npm run graph-interchange:validate` is the
 offline replay gate.
 
+## D-020 accessible HTML reports
+
+The HTML projection of `GraphDiff` remains a self-contained, no-request
+artifact. It now provides a semantic summary table and evidence index, native
+`details` disclosures for every change category, ordered in-document
+navigation, a focusable main landmark, and visible `role="status"` text. The
+renderer emits only fragment links for evidence rows, so repository-controlled
+references cannot become external fetches.
+
+Focus-visible outlines, natural DOM focus order, and the
+`prefers-reduced-motion: reduce` stylesheet are part of the presentation
+contract. `npm run accessibility:validate` replays the checked-in
+[`accessibility/scenario.v0.1.json`](../test/fixtures/accessibility/scenario.v0.1.json)
+fixture and fails if changed nodes, diagnostics, remediation, evidence links,
+semantic tables, disclosures, or the offline/resource boundary disappear.
+
 ## G-001 explicit ownership resolution
 
 G-001 adds the reviewed additive `ownershipResolution` contract and
