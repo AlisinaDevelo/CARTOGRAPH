@@ -1,0 +1,623 @@
+{
+  "$schema": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/review-workflow-evaluation.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.review-workflow-evaluation",
+  "mediaType": "application/vnd.cartograph.review-workflow-evaluation+json",
+  "evaluationId": "g006-v0.1",
+  "reviewedAt": "2026-08-26T10:00:00Z",
+  "tool": {
+    "version": "0.1.0",
+    "commit": "92ee14c",
+    "runtime": "node 26.7.0",
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "method": {
+    "replayMode": "aggregate-fixture",
+    "command": "npm run review-workflow:evaluation:validate",
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "credentialsUsed": false,
+    "hiddenTelemetry": false,
+    "userDataIncluded": false,
+    "execution": false,
+    "sourceAcquisition": "not-run",
+    "limitations": [
+      "The corpus is repository-authored and synthetic; it is not an independent maintainer or adopter study.",
+      "Timing values model bounded local workflow steps and must not be read as production performance or support guarantees.",
+      "No hosted workflow telemetry, pull-request population, credentials, source bodies, or personal data were collected."
+    ]
+  },
+  "observations": [
+    {
+      "id": "failure-01",
+      "kind": "failure-recovery",
+      "scenario": "malformed-review-input",
+      "expected": "Reject malformed input and retain a typed, non-mutating failure record.",
+      "observed": "The validator rejects the malformed record and preserves the local boundary.",
+      "recovered": true,
+      "recoveryDurationMs": 9000,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "Recovery means the reviewer can resume from a bounded diagnostic without granting authority."
+    },
+    {
+      "id": "failure-02",
+      "kind": "failure-recovery",
+      "scenario": "missing-owner-context",
+      "expected": "Keep the finding visible and route a read-only owner follow-up.",
+      "observed": "Missing ownership remains explicit and the next step is non-mutating.",
+      "recovered": true,
+      "recoveryDurationMs": 15000,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "No inferred owner or automatic assignment is used during recovery."
+    },
+    {
+      "id": "failure-03",
+      "kind": "failure-recovery",
+      "scenario": "expired-waiver",
+      "expected": "Expose the expiry and require an explicit new decision.",
+      "observed": "The expired waiver remains visible and cannot suppress the finding.",
+      "recovered": true,
+      "recoveryDurationMs": 30000,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "The recovery path is a documented review action, not an automatic renewal."
+    },
+    {
+      "id": "failure-04",
+      "kind": "failure-recovery",
+      "scenario": "interrupted-report",
+      "expected": "Fail closed and preserve enough metadata for a later local replay.",
+      "observed": "The interrupted run is recorded as incomplete rather than presented as clean.",
+      "recovered": false,
+      "recoveryDurationMs": 60000,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "The bounded failure remains an open limitation; no success is inferred."
+    },
+    {
+      "id": "maintainer-01",
+      "kind": "maintainer-load",
+      "scenario": "triage-summary",
+      "expected": "Classify one finding and identify its evidence without a write action.",
+      "observed": "The synthetic task can be completed from the local summary.",
+      "maintainerMinutes": 8,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "This is a bounded task estimate, not an observed maintainer timesheet."
+    },
+    {
+      "id": "maintainer-02",
+      "kind": "maintainer-load",
+      "scenario": "waiver-expiry-review",
+      "expected": "Review an expiry-bound exception and its exact scope.",
+      "observed": "The synthetic task exposes scope, expiry, and evidence together.",
+      "maintainerMinutes": 12,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "The estimate includes reading the local context but no signing or merge operation."
+    },
+    {
+      "id": "maintainer-03",
+      "kind": "maintainer-load",
+      "scenario": "owner-handoff",
+      "expected": "Record an owner handoff when a finding has no resolved owner.",
+      "observed": "The synthetic task produces a read-only handoff route.",
+      "maintainerMinutes": 15,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "No external contributor or independent maintainer participated in this estimate."
+    },
+    {
+      "id": "maintainer-04",
+      "kind": "maintainer-load",
+      "scenario": "partial-recovery",
+      "expected": "Inspect an incomplete report and decide whether to defer the review.",
+      "observed": "The synthetic task retains an explicit limitation and defer route.",
+      "maintainerMinutes": 24,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "The higher estimate reflects failure recovery and is intentionally retained in the median."
+    },
+    {
+      "id": "reviewer-01",
+      "kind": "reviewer-task",
+      "scenario": "lifecycle-triage",
+      "expected": "Locate lifecycle state and the next read-only action.",
+      "observed": "The synthetic reviewer locates both fields.",
+      "completed": true,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "Completion means the task is answerable from the bounded report."
+    },
+    {
+      "id": "reviewer-02",
+      "kind": "reviewer-task",
+      "scenario": "owner-evidence",
+      "expected": "Distinguish an explicit owner source from an inferred owner.",
+      "observed": "The synthetic reviewer identifies the declared source and uncertainty.",
+      "completed": true,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "The report does not infer ownership from names or paths."
+    },
+    {
+      "id": "reviewer-03",
+      "kind": "reviewer-task",
+      "scenario": "waiver-scope",
+      "expected": "Verify that a waiver is exact-scope and expiry-bound.",
+      "observed": "The synthetic reviewer sees the selector, expiry, and evidence references.",
+      "completed": true,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "The review task grants no authority and does not validate private signing material."
+    },
+    {
+      "id": "reviewer-04",
+      "kind": "reviewer-task",
+      "scenario": "policy-adr-context",
+      "expected": "Locate policy and ADR context for one changed finding.",
+      "observed": "The synthetic reviewer finds the declared context or its explicit absence.",
+      "completed": true,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "Missing context remains visible rather than being interpreted as a pass."
+    },
+    {
+      "id": "reviewer-05",
+      "kind": "reviewer-task",
+      "scenario": "interrupted-run",
+      "expected": "Recognize an incomplete run and avoid treating it as a clean review.",
+      "observed": "The synthetic reviewer needs a follow-up replay to complete the task.",
+      "completed": false,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "This intentional partial result keeps reviewer completion below an unsupported claim of perfection."
+    },
+    {
+      "id": "stale-01",
+      "kind": "stale-finding",
+      "scenario": "current-policy",
+      "expected": "Finding evidence remains current for the selected policy revision.",
+      "observed": "The evidence is current.",
+      "stale": false,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "Fresh evidence is counted so the stale-finding rate has a declared denominator."
+    },
+    {
+      "id": "stale-02",
+      "kind": "stale-finding",
+      "scenario": "policy-revision-drift",
+      "expected": "A policy revision change is marked stale until reevaluated.",
+      "observed": "The finding is marked stale.",
+      "stale": true,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "The finding remains visible and is not silently renewed."
+    },
+    {
+      "id": "stale-03",
+      "kind": "stale-finding",
+      "scenario": "expired-exception",
+      "expected": "An expired waiver is stale and cannot suppress a current finding.",
+      "observed": "The finding is marked stale.",
+      "stale": true,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "Expiry is an explicit state rather than a hidden approval extension."
+    },
+    {
+      "id": "stale-04",
+      "kind": "stale-finding",
+      "scenario": "unchanged-evidence",
+      "expected": "Unchanged policy and evidence remain current.",
+      "observed": "The finding is current.",
+      "stale": false,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "The unchanged case prevents the rate from being interpreted without a baseline."
+    },
+    {
+      "id": "triage-01",
+      "kind": "triage",
+      "scenario": "explicit-owner",
+      "expected": "Resolve the declared owner and expose its source.",
+      "observed": "The declared owner and source are shown.",
+      "correct": true,
+      "durationMs": 12000,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "The timing is a synthetic bounded replay value."
+    },
+    {
+      "id": "triage-02",
+      "kind": "triage",
+      "scenario": "owner-alias",
+      "expected": "Resolve a declared owner alias without guessing from a path.",
+      "observed": "The alias resolves to the declared owner with evidence.",
+      "correct": true,
+      "durationMs": 18000,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "Aliases remain explicit input and are not inferred from repository names."
+    },
+    {
+      "id": "triage-03",
+      "kind": "triage",
+      "scenario": "ownerless-finding",
+      "expected": "Record no owner and route a read-only follow-up.",
+      "observed": "The ownerless state and follow-up route are shown.",
+      "correct": true,
+      "durationMs": 24000,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "Correctness means preserving the explicit no-owner outcome, not assigning an owner."
+    },
+    {
+      "id": "waiver-01",
+      "kind": "waiver-review",
+      "scenario": "exact-scope-waiver",
+      "expected": "Verify one exact selector, owner, approver, and expiry.",
+      "observed": "The exact-scope record is reviewable.",
+      "durationMs": 30000,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "The review does not verify or emit private key material."
+    },
+    {
+      "id": "waiver-02",
+      "kind": "waiver-review",
+      "scenario": "expiring-waiver",
+      "expected": "Identify an expiring exact-scope waiver and its required renewal path.",
+      "observed": "Expiry and the explicit renewal requirement are visible.",
+      "durationMs": 45000,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "An expiring record remains a review item and never becomes an automatic approval."
+    },
+    {
+      "id": "waiver-03",
+      "kind": "waiver-review",
+      "scenario": "broad-waiver",
+      "expected": "Reject a waiver whose selector is broader than the finding.",
+      "observed": "The broad waiver remains visible as invalid.",
+      "durationMs": 60000,
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "Broad scope is a security failure mode, not a faster review path."
+    }
+  ],
+  "thresholds": [
+    {
+      "id": "failure-recovery",
+      "operator": ">=",
+      "target": 0.75,
+      "unit": "recoverable failure scenarios",
+      "rationale": "At least three of four representative failures must have a bounded replay or handoff path."
+    },
+    {
+      "id": "maintainer-load",
+      "operator": "<=",
+      "target": 20,
+      "unit": "median synthetic maintainer minutes",
+      "rationale": "A bounded review should not impose an excessive median task estimate before independent study."
+    },
+    {
+      "id": "reviewer-task-completion",
+      "operator": ">=",
+      "target": 0.8,
+      "unit": "synthetic reviewer task completion",
+      "rationale": "At least four of five representative tasks must be answerable from the report."
+    },
+    {
+      "id": "stale-finding-rate",
+      "operator": "<=",
+      "target": 0.5,
+      "unit": "stale findings per reviewed finding",
+      "rationale": "The bounded corpus must expose a current baseline without allowing stale evidence to dominate the review."
+    },
+    {
+      "id": "time-to-owner",
+      "operator": "<=",
+      "target": 30000,
+      "unit": "median synthetic milliseconds to owner state",
+      "rationale": "Owner resolution should remain bounded while preserving explicit no-owner and ambiguity states."
+    },
+    {
+      "id": "triage-accuracy",
+      "operator": ">=",
+      "target": 0.9,
+      "unit": "correct synthetic triage outcomes",
+      "rationale": "Triage must preserve explicit owner and ownerless outcomes rather than optimize for assignment volume."
+    },
+    {
+      "id": "waiver-review-time",
+      "operator": "<=",
+      "target": 90000,
+      "unit": "median synthetic milliseconds to waiver decision",
+      "rationale": "Exact-scope, expiring, and broad-waiver cases must remain reviewable within a bounded local task."
+    }
+  ],
+  "measurements": [
+    {
+      "id": "failure-recovery",
+      "value": 0.75,
+      "unit": "recoverable failure scenarios",
+      "status": "pass",
+      "basis": "synthetic",
+      "sampleCount": 4,
+      "numerator": 3,
+      "denominator": 4,
+      "scenarioRefs": ["failure-01", "failure-02", "failure-03", "failure-04"],
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "Three of four bounded failure records have a replay or handoff path; the interrupted run remains explicitly incomplete."
+    },
+    {
+      "id": "maintainer-load",
+      "value": 13.5,
+      "unit": "median synthetic maintainer minutes",
+      "status": "pass",
+      "basis": "synthetic",
+      "sampleCount": 4,
+      "numerator": null,
+      "denominator": null,
+      "scenarioRefs": [
+        "maintainer-01",
+        "maintainer-02",
+        "maintainer-03",
+        "maintainer-04"
+      ],
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "The median of 8, 12, 15, and 24 synthetic minutes is 13.5; this is not an observed staffing claim."
+    },
+    {
+      "id": "reviewer-task-completion",
+      "value": 0.8,
+      "unit": "synthetic reviewer task completion",
+      "status": "pass",
+      "basis": "synthetic",
+      "sampleCount": 5,
+      "numerator": 4,
+      "denominator": 5,
+      "scenarioRefs": [
+        "reviewer-01",
+        "reviewer-02",
+        "reviewer-03",
+        "reviewer-04",
+        "reviewer-05"
+      ],
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "Four of five tasks complete; the interrupted-run task intentionally remains partial."
+    },
+    {
+      "id": "stale-finding-rate",
+      "value": 0.5,
+      "unit": "stale findings per reviewed finding",
+      "status": "pass",
+      "basis": "synthetic",
+      "sampleCount": 4,
+      "numerator": 2,
+      "denominator": 4,
+      "scenarioRefs": ["stale-01", "stale-02", "stale-03", "stale-04"],
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "Two of four records are stale, and both remain visible with an explicit repair or renewal requirement."
+    },
+    {
+      "id": "time-to-owner",
+      "value": 18000,
+      "unit": "median synthetic milliseconds to owner state",
+      "status": "pass",
+      "basis": "synthetic",
+      "sampleCount": 3,
+      "numerator": null,
+      "denominator": null,
+      "scenarioRefs": ["triage-01", "triage-02", "triage-03"],
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "The median of 12, 18, and 24 seconds includes the explicit no-owner outcome."
+    },
+    {
+      "id": "triage-accuracy",
+      "value": 1,
+      "unit": "correct synthetic triage outcomes",
+      "status": "pass",
+      "basis": "synthetic",
+      "sampleCount": 3,
+      "numerator": 3,
+      "denominator": 3,
+      "scenarioRefs": ["triage-01", "triage-02", "triage-03"],
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "All three expected outcomes, including ownerless preservation, match the observed result."
+    },
+    {
+      "id": "waiver-review-time",
+      "value": 45000,
+      "unit": "median synthetic milliseconds to waiver decision",
+      "status": "pass",
+      "basis": "synthetic",
+      "sampleCount": 3,
+      "numerator": null,
+      "denominator": null,
+      "scenarioRefs": ["waiver-01", "waiver-02", "waiver-03"],
+      "evidenceRefs": [
+        "command:npm run review-workflow:evaluation:validate",
+        "docs/REVIEW_WORKFLOW_EVALUATION.md"
+      ],
+      "notes": "The median of 30, 45, and 60 seconds includes an invalid broad-waiver decision."
+    }
+  ],
+  "securityReview": {
+    "threats": [
+      {
+        "id": "broad-waiver",
+        "description": "A waiver selector is broadened to suppress unrelated findings.",
+        "attack": "Change the selector or affected identity set while retaining the original approval.",
+        "expectedControl": "Require exact selector and affected-ID matching, plus digest and expiry checks.",
+        "status": "blocked",
+        "evidenceRefs": [
+          "command:npm run review-workflow:evaluation:validate",
+          "docs/ARCHITECTURE_WAIVERS.md"
+        ],
+        "notes": "Broad scope remains an invalid visible record and never becomes an approval."
+      },
+      {
+        "id": "compromised-key",
+        "description": "A signing key is compromised or revoked after a waiver is issued.",
+        "attack": "Replay a record using a revoked or rotated key and omit the current trust-root decision.",
+        "expectedControl": "Bind verification to the current trust root and retain revoked or rotated-key failures.",
+        "status": "blocked",
+        "evidenceRefs": [
+          "command:npm run review-workflow:evaluation:validate",
+          "docs/ASSURANCE_SIGNING.md"
+        ],
+        "notes": "No private key or signing material enters the evaluation report."
+      },
+      {
+        "id": "forgery",
+        "description": "A fabricated finding or decision is presented as a local review result.",
+        "attack": "Edit the summary fields while leaving the public decision and evidence references unchanged.",
+        "expectedControl": "Validate the canonical schema, derive metric values, and bind the public report to a digest.",
+        "status": "blocked",
+        "evidenceRefs": [
+          "command:npm run review-workflow:evaluation:validate",
+          "schema/review-workflow-evaluation.v0.1.schema.json"
+        ],
+        "notes": "The validator recomputes observations, measurements, security counts, and the report digest."
+      },
+      {
+        "id": "fork-pull-request",
+        "description": "Untrusted fork code attempts to turn review output into repository authority.",
+        "attack": "Use a pull-request workflow or artifact path to obtain secrets or write permissions.",
+        "expectedControl": "Use pull_request, contents: read, exact head SHA, no secrets, and artifact-only output.",
+        "status": "blocked",
+        "evidenceRefs": [
+          "command:npm run review-workflow:evaluation:validate",
+          "docs/ACTION.md"
+        ],
+        "notes": "The Action remains a read-only report producer and never grants merge or issue authority."
+      },
+      {
+        "id": "owner-spoofing",
+        "description": "A contributor claims ownership of a finding without a declared owner source.",
+        "attack": "Substitute a name or path-derived owner for the explicit local ownership record.",
+        "expectedControl": "Preserve source precedence, ambiguity, unavailable owners, and explicit no-owner outcomes.",
+        "status": "blocked",
+        "evidenceRefs": [
+          "command:npm run review-workflow:evaluation:validate",
+          "docs/OWNERSHIP.md"
+        ],
+        "notes": "Triage correctness includes preserving ownerless and ambiguous states."
+      },
+      {
+        "id": "replay",
+        "description": "An old clean review is replayed after policy or evidence changed.",
+        "attack": "Reuse a prior waiver or summary after the selected revision, policy, or evidence digest moved.",
+        "expectedControl": "Bind decisions to revision and evidence digests, surface stale state, and require explicit re-review.",
+        "status": "blocked",
+        "evidenceRefs": [
+          "command:npm run review-workflow:evaluation:validate",
+          "docs/OWNERSHIP_WAIVER_DRIFT.md"
+        ],
+        "notes": "Stale and expired records remain visible and cannot silently renew approval."
+      }
+    ],
+    "summary": {
+      "threatCount": 6,
+      "blockedCount": 6,
+      "deferredCount": 0,
+      "missCount": 0
+    },
+    "conclusion": "pass"
+  },
+  "decision": {
+    "outcome": "defer",
+    "failedMetrics": [],
+    "securityOutcome": "pass",
+    "rationale": "All seven bounded metrics meet their thresholds on deterministic synthetic replay, and all six reviewed abuse cases are blocked. The evidence is not an independent maintainer study, so no production usability, load, adoption, or team-scale approval claim is made; broader workflow expansion is deferred.",
+    "allowedScope": "Continue local, read-only, digest-bound review-summary and fork-safe Action maintenance. Do not add approval automation, hosted telemetry, or delegated write authority from this study.",
+    "requiredBeforeChange": [
+      "Repeat the seven measurements with consented independent maintainers and retain only aggregate results.",
+      "Re-run the six abuse cases against any new waiver, owner, signing, or Action boundary before expanding scope.",
+      "Compare failure recovery and maintainer load on representative repositories without treating synthetic values as guarantees."
+    ],
+    "nextReview": "2026-09-30T00:00:00Z"
+  },
+  "publicReport": {
+    "path": "docs/REVIEW_WORKFLOW_EVALUATION.md",
+    "decision": "defer",
+    "securityOutcome": "pass"
+  },
+  "provenance": {
+    "source": "CARTOGRAPH repository-authored synthetic review workflow evaluation",
+    "license": "Apache-2.0",
+    "reference": "G-006 review workflow usability, integrity, and load issue; no external source data",
+    "transformation": "A bounded local replay derives seven workflow metrics from representative synthetic observations and records six explicit abuse-case outcomes without source bodies, credentials, telemetry, network access, or mutation authority.",
+    "redistribution": "allowed"
+  }
+}

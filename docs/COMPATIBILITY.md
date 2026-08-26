@@ -884,3 +884,21 @@ relative artifact paths, source-body/private-key exclusion, and provenance
 flags are part of the v1 reader/writer boundary. The checked-in scenarios are
 replayed by `npm run review-summary:validate`; a future meaning change requires
 a new review-summary version or an explicit migration review.
+
+## G-006 review workflow evaluation
+
+G-006 adds the reviewed report-only `reviewWorkflowEvaluation` contract and
+[`cartograph.review-workflow-evaluation`](../schema/review-workflow-evaluation.v0.1.schema.json)
+v1 schema. Its aggregate-only fixture derives seven bounded workflow metrics
+and records six explicit abuse-case outcomes for forgery, replay, broad
+waivers, owner spoofing, fork pull requests, and compromised keys. The
+validator recomputes all measurements and security counts, binds the public
+decision to a digest, and rejects source bodies, credentials, network access,
+mutative commands, and absolute paths.
+
+The current gate passes the synthetic thresholds but defers team-scale
+workflow expansion because no independent maintainer study is present. This is
+governance evidence only: it does not change GraphSnapshot, GraphDiff,
+review-summary, ownership, waiver, signing, or Action wire shapes. A future
+change to metric meaning requires a new evaluation version or an explicit
+migration review. Replay it with `npm run review-workflow:evaluation:validate`.

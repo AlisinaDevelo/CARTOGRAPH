@@ -479,6 +479,25 @@ source bodies and private keys are excluded, and provenance records
 GraphSnapshot, GraphDiff, or STRATA's compiler-backed semantic analysis
 boundary.
 
+## G-006 review workflow evaluation
+
+The [`cartograph.review-workflow-evaluation`](../schema/review-workflow-evaluation.v0.1.schema.json)
+contract is governance evidence over the review-summary and read-only Action
+surfaces. Its local synthetic corpus derives triage accuracy, time-to-owner,
+waiver review time, stale-finding rate, reviewer task completion, maintainer
+load, and failure recovery from representative observations. Measurements are
+recomputed by `npm run review-workflow:evaluation:validate`; a forged value or
+scenario reference fails closed.
+
+The same gate records forgery, replay, broad-waiver, owner-spoofing,
+fork-pull-request, and compromised-key outcomes. It never grants approval,
+renews a waiver, assigns an owner, uploads telemetry, or executes repository
+code. The current synthetic thresholds pass, but the public decision is
+`defer` because no independent maintainer study exists. This contract does not
+change GraphSnapshot, GraphDiff, review-summary, ownership, waiver, signing,
+or Action wire shapes; a future metric-meaning change requires a new
+evaluation version or explicit compatibility review.
+
 ## Topology summaries
 
 `diffGraphSnapshots` accepts an optional `topology` configuration. The resulting

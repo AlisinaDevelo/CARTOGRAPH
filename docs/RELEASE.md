@@ -34,12 +34,13 @@ Before creating a release tag:
 9. Run `npm run architecture-waivers:validate`; unsigned, tampered, broadened, replayed, revoked, expired, and drifted waivers must remain visible and authority-free.
 10. Run `npm run ownership-waiver-drift:validate`; owner loss, ambiguous reassignment, repository moves, policy/evidence drift, expiry, invalid signatures, key rotation, and partial workspaces must remain explicit and never renew a waiver.
 11. Run `npm run review-summary:validate`; lifecycle, ownership, waiver, policy, ADR, drift, provenance, determinism, and read-only next-step cases must remain explicit.
-12. Run `npm run remediation-suggestions:validate`; default-off, stale, ambiguous, ownerless, security-sensitive, unsupported, and resource-bound cases must remain explicit.
-13. Run `npm run remediation-rules:validate`; every reviewed rule must retain applicability, preconditions, non-goals, validation descriptions, and golden positive/negative fixtures.
-14. Review dependencies, pinned workflows, threat-model gates, and open security findings.
-15. Update `CHANGELOG.md` with the matching `[<version>]` section and migration notes.
-16. Confirm the package version matches the tag exactly (`v0.1.0` for package `0.1.0`).
-17. Create the tag from protected `main` and let the release workflow produce the artifacts.
+12. Run `npm run review-workflow:evaluation:validate`; triage, ownership, waiver, stale-state, reviewer-task, maintainer-load, failure-recovery, and six abuse-case outcomes must remain digest-bound and explicit.
+13. Run `npm run remediation-suggestions:validate`; default-off, stale, ambiguous, ownerless, security-sensitive, unsupported, and resource-bound cases must remain explicit.
+14. Run `npm run remediation-rules:validate`; every reviewed rule must retain applicability, preconditions, non-goals, validation descriptions, and golden positive/negative fixtures.
+15. Review dependencies, pinned workflows, threat-model gates, and open security findings.
+16. Update `CHANGELOG.md` with the matching `[<version>]` section and migration notes.
+17. Confirm the package version matches the tag exactly (`v0.1.0` for package `0.1.0`).
+18. Create the tag from protected `main` and let the release workflow produce the artifacts.
 
 The release artifact metadata binds the package name and version, source commit,
 the downloaded tarball SHA-256 digest, the canonical gzip-decoded package-content

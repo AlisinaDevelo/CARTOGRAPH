@@ -214,6 +214,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Fixture provenance](docs/FIXTURES.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Evaluation strategy](docs/EVALUATION.md)
+- [Review workflow evaluation](docs/REVIEW_WORKFLOW_EVALUATION.md)
 - [Benchmark corpus and measurement protocol](docs/BENCHMARK_PROTOCOL.md)
 - [Digest-bound policy bundles](docs/POLICY_BUNDLES.md)
 - [Policy-bundle migration and revocation](docs/POLICY_BUNDLE_MIGRATIONS.md)

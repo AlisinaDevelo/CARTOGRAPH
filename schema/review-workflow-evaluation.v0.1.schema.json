@@ -1,0 +1,379 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/review-workflow-evaluation.v0.1.schema.json",
+  "title": "CARTOGRAPH review workflow evaluation v0.1",
+  "description": "Aggregate-only, deterministic evidence for review workflow usability, integrity, maintainer load, and failure recovery.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "evaluationId",
+    "reviewedAt",
+    "tool",
+    "method",
+    "observations",
+    "thresholds",
+    "measurements",
+    "securityReview",
+    "decision",
+    "publicReport",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.review-workflow-evaluation" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.review-workflow-evaluation+json"
+    },
+    "evaluationId": { "const": "g006-v0.1" },
+    "reviewedAt": { "$ref": "#/definitions/dateTime" },
+    "tool": { "$ref": "#/definitions/tool" },
+    "method": { "$ref": "#/definitions/method" },
+    "observations": {
+      "type": "array",
+      "minItems": 14,
+      "maxItems": 64,
+      "items": { "$ref": "#/definitions/observation" }
+    },
+    "thresholds": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": { "$ref": "#/definitions/threshold" }
+    },
+    "measurements": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": { "$ref": "#/definitions/measurement" }
+    },
+    "securityReview": { "$ref": "#/definitions/securityReview" },
+    "decision": { "$ref": "#/definitions/decision" },
+    "publicReport": { "$ref": "#/definitions/publicReport" },
+    "provenance": { "$ref": "#/definitions/provenance" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "pattern": "^[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F]+$"
+    },
+    "dateTime": { "type": "string", "format": "date-time" },
+    "revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,64}$"
+    },
+    "ratio": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240,
+      "pattern": "^(?:[a-zA-Z0-9_.-]+/)*[a-zA-Z0-9_.-]+$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "commit", "runtime", "platform", "architecture"],
+      "properties": {
+        "version": { "$ref": "#/definitions/text" },
+        "commit": { "$ref": "#/definitions/revision" },
+        "runtime": { "$ref": "#/definitions/text" },
+        "platform": { "$ref": "#/definitions/text" },
+        "architecture": { "$ref": "#/definitions/text" }
+      }
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "replayMode",
+        "command",
+        "network",
+        "sourceBodiesIncluded",
+        "credentialsUsed",
+        "hiddenTelemetry",
+        "userDataIncluded",
+        "execution",
+        "sourceAcquisition",
+        "limitations"
+      ],
+      "properties": {
+        "replayMode": { "const": "aggregate-fixture" },
+        "command": {
+          "const": "npm run review-workflow:evaluation:validate"
+        },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "credentialsUsed": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "userDataIncluded": { "const": false },
+        "execution": { "const": false },
+        "sourceAcquisition": { "const": "not-run" },
+        "limitations": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 12,
+          "items": { "$ref": "#/definitions/text" }
+        }
+      }
+    },
+    "observationKind": {
+      "enum": [
+        "triage",
+        "waiver-review",
+        "stale-finding",
+        "reviewer-task",
+        "maintainer-load",
+        "failure-recovery"
+      ]
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "scenario",
+        "expected",
+        "observed",
+        "evidenceRefs",
+        "notes"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "kind": { "$ref": "#/definitions/observationKind" },
+        "scenario": { "$ref": "#/definitions/identifier" },
+        "expected": { "$ref": "#/definitions/text" },
+        "observed": { "$ref": "#/definitions/text" },
+        "correct": { "type": "boolean" },
+        "durationMs": { "type": "integer", "minimum": 1 },
+        "stale": { "type": "boolean" },
+        "completed": { "type": "boolean" },
+        "maintainerMinutes": { "type": "number", "exclusiveMinimum": 0 },
+        "recovered": { "type": "boolean" },
+        "recoveryDurationMs": { "type": "integer", "minimum": 1 },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "notes": { "$ref": "#/definitions/text" }
+      }
+    },
+    "metricId": {
+      "enum": [
+        "triage-accuracy",
+        "time-to-owner",
+        "waiver-review-time",
+        "stale-finding-rate",
+        "reviewer-task-completion",
+        "maintainer-load",
+        "failure-recovery"
+      ]
+    },
+    "threshold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "operator", "target", "unit", "rationale"],
+      "properties": {
+        "id": { "$ref": "#/definitions/metricId" },
+        "operator": { "enum": [">=", "<=", "=="] },
+        "target": { "type": "number" },
+        "unit": { "$ref": "#/definitions/text" },
+        "rationale": { "$ref": "#/definitions/text" }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "value",
+        "unit",
+        "status",
+        "basis",
+        "sampleCount",
+        "scenarioRefs",
+        "evidenceRefs",
+        "notes"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/metricId" },
+        "value": { "type": "number", "minimum": 0 },
+        "unit": { "$ref": "#/definitions/text" },
+        "status": { "enum": ["pass", "miss"] },
+        "basis": { "enum": ["synthetic", "observed"] },
+        "sampleCount": { "type": "integer", "minimum": 1 },
+        "numerator": {
+          "oneOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }]
+        },
+        "denominator": {
+          "oneOf": [{ "type": "integer", "minimum": 1 }, { "type": "null" }]
+        },
+        "scenarioRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "notes": { "$ref": "#/definitions/text" }
+      }
+    },
+    "threatId": {
+      "enum": [
+        "forgery",
+        "replay",
+        "broad-waiver",
+        "owner-spoofing",
+        "fork-pull-request",
+        "compromised-key"
+      ]
+    },
+    "threat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "attack",
+        "expectedControl",
+        "status",
+        "evidenceRefs",
+        "notes"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/threatId" },
+        "description": { "$ref": "#/definitions/text" },
+        "attack": { "$ref": "#/definitions/text" },
+        "expectedControl": { "$ref": "#/definitions/text" },
+        "status": { "enum": ["blocked", "deferred", "miss"] },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "notes": { "$ref": "#/definitions/text" }
+      }
+    },
+    "securityReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["threats", "summary", "conclusion"],
+      "properties": {
+        "threats": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": { "$ref": "#/definitions/threat" }
+        },
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "threatCount",
+            "blockedCount",
+            "deferredCount",
+            "missCount"
+          ],
+          "properties": {
+            "threatCount": { "type": "integer", "minimum": 6 },
+            "blockedCount": { "type": "integer", "minimum": 0 },
+            "deferredCount": { "type": "integer", "minimum": 0 },
+            "missCount": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "conclusion": { "enum": ["pass", "limited", "fail"] }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "failedMetrics",
+        "securityOutcome",
+        "rationale",
+        "allowedScope",
+        "requiredBeforeChange",
+        "nextReview"
+      ],
+      "properties": {
+        "outcome": { "enum": ["graduate", "narrow", "redesign", "defer"] },
+        "failedMetrics": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/metricId" }
+        },
+        "securityOutcome": { "enum": ["pass", "limited", "fail"] },
+        "rationale": { "$ref": "#/definitions/text" },
+        "allowedScope": { "$ref": "#/definitions/text" },
+        "requiredBeforeChange": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "nextReview": { "$ref": "#/definitions/dateTime" }
+      }
+    },
+    "publicReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "decision", "securityOutcome"],
+      "properties": {
+        "path": { "$ref": "#/definitions/path" },
+        "decision": { "enum": ["graduate", "narrow", "redesign", "defer"] },
+        "securityOutcome": { "enum": ["pass", "limited", "fail"] }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "license",
+        "reference",
+        "transformation",
+        "redistribution"
+      ],
+      "properties": {
+        "source": { "$ref": "#/definitions/text" },
+        "license": { "const": "Apache-2.0" },
+        "reference": { "$ref": "#/definitions/text" },
+        "transformation": { "$ref": "#/definitions/text" },
+        "redistribution": { "const": "allowed" }
+      }
+    }
+  }
+}

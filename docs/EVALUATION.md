@@ -112,6 +112,19 @@ threshold), keeps single-repository query work narrow, and defers
 multi-repository composition until workspace and independent reviewer evidence
 exists. Validate it with `npm run query:quality:validate`.
 
+G-006 publishes the digest-bound
+[`review-workflow-evaluation/report.v0.1.json`](../test/fixtures/review-workflow-evaluation/report.v0.1.json)
+and the public [review workflow evaluation](REVIEW_WORKFLOW_EVALUATION.md).
+The study derives triage accuracy, time-to-owner, waiver review time,
+stale-finding rate, reviewer task completion, maintainer load, and failure
+recovery from representative synthetic observations. Its security review
+replays forgery, replay, broad-waiver, owner-spoofing, fork-pull-request, and
+compromised-key cases. All values are recomputed locally and all six attacks
+are blocked, but the gate defers broader workflow expansion because there is no
+independent maintainer study. The report is not a production usability,
+adoption, load, or approval guarantee. Validate it with
+`npm run review-workflow:evaluation:validate`.
+
 Identity fixtures cover a source-line move, a unique same-name file move, a
 rename supported by an unchanged directed neighborhood, duplicate-name
 ambiguity, a non-mutual destination collision, and a weak unsupported rename.

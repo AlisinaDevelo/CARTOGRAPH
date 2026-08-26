@@ -154,6 +154,7 @@ const checkHostedVersionChange = () => {
       file === "schema/review-summary.v0.1.schema.json" ||
       file === "schema/adoption-measurement.v0.1.schema.json" ||
       file === "schema/workspace-federation-evaluation.v0.1.schema.json" ||
+      file === "schema/review-workflow-evaluation.v0.1.schema.json" ||
       file === "schema/scip-interchange.v0.1.schema.json",
   );
   const reviewRecorded = changed.some(
@@ -344,6 +345,9 @@ const checkCompatibility = () => {
   const reviewSummarySchema = readJson(
     "schema/review-summary.v0.1.schema.json",
   );
+  const reviewWorkflowEvaluationSchema = readJson(
+    "schema/review-workflow-evaluation.v0.1.schema.json",
+  );
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
     source,
@@ -503,6 +507,8 @@ const checkCompatibility = () => {
     reviewSummarySource,
     "REVIEW_SUMMARY_SCHEMA_VERSION",
   );
+  const reviewWorkflowEvaluationVersion =
+    reviewWorkflowEvaluationSchema.properties.schemaVersion.const;
 
   if (
     snapshotVersion === undefined ||
@@ -545,7 +551,8 @@ const checkCompatibility = () => {
     findingLifecycleVersion === undefined ||
     architectureWaiverVersion === undefined ||
     ownershipWaiverDriftVersion === undefined ||
-    reviewSummaryVersion === undefined
+    reviewSummaryVersion === undefined ||
+    reviewWorkflowEvaluationVersion === undefined
   ) {
     throw new Error("runtime schema version constants are missing");
   }
@@ -981,6 +988,16 @@ const checkCompatibility = () => {
     reviewSummarySchema.properties.schemaVersion.const,
     reviewSummaryVersion,
   );
+  requireEqual(
+    "review workflow evaluation policy",
+    reviewWorkflowEvaluationVersion,
+    contracts.reviewWorkflowEvaluation.current,
+  );
+  requireEqual(
+    "review workflow evaluation JSON Schema/runtime",
+    reviewWorkflowEvaluationSchema.properties.schemaVersion.const,
+    reviewWorkflowEvaluationVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -1032,6 +1049,7 @@ const checkCompatibility = () => {
     architectureWaiverVersion,
     ownershipWaiverDriftVersion,
     reviewSummaryVersion,
+    reviewWorkflowEvaluationVersion,
   };
 };
 
