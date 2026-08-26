@@ -1,0 +1,170 @@
+{
+  "artifactVersion": 1,
+  "protocolVersion": 1,
+  "generatedAt": "2026-08-26T00:41:35.599Z",
+  "tool": {
+    "packageVersion": "0.1.0",
+    "nodeVersion": "v26.7.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpuCount": 8,
+    "totalMemoryBytes": 8589934592
+  },
+  "manifest": {
+    "digest": "0bfbc9bbb205251a157c94f8a8c60d7e9b880d2a44d65e3196856305caef22f0",
+    "workloads": 3
+  },
+  "runs": {
+    "cold": 1,
+    "warm": 3
+  },
+  "workloads": [
+    {
+      "id": "small-revision",
+      "tier": "small",
+      "inputDigest": "2c2fd3a252cfc9d2c56bee385b321d5b80f299219edc0936a04c650caa248b63",
+      "before": {
+        "nodes": 48,
+        "edges": 96,
+        "edgeDensity": 0.042553
+      },
+      "after": {
+        "nodes": 52,
+        "edges": 104,
+        "edgeDensity": 0.039216
+      },
+      "identity": {
+        "matches": 46,
+        "ambiguous": 2,
+        "unsupported": 0,
+        "ambiguityPercent": 4.167
+      },
+      "diff": {
+        "nodesAdded": 6,
+        "nodesRemoved": 2,
+        "nodesChanged": 0,
+        "edgesAdded": 12,
+        "edgesRemoved": 4,
+        "edgesChanged": 92,
+        "diagnosticsAdded": 4,
+        "diagnosticsRemoved": 0,
+        "diagnosticsChanged": 0
+      },
+      "reportBytes": 155665,
+      "cold": {
+        "runs": 1,
+        "minMs": 36.662,
+        "medianMs": 36.662,
+        "p95Ms": 36.662,
+        "maxMs": 36.662,
+        "peakRssBytes": 151584768
+      },
+      "warm": {
+        "runs": 3,
+        "minMs": 23.536,
+        "medianMs": 25.416,
+        "p95Ms": 28.329,
+        "maxMs": 28.329,
+        "peakRssBytes": 189890560
+      }
+    },
+    {
+      "id": "medium-revision",
+      "tier": "medium",
+      "inputDigest": "79dd36cd6585cccc6fb3510f08de30eaacd0bdbfdc1b66a79b152058a02a767c",
+      "before": {
+        "nodes": 192,
+        "edges": 560,
+        "edgeDensity": 0.015271
+      },
+      "after": {
+        "nodes": 208,
+        "edges": 608,
+        "edgeDensity": 0.014121
+      },
+      "identity": {
+        "matches": 188,
+        "ambiguous": 4,
+        "unsupported": 0,
+        "ambiguityPercent": 2.083
+      },
+      "diff": {
+        "nodesAdded": 20,
+        "nodesRemoved": 4,
+        "nodesChanged": 0,
+        "edgesAdded": 72,
+        "edgesRemoved": 24,
+        "edgesChanged": 536,
+        "diagnosticsAdded": 12,
+        "diagnosticsRemoved": 0,
+        "diagnosticsChanged": 0
+      },
+      "reportBytes": 869881,
+      "cold": {
+        "runs": 1,
+        "minMs": 160.912,
+        "medianMs": 160.912,
+        "p95Ms": 160.912,
+        "maxMs": 160.912,
+        "peakRssBytes": 213303296
+      },
+      "warm": {
+        "runs": 3,
+        "minMs": 118.206,
+        "medianMs": 122.617,
+        "p95Ms": 123.965,
+        "maxMs": 123.965,
+        "peakRssBytes": 258260992
+      }
+    },
+    {
+      "id": "large-revision",
+      "tier": "large",
+      "inputDigest": "242993f44ee7bf63c83f156b586c1ded8e7852b2324a3ae5659c3910f97b4efc",
+      "before": {
+        "nodes": 448,
+        "edges": 1600,
+        "edgeDensity": 0.00799
+      },
+      "after": {
+        "nodes": 480,
+        "edges": 1728,
+        "edgeDensity": 0.007516
+      },
+      "identity": {
+        "matches": 440,
+        "ambiguous": 8,
+        "unsupported": 0,
+        "ambiguityPercent": 1.786
+      },
+      "diff": {
+        "nodesAdded": 40,
+        "nodesRemoved": 8,
+        "nodesChanged": 0,
+        "edgesAdded": 176,
+        "edgesRemoved": 48,
+        "edgesChanged": 1552,
+        "diagnosticsAdded": 24,
+        "diagnosticsRemoved": 0,
+        "diagnosticsChanged": 0
+      },
+      "reportBytes": 2444802,
+      "cold": {
+        "runs": 1,
+        "minMs": 494.118,
+        "medianMs": 494.118,
+        "p95Ms": 494.118,
+        "maxMs": 494.118,
+        "peakRssBytes": 279773184
+      },
+      "warm": {
+        "runs": 3,
+        "minMs": 600.775,
+        "medianMs": 820.621,
+        "p95Ms": 889.186,
+        "maxMs": 889.186,
+        "peakRssBytes": 294846464
+      }
+    }
+  ]
+}

@@ -362,6 +362,13 @@ universal performance guarantee. CI runs `npm run benchmark:ci` against a
 temporary artifact so correctness, determinism, schema, and the applicable
 performance gate are checked without rewriting the baseline.
 
+D-016 adds the bounded revision-diff workload manifest and digest-only baseline.
+Small, medium, and large synthetic revisions declare node/edge cardinality, edge
+density, identity ambiguity, report size, p95 wall time, peak RSS, and hardware
+context. `npm run benchmark:diff:validate` enforces the tier ceilings and
+`npm run benchmark:diff:ci` applies the same deterministic correctness and 20%
+variance gate without retaining generated graph payloads.
+
 M-002 adds the offline [bounded property and security corpus](PROPERTY_TESTING.md),
 which replays seeded TypeScript, snapshot, policy, and adapter cases under an
 explicit runtime ceiling and keeps discovered crash or security boundaries as

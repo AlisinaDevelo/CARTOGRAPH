@@ -90,11 +90,17 @@ jobs:
       - name: Validate benchmark budgets
         run: npm run benchmark:budgets:validate
 
+      - name: Validate bounded diff benchmark baseline
+        run: npm run benchmark:diff:validate
+
       - name: Validate bounded property and security corpus
         run: npm run property:validate
 
       - name: Run correctness, determinism, and performance gate
         run: npm run benchmark:ci
+
+      - name: Run bounded diff benchmark gate
+        run: npm run benchmark:diff:ci
 
       - name: Validate release change-control register
         run: npm run change-control:validate

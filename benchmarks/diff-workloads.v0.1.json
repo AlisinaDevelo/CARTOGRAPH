@@ -1,0 +1,67 @@
+{
+  "$schema": "../schema/diff-benchmark-workloads.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.diff-benchmark-workloads",
+  "workloadSeed": "cartograph-diff-workloads-v0.1",
+  "tiers": [
+    {
+      "id": "small",
+      "maxNodes": 128,
+      "maxEdges": 384,
+      "maxEdgeDensity": 0.08,
+      "maxIdentityAmbiguityPercent": 8,
+      "maxP95Ms": 250,
+      "maxPeakRssBytes": 750000000,
+      "maxReportBytes": 250000
+    },
+    {
+      "id": "medium",
+      "maxNodes": 512,
+      "maxEdges": 2048,
+      "maxEdgeDensity": 0.04,
+      "maxIdentityAmbiguityPercent": 5,
+      "maxP95Ms": 750,
+      "maxPeakRssBytes": 900000000,
+      "maxReportBytes": 1000000
+    },
+    {
+      "id": "large",
+      "maxNodes": 1024,
+      "maxEdges": 4096,
+      "maxEdgeDensity": 0.02,
+      "maxIdentityAmbiguityPercent": 4,
+      "maxP95Ms": 2000,
+      "maxPeakRssBytes": 1000000000,
+      "maxReportBytes": 5000000
+    }
+  ],
+  "workloads": [
+    {
+      "id": "small-revision",
+      "tier": "small",
+      "seed": 17,
+      "before": { "nodes": 48, "edges": 96 },
+      "after": { "nodes": 52, "edges": 104 },
+      "renamedNodes": 2,
+      "ambiguousNodes": 2
+    },
+    {
+      "id": "medium-revision",
+      "tier": "medium",
+      "seed": 29,
+      "before": { "nodes": 192, "edges": 560 },
+      "after": { "nodes": 208, "edges": 608 },
+      "renamedNodes": 8,
+      "ambiguousNodes": 4
+    },
+    {
+      "id": "large-revision",
+      "tier": "large",
+      "seed": 43,
+      "before": { "nodes": 448, "edges": 1600 },
+      "after": { "nodes": 480, "edges": 1728 },
+      "renamedNodes": 16,
+      "ambiguousNodes": 8
+    }
+  ]
+}
