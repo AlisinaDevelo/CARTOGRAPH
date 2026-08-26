@@ -102,6 +102,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/scip.ts" ||
       file === "src/report/adr.ts" ||
       file === "src/report/review.ts" ||
+      file === "src/report/graph-view.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
       file === "schema/support-matrix.v0.1.schema.json" ||
       file === "schema/graph-diff.v0.1.schema.json" ||
@@ -139,6 +140,7 @@ const checkHostedVersionChange = () => {
       file === "schema/architecture-query-result.v0.1.schema.json" ||
       file === "schema/graph-query-language.v0.1.schema.json" ||
       file === "schema/graph-query-language-result.v0.1.schema.json" ||
+      file === "schema/graph-view.v0.1.schema.json" ||
       file === "schema/architecture-query-explanation.v0.1.schema.json" ||
       file ===
         "schema/architecture-query-explanation-fixtures.v0.1.schema.json" ||
@@ -216,6 +218,7 @@ const checkCompatibility = () => {
   );
   const querySource = readText("src/core/query.ts");
   const queryLanguageSource = readText("src/core/query-language.ts");
+  const graphViewSource = readText("src/report/graph-view.ts");
   const queryExplanationSource = readText("src/core/query-explanation.ts");
   const impactSource = readText("src/core/impact-model.ts");
   const workspaceCompositionSource = readText(
@@ -318,6 +321,7 @@ const checkCompatibility = () => {
   const graphQueryLanguageResultSchema = readJson(
     "schema/graph-query-language-result.v0.1.schema.json",
   );
+  const graphViewSchema = readJson("schema/graph-view.v0.1.schema.json");
   const architectureImpactSchema = readJson(
     "schema/architecture-impact.v0.1.schema.json",
   );
@@ -474,6 +478,10 @@ const checkCompatibility = () => {
     queryLanguageSource,
     "GRAPH_QUERY_LANGUAGE_SCHEMA_VERSION",
   );
+  const graphViewVersion = sourceVersion(
+    graphViewSource,
+    "GRAPH_VIEW_SCHEMA_VERSION",
+  );
   const architectureQueryExplanationVersion = sourceVersion(
     queryExplanationSource,
     "ARCHITECTURE_QUERY_EXPLANATION_SCHEMA_VERSION",
@@ -563,6 +571,7 @@ const checkCompatibility = () => {
     remediationEvaluationVersion === undefined ||
     architectureQueryVersion === undefined ||
     graphQueryLanguageVersion === undefined ||
+    graphViewVersion === undefined ||
     architectureQueryExplanationVersion === undefined ||
     architectureImpactVersion === undefined ||
     workspaceCompositionVersion === undefined ||
@@ -893,6 +902,16 @@ const checkCompatibility = () => {
     graphQueryLanguageVersion,
   );
   requireEqual(
+    "graph view runtime/policy",
+    graphViewVersion,
+    contracts.graphView.current,
+  );
+  requireEqual(
+    "graph view JSON Schema/runtime",
+    graphViewSchema.properties.schemaVersion.const,
+    graphViewVersion,
+  );
+  requireEqual(
     "architecture query explanation runtime/policy",
     architectureQueryExplanationVersion,
     contracts.architectureQueryExplanations.current,
@@ -1086,6 +1105,7 @@ const checkCompatibility = () => {
     remediationEvaluationVersion,
     architectureQueryVersion,
     graphQueryLanguageVersion,
+    graphViewVersion,
     architectureQueryExplanationVersion,
     architectureImpactVersion,
     workspaceCompositionVersion,

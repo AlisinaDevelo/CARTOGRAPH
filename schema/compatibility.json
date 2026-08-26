@@ -162,6 +162,11 @@
       "supportedReaders": [1],
       "reviewedVersions": [1]
     },
+    "graphView": {
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
+    },
     "architectureQueryExplanations": {
       "current": 1,
       "supportedReaders": [1],

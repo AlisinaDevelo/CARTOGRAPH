@@ -951,3 +951,23 @@ equivalent queries produce byte-identical ASTs and canonical selections. The
 language is local, read-only, source-body-free, and network-free; it does not
 replace STRATA's compiler-backed semantic analysis. Replay the checked-in
 grammar corpus with `npm run query-language:validate`.
+
+## D-017 filtered graph views
+
+D-017 adds the reviewed additive `graphView` v1 report contract and
+[`cartograph.graph-view`](../schema/graph-view.v0.1.schema.json). A view is
+derived from a canonical snapshot and a D-015 node or edge query; it does not
+change GraphSnapshot, GraphDiff, or the query-language result shape. Writers
+retain typed edge identity, confidence, evidence paths, unresolved reasons,
+deterministic kind grouping, and digest-bound selected records. Confidence,
+unresolved-edge, and omitted-context legends make filtering visible, while
+coordinates and groups are explicitly presentation-only and must not be read
+as dependency strength, reachability, or completeness.
+
+The JSON, Markdown, and static HTML forms are local, source-body-free,
+network-free, read-only, and resource-bounded. Readers that do not support the
+contract must preserve it as an unsupported report rather than treating a
+filtered view as a complete graph. The checked-in fixture and replay gate are
+run with `npm run graph-view:validate`; a future change to selection, omission,
+legend meaning, or layout semantics requires a new graph-view version or an
+explicit compatibility review.

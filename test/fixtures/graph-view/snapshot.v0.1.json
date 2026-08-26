@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "capabilityRegistryVersion": 1,
+  "revision": {
+    "commitSha": "graph-view-fixture",
+    "branch": "fixture"
+  },
+  "nodes": [
+    {
+      "id": "module:api",
+      "stableKey": "module:src/api.ts",
+      "kind": "module",
+      "name": "api",
+      "language": "typescript",
+      "location": { "path": "src/api.ts", "line": 1 }
+    },
+    {
+      "id": "function:handler",
+      "stableKey": "function:src/api.ts:handler",
+      "kind": "function",
+      "name": "handler",
+      "language": "typescript",
+      "location": { "path": "src/api.ts", "line": 4 }
+    },
+    {
+      "id": "service:payments",
+      "stableKey": "service:payments",
+      "kind": "service",
+      "name": "payments",
+      "language": "typescript"
+    },
+    {
+      "id": "database:orders",
+      "stableKey": "database_table:orders",
+      "kind": "database_table",
+      "name": "orders",
+      "language": "sql"
+    },
+    {
+      "id": "external:billing",
+      "stableKey": "external_service:billing",
+      "kind": "external_service",
+      "name": "billing"
+    },
+    {
+      "id": "file:omitted",
+      "stableKey": "file:src/omitted.ts",
+      "kind": "file",
+      "name": "omitted.ts",
+      "language": "typescript",
+      "location": { "path": "src/omitted.ts", "line": 1 }
+    }
+  ],
+  "edges": [
+    {
+      "from": "module:api",
+      "to": "function:handler",
+      "kind": "contains",
+      "confidence": "certain",
+      "evidence": [
+        {
+          "id": "evidence:contains",
+          "kind": "user",
+          "path": "src/api.ts",
+          "line": 1,
+          "reference": "fixture"
+        }
+      ]
+    },
+    {
+      "from": "function:handler",
+      "to": "service:payments",
+      "kind": "calls",
+      "confidence": "inferred",
+      "evidence": [
+        {
+          "id": "evidence:calls",
+          "kind": "runtime",
+          "path": "src/api.ts",
+          "line": 4,
+          "reference": "fixture"
+        }
+      ]
+    },
+    {
+      "from": "service:payments",
+      "to": "database:orders",
+      "kind": "reads",
+      "confidence": "observed",
+      "evidence": [
+        {
+          "id": "evidence:reads",
+          "kind": "user",
+          "path": "src/payments.ts",
+          "line": 8,
+          "reference": "fixture"
+        }
+      ]
+    },
+    {
+      "from": "service:payments",
+      "to": "external:billing",
+      "kind": "requests",
+      "confidence": "user_confirmed",
+      "evidence": [],
+      "unresolvedReason": "fixture intentionally omits the external request evidence"
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "diagnostic:omitted",
+      "code": "FIXTURE_OMITTED_CONTEXT",
+      "severity": "warning",
+      "message": "the disconnected fixture node is intentionally outside the selected view",
+      "nodeId": "file:omitted"
+    }
+  ]
+}

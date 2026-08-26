@@ -1,0 +1,420 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/graph-view.v0.1.schema.json",
+  "title": "CARTOGRAPH filtered graph view v0.1",
+  "description": "A deterministic local presentation of a bounded graph query. Coordinates and groups are presentation-only and never encode graph semantics.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "viewId",
+    "snapshotRevision",
+    "query",
+    "queryDiagnostics",
+    "queryTruncated",
+    "selection",
+    "selectionDigest",
+    "groups",
+    "nodes",
+    "edges",
+    "layout",
+    "semantics",
+    "legend",
+    "omittedContext",
+    "deterministic",
+    "readOnly",
+    "reportDigest"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.graph-view" },
+    "mediaType": { "const": "application/vnd.cartograph.graph-view+json" },
+    "viewId": { "$ref": "#/definitions/identifier" },
+    "snapshotRevision": { "$ref": "#/definitions/revision" },
+    "query": { "type": "object" },
+    "queryDiagnostics": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/queryDiagnostic" }
+    },
+    "queryTruncated": { "type": "boolean" },
+    "selection": { "$ref": "#/definitions/selection" },
+    "selectionDigest": { "$ref": "#/definitions/digest" },
+    "groups": {
+      "type": "array",
+      "maxItems": 10,
+      "items": { "$ref": "#/definitions/group" }
+    },
+    "nodes": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": { "$ref": "#/definitions/node" }
+    },
+    "edges": {
+      "type": "array",
+      "maxItems": 20000,
+      "items": { "$ref": "#/definitions/edge" }
+    },
+    "layout": { "$ref": "#/definitions/layout" },
+    "semantics": { "$ref": "#/definitions/semantics" },
+    "legend": { "$ref": "#/definitions/legend" },
+    "omittedContext": { "$ref": "#/definitions/omittedContext" },
+    "deterministic": { "const": true },
+    "readOnly": { "const": true },
+    "reportDigest": { "$ref": "#/definitions/digest" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!/)(?!~)(?!\\\\)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\u0000)(?!.*[\\r\\n]).+$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "portableReference": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!~)(?!\\\\)(?![A-Za-z]:)(?!file:)(?!.*\\u0000).+$"
+    },
+    "revision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commitSha"],
+      "properties": {
+        "commitSha": { "$ref": "#/definitions/identifier" },
+        "parentSha": { "$ref": "#/definitions/identifier" },
+        "branch": { "$ref": "#/definitions/identifier" },
+        "authoredAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "nodeKind": {
+      "enum": [
+        "endpoint",
+        "module",
+        "package",
+        "service",
+        "function",
+        "database_table",
+        "queue",
+        "external_service",
+        "file",
+        "unknown"
+      ]
+    },
+    "edgeKind": {
+      "enum": [
+        "calls",
+        "imports",
+        "reads",
+        "writes",
+        "publishes",
+        "subscribes",
+        "requests",
+        "contains",
+        "routes_to",
+        "depends_on",
+        "implements",
+        "unknown"
+      ]
+    },
+    "confidence": {
+      "enum": ["certain", "inferred", "observed", "user_confirmed"]
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "line"],
+      "properties": {
+        "path": { "$ref": "#/definitions/path" },
+        "line": { "type": "integer", "minimum": 1 },
+        "column": { "type": "integer", "minimum": 1 },
+        "endLine": { "type": "integer", "minimum": 1 },
+        "endColumn": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "sourceEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "detector", "contentHash"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "kind": { "const": "source" },
+        "path": { "$ref": "#/definitions/path" },
+        "line": { "type": "integer", "minimum": 1 },
+        "column": { "type": "integer", "minimum": 1 },
+        "endLine": { "type": "integer", "minimum": 1 },
+        "endColumn": { "type": "integer", "minimum": 1 },
+        "location": { "$ref": "#/definitions/location" },
+        "revision": { "$ref": "#/definitions/identifier" },
+        "reference": { "$ref": "#/definitions/portableReference" },
+        "observedAt": { "$ref": "#/definitions/dateTime" },
+        "observedCount": { "type": "integer", "minimum": 0 },
+        "detector": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?:@[A-Za-z0-9._-]+/)?[A-Za-z0-9._-]+@[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$"
+        },
+        "contentHash": {
+          "type": "string",
+          "pattern": "^(?:sha256:)?[0-9a-f]{64}$"
+        }
+      },
+      "allOf": [
+        { "anyOf": [{ "required": ["path"] }, { "required": ["location"] }] },
+        { "anyOf": [{ "required": ["line"] }, { "required": ["location"] }] }
+      ]
+    },
+    "nonSourceEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "kind": { "enum": ["runtime", "git", "user"] },
+        "path": { "$ref": "#/definitions/path" },
+        "line": { "type": "integer", "minimum": 1 },
+        "column": { "type": "integer", "minimum": 1 },
+        "endLine": { "type": "integer", "minimum": 1 },
+        "endColumn": { "type": "integer", "minimum": 1 },
+        "location": { "$ref": "#/definitions/location" },
+        "revision": { "$ref": "#/definitions/identifier" },
+        "reference": { "$ref": "#/definitions/portableReference" },
+        "observedAt": { "$ref": "#/definitions/dateTime" },
+        "observedCount": { "type": "integer", "minimum": 0 },
+        "detector": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?:@[A-Za-z0-9._-]+/)?[A-Za-z0-9._-]+@[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$"
+        },
+        "contentHash": {
+          "type": "string",
+          "pattern": "^(?:sha256:)?[0-9a-f]{64}$"
+        }
+      }
+    },
+    "evidence": {
+      "oneOf": [
+        { "$ref": "#/definitions/sourceEvidence" },
+        { "$ref": "#/definitions/nonSourceEvidence" }
+      ]
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "stableKey", "kind", "name", "groupId", "position"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "stableKey": { "$ref": "#/definitions/identifier" },
+        "kind": { "$ref": "#/definitions/nodeKind" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "language": { "$ref": "#/definitions/identifier" },
+        "location": { "$ref": "#/definitions/location" },
+        "groupId": { "$ref": "#/definitions/identifier" },
+        "position": { "$ref": "#/definitions/point" }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "from",
+        "to",
+        "kind",
+        "confidence",
+        "evidence",
+        "evidencePaths",
+        "unresolved"
+      ],
+      "properties": {
+        "identity": { "$ref": "#/definitions/identifier" },
+        "from": { "$ref": "#/definitions/identifier" },
+        "to": { "$ref": "#/definitions/identifier" },
+        "kind": { "$ref": "#/definitions/edgeKind" },
+        "confidence": { "$ref": "#/definitions/confidence" },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/evidence" }
+        },
+        "evidencePaths": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/path" }
+        },
+        "unresolved": { "type": "boolean" },
+        "unresolvedReason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      }
+    },
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "integer", "minimum": 0, "maximum": 10000000 },
+        "y": { "type": "integer", "minimum": 0, "maximum": 10000000 }
+      }
+    },
+    "group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "nodeIds"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "kind": { "$ref": "#/definitions/nodeKind" },
+        "nodeIds": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/identifier" },
+          "maxItems": 10000
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "width", "height", "groupOrder", "semantics"],
+      "properties": {
+        "algorithm": { "const": "kind-columns-v1" },
+        "width": { "type": "integer", "minimum": 1, "maximum": 10000000 },
+        "height": { "type": "integer", "minimum": 1, "maximum": 10000000 },
+        "groupOrder": {
+          "type": "array",
+          "maxItems": 10,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "semantics": {
+          "const": "presentation-only; position and grouping do not encode dependency strength, confidence, reachability, or completeness"
+        }
+      }
+    },
+    "confidenceLegend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "count", "description"],
+      "properties": {
+        "value": { "$ref": "#/definitions/confidence" },
+        "count": { "type": "integer", "minimum": 0 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 512 }
+      }
+    },
+    "omittedCategory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count", "sampleIds"],
+      "properties": {
+        "count": { "type": "integer", "minimum": 0 },
+        "sampleIds": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "omittedContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "edges", "diagnostics"],
+      "properties": {
+        "nodes": { "$ref": "#/definitions/omittedCategory" },
+        "edges": { "$ref": "#/definitions/omittedCategory" },
+        "diagnostics": { "$ref": "#/definitions/omittedCategory" }
+      }
+    },
+    "legend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["confidence", "unresolvedEdges", "omittedContext"],
+      "properties": {
+        "confidence": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": { "$ref": "#/definitions/confidenceLegend" }
+        },
+        "unresolvedEdges": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["count", "identities"],
+          "properties": {
+            "count": { "type": "integer", "minimum": 0 },
+            "identities": {
+              "type": "array",
+              "maxItems": 20000,
+              "items": { "$ref": "#/definitions/identifier" }
+            }
+          }
+        },
+        "omittedContext": { "$ref": "#/definitions/omittedContext" }
+      }
+    },
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeIds", "edgeIdentities", "digest", "complete"],
+      "properties": {
+        "nodeIds": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "edgeIdentities": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "digest": { "$ref": "#/definitions/digest" },
+        "complete": { "type": "boolean" }
+      }
+    },
+    "semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["layout", "edgeIdentity", "omittedContext", "warning"],
+      "properties": {
+        "layout": { "const": "presentation-only" },
+        "edgeIdentity": { "const": "from|kind|to" },
+        "omittedContext": {
+          "const": "counts and samples are not selected records"
+        },
+        "warning": { "type": "string", "minLength": 1, "maxLength": 1024 }
+      }
+    },
+    "queryDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "code", "severity", "message"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "code": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "message": { "type": "string", "minLength": 1 },
+        "limit": {
+          "enum": [
+            "maxDepth",
+            "maxNodes",
+            "maxEdges",
+            "maxChanges",
+            "maxTimeMs",
+            "maxResultBytes"
+          ]
+        }
+      }
+    }
+  }
+}

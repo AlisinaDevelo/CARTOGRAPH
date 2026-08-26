@@ -497,6 +497,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "graph-view",
+      "path": "graph-view",
+      "source": "CARTOGRAPH repository-authored synthetic graph-view fixture",
+      "license": "Apache-2.0",
+      "reference": "D-017 filtered graph-view rendering contract; no external source data",
+      "transformation": "A bounded local snapshot and node traversal query exercise deterministic kind grouping, typed edge preservation, confidence and unresolved legends, omitted-context reporting, and static rendering without source bodies, execution, credentials, or network access.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "architecture-impact",
       "path": "architecture-impact",
       "source": "CARTOGRAPH repository-authored synthetic impact fixture",

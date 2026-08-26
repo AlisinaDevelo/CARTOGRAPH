@@ -250,6 +250,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Conditional Year 4 investment charter](docs/YEAR4_INVESTMENT_CHARTER.md)
 - [Architecture query contract](docs/ARCHITECTURE_QUERIES.md)
 - [Graph and diff query language](docs/ARCHITECTURE.md#d-015-query-language)
+- [Filtered graph views](docs/ARCHITECTURE.md#d-017-filtered-graph-views)
 - [Patch-scoped graph and policy filtering](docs/PATCH_FILTER.md)
 - [Release gate](docs/RELEASE.md)
 - [Release acceptance and rollback rehearsal](docs/RELEASE_REHEARSAL.md)
