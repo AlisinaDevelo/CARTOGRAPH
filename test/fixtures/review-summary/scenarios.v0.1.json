@@ -1,0 +1,52 @@
+{
+  "$schema": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/review-summary-fixtures.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.review-summary",
+  "mediaType": "application/vnd.cartograph.review-summary+json",
+  "fixtureId": "g005-v0.1",
+  "method": {
+    "replayMode": "checked-in-diff-and-decision-contexts",
+    "rerunnable": true,
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "credentialsUsed": false,
+    "hiddenTelemetry": false,
+    "authorityFree": true,
+    "command": "npm run review-summary:validate"
+  },
+  "scenarios": [
+    {
+      "id": "comprehensive-review-context",
+      "sources": {
+        "diff": "snapshots/valid.graph-diff.json",
+        "lifecycle": "finding-lifecycle/replay.v0.1.json",
+        "ownership": "ownership-resolution/report.v0.1.json",
+        "waiverDrift": "ownership-waiver-drift/scenarios.v0.1.json",
+        "adr": "adr-lifecycle/scenarios.v0.1.json"
+      },
+      "expected": {
+        "status": "unsupported",
+        "requiredKinds": [
+          "policy",
+          "lifecycle",
+          "ownership",
+          "waiver",
+          "drift"
+        ],
+        "requiredContext": [
+          "policy",
+          "lifecycle",
+          "ownership",
+          "waivers",
+          "adr"
+        ],
+        "requiredNextStepCodes": [
+          "review-policy",
+          "review-waiver",
+          "refresh-evidence"
+        ],
+        "minimumFindings": 10
+      }
+    }
+  ]
+}

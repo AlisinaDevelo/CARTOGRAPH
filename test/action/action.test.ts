@@ -28,11 +28,15 @@ describe("read-only GitHub Action contract", () => {
     expect(action).toContain("default: informational");
     expect(action).toContain("CARTOGRAPH_POLICY_PATH");
     expect(action).toContain("CARTOGRAPH_POLICY_MODE");
+    expect(action).toContain("review-context");
+    expect(action).toContain("CARTOGRAPH_REVIEW_CONTEXT_PATH");
     expect(action).toContain("--mode");
     expect(action).toContain("Upload policy evaluation");
     expect(action).toContain("if: inputs.upload-report == 'true'");
     expect(action).toContain("architecture-diff.json");
     expect(action).toContain("architecture-diff.html");
+    expect(action).toContain("architecture-review.json");
+    expect(action).toContain("architecture-review.html");
     expect(action).toContain("npm ci --ignore-scripts");
     expect(action).toContain(
       "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",

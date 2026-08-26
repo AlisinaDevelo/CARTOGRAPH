@@ -127,6 +127,19 @@ is reported as expiring (the default is seven days). Active and expiring
 exceptions can suppress only their matching rule violation; expired and
 malformed exceptions remain visible and never suppress findings.
 
+`review <input>` projects a local `cartograph.review-summary` request into a
+deterministic review artifact. The input is a JSON object with one canonical
+`GraphDiff` and optional, already-materialized lifecycle, ownership, waiver,
+waiver-drift, policy, ADR, and local-artifact context. The command joins those
+records by their declared identities; it never rescans source, evaluates
+policy, verifies signatures, contacts a service, or grants authority. Missing
+context is reported as an actionable next step rather than treated as a clean
+result. Use `--format json|markdown|html` (Markdown is the default) and
+`--output <path>` to write a bounded report. Input is capped at 64 MiB and the
+rendered report at 16 MiB; every next step is explicitly `mutates: false`. The
+canonical JSON contract is
+[`review-summary.v0.1.schema.json`](../schema/review-summary.v0.1.schema.json).
+
 ## Output and diagnostic streams
 
 Successful commands write exactly one artifact to stdout when `--output` is

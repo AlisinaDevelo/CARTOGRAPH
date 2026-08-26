@@ -23,6 +23,7 @@ describe("CLI", () => {
       "diff",
       "reconcile-runtime",
       "diff-snapshots",
+      "review",
       "policy",
       "migrate-snapshot",
       "review-remediation",

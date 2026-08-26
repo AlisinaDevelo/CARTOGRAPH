@@ -104,6 +104,11 @@ const validatePolicy = (candidateWorkflow, candidateAction) => {
     "CARTOGRAPH_POLICY_MODE",
     "policy mode validation",
   );
+  requireText(
+    candidateAction,
+    "CARTOGRAPH_REVIEW_CONTEXT_PATH",
+    "review context opt-in",
+  );
   requireText(candidateAction, "--mode", "policy mode forwarding");
   requireText(candidateAction, "policy-exit-code", "policy status handoff");
   requireText(
@@ -118,6 +123,16 @@ const validatePolicy = (candidateWorkflow, candidateAction) => {
   );
   requireText(candidateAction, "architecture-diff.json", "JSON artifact scope");
   requireText(candidateAction, "architecture-diff.html", "HTML artifact scope");
+  requireText(
+    candidateAction,
+    "architecture-review.json",
+    "review JSON artifact scope",
+  );
+  requireText(
+    candidateAction,
+    "architecture-review.html",
+    "review HTML artifact scope",
+  );
 };
 
 const expectPolicyRejection = (label, candidateWorkflow, candidateAction) => {

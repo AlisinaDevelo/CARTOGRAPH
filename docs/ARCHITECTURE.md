@@ -457,6 +457,28 @@ is replayed with `npm run ownership-waiver-drift:validate`. This additive
 contract does not change GraphSnapshot, GraphDiff, or STRATA's compiler-backed
 semantic analysis boundary.
 
+## G-005 review summaries
+
+The [`cartograph.review-summary`](../schema/review-summary.v0.1.schema.json)
+contract is an additive, presentation-layer projection over one canonical
+GraphDiff and optional local lifecycle, ownership, waiver, waiver-drift, policy,
+ADR, and artifact records. It joins only declared identities and preserves
+finding state, owner source, waiver validity and expiry, policy/ADR context,
+drift codes, evidence references, bounded counts, and deterministic next steps.
+It does not rescan source, evaluate policy, verify signatures, contact a remote,
+write a repository, or grant authority. Missing context is explicit and produces
+a read-only `mutates: false` next step; it is never interpreted as a clean
+review.
+
+JSON is canonical, with deterministic Markdown and script-free HTML projections.
+Input and output are bounded, repository-relative artifact links are validated,
+source bodies and private keys are excluded, and provenance records
+`readOnly: true`, `network: false`, `authorityGranted: false`, and
+`automaticActions: false`. The checked-in scenario corpus is replayed with
+`npm run review-summary:validate`. This additive contract does not change
+GraphSnapshot, GraphDiff, or STRATA's compiler-backed semantic analysis
+boundary.
+
 ## Topology summaries
 
 `diffGraphSnapshots` accepts an optional `topology` configuration. The resulting

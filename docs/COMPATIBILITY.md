@@ -864,3 +864,23 @@ fixture is replayed by `npm run ownership-waiver-drift:validate`; the contract
 is local, offline, deterministic, and additive. Readers that do not implement
 the contract must retain the artifact as an unsupported report rather than
 interpreting it as a clean review.
+
+## G-005 review summaries
+
+G-005 adds the versioned `reviewSummary` contract and
+[`cartograph.review-summary`](../schema/review-summary.v0.1.schema.json) schema.
+It is a presentation-layer request/report around an existing GraphDiff with
+optional local lifecycle, ownership, waiver, waiver-drift, policy, ADR, and
+artifact context. The report preserves declared identities, evidence
+references, state and expiry, owner source, policy/ADR context, drift codes,
+bounded counts, and non-mutating next steps. It does not alter GraphSnapshot or
+GraphDiff and does not evaluate policy, verify signatures, infer ownership, or
+grant authority.
+
+Writers emit canonical JSON plus deterministic Markdown/HTML projections;
+readers that do not implement the contract must retain it as unsupported rather
+than treating missing context as clean. Input and output limits, repository-
+relative artifact paths, source-body/private-key exclusion, and provenance
+flags are part of the v1 reader/writer boundary. The checked-in scenarios are
+replayed by `npm run review-summary:validate`; a future meaning change requires
+a new review-summary version or an explicit migration review.
