@@ -634,3 +634,22 @@ The registry, fixture schema, and five-case corpus are published in
 and [`test/fixtures/adapter-compatibility/scenarios.v0.1.json`](../test/fixtures/adapter-compatibility/scenarios.v0.1.json).
 The adapter result's optional negotiation record is additive; existing v0.1
 manifest and graph readers retain their meaning.
+
+## W-001 offline workspace composition
+
+W-001 publishes the additive
+[`cartograph.workspace-composition`](../schema/workspace-composition.v0.1.schema.json)
+manifest contract. A manifest names a bounded set of independently produced
+local snapshots by repository identity, logical name, immutable revision,
+repository-relative path, GraphSnapshot schema version, adapter identity and
+version, and declared byte size. Optional boundaries and explicit omissions
+make missing repositories visible without pretending that their graphs were
+loaded.
+
+The parser rejects duplicate identities and paths, incompatible schema or
+adapter major versions, absolute/parent-traversing/URI paths, snapshots or
+collections above declared resource limits, unknown boundary endpoints, and
+implicit remote inputs. Reading a manifest performs only bounded local file
+I/O; it never fetches a repository, embeds source, executes code, or opens a
+network path. Existing GraphSnapshot, GraphDiff, adapter, and diagnostic
+consumers are unchanged.
