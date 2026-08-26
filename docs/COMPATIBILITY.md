@@ -731,3 +731,22 @@ and partial repository failures are reported only as an explicit `partial`
 assessment. Temporary workspace helpers always remove their directory in a
 `finally` path, including callback failures. Existing graph, composition,
 identity, boundary, and recomposition readers remain additive and unchanged.
+
+## M-014 telemetry-free adoption measurement
+
+M-014 publishes the versioned, aggregate-only
+[`cartograph.adoption-measurement`](../schema/adoption-measurement.v0.1.schema.json)
+protocol and its
+[`protocol.v0.1.json`](../test/fixtures/adoption-measurement/protocol.v0.1.json)
+snapshot. It defines six metrics whose only eligible inputs are opt-in public
+reports, issue-template signals, release metadata, manually reproducible local
+repository runs, and consented anonymized summaries. The current snapshot
+retains five pinned technical-sample records and defers every adoption or
+traction claim.
+
+The protocol is governance evidence, not a runtime or GraphSnapshot field. It
+requires no network, source upload, account, raw-input retention, personal
+data, or hidden telemetry. Sampling bias, missingness, retention, minimum-cell
+anonymization, consent withdrawal, and deletion responsibilities are explicit;
+changing the metric meaning or source authorization requires a new protocol
+version and review rather than silently changing an existing snapshot.

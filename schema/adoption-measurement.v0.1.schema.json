@@ -1,0 +1,436 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/adoption-measurement.v0.1.schema.json",
+  "title": "CARTOGRAPH telemetry-free adoption measurement protocol v0.1",
+  "description": "A local, opt-in protocol for aggregate adoption evidence from public reports, issue templates, release metadata, and manually reproducible repository runs without hidden telemetry or source collection.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "protocolId",
+    "asOf",
+    "window",
+    "scope",
+    "metricCatalog",
+    "observations",
+    "sampling",
+    "retention",
+    "anonymization",
+    "deletion",
+    "decision",
+    "summary",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.adoption-measurement" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.adoption-measurement+json"
+    },
+    "protocolId": { "$ref": "#/definitions/identifier" },
+    "asOf": { "$ref": "#/definitions/dateTime" },
+    "window": { "$ref": "#/definitions/window" },
+    "scope": { "$ref": "#/definitions/scope" },
+    "metricCatalog": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": { "$ref": "#/definitions/metric" }
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": { "$ref": "#/definitions/observation" }
+    },
+    "sampling": { "$ref": "#/definitions/sampling" },
+    "retention": { "$ref": "#/definitions/retention" },
+    "anonymization": { "$ref": "#/definitions/anonymization" },
+    "deletion": { "$ref": "#/definitions/deletion" },
+    "decision": { "$ref": "#/definitions/decision" },
+    "summary": { "$ref": "#/definitions/summary" },
+    "provenance": { "$ref": "#/definitions/provenance" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9]*(?:[._:/-][a-z0-9]+)*$"
+    },
+    "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "dateTime": { "type": "string", "format": "date-time" },
+    "portablePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!/)(?!~)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)(?!.*\\u0000).+$"
+    },
+    "sourceKind": {
+      "enum": [
+        "public-report",
+        "public-issue",
+        "public-pr",
+        "release-metadata",
+        "manual-repository-run",
+        "consented-summary"
+      ]
+    },
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "start", "end", "timezone"],
+      "properties": {
+        "kind": { "const": "snapshot" },
+        "start": { "$ref": "#/definitions/dateTime" },
+        "end": { "$ref": "#/definitions/dateTime" },
+        "timezone": { "const": "UTC" }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "publicOnly",
+        "optInOnly",
+        "network",
+        "hiddenTelemetry",
+        "sourceUpload",
+        "rawInputsRetained",
+        "personalData",
+        "collectionMode",
+        "allowedSources"
+      ],
+      "properties": {
+        "publicOnly": { "const": true },
+        "optInOnly": { "const": true },
+        "network": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "sourceUpload": { "const": false },
+        "rawInputsRetained": { "const": false },
+        "personalData": { "const": false },
+        "collectionMode": { "const": "manual-public-evidence" },
+        "allowedSources": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/sourceKind" }
+        }
+      }
+    },
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "description",
+        "unit",
+        "sourceKinds",
+        "collectionRule",
+        "requiresExplicitOptIn"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "label": { "$ref": "#/definitions/text" },
+        "description": { "$ref": "#/definitions/text" },
+        "unit": {
+          "enum": [
+            "reports",
+            "issue-templates",
+            "release-events",
+            "repository-runs",
+            "repeat-runs",
+            "feedback-records"
+          ]
+        },
+        "sourceKinds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/sourceKind" }
+        },
+        "collectionRule": { "$ref": "#/definitions/text" },
+        "requiresExplicitOptIn": { "const": true }
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sourceKind",
+        "reference",
+        "authorization",
+        "reproducible",
+        "anonymized",
+        "sourcePayloadRetained",
+        "rawInputRetained"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "sourceKind": { "$ref": "#/definitions/sourceKind" },
+        "reference": { "$ref": "#/definitions/text" },
+        "authorization": {
+          "enum": ["public-opt-in", "explicit-consent"]
+        },
+        "reproducible": { "type": "boolean" },
+        "anonymized": { "const": true },
+        "sourcePayloadRetained": { "const": false },
+        "rawInputRetained": { "const": false }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "metricId",
+        "status",
+        "value",
+        "denominator",
+        "claim",
+        "sourceKinds",
+        "records",
+        "evidenceRefs",
+        "limitations"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "metricId": { "$ref": "#/definitions/identifier" },
+        "status": { "enum": ["observed", "not-observed", "suppressed"] },
+        "value": { "type": ["number", "null"] },
+        "denominator": { "type": ["integer", "null"], "minimum": 0 },
+        "claim": {
+          "enum": [
+            "descriptive-only",
+            "technical-sample-only",
+            "not-a-claim",
+            "deferred"
+          ]
+        },
+        "sourceKinds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/sourceKind" }
+        },
+        "records": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/record" }
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/text" }
+        }
+      }
+    },
+    "samplingBias": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "description", "effect", "mitigation"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "description": { "$ref": "#/definitions/text" },
+        "effect": { "$ref": "#/definitions/text" },
+        "mitigation": { "$ref": "#/definitions/text" }
+      }
+    },
+    "sampling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "biases",
+        "exclusions",
+        "reviewCadence",
+        "minimumEvidence"
+      ],
+      "properties": {
+        "method": { "const": "purposive-public-opt-in" },
+        "biases": {
+          "type": "array",
+          "minItems": 5,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/samplingBias" }
+        },
+        "exclusions": {
+          "type": "array",
+          "minItems": 4,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "reviewCadence": { "$ref": "#/definitions/text" },
+        "minimumEvidence": { "$ref": "#/definitions/text" }
+      }
+    },
+    "retention": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rawInputs",
+        "summaries",
+        "evidenceDigests",
+        "defaultDays",
+        "withdrawalRule",
+        "owner"
+      ],
+      "properties": {
+        "rawInputs": { "const": "discard-after-review" },
+        "summaries": { "const": "versioned-aggregate-only" },
+        "evidenceDigests": { "const": "retain-with-summary" },
+        "defaultDays": { "type": "integer", "minimum": 1, "maximum": 3650 },
+        "withdrawalRule": { "$ref": "#/definitions/text" },
+        "owner": { "const": "evidence-publisher" }
+      }
+    },
+    "anonymization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "method",
+        "directIdentifiers",
+        "quasiIdentifiers",
+        "minimumCellSize",
+        "consentEvidence",
+        "review"
+      ],
+      "properties": {
+        "required": { "const": true },
+        "method": { "const": "aggregate-and-digest-only" },
+        "directIdentifiers": { "const": "removed" },
+        "quasiIdentifiers": { "const": "generalized-or-suppressed" },
+        "minimumCellSize": { "type": "integer", "minimum": 2, "maximum": 20 },
+        "consentEvidence": { "const": "boolean-and-public-reference-only" },
+        "review": { "$ref": "#/definitions/text" }
+      }
+    },
+    "responsibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor", "action", "verification"],
+      "properties": {
+        "actor": {
+          "enum": [
+            "evidence-publisher",
+            "CARTOGRAPH-maintainer",
+            "release-owner"
+          ]
+        },
+        "action": { "$ref": "#/definitions/text" },
+        "verification": { "$ref": "#/definitions/text" }
+      }
+    },
+    "deletion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requestRoute",
+        "responsibilities",
+        "verification",
+        "exceptions"
+      ],
+      "properties": {
+        "requestRoute": { "$ref": "#/definitions/text" },
+        "responsibilities": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "$ref": "#/definitions/responsibility" }
+        },
+        "verification": { "$ref": "#/definitions/text" },
+        "exceptions": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/definitions/text" }
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "claimBoundary",
+        "rationale",
+        "requiredBeforeChange",
+        "nextReview",
+        "backlogRef"
+      ],
+      "properties": {
+        "state": { "const": "defer" },
+        "claimBoundary": { "const": "no-adoption-claim" },
+        "rationale": { "$ref": "#/definitions/text" },
+        "requiredBeforeChange": {
+          "type": "array",
+          "minItems": 4,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "nextReview": { "$ref": "#/definitions/dateTime" },
+        "backlogRef": { "const": "M-014" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metricCount",
+        "observedMetrics",
+        "notObservedMetrics",
+        "suppressedMetrics",
+        "recordCount",
+        "publicRecords",
+        "consentedRecords",
+        "adoptionClaim",
+        "network",
+        "hiddenTelemetry",
+        "sourceUpload",
+        "personalData"
+      ],
+      "properties": {
+        "metricCount": { "type": "integer", "minimum": 0 },
+        "observedMetrics": { "type": "integer", "minimum": 0 },
+        "notObservedMetrics": { "type": "integer", "minimum": 0 },
+        "suppressedMetrics": { "type": "integer", "minimum": 0 },
+        "recordCount": { "type": "integer", "minimum": 0 },
+        "publicRecords": { "type": "integer", "minimum": 0 },
+        "consentedRecords": { "type": "integer", "minimum": 0 },
+        "adoptionClaim": { "const": "deferred" },
+        "network": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "sourceUpload": { "const": false },
+        "personalData": { "const": false }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "license",
+        "reference",
+        "transformation",
+        "redistribution"
+      ],
+      "properties": {
+        "source": { "$ref": "#/definitions/text" },
+        "license": { "const": "Apache-2.0" },
+        "reference": { "$ref": "#/definitions/text" },
+        "transformation": { "$ref": "#/definitions/text" },
+        "redistribution": { "const": "allowed" }
+      }
+    }
+  }
+}

@@ -139,7 +139,8 @@ const checkHostedVersionChange = () => {
       file === "schema/workspace-identity.v0.1.schema.json" ||
       file === "schema/workspace-boundaries.v0.1.schema.json" ||
       file === "schema/workspace-recomposition.v0.1.schema.json" ||
-      file === "schema/workspace-privacy.v0.1.schema.json",
+      file === "schema/workspace-privacy.v0.1.schema.json" ||
+      file === "schema/adoption-measurement.v0.1.schema.json",
   );
   const reviewRecorded = changed.some(
     (file) =>
@@ -297,6 +298,9 @@ const checkCompatibility = () => {
   const workspacePrivacySchema = readJson(
     "schema/workspace-privacy.v0.1.schema.json",
   );
+  const adoptionMeasurementSchema = readJson(
+    "schema/adoption-measurement.v0.1.schema.json",
+  );
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
     source,
@@ -428,6 +432,8 @@ const checkCompatibility = () => {
     workspacePrivacySource,
     "WORKSPACE_PRIVACY_SCHEMA_VERSION",
   );
+  const adoptionMeasurementVersion =
+    adoptionMeasurementSchema.properties.schemaVersion.const;
 
   if (
     snapshotVersion === undefined ||
@@ -824,6 +830,11 @@ const checkCompatibility = () => {
     workspacePrivacySchema.definitions.request.properties.schemaVersion.const,
     workspacePrivacyVersion,
   );
+  requireEqual(
+    "adoption measurement JSON Schema/runtime",
+    adoptionMeasurementSchema.properties.schemaVersion.const,
+    adoptionMeasurementVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -867,6 +878,7 @@ const checkCompatibility = () => {
     workspaceBoundaryVersion,
     workspaceRecompositionVersion,
     workspacePrivacyVersion,
+    adoptionMeasurementVersion,
   };
 };
 
