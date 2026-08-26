@@ -288,6 +288,24 @@ aliases normalize to one canonical selection. This reusable graph/diff query
 surface complements the existing JSON architecture-query contract and is
 distinct from STRATA's compiler-backed semantic analysis.
 
+## D-017 filtered graph views
+
+The `cartograph.graph-view` report is a local, bounded projection over a
+canonical `GraphSnapshot` and a D-015 node or edge query. It retains exact
+`from|kind|to` edge identities, confidence, evidence paths, and explicit
+unresolved reasons. A deterministic kind-column layout groups records only for
+readability; coordinates and grouping never encode dependency strength,
+reachability, confidence, or graph completeness.
+
+Every view includes confidence and unresolved-edge legends, selected node and
+edge digests, and omitted node, edge, and diagnostic counts with bounded sample
+identities. Static JSON, Markdown, and HTML renderings are source-body-free,
+network-free, read-only, and resource-bounded. Omitted context remains visible
+as omission metadata rather than being presented as a complete architecture.
+The graph view is a presentation/report surface for CARTOGRAPH; it does not
+replace STRATA's compiler-backed semantic analyzer or claim semantic evidence
+that is absent from the selected snapshot.
+
 ## Identity
 
 The initial stable key combines the node kind with normalized module and symbol

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.graph-view-fixtures",
+  "scenarios": [
+    {
+      "id": "filtered-typed-graph",
+      "snapshotFile": "snapshot.v0.1.json",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.graph-query-language",
+        "queryId": "fixture-graph-view",
+        "target": "nodes",
+        "predicates": [
+          {
+            "field": "kind",
+            "operator": "in",
+            "values": [
+              "module",
+              "function",
+              "service",
+              "database_table",
+              "external_service"
+            ]
+          }
+        ],
+        "traversal": {
+          "enabled": true,
+          "direction": "forward",
+          "edgeKinds": ["contains", "calls", "reads", "requests"],
+          "maxDepth": 3,
+          "includeUnresolved": true
+        },
+        "limits": {
+          "maxDepth": 4,
+          "maxNodes": 100,
+          "maxEdges": 100,
+          "maxChanges": 100,
+          "maxTimeMs": 5000,
+          "maxResultBytes": 1048576
+        }
+      },
+      "expected": {
+        "nodes": 5,
+        "edges": 4,
+        "omittedNodes": 1,
+        "omittedEdges": 0,
+        "omittedDiagnostics": 1,
+        "unresolvedEdges": 1
+      }
+    }
+  ]
+}
