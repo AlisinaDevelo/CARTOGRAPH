@@ -664,6 +664,15 @@
       "reference": "G-004 ownership and exception drift contract; no external source data",
       "transformation": "Two point-in-time decision surfaces exercise owner disappearance, ambiguous reassignment, repository moves, policy and evidence migration, expiry, invalid signatures, signing-key rotation, prior decision retention, and partial workspaces without source bodies, private keys, execution, or network access.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "review-summary",
+      "path": "review-summary",
+      "source": "CARTOGRAPH repository-authored synthetic review-summary fixture",
+      "license": "Apache-2.0",
+      "reference": "G-005 bounded review-output contract; no external source data",
+      "transformation": "A deterministic offline scenario composes a GraphDiff with lifecycle, ownership, policy, waiver, drift, ADR, and local-artifact context to exercise reviewer-visible state, ownership evidence, expiry, unsupported results, and non-mutating next steps without source bodies, signing material, or network access.",
+      "redistribution": "allowed"
     }
   ]
 }

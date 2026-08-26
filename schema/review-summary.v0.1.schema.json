@@ -1,0 +1,584 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/review-summary.v0.1.schema.json",
+  "title": "CARTOGRAPH review summary v0.1",
+  "description": "A deterministic, read-only projection joining a GraphDiff with optional lifecycle, ownership, waiver, policy, ADR, and local-artifact context. It contains no source bodies, signing material, network authority, or automatic actions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "status",
+    "fromRevision",
+    "toRevision",
+    "summary",
+    "context",
+    "findings",
+    "nextSteps",
+    "artifacts",
+    "limits",
+    "provenance"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.review-summary" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.review-summary+json"
+    },
+    "status": { "enum": ["clean", "attention", "unsupported"] },
+    "fromRevision": { "$ref": "#/definitions/revision" },
+    "toRevision": { "$ref": "#/definitions/revision" },
+    "comparison": { "$ref": "#/definitions/comparison" },
+    "summary": { "$ref": "#/definitions/summary" },
+    "context": { "$ref": "#/definitions/context" },
+    "findings": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": { "$ref": "#/definitions/finding" }
+    },
+    "nextSteps": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": { "$ref": "#/definitions/nextStep" }
+    },
+    "artifacts": {
+      "type": "array",
+      "maxItems": 128,
+      "items": { "$ref": "#/definitions/artifact" }
+    },
+    "limits": { "$ref": "#/definitions/limits" },
+    "provenance": { "$ref": "#/definitions/provenance" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "shortText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!~)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "dateTime": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "format": "date-time"
+    },
+    "revision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commitSha"],
+      "properties": {
+        "commitSha": { "$ref": "#/definitions/identifier" },
+        "parentSha": { "$ref": "#/definitions/identifier" },
+        "branch": { "$ref": "#/definitions/identifier" },
+        "authoredAt": { "$ref": "#/definitions/dateTime" }
+      }
+    },
+    "comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "baseRef",
+        "headRef",
+        "baseCommitSha",
+        "headCommitSha"
+      ],
+      "properties": {
+        "mode": { "enum": ["direct", "merge-base"] },
+        "baseRef": { "$ref": "#/definitions/identifier" },
+        "headRef": { "$ref": "#/definitions/identifier" },
+        "baseCommitSha": { "$ref": "#/definitions/identifier" },
+        "headCommitSha": { "$ref": "#/definitions/identifier" },
+        "mergeBaseSha": { "$ref": "#/definitions/identifier" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "findings",
+        "new",
+        "changed",
+        "accepted",
+        "removed",
+        "unchanged",
+        "ownerless",
+        "ambiguousOwners",
+        "waiverActive",
+        "waiverExpiring",
+        "waiverExpired",
+        "waiverInvalid",
+        "policyViolations",
+        "policyUnsupported",
+        "adrStale",
+        "actionable",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "findings": { "type": "integer", "minimum": 0 },
+        "new": { "type": "integer", "minimum": 0 },
+        "changed": { "type": "integer", "minimum": 0 },
+        "accepted": { "type": "integer", "minimum": 0 },
+        "removed": { "type": "integer", "minimum": 0 },
+        "unchanged": { "type": "integer", "minimum": 0 },
+        "ownerless": { "type": "integer", "minimum": 0 },
+        "ambiguousOwners": { "type": "integer", "minimum": 0 },
+        "waiverActive": { "type": "integer", "minimum": 0 },
+        "waiverExpiring": { "type": "integer", "minimum": 0 },
+        "waiverExpired": { "type": "integer", "minimum": 0 },
+        "waiverInvalid": { "type": "integer", "minimum": 0 },
+        "policyViolations": { "type": "integer", "minimum": 0 },
+        "policyUnsupported": { "type": "integer", "minimum": 0 },
+        "adrStale": { "type": "integer", "minimum": 0 },
+        "actionable": { "type": "integer", "minimum": 0 },
+        "evidenceRefs": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "kind", "path", "local"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "label": { "$ref": "#/definitions/shortText" },
+        "kind": {
+          "enum": [
+            "diff",
+            "policy",
+            "lifecycle",
+            "ownership",
+            "waiver",
+            "drift",
+            "adr",
+            "review"
+          ]
+        },
+        "path": { "$ref": "#/definitions/path" },
+        "local": { "const": true }
+      }
+    },
+    "owner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "refs", "evidenceRefs"],
+      "properties": {
+        "status": {
+          "enum": [
+            "resolved",
+            "unowned",
+            "ambiguous",
+            "unavailable",
+            "unsupported",
+            "not-provided"
+          ]
+        },
+        "refs": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "source": { "$ref": "#/definitions/ownerSource" },
+        "evidenceRefs": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "ownerSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "ruleId", "matchedPath"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "path": { "$ref": "#/definitions/path" },
+        "ruleId": { "$ref": "#/definitions/identifier" },
+        "matchedPath": { "enum": ["current", "previous"] }
+      }
+    },
+    "waiver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "code", "expiryState", "evidenceRefs"],
+      "properties": {
+        "status": {
+          "enum": [
+            "active",
+            "expiring",
+            "unsigned",
+            "invalid",
+            "broadened",
+            "replayed",
+            "expired",
+            "not-effective",
+            "revoked",
+            "signature-invalid",
+            "trust-root-untrusted",
+            "scope-mismatch",
+            "no-match",
+            "shadowed",
+            "not-provided"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^(?:WAIVER_[A-Z0-9_]+|NOT_PROVIDED)$"
+        },
+        "id": { "$ref": "#/definitions/identifier" },
+        "expiresAt": { "$ref": "#/definitions/dateTime" },
+        "expiryState": {
+          "enum": ["none", "expiring", "expired", "not-provided"]
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policyId",
+        "policyVersion",
+        "mode",
+        "status",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "policyId": { "$ref": "#/definitions/identifier" },
+        "policyVersion": { "$ref": "#/definitions/identifier" },
+        "mode": { "enum": ["informational", "enforce"] },
+        "status": { "enum": ["passed", "violations", "unsupported"] },
+        "ruleId": { "$ref": "#/definitions/identifier" },
+        "violationId": { "$ref": "#/definitions/identifier" },
+        "evidenceRefs": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "severity",
+        "change",
+        "owner",
+        "waiver",
+        "adrIds",
+        "driftCodes",
+        "evidenceRefs",
+        "nextStepIds"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "kind": {
+          "enum": ["policy", "lifecycle", "ownership", "waiver", "drift"]
+        },
+        "title": { "$ref": "#/definitions/shortText" },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "change": {
+          "enum": ["new", "changed", "accepted", "removed", "unchanged"]
+        },
+        "code": { "$ref": "#/definitions/identifier" },
+        "lifecycleState": {
+          "enum": [
+            "open",
+            "acknowledged",
+            "remediated",
+            "waived",
+            "regressed",
+            "obsolete"
+          ]
+        },
+        "owner": { "$ref": "#/definitions/owner" },
+        "waiver": { "$ref": "#/definitions/waiver" },
+        "policy": { "$ref": "#/definitions/policy" },
+        "adrIds": {
+          "type": "array",
+          "maxItems": 256,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "driftCodes": {
+          "type": "array",
+          "maxItems": 256,
+          "items": { "type": "string", "pattern": "^DRIFT_[A-Z0-9_]+$" }
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "nextStepIds": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "nextStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "code",
+        "title",
+        "action",
+        "severity",
+        "evidenceRefs",
+        "mutates"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "code": {
+          "enum": [
+            "provide-policy",
+            "provide-lifecycle",
+            "provide-ownership",
+            "provide-waiver",
+            "provide-adr",
+            "assign-owner",
+            "resolve-owner",
+            "triage-finding",
+            "review-policy",
+            "review-waiver",
+            "review-adr",
+            "refresh-evidence"
+          ]
+        },
+        "title": { "$ref": "#/definitions/shortText" },
+        "action": { "$ref": "#/definitions/shortText" },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "subjectId": { "$ref": "#/definitions/identifier" },
+        "evidenceRefs": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "mutates": { "const": false }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy",
+        "lifecycle",
+        "ownership",
+        "waivers",
+        "adr",
+        "artifacts"
+      ],
+      "properties": {
+        "policy": { "$ref": "#/definitions/policyContext" },
+        "lifecycle": { "$ref": "#/definitions/lifecycleContext" },
+        "ownership": { "$ref": "#/definitions/ownershipContext" },
+        "waivers": { "$ref": "#/definitions/waiverContext" },
+        "adr": { "$ref": "#/definitions/adrContext" },
+        "artifacts": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/artifact" }
+        }
+      }
+    },
+    "policyContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["available", "violations", "unsupported", "exceptions"],
+      "properties": {
+        "available": { "type": "boolean" },
+        "policyId": { "$ref": "#/definitions/identifier" },
+        "policyVersion": { "$ref": "#/definitions/identifier" },
+        "mode": { "enum": ["informational", "enforce"] },
+        "status": { "enum": ["passed", "violations", "unsupported"] },
+        "violations": { "type": "integer", "minimum": 0 },
+        "unsupported": { "type": "integer", "minimum": 0 },
+        "exceptions": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "lifecycleContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["available", "findings", "events", "diagnostics", "states"],
+      "properties": {
+        "available": { "type": "boolean" },
+        "findings": { "type": "integer", "minimum": 0 },
+        "events": { "type": "integer", "minimum": 0 },
+        "diagnostics": { "type": "integer", "minimum": 0 },
+        "states": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "open",
+            "acknowledged",
+            "remediated",
+            "waived",
+            "regressed",
+            "obsolete"
+          ],
+          "properties": {
+            "open": { "type": "integer", "minimum": 0 },
+            "acknowledged": { "type": "integer", "minimum": 0 },
+            "remediated": { "type": "integer", "minimum": 0 },
+            "waived": { "type": "integer", "minimum": 0 },
+            "regressed": { "type": "integer", "minimum": 0 },
+            "obsolete": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "ownershipContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "available",
+        "targets",
+        "resolved",
+        "unowned",
+        "ambiguous",
+        "unavailable",
+        "unsupported"
+      ],
+      "properties": {
+        "available": { "type": "boolean" },
+        "targets": { "type": "integer", "minimum": 0 },
+        "resolved": { "type": "integer", "minimum": 0 },
+        "unowned": { "type": "integer", "minimum": 0 },
+        "ambiguous": { "type": "integer", "minimum": 0 },
+        "unavailable": { "type": "integer", "minimum": 0 },
+        "unsupported": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "waiverContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "available",
+        "total",
+        "active",
+        "expiring",
+        "expired",
+        "invalid",
+        "suppressed",
+        "driftDiagnostics"
+      ],
+      "properties": {
+        "available": { "type": "boolean" },
+        "total": { "type": "integer", "minimum": 0 },
+        "active": { "type": "integer", "minimum": 0 },
+        "expiring": { "type": "integer", "minimum": 0 },
+        "expired": { "type": "integer", "minimum": 0 },
+        "invalid": { "type": "integer", "minimum": 0 },
+        "suppressed": { "type": "integer", "minimum": 0 },
+        "driftDiagnostics": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "adrContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["available", "references", "diagnostics"],
+      "properties": {
+        "available": { "type": "boolean" },
+        "references": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "#/definitions/adrReference" }
+        },
+        "diagnostics": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "#/definitions/shortText" }
+        }
+      }
+    },
+    "adrReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "status", "file", "graphIds"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "title": { "$ref": "#/definitions/shortText" },
+        "status": {
+          "enum": [
+            "draft",
+            "proposed",
+            "accepted",
+            "rejected",
+            "deprecated",
+            "superseded"
+          ]
+        },
+        "file": { "$ref": "#/definitions/path" },
+        "graphIds": {
+          "type": "array",
+          "maxItems": 256,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxFindings",
+        "maxNextSteps",
+        "maxEvidenceRefs",
+        "maxArtifacts"
+      ],
+      "properties": {
+        "maxFindings": { "const": 10000 },
+        "maxNextSteps": { "const": 10000 },
+        "maxEvidenceRefs": { "const": 128 },
+        "maxArtifacts": { "const": 128 }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resolver",
+        "resolverVersion",
+        "inputDigest",
+        "deterministic",
+        "readOnly",
+        "network",
+        "sourceBodiesIncluded",
+        "privateKeysIncluded",
+        "authorityGranted",
+        "automaticActions"
+      ],
+      "properties": {
+        "resolver": { "const": "cartograph.review-summary" },
+        "resolverVersion": { "const": "1" },
+        "inputDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "deterministic": { "const": true },
+        "readOnly": { "const": true },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "privateKeysIncluded": { "const": false },
+        "authorityGranted": { "const": false },
+        "automaticActions": { "const": false }
+      }
+    }
+  }
+}

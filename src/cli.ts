@@ -20,6 +20,7 @@ import {
   migrateSnapshotFile,
   reconcileRuntimeFiles,
   reviewRemediationFile,
+  reviewSummaryFile,
   scanRepository,
   serializeScan,
   writeOutputFile,
@@ -352,6 +353,29 @@ export function createCli(): Command {
           await diffSnapshotFiles(before, after, options.format),
           options,
         );
+      },
+    );
+
+  program
+    .command("review")
+    .description(
+      "join a local GraphDiff with bounded lifecycle, ownership, waiver, policy, and ADR context",
+    )
+    .argument("<input>", "local review-summary input JSON")
+    .option(
+      "-f, --format <format>",
+      "report format: json, markdown, or html",
+      reportFormat,
+      "markdown",
+    )
+    .option("-o, --output <path>", "output report file; stdout when omitted")
+    .option("--force", "replace an existing output file", false)
+    .action(
+      async (
+        input: string,
+        options: OutputOptions & { format: ReportFormat },
+      ): Promise<void> => {
+        await emit(await reviewSummaryFile(input, options.format), options);
       },
     );
 

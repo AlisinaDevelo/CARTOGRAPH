@@ -16,6 +16,10 @@ const migrationFixture = resolve(
   repositoryRoot,
   "test/fixtures/snapshots/legacy-v0.graph.json",
 );
+const validDiffFixture = resolve(
+  repositoryRoot,
+  "test/fixtures/snapshots/valid.graph-diff.json",
+);
 const temporaryDirectories: string[] = [];
 
 type ProcessResult = {
@@ -112,6 +116,53 @@ describe("CLI entrypoint", () => {
       schemaVersion: 1,
       fromRevision: { commitSha: "working-tree" },
     });
+  });
+
+  it("renders a bounded review summary from a local GraphDiff", async () => {
+    const root = await mkdtemp(join(tmpdir(), "cartograph-cli-review-test-"));
+    temporaryDirectories.push(root);
+    const input = join(root, "review-input.json");
+    const diff = JSON.parse(
+      await readFile(validDiffFixture, "utf8"),
+    ) as unknown;
+    await writeFile(
+      input,
+      JSON.stringify({
+        schemaVersion: 1,
+        contract: "cartograph.review-summary",
+        diff,
+        context: { artifacts: [] },
+      }),
+      "utf8",
+    );
+
+    const json = await runEntrypoint(["review", input, "--format", "json"]);
+    const report = JSON.parse(json.stdout) as {
+      status?: string;
+      nextSteps?: { mutates?: boolean }[];
+      provenance?: { readOnly?: boolean; automaticActions?: boolean };
+    };
+    const markdown = await runEntrypoint([
+      "review",
+      input,
+      "--format",
+      "markdown",
+    ]);
+
+    expect(json.code).toBe(0);
+    expect(json.stderr).toBe("");
+    expect(report).toMatchObject({
+      status: "attention",
+      provenance: { readOnly: true, automaticActions: false },
+    });
+    expect(report.nextSteps?.length).toBe(5);
+    expect(report.nextSteps?.every((step) => step.mutates === false)).toBe(
+      true,
+    );
+    expect(markdown.code).toBe(0);
+    expect(markdown.stderr).toBe("");
+    expect(markdown.stdout).toContain("# CARTOGRAPH review summary");
+    expect(markdown.stdout).toContain("Provide policy context");
   });
 
   it("redacts a configuration-path failure without leaking the supplied secret", async () => {

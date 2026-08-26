@@ -42,6 +42,10 @@ inputs:
     description: Policy CI mode; informational is the non-blocking default and enforce is opt-in
     required: false
     default: informational
+  review-context:
+    description: Optional repository-relative JSON context for lifecycle, ownership, waiver, and ADR review output
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -75,6 +79,7 @@ runs:
         CARTOGRAPH_UPLOAD_REPORT: ${{ inputs.upload-report }}
         CARTOGRAPH_POLICY_PATH: ${{ inputs.policy }}
         CARTOGRAPH_POLICY_MODE: ${{ inputs.policy-mode }}
+        CARTOGRAPH_REVIEW_CONTEXT_PATH: ${{ inputs.review-context }}
       run: |
         set -euo pipefail
         base_ref="${CARTOGRAPH_BASE_INPUT:-${CARTOGRAPH_PR_BASE_SHA:-}}"
@@ -137,7 +142,10 @@ runs:
           "${GITHUB_STEP_SUMMARY:-}" \
           "$CARTOGRAPH_ARTIFACT_NAME" \
           "$CARTOGRAPH_UPLOAD_REPORT" \
-          "$report_dir/policy-evaluation.json"
+          "$report_dir/policy-evaluation.json" \
+          "$CARTOGRAPH_REVIEW_CONTEXT_PATH" \
+          "$report_dir/architecture-review.json" \
+          "$report_dir/architecture-review.html"
 
     - name: Upload architecture diff report
       if: inputs.upload-report == 'true'
@@ -147,6 +155,8 @@ runs:
         path: |
           ${{ runner.temp }}/cartograph-report/architecture-diff.json
           ${{ runner.temp }}/cartograph-report/architecture-diff.html
+          ${{ runner.temp }}/cartograph-report/architecture-review.json
+          ${{ runner.temp }}/cartograph-report/architecture-review.html
         if-no-files-found: error
         retention-days: ${{ inputs.retention-days }}
 

@@ -120,6 +120,17 @@ const runFixture = async () => {
     const noUploadSummaryPath = join(outputDir, "summary-no-upload.md");
     const policyPath = join(outputDir, "policy.json");
     const policyReportPath = join(outputDir, "policy-evaluation.json");
+    const reviewContextPath = join(outputDir, "review-context.json");
+    const reviewJsonPath = join(outputDir, "architecture-review.json");
+    const reviewHtmlPath = join(outputDir, "architecture-review.html");
+    const noUploadReviewJsonPath = join(
+      outputDir,
+      "architecture-review-no-upload.json",
+    );
+    const noUploadReviewHtmlPath = join(
+      outputDir,
+      "architecture-review-no-upload.html",
+    );
     const cliPath = resolve(repositoryRoot, "dist/cli.js");
     await writeFile(
       policyPath,
@@ -134,6 +145,21 @@ const runFixture = async () => {
             target: "diff",
             selector: { kind: "diagnostic-added", code: "never-present" },
             assertion: "exists",
+          },
+        ],
+      }),
+      "utf8",
+    );
+    await writeFile(
+      reviewContextPath,
+      JSON.stringify({
+        artifacts: [
+          {
+            id: "fixture-context",
+            label: "Fixture review context",
+            kind: "review",
+            path: ".cartograph/review-context.json",
+            local: true,
           },
         ],
       }),
@@ -158,7 +184,7 @@ const runFixture = async () => {
         jsonPath,
         "--force",
       ],
-      repositoryRoot,
+      root,
     );
     const informationalPolicyExit = await runExitCode(
       process.execPath,
@@ -176,7 +202,7 @@ const runFixture = async () => {
         policyReportPath,
         "--force",
       ],
-      repositoryRoot,
+      root,
     );
     const enforcingPolicyExit = await runExitCode(
       process.execPath,
@@ -194,7 +220,7 @@ const runFixture = async () => {
         join(outputDir, "policy-evaluation-enforce.json"),
         "--force",
       ],
-      repositoryRoot,
+      root,
     );
     if (informationalPolicyExit !== 0)
       throw new Error("informational policy mode unexpectedly blocked");
@@ -212,8 +238,11 @@ const runFixture = async () => {
         "cartograph-fixture-report",
         "true",
         policyReportPath,
+        ".cartograph/review-context.json",
+        reviewJsonPath,
+        reviewHtmlPath,
       ],
-      repositoryRoot,
+      root,
     );
     await run(
       process.execPath,
@@ -225,8 +254,11 @@ const runFixture = async () => {
         "cartograph-fixture-report",
         "false",
         policyReportPath,
+        ".cartograph/review-context.json",
+        noUploadReviewJsonPath,
+        noUploadReviewHtmlPath,
       ],
-      repositoryRoot,
+      root,
     );
 
     const diff = JSON.parse(await readFile(jsonPath, "utf8"));
@@ -234,11 +266,16 @@ const runFixture = async () => {
     const summary = await readFile(summaryPath, "utf8");
     const noUploadSummary = await readFile(noUploadSummaryPath, "utf8");
     const policyReport = JSON.parse(await readFile(policyReportPath, "utf8"));
+    const review = JSON.parse(await readFile(reviewJsonPath, "utf8"));
+    const reviewHtml = await readFile(reviewHtmlPath, "utf8");
+    const noUploadReview = JSON.parse(
+      await readFile(noUploadReviewJsonPath, "utf8"),
+    );
     const serializedDiff = JSON.stringify(diff);
     const reportBytes = Buffer.byteLength(serializedDiff, "utf8");
     const htmlBytes = Buffer.byteLength(html, "utf8");
     const forbiddenValues = [privateSourceSnippet, privateToken, root];
-    const reportPayload = `${serializedDiff}\n${html}\n${summary}\n${JSON.stringify(policyReport)}`;
+    const reportPayload = `${serializedDiff}\n${html}\n${summary}\n${JSON.stringify(policyReport)}\n${JSON.stringify(review)}\n${reviewHtml}`;
     if (forbiddenValues.some((value) => reportPayload.includes(value)))
       throw new Error(
         "fixture report leaked an absolute path, source snippet, or token",
@@ -249,7 +286,12 @@ const runFixture = async () => {
       )
     )
       throw new Error("fixture report contains a credential-shaped token");
-    if (reportBytes > 16 * 1024 * 1024 || htmlBytes > 16 * 1024 * 1024)
+    if (
+      reportBytes > 16 * 1024 * 1024 ||
+      htmlBytes > 16 * 1024 * 1024 ||
+      Buffer.byteLength(JSON.stringify(review), "utf8") > 16 * 1024 * 1024 ||
+      Buffer.byteLength(reviewHtml, "utf8") > 16 * 1024 * 1024
+    )
       throw new Error("fixture report exceeded the 16 MiB artifact ceiling");
     if (
       diff.comparison?.mode !== "merge-base" ||
@@ -265,6 +307,18 @@ const runFixture = async () => {
     if (!summary.includes("### CARTOGRAPH architecture diff"))
       throw new Error("fixture summary was not emitted");
     if (
+      review.contract !== "cartograph.review-summary" ||
+      review.context.policy.available !== true ||
+      !review.context.artifacts.some(
+        (artifact) => artifact.id === "fixture-context",
+      ) ||
+      review.provenance.authorityGranted !== false ||
+      review.nextSteps.some((step) => step.mutates !== false)
+    )
+      throw new Error("review summary did not preserve the read-only contract");
+    if (!reviewHtml.includes("<title>CARTOGRAPH review summary</title>"))
+      throw new Error("review summary HTML was not emitted");
+    if (
       policyReport.mode !== "informational" ||
       policyReport.status !== "violations" ||
       !summary.includes("Policy mode: `informational`")
@@ -275,6 +329,10 @@ const runFixture = async () => {
       noUploadSummary.includes("Static report: artifact")
     )
       throw new Error("upload opt-out summary did not disable artifact claim");
+    if (noUploadReview.contract !== "cartograph.review-summary")
+      throw new Error(
+        "review output disappeared when report upload was disabled",
+      );
     if ((await git(["status", "--porcelain"], root)) !== "")
       throw new Error("fixture analysis modified the repository");
 
@@ -417,6 +475,8 @@ const runFixture = async () => {
         reportBytes: htmlBytes,
         jsonBytes: reportBytes,
         summaryBytes: Buffer.byteLength(summary, "utf8"),
+        reviewBytes: Buffer.byteLength(JSON.stringify(review), "utf8"),
+        reviewHtmlBytes: Buffer.byteLength(reviewHtml, "utf8"),
         policyMode: policyReport.mode,
         policyStatus: policyReport.status,
         informationalPolicyExit,

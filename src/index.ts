@@ -4,3 +4,4 @@ export * from "./adapters/index.js";
 export * from "./commands.js";
 export * from "./git/revision.js";
 export * from "./report/render.js";
+export * from "./report/review.js";

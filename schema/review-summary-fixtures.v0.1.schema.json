@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/review-summary-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH review summary fixture scenarios v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "fixtureId",
+    "method",
+    "scenarios"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.review-summary" },
+    "mediaType": { "const": "application/vnd.cartograph.review-summary+json" },
+    "fixtureId": { "const": "g005-v0.1" },
+    "method": { "$ref": "#/definitions/method" },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": { "$ref": "#/definitions/scenario" }
+    }
+  },
+  "definitions": {
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!~)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "replayMode",
+        "rerunnable",
+        "network",
+        "sourceBodiesIncluded",
+        "credentialsUsed",
+        "hiddenTelemetry",
+        "authorityFree",
+        "command"
+      ],
+      "properties": {
+        "replayMode": { "$ref": "#/definitions/identifier" },
+        "rerunnable": { "const": true },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "credentialsUsed": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "authorityFree": { "const": true },
+        "command": { "$ref": "#/definitions/identifier" }
+      }
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["diff", "lifecycle", "ownership", "waiverDrift", "adr"],
+      "properties": {
+        "diff": { "$ref": "#/definitions/path" },
+        "lifecycle": { "$ref": "#/definitions/path" },
+        "ownership": { "$ref": "#/definitions/path" },
+        "waiverDrift": { "$ref": "#/definitions/path" },
+        "adr": { "$ref": "#/definitions/path" }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "requiredKinds",
+        "requiredContext",
+        "requiredNextStepCodes"
+      ],
+      "properties": {
+        "status": { "enum": ["clean", "attention", "unsupported"] },
+        "requiredKinds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": ["policy", "lifecycle", "ownership", "waiver", "drift"]
+          }
+        },
+        "requiredContext": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": ["policy", "lifecycle", "ownership", "waivers", "adr"]
+          }
+        },
+        "requiredNextStepCodes": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z-]+$" }
+        },
+        "minimumFindings": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "sources", "expected"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "sources": { "$ref": "#/definitions/sources" },
+        "expected": { "$ref": "#/definitions/expected" }
+      }
+    }
+  }
+}

@@ -96,8 +96,10 @@ const checkHostedVersionChange = () => {
       file === "src/core/finding-lifecycle.ts" ||
       file === "src/core/architecture-waivers.ts" ||
       file === "src/core/ownership-waiver-drift.ts" ||
+      file === "src/core/review-summary.ts" ||
       file === "src/core/scip.ts" ||
       file === "src/report/adr.ts" ||
+      file === "src/report/review.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
       file === "schema/support-matrix.v0.1.schema.json" ||
       file === "schema/graph-diff.v0.1.schema.json" ||
@@ -149,6 +151,7 @@ const checkHostedVersionChange = () => {
       file === "schema/finding-lifecycle.v0.1.schema.json" ||
       file === "schema/architecture-waiver.v0.1.schema.json" ||
       file === "schema/ownership-waiver-drift.v0.1.schema.json" ||
+      file === "schema/review-summary.v0.1.schema.json" ||
       file === "schema/adoption-measurement.v0.1.schema.json" ||
       file === "schema/workspace-federation-evaluation.v0.1.schema.json" ||
       file === "schema/scip-interchange.v0.1.schema.json",
@@ -221,6 +224,7 @@ const checkCompatibility = () => {
   const ownershipWaiverDriftSource = readText(
     "src/core/ownership-waiver-drift.ts",
   );
+  const reviewSummarySource = readText("src/core/review-summary.ts");
   const scipSource = readText("src/core/scip.ts");
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
   const supportSchema = readJson("schema/support-matrix.v0.1.schema.json");
@@ -336,6 +340,9 @@ const checkCompatibility = () => {
   );
   const ownershipWaiverDriftSchema = readJson(
     "schema/ownership-waiver-drift.v0.1.schema.json",
+  );
+  const reviewSummarySchema = readJson(
+    "schema/review-summary.v0.1.schema.json",
   );
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
@@ -492,6 +499,10 @@ const checkCompatibility = () => {
     ownershipWaiverDriftSource,
     "OWNERSHIP_WAIVER_DRIFT_SCHEMA_VERSION",
   );
+  const reviewSummaryVersion = sourceVersion(
+    reviewSummarySource,
+    "REVIEW_SUMMARY_SCHEMA_VERSION",
+  );
 
   if (
     snapshotVersion === undefined ||
@@ -533,7 +544,8 @@ const checkCompatibility = () => {
     ownershipResolutionVersion === undefined ||
     findingLifecycleVersion === undefined ||
     architectureWaiverVersion === undefined ||
-    ownershipWaiverDriftVersion === undefined
+    ownershipWaiverDriftVersion === undefined ||
+    reviewSummaryVersion === undefined
   ) {
     throw new Error("runtime schema version constants are missing");
   }
@@ -959,6 +971,16 @@ const checkCompatibility = () => {
     ownershipWaiverDriftSchema.properties.schemaVersion.const,
     ownershipWaiverDriftVersion,
   );
+  requireEqual(
+    "review summary runtime/policy",
+    reviewSummaryVersion,
+    contracts.reviewSummary.current,
+  );
+  requireEqual(
+    "review summary JSON Schema/runtime",
+    reviewSummarySchema.properties.schemaVersion.const,
+    reviewSummaryVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -1009,6 +1031,7 @@ const checkCompatibility = () => {
     findingLifecycleVersion,
     architectureWaiverVersion,
     ownershipWaiverDriftVersion,
+    reviewSummaryVersion,
   };
 };
 

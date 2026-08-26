@@ -2,9 +2,12 @@
 
 `action.yml` exposes the first hosted integration boundary for CARTOGRAPH. With
 its defaults it is informational: the Action reads a pull request, writes a
-concise job summary, and (unless opted out) uploads a static HTML/JSON report
-artifact. A repository can opt into local policy evaluation with the `policy`
-input and opt into blocking findings with `policy-mode: enforce`. The Action
+concise job summary, and (unless opted out) uploads bounded HTML/JSON diff and
+review-summary artifacts. A repository can opt into local policy evaluation
+with the `policy` input and provide already-materialized lifecycle, ownership,
+waiver, drift, and ADR context with `review-context`. The `review-context`
+input is source-free local JSON; it is never fetched or executed. A repository
+can opt into blocking findings with `policy-mode: enforce`. The Action
 never comments, labels, merges, changes issues, executes repository code, uses
 secrets, or requires write permissions.
 
@@ -73,9 +76,11 @@ workflow. `merge-base` is the default and fails closed for shallow repositories,
 unrelated histories, or multiple merge bases; `direct` remains available for
 an explicit two-tree comparison.
 
-The architecture report artifact is deliberately scoped to exactly two files:
-`architecture-diff.html` and the canonical `architecture-diff.json`. An
-opted-in policy produces a separate canonical `policy-evaluation.json` artifact.
+The architecture report artifact is deliberately scoped to the two static diff
+files: `architecture-diff.html` and the canonical `architecture-diff.json`.
+The review artifact adds `architecture-review.html` and the canonical
+`architecture-review.json`; an opted-in policy also produces a separate
+canonical `policy-evaluation.json` artifact.
 Neither artifact ever contains a source body, source snippet, credential, token,
 absolute local path, or arbitrary payload. Source evidence is limited to repository-relative paths,
 spans, detector identities, and content hashes; HTML values are escaped and the
@@ -114,6 +119,27 @@ with:
 The policy input is read locally inside the analyzed repository. The Action
 does not fetch policy content or execute policy expressions. Leaving `policy`
 empty keeps the read-only architecture diff behavior without a policy gate.
+
+## Review summary context
+
+The optional `review-context` input points to a repository-relative JSON object
+containing only already-materialized artifacts used by the review projection.
+It may include `lifecycle`, `ownership`, `waiverEvaluation`, `waiverDrift`,
+`waiverSnapshots`, `adr`, and local `artifacts` links. The projection joins
+finding lifecycle change, owner references and source rules, waiver validity
+and expiry, policy and ADR context, evidence references, and non-mutating next
+steps. Missing context is reported as an explicit next step; it is never
+treated as proof of a clean review.
+
+```yaml
+with:
+  review-context: .cartograph/review-context.json
+```
+
+The review JSON and HTML outputs preserve the same 16 MiB/cardinality limits as
+the static report and explicitly record deterministic, read-only, offline,
+authority-free provenance. They do not contain source bodies, private keys,
+absolute paths, or `mutates: true` actions.
 
 The Action builds the checked-out CARTOGRAPH source with
 `npm ci --ignore-scripts` and Node.js 24 before analyzing the caller repository;

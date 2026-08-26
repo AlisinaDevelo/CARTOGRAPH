@@ -38,6 +38,7 @@ import {
   serializeRuntimeTrace,
   serializeGraphSnapshot,
   serializeRemediationReview,
+  buildReviewSummary,
   validateMigrationOutput,
   stableStringify,
   type CartographConfig,
@@ -55,10 +56,12 @@ import {
 } from "./git/revision.js";
 import { buildAdrReport, type AdrReport } from "./report/adr.js";
 import { renderDiff, type ReportFormat } from "./report/render.js";
+import { renderReviewSummary } from "./report/review.js";
 
 const MAX_SNAPSHOT_BYTES = 64 * 1024 * 1024;
 const MAX_POLICY_INPUT_BYTES = 64 * 1024 * 1024;
 const MAX_REMEDIATION_REVIEW_BYTES = 2 * 1024 * 1024;
+const MAX_REVIEW_SUMMARY_INPUT_BYTES = 64 * 1024 * 1024;
 const MAX_RUNTIME_BINDINGS_BYTES = 16 * 1024 * 1024;
 const MAX_RUNTIME_TRACE_INPUT_BYTES = 64 * 1024 * 1024;
 const MAX_RUNTIME_TOTAL_INPUT_BYTES = 128 * 1024 * 1024;
@@ -867,6 +870,18 @@ export async function reviewRemediationFile(
     asOf === undefined ? {} : { now: asOf },
   );
   return `${serializeRemediationReview(review)}\n`;
+}
+
+export async function reviewSummaryFile(
+  inputPath: string,
+  format: ReportFormat,
+): Promise<string> {
+  const input = await readBoundedJsonInput(
+    inputPath,
+    MAX_REVIEW_SUMMARY_INPUT_BYTES,
+    "review summary input",
+  );
+  return renderReviewSummary(buildReviewSummary(input.value), format);
 }
 
 export async function writeOutputFile(
