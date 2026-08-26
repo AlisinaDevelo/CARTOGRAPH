@@ -137,6 +137,11 @@
       "supportedReaders": [1],
       "reviewedVersions": [1]
     },
+    "patchFilters": {
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
+    },
     "remediationReviews": {
       "current": 1,
       "supportedReaders": [1],

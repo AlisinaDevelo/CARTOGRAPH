@@ -1,0 +1,372 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/patch-filter.v0.1.schema.json",
+  "title": "CARTOGRAPH patch-scoped graph and policy filter v0.1",
+  "description": "Deterministic changed-file and bounded one-hop graph selection that preserves full-diff policy status.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "filterId",
+    "fromRevision",
+    "toRevision",
+    "requestDigest",
+    "selection",
+    "omitted",
+    "policy",
+    "deterministic",
+    "readOnly",
+    "reportDigest"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.patch-filter" },
+    "mediaType": { "const": "application/vnd.cartograph.patch-filter+json" },
+    "filterId": { "$ref": "#/definitions/identifier" },
+    "fromRevision": { "$ref": "#/definitions/revision" },
+    "toRevision": { "$ref": "#/definitions/revision" },
+    "requestDigest": { "$ref": "#/definitions/digest" },
+    "selection": { "$ref": "#/definitions/selection" },
+    "omitted": { "$ref": "#/definitions/omitted" },
+    "policy": { "$ref": "#/definitions/policy" },
+    "deterministic": { "const": true },
+    "readOnly": { "const": true },
+    "reportDigest": { "$ref": "#/definitions/digest" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/|%=>-]*$"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "pattern": "^[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F]+$"
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?![\\\\/])(?!~)(?![A-Za-z][A-Za-z\\d+.-]*:)(?!.*\\u0000)(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$)).+"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "revision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commitSha"],
+      "properties": {
+        "commitSha": { "$ref": "#/definitions/identifier" },
+        "parentSha": { "$ref": "#/definitions/identifier" },
+        "branch": { "$ref": "#/definitions/identifier" },
+        "authoredAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "changedFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "status", "generated"],
+      "properties": {
+        "path": { "$ref": "#/definitions/path" },
+        "status": { "enum": ["added", "modified", "removed", "renamed"] },
+        "previousPath": { "$ref": "#/definitions/path" },
+        "generated": { "type": "boolean" }
+      }
+    },
+    "role": { "enum": ["changed", "context"] },
+    "side": { "enum": ["before", "after"] },
+    "evidencePaths": {
+      "type": "array",
+      "maxItems": 64,
+      "items": { "$ref": "#/definitions/path" }
+    },
+    "selectedNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["side", "id", "stableKey", "role", "depth", "evidencePaths"],
+      "properties": {
+        "side": { "$ref": "#/definitions/side" },
+        "id": { "$ref": "#/definitions/identifier" },
+        "stableKey": { "$ref": "#/definitions/identifier" },
+        "role": { "$ref": "#/definitions/role" },
+        "depth": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "evidencePaths": { "$ref": "#/definitions/evidencePaths" }
+      }
+    },
+    "selectedEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "side",
+        "identity",
+        "from",
+        "to",
+        "kind",
+        "role",
+        "depth",
+        "evidencePaths"
+      ],
+      "properties": {
+        "side": { "$ref": "#/definitions/side" },
+        "identity": { "$ref": "#/definitions/identifier" },
+        "from": { "$ref": "#/definitions/identifier" },
+        "to": { "$ref": "#/definitions/identifier" },
+        "kind": { "$ref": "#/definitions/edgeKind" },
+        "role": { "$ref": "#/definitions/role" },
+        "depth": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "evidencePaths": { "$ref": "#/definitions/evidencePaths" }
+      }
+    },
+    "selectedDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["side", "id", "role", "depth", "evidencePaths"],
+      "properties": {
+        "side": { "$ref": "#/definitions/side" },
+        "id": { "$ref": "#/definitions/identifier" },
+        "role": { "$ref": "#/definitions/role" },
+        "depth": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "evidencePaths": { "$ref": "#/definitions/evidencePaths" }
+      }
+    },
+    "idList": {
+      "type": "array",
+      "maxItems": 100000,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/identifier" }
+    },
+    "diffSelection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "identity", "edges", "diagnostics"],
+      "properties": {
+        "nodes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["added", "removed", "changed"],
+          "properties": {
+            "added": { "$ref": "#/definitions/idList" },
+            "removed": { "$ref": "#/definitions/idList" },
+            "changed": { "$ref": "#/definitions/idList" }
+          }
+        },
+        "identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["matches", "ambiguous", "unsupported"],
+          "properties": {
+            "matches": { "$ref": "#/definitions/idList" },
+            "ambiguous": { "$ref": "#/definitions/idList" },
+            "unsupported": { "$ref": "#/definitions/idList" }
+          }
+        },
+        "edges": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["added", "removed", "changed", "rewired"],
+          "properties": {
+            "added": { "$ref": "#/definitions/idList" },
+            "removed": { "$ref": "#/definitions/idList" },
+            "changed": { "$ref": "#/definitions/idList" },
+            "rewired": { "$ref": "#/definitions/idList" }
+          }
+        },
+        "diagnostics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["added", "removed", "changed"],
+          "properties": {
+            "added": { "$ref": "#/definitions/idList" },
+            "removed": { "$ref": "#/definitions/idList" },
+            "changed": { "$ref": "#/definitions/idList" }
+          }
+        }
+      }
+    },
+    "roots": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeIds", "edgeIds", "diagnosticIds"],
+      "properties": {
+        "nodeIds": { "$ref": "#/definitions/idList" },
+        "edgeIds": { "$ref": "#/definitions/idList" },
+        "diagnosticIds": { "$ref": "#/definitions/idList" }
+      }
+    },
+    "sideSelection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "edges", "diagnostics"],
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/selectedNode" }
+        },
+        "edges": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/selectedEdge" }
+        },
+        "diagnostics": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/selectedDiagnostic" }
+        }
+      }
+    },
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["changedFiles", "roots", "before", "after", "diff"],
+      "properties": {
+        "changedFiles": {
+          "type": "array",
+          "maxItems": 512,
+          "items": { "$ref": "#/definitions/changedFile" }
+        },
+        "roots": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["before", "after"],
+          "properties": {
+            "before": { "$ref": "#/definitions/roots" },
+            "after": { "$ref": "#/definitions/roots" }
+          }
+        },
+        "before": { "$ref": "#/definitions/sideSelection" },
+        "after": { "$ref": "#/definitions/sideSelection" },
+        "diff": { "$ref": "#/definitions/diffSelection" }
+      }
+    },
+    "omittedFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "status", "generated", "reason"],
+      "properties": {
+        "path": { "$ref": "#/definitions/path" },
+        "status": { "enum": ["added", "modified", "removed", "renamed"] },
+        "previousPath": { "$ref": "#/definitions/path" },
+        "generated": { "const": true },
+        "reason": { "const": "generated-file" }
+      }
+    },
+    "omittedRegion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["side", "kind", "identity", "evidencePaths", "reason"],
+      "properties": {
+        "side": { "$ref": "#/definitions/side" },
+        "kind": { "enum": ["node", "edge", "diagnostic"] },
+        "identity": { "$ref": "#/definitions/identifier" },
+        "evidencePaths": { "$ref": "#/definitions/evidencePaths" },
+        "reason": { "enum": ["generated-file", "outside-patch-context"] }
+      }
+    },
+    "countsSide": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodes",
+        "edges",
+        "diagnostics",
+        "selectedNodes",
+        "selectedEdges",
+        "selectedDiagnostics",
+        "omittedNodes",
+        "omittedEdges",
+        "omittedDiagnostics"
+      ],
+      "properties": {
+        "nodes": { "type": "integer", "minimum": 0 },
+        "edges": { "type": "integer", "minimum": 0 },
+        "diagnostics": { "type": "integer", "minimum": 0 },
+        "selectedNodes": { "type": "integer", "minimum": 0 },
+        "selectedEdges": { "type": "integer", "minimum": 0 },
+        "selectedDiagnostics": { "type": "integer", "minimum": 0 },
+        "omittedNodes": { "type": "integer", "minimum": 0 },
+        "omittedEdges": { "type": "integer", "minimum": 0 },
+        "omittedDiagnostics": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["before", "after", "omittedRegions"],
+      "properties": {
+        "before": { "$ref": "#/definitions/countsSide" },
+        "after": { "$ref": "#/definitions/countsSide" },
+        "omittedRegions": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "omitted": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["files", "regions", "counts"],
+      "properties": {
+        "files": {
+          "type": "array",
+          "maxItems": 512,
+          "items": { "$ref": "#/definitions/omittedFile" }
+        },
+        "regions": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/omittedRegion" }
+        },
+        "counts": { "$ref": "#/definitions/counts" }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "status",
+        "evaluationDigest",
+        "violationIds",
+        "retainedViolationIds",
+        "omittedViolationIds",
+        "unsupportedIds",
+        "preserved"
+      ],
+      "properties": {
+        "source": { "enum": ["not-provided", "full-diff"] },
+        "status": {
+          "enum": ["not-provided", "passed", "violations", "unsupported"]
+        },
+        "evaluationDigest": {
+          "oneOf": [{ "$ref": "#/definitions/digest" }, { "type": "null" }]
+        },
+        "violationIds": { "$ref": "#/definitions/idList" },
+        "retainedViolationIds": { "$ref": "#/definitions/idList" },
+        "omittedViolationIds": { "$ref": "#/definitions/idList" },
+        "unsupportedIds": { "$ref": "#/definitions/idList" },
+        "preserved": { "const": true }
+      }
+    },
+    "edgeKind": {
+      "enum": [
+        "calls",
+        "imports",
+        "reads",
+        "writes",
+        "publishes",
+        "subscribes",
+        "requests",
+        "contains",
+        "routes_to",
+        "depends_on",
+        "implements",
+        "unknown"
+      ]
+    }
+  }
+}

@@ -135,6 +135,13 @@ Missing context remains visible, and all suggested next steps are read-only.
 The input and output contracts are defined in
 [`schema/review-summary.v0.1.schema.json`](schema/review-summary.v0.1.schema.json).
 
+`patch-filter` creates a bounded, patch-scoped view of a GraphDiff for large
+changes. It retains changed-file evidence, optional one-hop context, explicit
+omitted regions, and the full-diff policy result; a filtered view can never
+turn a policy violation into a pass. The versioned contract is defined in
+[`schema/patch-filter.v0.1.schema.json`](schema/patch-filter.v0.1.schema.json)
+and validated locally with `npm run patch-filter:validate`.
+
 The Git revision flow validates refs, archives each commit into an isolated temporary directory, rejects archived symbolic links, analyzes without executing repository code, and cleans the temporary tree. It never checks out, resets, cleans, fetches, or stashes the caller's worktree. `direct` compares the resolved base tree to the resolved head tree. `merge-base` implements pull-request semantics by comparing the resolved merge base to the head; it fails closed for shallow repositories, unrelated histories, or multiple merge bases instead of fetching or guessing. Direct mode remains available for explicitly comparing unrelated trees.
 
 ## Evidence contract
@@ -242,6 +249,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Local-first investment ADR](docs/adr/0007-local-first-investment-boundary.md)
 - [Conditional Year 4 investment charter](docs/YEAR4_INVESTMENT_CHARTER.md)
 - [Architecture query contract](docs/ARCHITECTURE_QUERIES.md)
+- [Patch-scoped graph and policy filtering](docs/PATCH_FILTER.md)
 - [Release gate](docs/RELEASE.md)
 - [Release acceptance and rollback rehearsal](docs/RELEASE_REHEARSAL.md)
 - [Changelog](CHANGELOG.md)

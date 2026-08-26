@@ -184,6 +184,33 @@ the same serialized diff; ambiguous rewire candidates are left as ordinary
 added/removed edges. Golden mutation fixtures under
 `test/fixtures/snapshots/graph-diff/` exercise every classification.
 
+## D-014 patch-scoped graph and policy filtering
+
+The `cartograph.patch-filter` contract in
+[`schema/patch-filter.v0.1.schema.json`](../schema/patch-filter.v0.1.schema.json)
+creates a bounded view of a canonical GraphDiff for large changes. A caller
+declares changed repository-relative files, whether generated files are
+included, a context depth of zero or one, and independent node, edge,
+diagnostic, and omitted-region ceilings. The runtime derives changed roots from
+source evidence on both revisions, keeps rename pairs explicit, and traverses
+the undirected graph only far enough to include the requested one-hop context.
+
+Every selected record identifies its revision side, changed/context role, depth,
+and evidence paths. Every excluded node, edge, or diagnostic remains visible as
+an omitted region with either `generated-file` or `outside-patch-context`; no
+selection is silently truncated. Generated files are excluded by default and
+can be included only by an explicit request. Output is canonically ordered,
+digest-bound, local, read-only, and resource-bounded.
+
+Policy is evaluated against the complete GraphDiff before filtering. The report
+preserves that status and evaluation digest and partitions every violation into
+retained or omitted IDs. If no full-diff evaluation is supplied, the report
+publishes `not-provided` rather than claiming a pass. This is a review projection
+around CARTOGRAPH's graph/diff/policy artifacts; it does not replace STRATA's
+compiler-backed semantic analysis or infer architecture outside the declared
+evidence boundary. The checked-in rename/generated fixture is replayed by
+`npm run patch-filter:validate`.
+
 The D-010 diff pipeline runs the P-001 identity reconciliation before deriving
 node sets. Unique refactor matches are emitted under `identity.matches` with
 the selected method, confidence, score, and contributing signals; their nodes
