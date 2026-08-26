@@ -69,6 +69,25 @@ fixture. `reportBytes` is the UTF-8 size of the deterministic serialized graph
 snapshot. The budget validator requires every corpus fixture to belong to one
 and only one tier and fails closed when any recorded metric exceeds its tier.
 
+## Bounded revision-diff workloads
+
+`benchmarks/diff-workloads.v0.1.json` declares deterministic synthetic revision
+workloads for the small, medium, and large supported tiers. Each workload states
+the before/after node and edge cardinality, edge density, renamed-node count, and
+allowed identity ambiguity. The generated snapshots are held only in memory;
+the checked-in `benchmarks/diff-baseline.v0.1.json` retains the workload-manifest
+digest, graph cardinalities, identity metrics, diff summary counts, serialized
+report size, wall-time samples, peak RSS, and runtime/hardware disclosure. It
+contains no generated node, edge, evidence, or source payload.
+
+`npm run benchmark:diff:validate` regenerates the declared shape and fails closed
+if a workload exceeds its tier's node, edge, density, ambiguity, p95, memory, or
+report-size ceiling. `npm run benchmark:diff:ci` repeats each workload, checks
+deterministic diff summaries and digest identity, and applies the same 20%
+median-time variance band as the scan benchmark. An environment mismatch is
+reported explicitly and skips the timing comparison unless
+`--require-compatible-environment` is supplied.
+
 ## CI gate
 
 `npm run benchmark:budgets:validate` checks the three tier budgets, p95 runtime,
@@ -87,3 +106,6 @@ Hosted CI may report the performance check as skipped when its runner differs
 from the recorded device baseline; a release check on the baseline device uses
 `npm run benchmark:ci -- --require-compatible-environment` so that an
 environment mismatch itself fails closed.
+
+The CI workflow also runs the bounded revision-diff baseline and gate after the
+scan benchmark checks; neither command rewrites a checked-in artifact.

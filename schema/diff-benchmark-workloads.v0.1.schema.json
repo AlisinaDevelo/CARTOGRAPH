@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/diff-benchmark-workloads.v0.1.schema.json",
+  "title": "CARTOGRAPH bounded diff benchmark workloads v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "workloadSeed",
+    "tiers",
+    "workloads"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.diff-benchmark-workloads" },
+    "workloadSeed": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "tiers": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "$ref": "#/definitions/tier" }
+    },
+    "workloads": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/definitions/workload" }
+    }
+  },
+  "definitions": {
+    "tier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "maxNodes",
+        "maxEdges",
+        "maxEdgeDensity",
+        "maxIdentityAmbiguityPercent",
+        "maxP95Ms",
+        "maxPeakRssBytes",
+        "maxReportBytes"
+      ],
+      "properties": {
+        "id": { "enum": ["small", "medium", "large"] },
+        "maxNodes": { "type": "integer", "exclusiveMinimum": 0 },
+        "maxEdges": { "type": "integer", "exclusiveMinimum": 0 },
+        "maxEdgeDensity": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "maxIdentityAmbiguityPercent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "maxP95Ms": { "type": "number", "exclusiveMinimum": 0 },
+        "maxPeakRssBytes": { "type": "integer", "exclusiveMinimum": 0 },
+        "maxReportBytes": { "type": "integer", "exclusiveMinimum": 0 }
+      }
+    },
+    "cardinality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "edges"],
+      "properties": {
+        "nodes": { "type": "integer", "exclusiveMinimum": 0 },
+        "edges": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "tier",
+        "seed",
+        "before",
+        "after",
+        "renamedNodes",
+        "ambiguousNodes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "pattern": "^[a-z][a-z0-9-]+$"
+        },
+        "tier": { "enum": ["small", "medium", "large"] },
+        "seed": { "type": "integer", "minimum": 0 },
+        "before": { "$ref": "#/definitions/cardinality" },
+        "after": { "$ref": "#/definitions/cardinality" },
+        "renamedNodes": { "type": "integer", "minimum": 0 },
+        "ambiguousNodes": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}
