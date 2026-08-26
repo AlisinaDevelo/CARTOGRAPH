@@ -361,6 +361,28 @@ declared portfolios, while broader federation, accuracy, performance, adoption,
 and reviewer-usefulness claims remain deferred. No source body, network input,
 credential, or hidden telemetry is introduced.
 
+## E-017 SCIP interchange
+
+The [`cartograph.scip-interchange`](../schema/scip-interchange.v0.1.schema.json)
+boundary accepts a bounded JSON projection of an already-produced SCIP index.
+`src/core/scip.ts` maps documents to module nodes, declared symbols to stable
+canonical nodes, occurrences to evidence-backed document relationships, and
+SCIP symbol relationships to `implements`, `contains`, or `depends_on` edges.
+`cartographStableKey` and `cartographEvidenceRefs` extensions preserve
+repository-portable identity and evidence references through export and
+re-import.
+
+The importer/exporter never indexes source, runs a compiler, executes a
+repository, resolves undeclared symbols, or contacts a network. It rejects
+absolute checkout roots and source-body fields, redacts the default project
+root, bounds index cardinality, and emits explicit `SCIP_*` unsupported-field
+records for documentation, enclosing ranges, unsupported edge kinds, and other
+semantics that GraphSnapshot cannot represent. The
+[`SCIP interchange guide`](SCIP_INTERCHANGE.md) and its round-trip fixture are
+the review surface for this additive contract. STRATA remains the
+compiler-backed semantic analyzer; CARTOGRAPH owns the broader graph/report/
+policy/reconciliation interchange layer.
+
 ## Topology summaries
 
 `diffGraphSnapshots` accepts an optional `topology` configuration. The resulting

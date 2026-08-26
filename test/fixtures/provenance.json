@@ -619,6 +619,15 @@
       "reference": "W-006 representative portfolio evaluation; no source bodies retained",
       "transformation": "Three pinned sanitized portfolios exercise package, service, schema, missing-repository, version-skew, and cross-boundary scenarios with aggregate resolution, unknown, identity, incremental, reviewer-missingness, and privacy metrics without source acquisition or network access.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "scip-interchange",
+      "path": "scip-interchange",
+      "source": "CARTOGRAPH repository-authored synthetic SCIP interchange fixture",
+      "license": "Apache-2.0",
+      "reference": "E-017 SCIP import/export contract; official SCIP protocol shape; no source bodies retained",
+      "transformation": "A portable SCIP-shaped index exercises document, symbol, occurrence, relationship, provenance, stable-key, evidence-reference, and unsupported-field mappings through a deterministic import/export round trip without source text, execution, credentials, or network access.",
+      "redistribution": "allowed"
     }
   ]
 }

@@ -1,0 +1,242 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/scip-interchange.v0.1.schema.json",
+  "title": "CARTOGRAPH SCIP interchange fixture v0.1",
+  "description": "A bounded JSON projection of the SCIP index contract with explicit CARTOGRAPH provenance and unsupported-field reporting.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "fixtureId",
+    "method",
+    "index",
+    "expected"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.scip-interchange" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.scip-interchange+json"
+    },
+    "fixtureId": {
+      "const": "e017-v0.1"
+    },
+    "method": { "$ref": "#/definitions/method" },
+    "index": { "$ref": "#/definitions/index" },
+    "expected": { "$ref": "#/definitions/expected" }
+  },
+  "definitions": {
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8192,
+      "pattern": "^[^\\u0000-\\u001F]+$"
+    },
+    "portableReference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "^[^\\u0000-\\u001F]+$",
+      "not": { "pattern": "^(?:/|~|file:)" }
+    },
+    "stableKey": {
+      "allOf": [
+        { "$ref": "#/definitions/portableReference" },
+        { "maxLength": 4096 }
+      ]
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "replayMode",
+        "rerunnable",
+        "network",
+        "sourceBodiesIncluded",
+        "credentialsUsed",
+        "hiddenTelemetry",
+        "command"
+      ],
+      "properties": {
+        "replayMode": { "const": "checked-in-index" },
+        "rerunnable": { "const": true },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "credentialsUsed": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "command": { "const": "npm run scip:validate" }
+      }
+    },
+    "toolInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "arguments"],
+      "properties": {
+        "name": { "$ref": "#/definitions/text" },
+        "version": { "$ref": "#/definitions/text" },
+        "arguments": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/text" }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "toolInfo", "textDocumentEncoding"],
+      "properties": {
+        "version": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "toolInfo": { "$ref": "#/definitions/toolInfo" },
+        "projectRoot": {
+          "allOf": [
+            { "$ref": "#/definitions/portableReference" },
+            { "maxLength": 2048 }
+          ]
+        },
+        "textDocumentEncoding": { "enum": ["UTF8", "UTF16", "UTF32"] }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["symbol"],
+      "properties": {
+        "symbol": { "$ref": "#/definitions/text" },
+        "isDefinition": { "type": "boolean" },
+        "isImplementation": { "type": "boolean" },
+        "isTypeDefinition": { "type": "boolean" },
+        "isReference": { "type": "boolean" },
+        "isExternalOverride": { "type": "boolean" },
+        "cartographEvidenceRefs": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/portableReference" }
+        }
+      }
+    },
+    "symbol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["symbol", "kind", "relationships"],
+      "properties": {
+        "symbol": { "$ref": "#/definitions/text" },
+        "kind": { "$ref": "#/definitions/text" },
+        "documentation": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/text" }
+        },
+        "relationships": {
+          "type": "array",
+          "maxItems": 50000,
+          "items": { "$ref": "#/definitions/relationship" }
+        },
+        "cartographStableKey": { "$ref": "#/definitions/stableKey" }
+      }
+    },
+    "occurrence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["range"],
+      "properties": {
+        "symbol": { "$ref": "#/definitions/text" },
+        "range": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 4,
+          "items": { "type": "integer", "minimum": 0 }
+        },
+        "symbolRoles": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "enclosingRange": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 4,
+          "items": { "type": "integer", "minimum": 0 }
+        },
+        "cartographEvidenceRefs": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/portableReference" }
+        }
+      }
+    },
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relativePath", "occurrences", "symbols"],
+      "properties": {
+        "relativePath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "pattern": "^(?!/)(?!~)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000]+$"
+        },
+        "language": { "$ref": "#/definitions/text" },
+        "occurrences": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/occurrence" }
+        },
+        "symbols": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": { "$ref": "#/definitions/symbol" }
+        },
+        "cartographStableKey": { "$ref": "#/definitions/stableKey" }
+      }
+    },
+    "index": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metadata", "documents", "externalSymbols"],
+      "properties": {
+        "metadata": { "$ref": "#/definitions/metadata" },
+        "documents": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "items": { "$ref": "#/definitions/document" }
+        },
+        "externalSymbols": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": { "$ref": "#/definitions/symbol" }
+        }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stableKeys", "evidenceReferences", "unsupportedCodes"],
+      "properties": {
+        "stableKeys": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/stableKey" }
+        },
+        "evidenceReferences": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/portableReference" }
+        },
+        "unsupportedCodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^SCIP_[A-Z0-9_]+$"
+          }
+        }
+      }
+    }
+  }
+}

@@ -767,3 +767,23 @@ The current evidence supports a narrow local aggregate replay only. The report
 does not change GraphSnapshot, GraphDiff, workspace identity, boundary,
 recomposition, or privacy versions and does not make a population-level
 accuracy, performance, adoption, certification, or reviewer-usefulness claim.
+
+## E-017 SCIP import and export
+
+E-017 adds the additive
+[`cartograph.scip-interchange`](../schema/scip-interchange.v0.1.schema.json)
+v1 JSON projection for already-produced SCIP indexes. Documents, symbols,
+occurrences, relationships, tool/version metadata, CARTOGRAPH stable keys, and
+portable evidence references have deterministic mappings to GraphSnapshot
+nodes, edges, and evidence. The checked-in
+[`round-trip.v0.1.json`](../test/fixtures/scip-interchange/round-trip.v0.1.json)
+proves that stable identities and extension evidence references survive import,
+export, and re-import.
+
+The boundary is local and source-free: absolute roots, file URIs, source-body
+`text`, unknown fields, duplicate declarations, and over-limit indexes fail
+closed. Fields without a canonical GraphSnapshot equivalent are reported with
+stable `SCIP_*` codes and a preservation strategy; they are not silently
+dropped. `npm run scip:validate` is the offline replay gate, and the contract
+does not change GraphSnapshot, GraphDiff, or STRATA's compiler-backed semantic
+analysis boundary.
