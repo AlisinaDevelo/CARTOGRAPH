@@ -673,6 +673,15 @@
       "reference": "G-005 bounded review-output contract; no external source data",
       "transformation": "A deterministic offline scenario composes a GraphDiff with lifecycle, ownership, policy, waiver, drift, ADR, and local-artifact context to exercise reviewer-visible state, ownership evidence, expiry, unsupported results, and non-mutating next steps without source bodies, signing material, or network access.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "review-workflow-evaluation",
+      "path": "review-workflow-evaluation",
+      "source": "CARTOGRAPH repository-authored synthetic review workflow evaluation fixture",
+      "license": "Apache-2.0",
+      "reference": "G-006 review workflow usability, integrity, and load evaluation; no external source data",
+      "transformation": "Representative synthetic observations derive triage, owner-resolution, waiver, stale-state, reviewer-task, maintainer-load, and failure-recovery metrics while six abuse cases exercise forgery, replay, broad waivers, owner spoofing, fork pull requests, and compromised keys without source bodies, credentials, telemetry, or network access.",
+      "redistribution": "allowed"
     }
   ]
 }
