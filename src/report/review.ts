@@ -22,7 +22,7 @@ const escapeHtml = (value: string): string =>
     .replaceAll("'", "&#39;");
 
 const markdownCode = (value: string): string =>
-  `\`${value.replaceAll("`", "\\`").replaceAll("\\", "\\\\")}\``;
+  `\`${value.replace(/[\\`]/gu, (character) => `\\${character}`)}\``;
 
 const shortRevision = (value: string): string => value.slice(0, 12);
 
