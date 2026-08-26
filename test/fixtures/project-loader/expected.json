@@ -6,7 +6,11 @@
       "module:packages/core/src/index.ts"
     ]
   ],
-  "diagnostics": [],
+  "diagnostics": [
+    "EXCLUDED_GENERATED_FILE",
+    "EXCLUDED_GENERATED_FILE",
+    "EXCLUDED_GENERATED_FILE"
+  ],
   "families": {
     "simple-modules": {
       "edgeKinds": ["imports"],

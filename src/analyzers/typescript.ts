@@ -81,6 +81,14 @@ import {
   type LockfileDiscovery,
   type LockfileSource,
 } from "./lockfiles.js";
+import {
+  GENERATED_CODE_DETECTOR,
+  discoverGeneratedCode,
+  type GeneratedArtifact,
+  type GeneratedDiscovery,
+  type GeneratedPartialDiagnostic,
+  type GeneratedRelationship,
+} from "./generated.js";
 import { createResourceBudget, ResourceLimitError } from "../resources.js";
 
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts"]);
@@ -239,6 +247,9 @@ interface AnalyzerContext {
   diagnostics: Map<string, Diagnostic>;
   edges: Map<string, GraphEdge>;
   fileHashes: Map<string, string>;
+  generatedArtifacts: ReadonlyMap<string, GeneratedArtifact>;
+  generatedDiagnostics: readonly GeneratedPartialDiagnostic[];
+  generatedRelationships: readonly GeneratedRelationship[];
   filesByPath: Map<string, SourceFile>;
   lockfileDependencies: readonly LockfileDependency[];
   lockfileDiagnostics: readonly LockfileDiagnostic[];
@@ -1757,6 +1768,67 @@ const addLockfileDiagnostic = (
   context.diagnostics.set(record.id, record);
 };
 
+const evidenceForGeneratedSource = (
+  source: GeneratedArtifact["source"],
+  suffix: string,
+): Evidence => ({
+  id: evidenceKey(
+    source.path,
+    source.line,
+    source.column,
+    `${GENERATED_CODE_DETECTOR}/${suffix}`,
+  ),
+  kind: "source",
+  path: source.path,
+  line: source.line,
+  column: source.column,
+  detector: `${GENERATED_CODE_DETECTOR}/${suffix}`,
+  contentHash: source.contentHash,
+});
+
+const addGeneratedDiagnostic = (
+  context: AnalyzerContext,
+  diagnostic: GeneratedPartialDiagnostic,
+): void => {
+  const definition = getDiagnosticDefinition(diagnostic.code);
+  if (!definition)
+    throw new Error(`unregistered diagnostic code: ${diagnostic.code}`);
+  const location: SourceLocation = {
+    path: diagnostic.source.path,
+    line: diagnostic.source.line,
+    column: diagnostic.source.column,
+  };
+  const message = `${definition.message} ${diagnostic.detail}`;
+  const record: Diagnostic = {
+    id: diagnosticKey(diagnostic.code, location, message),
+    code: diagnostic.code,
+    severity: definition.severity,
+    message,
+    remediation: definition.remediation,
+    location,
+    evidence: [evidenceForGeneratedSource(diagnostic.source, "diagnostic")],
+  };
+  context.diagnostics.set(record.id, record);
+};
+
+const addGeneratedEdges = (context: AnalyzerContext): void => {
+  for (const diagnostic of context.generatedDiagnostics)
+    addGeneratedDiagnostic(context, diagnostic);
+
+  for (const relationship of context.generatedRelationships) {
+    const generatedFile = context.filesByPath.get(relationship.generatedPath);
+    const sourceFile = context.filesByPath.get(relationship.sourcePath);
+    if (!generatedFile || !sourceFile) continue;
+    addEdge(
+      context,
+      moduleForFile(context, generatedFile),
+      moduleForFile(context, sourceFile),
+      "depends_on",
+      evidenceForGeneratedSource(relationship.source, "source"),
+    );
+  }
+};
+
 const lockfileOwnerNode = (
   context: AnalyzerContext,
   dependency: LockfileDependency,
@@ -2327,11 +2399,20 @@ const moduleForFile = (
   file: SourceFile,
 ): GraphNode => {
   const path = sourceFilePath(context.rootDir, file.getFilePath());
-  return addNode(context, `module:${path}`, "module", path, {
+  return addNode(
+    context,
+    `module:${path}`,
+    "module",
     path,
-    line: 1,
-    column: 1,
-  });
+    {
+      path,
+      line: 1,
+      column: 1,
+    },
+    context.generatedArtifacts.has(path)
+      ? "typescript-generated"
+      : "typescript",
+  );
 };
 
 const ownerFor = (context: AnalyzerContext, node: Node): GraphNode =>
@@ -4067,6 +4148,16 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
       return [sourceFilePath(rootDir, path), hashBytes(readFileSync(path))];
     }),
   );
+  const generatedDiscovery: GeneratedDiscovery = discoverGeneratedCode(
+    rootDir,
+    sourcePaths,
+    options.include ?? ["."],
+    options.exclude ?? [],
+    resources,
+    checkBudget,
+  );
+  for (const [path, contentHash] of generatedDiscovery.fileHashes)
+    fileHashes.set(path, contentHash);
   const apiDiscovery: ApiBoundaryDiscovery = discoverApiBoundaries(
     rootDir,
     sourceFiles,
@@ -4095,6 +4186,11 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
     diagnostics: new Map(),
     edges: new Map(),
     fileHashes,
+    generatedArtifacts: new Map(
+      generatedDiscovery.included.map((artifact) => [artifact.path, artifact]),
+    ),
+    generatedDiagnostics: generatedDiscovery.diagnostics,
+    generatedRelationships: generatedDiscovery.relationships,
     filesByPath,
     lockfileDependencies: lockfileDiscovery.dependencies,
     lockfileDiagnostics: lockfileDiscovery.diagnostics,
@@ -4128,6 +4224,7 @@ export const analyzeTypeScriptRepository = (
     context.checkBudget();
     moduleForFile(context, sourceFile);
   }
+  addGeneratedEdges(context);
   addWorkspaceEdges(context);
   addLockfileEdges(context);
   registerCallables(context);

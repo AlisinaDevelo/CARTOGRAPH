@@ -15,7 +15,8 @@ Each curated fixture contains source, an expected canonical graph, and an explan
    boundaries;
 7. Prisma datasource/model/relation and generated-client boundaries;
 8. npm, pnpm, Yarn, and Bun lockfile dependency provenance;
-9. dynamic or unresolved negative cases.
+9. generated-code provenance and exclusion diagnostics;
+10. dynamic or unresolved negative cases.
 
 Fixtures test observable contracts. They do not assert internal traversal order.
 
@@ -35,6 +36,14 @@ X-016's `lockfiles` fixture measures offline normalization of npm, pnpm, Yarn,
 and Bun records, integrity evidence, deterministic dependency edges, and
 ambiguous or unsupported lockfile diagnostics. The analyzer never runs a package
 manager or contacts a registry.
+
+X-017's `generated-provenance` fixture measures selected generated-module
+classification, explicit `generated-from` source relationships, detected
+distribution-directory exclusions, configured generated-output exclusions, and
+unresolved provenance markers. The evaluator checks that every excluded
+generated path appears in a diagnostic with its exact repository-relative path
+and reason. The analyzer never executes a generator or silently drops a
+generated fixture.
 
 ## Correctness metrics
 

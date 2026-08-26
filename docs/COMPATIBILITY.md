@@ -559,6 +559,28 @@ metadata, multiple manager files, malformed JSON, and Bun binary `bun.lockb`
 files remain explicit diagnostics. The analyzer performs no network access,
 package-manager execution, dependency installation, or binary lockfile decoding.
 
+## X-017 generated-code provenance
+
+X-017 adds generated-code classification and exclusion diagnostics without
+changing GraphSnapshot, GraphDiff, adapter, capability, or diagnostic versions.
+Selected TypeScript files are classified from generated directory names,
+filename conventions, explicit generated markers, and configured
+generated-looking exclusions. Their existing `module:<path>` identity remains
+stable while the node language is `typescript-generated`. A bounded
+`cartograph:generated-from=<path>` marker creates a `depends_on` edge from the
+generated module to the selected local source module and carries the generated
+file's source span and content hash.
+
+Generated source files excluded by a detected directory or configured
+generated-looking pattern remain visible as `EXCLUDED_GENERATED_FILE` info
+diagnostics. Each message includes the exact repository-relative path and the
+reason for exclusion. An explicit source marker that cannot resolve to a
+selected in-repository source produces `GENERATED_SOURCE_UNRESOLVED`. The
+detector is read-only, resource-bounded, deterministic, and never runs a code
+generator. These additions are additive to the v0.1 graph and diagnostic
+contracts; consumers that do not inspect the new language or diagnostic codes
+retain the prior record shape.
+
 ## E-011 adapter lifecycle and security response
 
 E-011 publishes the versioned

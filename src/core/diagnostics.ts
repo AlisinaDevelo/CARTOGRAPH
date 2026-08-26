@@ -275,6 +275,23 @@ export const DIAGNOSTIC_REGISTRY: DiagnosticRegistry =
           "Regenerate the lockfile with the declared package manager and supported format, then review any unresolved dependency versions.",
       },
       {
+        code: "EXCLUDED_GENERATED_FILE",
+        severity: "info",
+        message: "A generated source file was excluded from analysis.",
+        evidence: { kind: "source", location: "source-span" },
+        remediation:
+          "Review the generated provenance and exclusion reason, or include the artifact explicitly when its architecture boundary matters.",
+      },
+      {
+        code: "GENERATED_SOURCE_UNRESOLVED",
+        severity: "warning",
+        message:
+          "A generated source marker could not be mapped to a selected local source file.",
+        evidence: { kind: "source", location: "source-span" },
+        remediation:
+          "Keep the generated-from path repository-relative and selected by the analysis, or review the generator boundary manually.",
+      },
+      {
         code: "UNRESOLVED_FASTIFY_HANDLER",
         severity: "warning",
         message:

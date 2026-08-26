@@ -103,6 +103,19 @@
           ]
         },
         {
+          "id": "generated.provenance",
+          "diagnosticCodes": [
+            "EXCLUDED_GENERATED_FILE",
+            "GENERATED_SOURCE_UNRESOLVED"
+          ],
+          "confidence": ["certain", "inferred"],
+          "examples": [
+            "Generated directory, filename, and explicit marker conventions classify selected TypeScript modules without executing a generator.",
+            "Excluded generated source files produce one evidence-backed diagnostic with the exact path and exclusion reason.",
+            "Explicit generated-from markers produce bounded depends_on relationships when the referenced source is selected locally."
+          ]
+        },
+        {
           "id": "typescript.async",
           "diagnosticCodes": [
             "UNSUPPORTED_DYNAMIC_EVENT_NAME",

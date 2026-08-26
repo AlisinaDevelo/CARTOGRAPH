@@ -546,6 +546,25 @@
       "reference": "CARTOGRAPH repository history; no external source",
       "transformation": "Npm, pnpm, Yarn, Bun, ambiguous-manager, version-mismatch, and missing-integrity records exercise deterministic offline dependency evidence without network access or package-manager execution.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "generated-provenance",
+      "path": "generated-provenance",
+      "source": "CARTOGRAPH repository-authored synthetic generated-code fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Selected generated modules, explicit generated-from markers, generated-directory output, configured exclusions, unresolved provenance, and excluded distribution output exercise deterministic classification and no-silent-omission diagnostics without executing a generator.",
+      "redistribution": "allowed",
+      "generated": [
+        {
+          "path": "generated",
+          "reason": "Synthetic selected generated source subtree used to verify included generated-module classification."
+        },
+        {
+          "path": "dist",
+          "reason": "Synthetic generated distribution output used to verify exact exclusion diagnostics."
+        }
+      ]
     }
   ]
 }
