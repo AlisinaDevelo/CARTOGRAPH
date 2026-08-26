@@ -932,3 +932,22 @@ partition. Missing evaluation is `not-provided`, never `passed`. The checked-in
 rename/generated fixture and JSON Schema are replayed by
 `npm run patch-filter:validate`; a future semantic change requires a new
 contract version or an explicit migration review.
+
+## D-015 graph and diff query language
+
+D-015 adds the reviewed additive `graphQueryLanguage` v1 contract and the
+[`cartograph.graph-query-language`](../schema/graph-query-language.v0.1.schema.json)
+AST/result schemas. The local text grammar normalizes node and edge kind,
+evidence-path, confidence, revision-change, and bounded-traversal clauses into
+a digest-stable AST. Queries over a canonical `GraphSnapshot` select only
+declared nodes and edges; change queries require a canonical `GraphDiff` and
+preserve the exact from/to revisions and change side.
+
+Parser diagnostics use stable codes and source locations. Execution enforces
+depth, node, edge, change, wall-clock, and serialized-result ceilings and
+returns no partial result when a ceiling is reached. Predicate and list order,
+whitespace, and supported field aliases are normalized before execution, so
+equivalent queries produce byte-identical ASTs and canonical selections. The
+language is local, read-only, source-body-free, and network-free; it does not
+replace STRATA's compiler-backed semantic analysis. Replay the checked-in
+grammar corpus with `npm run query-language:validate`.

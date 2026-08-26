@@ -133,6 +133,15 @@ Only `source-body-search`, `remote-query`, and `mutation` remain explicit
 unsupported operations; they return a deterministic warning rather than being
 guessed or silently executed.
 
+For reusable text queries over snapshots and diffs, use the separate D-015
+[`cartograph.graph-query-language`](../schema/graph-query-language.v0.1.schema.json)
+contract. Its `v1 nodes`, `v1 edges`, and `v1 changes` grammar supports
+evidence paths, confidence, exact revision selection, and bounded traversal;
+`parseGraphQueryLanguage` produces a canonical AST and
+`executeGraphQuery` fails closed at explicit resource ceilings. This language
+is intentionally read-only and source-free and does not replace STRATA's
+compiler-backed semantic analyzer.
+
 ## Inspectable explanations
 
 Q-005 adds the versioned

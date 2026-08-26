@@ -264,6 +264,30 @@ diagnostic rather than an inferred answer. See the [architecture query
 contract](ARCHITECTURE_QUERIES.md) for selector, traversal, metadata,
 limit, privacy, and result semantics.
 
+## D-015 query language
+
+The `cartograph.graph-query-language` contract adds a small, versioned text
+grammar for reusable graph and diff selections. `v1 nodes` and `v1 edges`
+queries support semantic kinds, stable IDs, evidence paths, confidence, and
+bounded traversal; `v1 changes` queries select canonical additions, removals,
+changes, rewires, and diagnostic changes in a local GraphDiff while retaining
+exact from/to revision tokens. The normalized AST is JSON-schema validated and
+sorted before execution.
+
+Example:
+
+```text
+v1 changes where change in [node-added, edge-changed] and evidence.path ^= src/ revision from base to head limit maxChanges=100
+```
+
+`parseGraphQueryLanguage` reports stable location-aware parser codes. The
+read-only executor fails closed at explicit depth, node, edge, change, time,
+and serialized-result ceilings and never reads source bodies, executes source,
+or contacts a network. Whitespace, predicate order, list order, and supported
+aliases normalize to one canonical selection. This reusable graph/diff query
+surface complements the existing JSON architecture-query contract and is
+distinct from STRATA's compiler-backed semantic analysis.
+
 ## Identity
 
 The initial stable key combines the node kind with normalized module and symbol
