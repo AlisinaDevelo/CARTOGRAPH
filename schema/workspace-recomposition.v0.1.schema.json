@@ -1,0 +1,288 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/workspace-recomposition.v0.1.schema.json",
+  "title": "CARTOGRAPH workspace recomposition contract v0.1",
+  "description": "A bounded offline request, cache, or deterministic plan for provenance-aware incremental workspace recomposition.",
+  "oneOf": [
+    { "$ref": "#/definitions/request" },
+    { "$ref": "#/definitions/cache" },
+    { "$ref": "#/definitions/plan" }
+  ],
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[a-z][a-z0-9]*(?:[._/-][a-z0-9]+)*$"
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^(?!.*[\\s\\u0000\\r\\n]).+$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "componentKind": {
+      "enum": ["content", "contract", "adapter", "policy", "workspace", "tool"]
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "digest"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "kind": { "$ref": "#/definitions/componentKind" },
+        "digest": { "$ref": "#/definitions/digest" },
+        "version": { "$ref": "#/definitions/version" }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxInputs",
+        "maxUnits",
+        "maxDependencies",
+        "maxCacheEntries",
+        "maxResultBytes"
+      ],
+      "properties": {
+        "maxInputs": { "type": "integer", "minimum": 1, "maximum": 4096 },
+        "maxUnits": { "type": "integer", "minimum": 1, "maximum": 4096 },
+        "maxDependencies": { "type": "integer", "minimum": 1, "maximum": 8192 },
+        "maxCacheEntries": { "type": "integer", "minimum": 1, "maximum": 4096 },
+        "maxResultBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16777216
+        }
+      }
+    },
+    "keyComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "digest"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "digest": { "$ref": "#/definitions/digest" },
+        "version": { "$ref": "#/definitions/version" }
+      }
+    },
+    "key": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "content",
+        "contract",
+        "adapter",
+        "policy",
+        "workspace",
+        "tool",
+        "keyDigest"
+      ],
+      "properties": {
+        "content": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": { "$ref": "#/definitions/keyComponent" }
+        },
+        "contract": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": { "$ref": "#/definitions/keyComponent" }
+        },
+        "adapter": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": { "$ref": "#/definitions/keyComponent" }
+        },
+        "policy": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": { "$ref": "#/definitions/keyComponent" }
+        },
+        "workspace": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": { "$ref": "#/definitions/keyComponent" }
+        },
+        "tool": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": { "$ref": "#/definitions/keyComponent" }
+        },
+        "keyDigest": { "$ref": "#/definitions/digest" }
+      }
+    },
+    "unit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "inputIds"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "inputIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "dependsOn": {
+          "type": "array",
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "result": {}
+      }
+    },
+    "cacheEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "key", "inputState", "result", "resultDigest"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "key": { "$ref": "#/definitions/key" },
+        "inputState": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/keyComponent" }
+        },
+        "dependsOn": {
+          "type": "array",
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "result": {},
+        "resultDigest": { "$ref": "#/definitions/digest" }
+      }
+    },
+    "cache": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "contract", "workspaceId", "entries"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.workspace-recomposition" },
+        "workspaceId": { "$ref": "#/definitions/identifier" },
+        "entries": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": { "$ref": "#/definitions/cacheEntry" }
+        }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "workspaceId",
+        "inputs",
+        "units",
+        "limits"
+      ],
+      "properties": {
+        "$schema": { "type": "string", "maxLength": 512 },
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.workspace-recomposition" },
+        "workspaceId": { "$ref": "#/definitions/identifier" },
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "items": { "$ref": "#/definitions/input" }
+        },
+        "units": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "items": { "$ref": "#/definitions/unit" }
+        },
+        "limits": { "$ref": "#/definitions/limits" }
+      }
+    },
+    "planUnit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "inputIds", "dependsOn", "status", "reason", "key"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "inputIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "dependsOn": {
+          "type": "array",
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "status": { "enum": ["hit", "miss", "invalidated", "recomputed"] },
+        "reason": {
+          "enum": [
+            "cache-hit",
+            "cache-miss",
+            "input-changed",
+            "dependency-changed",
+            "computed"
+          ]
+        },
+        "key": { "$ref": "#/definitions/key" },
+        "result": {},
+        "resultDigest": { "$ref": "#/definitions/digest" }
+      }
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "workspaceId",
+        "changedInputIds",
+        "units",
+        "cache",
+        "stats",
+        "resultDigest"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.workspace-recomposition" },
+        "workspaceId": { "$ref": "#/definitions/identifier" },
+        "changedInputIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "units": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/planUnit" }
+        },
+        "cache": { "$ref": "#/definitions/cache" },
+        "stats": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["hits", "misses", "invalidated", "recomputed"],
+          "properties": {
+            "hits": { "type": "integer", "minimum": 0 },
+            "misses": { "type": "integer", "minimum": 0 },
+            "invalidated": { "type": "integer", "minimum": 0 },
+            "recomputed": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "resultDigest": { "$ref": "#/definitions/digest" }
+      }
+    }
+  }
+}

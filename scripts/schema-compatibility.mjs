@@ -90,6 +90,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/workspace-composition.ts" ||
       file === "src/core/workspace-identity.ts" ||
       file === "src/core/workspace-boundaries.ts" ||
+      file === "src/core/workspace-recomposition.ts" ||
       file === "src/report/adr.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
       file === "schema/support-matrix.v0.1.schema.json" ||
@@ -135,7 +136,8 @@ const checkHostedVersionChange = () => {
       file === "schema/adr-coverage.v0.1.schema.json" ||
       file === "schema/workspace-composition.v0.1.schema.json" ||
       file === "schema/workspace-identity.v0.1.schema.json" ||
-      file === "schema/workspace-boundaries.v0.1.schema.json",
+      file === "schema/workspace-boundaries.v0.1.schema.json" ||
+      file === "schema/workspace-recomposition.v0.1.schema.json",
   );
   const reviewRecorded = changed.some(
     (file) =>
@@ -195,6 +197,9 @@ const checkCompatibility = () => {
   );
   const workspaceIdentitySource = readText("src/core/workspace-identity.ts");
   const workspaceBoundarySource = readText("src/core/workspace-boundaries.ts");
+  const workspaceRecompositionSource = readText(
+    "src/core/workspace-recomposition.ts",
+  );
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
   const supportSchema = readJson("schema/support-matrix.v0.1.schema.json");
   const diffSchema = readJson("schema/graph-diff.v0.1.schema.json");
@@ -282,6 +287,9 @@ const checkCompatibility = () => {
   );
   const workspaceBoundarySchema = readJson(
     "schema/workspace-boundaries.v0.1.schema.json",
+  );
+  const workspaceRecompositionSchema = readJson(
+    "schema/workspace-recomposition.v0.1.schema.json",
   );
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
@@ -406,6 +414,10 @@ const checkCompatibility = () => {
     workspaceBoundarySource,
     "WORKSPACE_BOUNDARY_SCHEMA_VERSION",
   );
+  const workspaceRecompositionVersion = sourceVersion(
+    workspaceRecompositionSource,
+    "WORKSPACE_RECOMPOSITION_SCHEMA_VERSION",
+  );
 
   if (
     snapshotVersion === undefined ||
@@ -439,7 +451,8 @@ const checkCompatibility = () => {
     architectureImpactVersion === undefined ||
     workspaceCompositionVersion === undefined ||
     workspaceIdentityVersion === undefined ||
-    workspaceBoundaryVersion === undefined
+    workspaceBoundaryVersion === undefined ||
+    workspaceRecompositionVersion === undefined
   ) {
     throw new Error("runtime schema version constants are missing");
   }
@@ -779,6 +792,17 @@ const checkCompatibility = () => {
     workspaceBoundarySchema.properties.schemaVersion.const,
     workspaceBoundaryVersion,
   );
+  requireEqual(
+    "workspace recomposition runtime/policy",
+    workspaceRecompositionVersion,
+    contracts.workspaceRecomposition.current,
+  );
+  requireEqual(
+    "workspace recomposition JSON Schema/runtime",
+    workspaceRecompositionSchema.definitions.request.properties.schemaVersion
+      .const,
+    workspaceRecompositionVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -820,6 +844,7 @@ const checkCompatibility = () => {
     workspaceCompositionVersion,
     workspaceIdentityVersion,
     workspaceBoundaryVersion,
+    workspaceRecompositionVersion,
   };
 };
 
