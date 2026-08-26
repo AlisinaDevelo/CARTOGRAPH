@@ -14,7 +14,8 @@ Each curated fixture contains source, an expected canonical graph, and an explan
 6. GraphQL root fields, resolver aliases, and OpenAPI operation-to-handler
    boundaries;
 7. Prisma datasource/model/relation and generated-client boundaries;
-8. dynamic or unresolved negative cases.
+8. npm, pnpm, Yarn, and Bun lockfile dependency provenance;
+9. dynamic or unresolved negative cases.
 
 Fixtures test observable contracts. They do not assert internal traversal order.
 
@@ -29,6 +30,11 @@ X-013's `prisma-schema` fixture measures datasource containment, model relation
 edges, generated-client import references, schema-file evidence, deterministic
 multi-file handling, and fail-closed provider/output diagnostics. It never opens
 a database or executes Prisma generation.
+
+X-016's `lockfiles` fixture measures offline normalization of npm, pnpm, Yarn,
+and Bun records, integrity evidence, deterministic dependency edges, and
+ambiguous or unsupported lockfile diagnostics. The analyzer never runs a package
+manager or contacts a registry.
 
 ## Correctness metrics
 

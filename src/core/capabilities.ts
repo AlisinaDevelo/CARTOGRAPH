@@ -130,6 +130,20 @@ export const CAPABILITY_REGISTRY: CapabilityRegistry =
             ],
           },
           {
+            id: "package.lockfiles",
+            diagnosticCodes: [
+              "AMBIGUOUS_LOCKFILE",
+              "LOCKFILE_MISSING_INTEGRITY",
+              "LOCKFILE_VERSION_MISMATCH",
+            ],
+            confidence: ["certain", "inferred"],
+            examples: [
+              "Supported npm, pnpm, Yarn, and Bun lockfile records produce deterministic offline dependency evidence.",
+              "Internal workspace package records reuse package nodes; external records remain module dependencies without network access.",
+              "Multiple lockfiles, unsupported formats, version mismatches, and missing integrity metadata remain explicit diagnostics.",
+            ],
+          },
+          {
             id: "typescript.async",
             diagnosticCodes: [
               "UNSUPPORTED_DYNAMIC_EVENT_NAME",

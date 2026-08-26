@@ -1,0 +1,7 @@
+{
+  "name": "lockfile-bun",
+  "private": true,
+  "dependencies": {
+    "delta": "4.5.6"
+  }
+}

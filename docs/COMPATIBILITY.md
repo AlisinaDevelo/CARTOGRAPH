@@ -544,6 +544,21 @@ generators, and generated output paths outside the repository remain explicit
 diagnostics. The analyzer performs no database connection, network access, or
 Prisma generation.
 
+## X-016 lockfile dependency provenance
+
+X-016 adds bounded, read-only lockfile discovery without changing graph, diff,
+adapter, capability, or diagnostic versions. At the repository root and declared
+workspace package roots, npm `package-lock.json`, pnpm `pnpm-lock.yaml`, Yarn
+`yarn.lock`, and JSON Bun `bun.lock` records are normalized into deterministic
+dependency evidence. Internal workspace names reuse `package` nodes; other names
+become external `module` nodes. Every emitted relationship retains a lockfile
+source span and content hash.
+
+Unsupported lockfile versions, manager mismatches, missing integrity/checksum
+metadata, multiple manager files, malformed JSON, and Bun binary `bun.lockb`
+files remain explicit diagnostics. The analyzer performs no network access,
+package-manager execution, dependency installation, or binary lockfile decoding.
+
 ## E-011 adapter lifecycle and security response
 
 E-011 publishes the versioned

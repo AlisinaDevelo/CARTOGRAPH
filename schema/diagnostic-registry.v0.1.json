@@ -163,6 +163,27 @@
       "remediation": "Use a literal output path inside the repository or document the generated artifact provenance manually."
     },
     {
+      "code": "AMBIGUOUS_LOCKFILE",
+      "severity": "warning",
+      "message": "Multiple package-manager lockfiles are present for one package root.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Keep one authoritative lockfile per package root or review the manager boundary before relying on dependency edges."
+    },
+    {
+      "code": "LOCKFILE_MISSING_INTEGRITY",
+      "severity": "warning",
+      "message": "A lockfile dependency record has no integrity or checksum.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Regenerate the lockfile with integrity metadata or review the dependency provenance manually."
+    },
+    {
+      "code": "LOCKFILE_VERSION_MISMATCH",
+      "severity": "warning",
+      "message": "A lockfile version or resolved dependency does not match the supported declaration.",
+      "evidence": { "kind": "source", "location": "source-span" },
+      "remediation": "Regenerate the lockfile with the declared package manager and supported format, then review any unresolved dependency versions."
+    },
+    {
       "code": "UNRESOLVED_FASTIFY_HANDLER",
       "severity": "warning",
       "message": "Could not resolve a Fastify route handler in the supported adapter subset.",

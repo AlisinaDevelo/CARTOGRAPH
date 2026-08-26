@@ -1,0 +1,8 @@
+{
+  "name": "lockfile-ambiguous",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "dependencies": {
+    "epsilon": "5.0.0"
+  }
+}
