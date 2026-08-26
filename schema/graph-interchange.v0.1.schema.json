@@ -1,0 +1,327 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/graph-interchange.v0.1.schema.json",
+  "title": "CARTOGRAPH graph interchange v0.1",
+  "description": "Versioned JSON and JSON-LD graph envelopes plus the line contract used by the deterministic edge-list NDJSON representation. The graph snapshot schema is reused for canonical records.",
+  "oneOf": [
+    { "$ref": "#/definitions/jsonEnvelope" },
+    { "$ref": "#/definitions/jsonLdDocument" },
+    { "$ref": "#/definitions/edgeListLine" }
+  ],
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 16384,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "portableReference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 16384,
+      "pattern": "^(?!/)(?!\\\\)(?!~)(?![A-Za-z]:)(?!file:)(?!.*\\u0000)(?!.*[\\r\\n]).+$"
+    },
+    "revision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commitSha"],
+      "properties": {
+        "commitSha": { "$ref": "#/definitions/identifier" },
+        "parentSha": { "$ref": "#/definitions/identifier" },
+        "branch": { "$ref": "#/definitions/identifier" },
+        "authoredAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "jsonEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "mediaType",
+        "format",
+        "snapshot"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.graph-interchange" },
+        "mediaType": {
+          "const": "application/vnd.cartograph.graph-interchange+json"
+        },
+        "format": { "const": "json" },
+        "snapshot": {
+          "$ref": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/graph-snapshot.v0.1.schema.json"
+        }
+      }
+    },
+    "jsonLdContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["@vocab", "cartograph", "from", "to", "nodeId"],
+      "properties": {
+        "@vocab": {
+          "const": "https://github.com/AlisinaDevelo/CARTOGRAPH/graph-interchange#"
+        },
+        "cartograph": {
+          "const": "https://github.com/AlisinaDevelo/CARTOGRAPH/graph-interchange#"
+        },
+        "from": { "$ref": "#/definitions/jsonLdIdTerm" },
+        "to": { "$ref": "#/definitions/jsonLdIdTerm" },
+        "nodeId": { "$ref": "#/definitions/jsonLdIdTerm" }
+      }
+    },
+    "jsonLdIdTerm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["@id", "@type"],
+      "properties": {
+        "@id": { "type": "string" },
+        "@type": { "const": "@id" }
+      }
+    },
+    "nodeKind": {
+      "enum": [
+        "endpoint",
+        "module",
+        "package",
+        "service",
+        "function",
+        "database_table",
+        "queue",
+        "external_service",
+        "file",
+        "unknown"
+      ]
+    },
+    "edgeKind": {
+      "enum": [
+        "calls",
+        "imports",
+        "reads",
+        "writes",
+        "publishes",
+        "subscribes",
+        "requests",
+        "contains",
+        "routes_to",
+        "depends_on",
+        "implements",
+        "unknown"
+      ]
+    },
+    "confidence": {
+      "enum": ["certain", "inferred", "observed", "user_confirmed"]
+    },
+    "sourceLocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "line"],
+      "properties": {
+        "path": {
+          "$ref": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/graph-snapshot.v0.1.schema.json#/definitions/portablePath"
+        },
+        "line": { "type": "integer", "minimum": 1 },
+        "column": { "type": "integer", "minimum": 1 },
+        "endLine": { "type": "integer", "minimum": 1 },
+        "endColumn": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "evidence": {
+      "oneOf": [
+        {
+          "$ref": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/graph-snapshot.v0.1.schema.json#/definitions/sourceEvidence"
+        },
+        {
+          "$ref": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/graph-snapshot.v0.1.schema.json#/definitions/nonSourceEvidence"
+        }
+      ]
+    },
+    "jsonLdNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["@id", "@type", "stableKey", "kind", "name"],
+      "properties": {
+        "@id": { "$ref": "#/definitions/identifier" },
+        "@type": { "const": "cartograph:Node" },
+        "stableKey": { "$ref": "#/definitions/identifier" },
+        "kind": { "$ref": "#/definitions/nodeKind" },
+        "name": { "$ref": "#/definitions/text" },
+        "language": { "$ref": "#/definitions/identifier" },
+        "location": { "$ref": "#/definitions/sourceLocation" }
+      }
+    },
+    "jsonLdEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "@id",
+        "@type",
+        "from",
+        "to",
+        "kind",
+        "confidence",
+        "evidence"
+      ],
+      "properties": {
+        "@id": {
+          "type": "string",
+          "pattern": "^cartograph:edge:sha256:[0-9a-f]{64}$"
+        },
+        "@type": { "const": "cartograph:Edge" },
+        "from": { "$ref": "#/definitions/identifier" },
+        "to": { "$ref": "#/definitions/identifier" },
+        "kind": { "$ref": "#/definitions/edgeKind" },
+        "confidence": { "$ref": "#/definitions/confidence" },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/evidence" }
+        },
+        "unresolvedReason": { "$ref": "#/definitions/text" }
+      }
+    },
+    "jsonLdDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["@id", "@type", "code", "severity", "message", "evidence"],
+      "properties": {
+        "@id": { "$ref": "#/definitions/identifier" },
+        "@type": { "const": "cartograph:Diagnostic" },
+        "code": { "$ref": "#/definitions/identifier" },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "message": { "$ref": "#/definitions/text" },
+        "remediation": { "$ref": "#/definitions/text" },
+        "nodeId": { "$ref": "#/definitions/identifier" },
+        "edge": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["from", "to", "kind"],
+          "properties": {
+            "from": { "$ref": "#/definitions/identifier" },
+            "to": { "$ref": "#/definitions/identifier" },
+            "kind": { "$ref": "#/definitions/edgeKind" }
+          }
+        },
+        "location": { "$ref": "#/definitions/sourceLocation" },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/evidence" }
+        }
+      }
+    },
+    "jsonLdDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "@context",
+        "@id",
+        "@type",
+        "schemaVersion",
+        "contract",
+        "mediaType",
+        "format",
+        "capabilityRegistryVersion",
+        "revision",
+        "nodes",
+        "edges",
+        "diagnostics"
+      ],
+      "properties": {
+        "@context": { "$ref": "#/definitions/jsonLdContext" },
+        "@id": {
+          "type": "string",
+          "pattern": "^cartograph:snapshot:sha256:[0-9a-f]{64}$"
+        },
+        "@type": { "const": "cartograph:GraphSnapshot" },
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.graph-interchange" },
+        "mediaType": { "const": "application/ld+json" },
+        "format": { "const": "json-ld" },
+        "capabilityRegistryVersion": { "const": 1 },
+        "revision": { "$ref": "#/definitions/revision" },
+        "nodes": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/jsonLdNode" }
+        },
+        "edges": {
+          "type": "array",
+          "maxItems": 200000,
+          "items": { "$ref": "#/definitions/jsonLdEdge" }
+        },
+        "diagnostics": {
+          "type": "array",
+          "maxItems": 50000,
+          "items": { "$ref": "#/definitions/jsonLdDiagnostic" }
+        }
+      }
+    },
+    "edgeListMeta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "schemaVersion",
+        "contract",
+        "mediaType",
+        "format",
+        "capabilityRegistryVersion",
+        "revision"
+      ],
+      "properties": {
+        "type": { "const": "meta" },
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.graph-interchange" },
+        "mediaType": {
+          "const": "application/vnd.cartograph.edge-list+json"
+        },
+        "format": { "const": "edge-list" },
+        "capabilityRegistryVersion": { "const": 1 },
+        "revision": { "$ref": "#/definitions/revision" }
+      }
+    },
+    "edgeListLine": {
+      "oneOf": [
+        { "$ref": "#/definitions/edgeListMeta" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "node"],
+          "properties": {
+            "type": { "const": "node" },
+            "node": {
+              "$ref": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/graph-snapshot.v0.1.schema.json#/definitions/node"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "edge"],
+          "properties": {
+            "type": { "const": "edge" },
+            "edge": {
+              "$ref": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/graph-snapshot.v0.1.schema.json#/definitions/edge"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "diagnostic"],
+          "properties": {
+            "type": { "const": "diagnostic" },
+            "diagnostic": {
+              "$ref": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/graph-snapshot.v0.1.schema.json#/definitions/diagnostic"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

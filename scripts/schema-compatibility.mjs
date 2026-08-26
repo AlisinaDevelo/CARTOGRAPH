@@ -100,6 +100,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/ownership-waiver-drift.ts" ||
       file === "src/core/review-summary.ts" ||
       file === "src/core/scip.ts" ||
+      file === "src/core/graph-interchange.ts" ||
       file === "src/report/adr.ts" ||
       file === "src/report/review.ts" ||
       file === "src/report/graph-view.ts" ||
@@ -141,6 +142,8 @@ const checkHostedVersionChange = () => {
       file === "schema/graph-query-language.v0.1.schema.json" ||
       file === "schema/graph-query-language-result.v0.1.schema.json" ||
       file === "schema/graph-view.v0.1.schema.json" ||
+      file === "schema/graph-interchange.v0.1.schema.json" ||
+      file === "schema/graph-interchange-fixtures.v0.1.schema.json" ||
       file === "schema/architecture-query-explanation.v0.1.schema.json" ||
       file ===
         "schema/architecture-query-explanation-fixtures.v0.1.schema.json" ||
@@ -238,6 +241,7 @@ const checkCompatibility = () => {
   );
   const reviewSummarySource = readText("src/core/review-summary.ts");
   const scipSource = readText("src/core/scip.ts");
+  const graphInterchangeSource = readText("src/core/graph-interchange.ts");
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
   const supportSchema = readJson("schema/support-matrix.v0.1.schema.json");
   const diffSchema = readJson("schema/graph-diff.v0.1.schema.json");
@@ -348,6 +352,9 @@ const checkCompatibility = () => {
   );
   const scipInterchangeSchema = readJson(
     "schema/scip-interchange.v0.1.schema.json",
+  );
+  const graphInterchangeSchema = readJson(
+    "schema/graph-interchange.v0.1.schema.json",
   );
   const ownershipResolutionSchema = readJson(
     "schema/ownership-resolution.v0.1.schema.json",
@@ -518,6 +525,10 @@ const checkCompatibility = () => {
     scipSource,
     "SCIP_INTERCHANGE_SCHEMA_VERSION",
   );
+  const graphInterchangeVersion = sourceVersion(
+    graphInterchangeSource,
+    "GRAPH_INTERCHANGE_SCHEMA_VERSION",
+  );
   const ownershipResolutionVersion = sourceVersion(
     ownershipSource,
     "OWNERSHIP_SCHEMA_VERSION",
@@ -581,6 +592,7 @@ const checkCompatibility = () => {
     workspacePrivacyVersion === undefined ||
     workspaceFederationEvaluationVersion === undefined ||
     scipInterchangeVersion === undefined ||
+    graphInterchangeVersion === undefined ||
     ownershipResolutionVersion === undefined ||
     findingLifecycleVersion === undefined ||
     architectureWaiverVersion === undefined ||
@@ -1008,6 +1020,29 @@ const checkCompatibility = () => {
     scipInterchangeVersion,
   );
   requireEqual(
+    "graph interchange runtime/policy",
+    graphInterchangeVersion,
+    contracts.graphInterchange.current,
+  );
+  requireEqual(
+    "graph interchange JSON Schema/runtime",
+    graphInterchangeSchema.definitions.jsonEnvelope.properties.schemaVersion
+      .const,
+    graphInterchangeVersion,
+  );
+  requireEqual(
+    "graph interchange JSON-LD Schema/runtime",
+    graphInterchangeSchema.definitions.jsonLdDocument.properties.schemaVersion
+      .const,
+    graphInterchangeVersion,
+  );
+  requireEqual(
+    "graph interchange edge-list Schema/runtime",
+    graphInterchangeSchema.definitions.edgeListMeta.properties.schemaVersion
+      .const,
+    graphInterchangeVersion,
+  );
+  requireEqual(
     "ownership resolution runtime/policy",
     ownershipResolutionVersion,
     contracts.ownershipResolution.current,
@@ -1116,6 +1151,7 @@ const checkCompatibility = () => {
     adoptionMeasurementVersion,
     workspaceFederationEvaluationVersion,
     scipInterchangeVersion,
+    graphInterchangeVersion,
     ownershipResolutionVersion,
     findingLifecycleVersion,
     architectureWaiverVersion,

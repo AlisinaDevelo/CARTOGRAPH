@@ -506,6 +506,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "graph-interchange",
+      "path": "graph-interchange",
+      "source": "CARTOGRAPH repository-authored synthetic graph interchange fixture",
+      "license": "Apache-2.0",
+      "reference": "D-018 portable graph interchange export contract; no external source data",
+      "transformation": "A bounded canonical snapshot exercises deterministic JSON, JSON-LD, and edge-list NDJSON serialization and round trips while preserving node and edge identities, evidence records and references, confidence, unresolved reasons, and diagnostics without source bodies, execution, credentials, or network access.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "architecture-impact",
       "path": "architecture-impact",
       "source": "CARTOGRAPH repository-authored synthetic impact fixture",

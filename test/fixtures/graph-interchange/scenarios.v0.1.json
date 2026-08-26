@@ -1,0 +1,43 @@
+{
+  "$schema": "../../../schema/graph-interchange-fixtures.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.graph-interchange-fixtures",
+  "fixtureId": "d018-v0.1",
+  "method": {
+    "replayMode": "checked-in-snapshot",
+    "rerunnable": true,
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "credentialsUsed": false,
+    "hiddenTelemetry": false,
+    "command": "npm run graph-interchange:validate"
+  },
+  "snapshotFile": "snapshot.v0.1.json",
+  "formats": ["json", "json-ld", "edge-list"],
+  "expected": {
+    "nodes": 5,
+    "edges": 4,
+    "diagnostics": 1,
+    "edgeIdentities": [
+      "module:app|contains|function:handler",
+      "function:handler|calls|service:orders",
+      "service:orders|reads|database:orders",
+      "service:orders|requests|external:payments"
+    ],
+    "evidenceIds": [
+      "evidence:contains",
+      "evidence:calls",
+      "evidence:reads",
+      "evidence:provider-diagnostic"
+    ],
+    "evidenceReferences": [
+      "source://fixture/app",
+      "runtime://fixture/handler-orders",
+      "git://fixture/orders-read",
+      "review://fixture/provider-contract"
+    ],
+    "unresolvedReasons": [
+      "payment provider contract is not available in this snapshot"
+    ]
+  }
+}

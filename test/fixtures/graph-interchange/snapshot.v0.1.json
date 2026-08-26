@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "capabilityRegistryVersion": 1,
+  "revision": {
+    "commitSha": "d018-fixture",
+    "branch": "fixture"
+  },
+  "nodes": [
+    {
+      "id": "module:app",
+      "stableKey": "module:src/app.ts",
+      "kind": "module",
+      "name": "app",
+      "language": "typescript",
+      "location": { "path": "src/app.ts", "line": 1 }
+    },
+    {
+      "id": "function:handler",
+      "stableKey": "function:src/app.ts:handler",
+      "kind": "function",
+      "name": "handler",
+      "language": "typescript",
+      "location": { "path": "src/app.ts", "line": 4 }
+    },
+    {
+      "id": "service:orders",
+      "stableKey": "service:orders",
+      "kind": "service",
+      "name": "orders",
+      "language": "typescript"
+    },
+    {
+      "id": "database:orders",
+      "stableKey": "database_table:orders",
+      "kind": "database_table",
+      "name": "orders",
+      "language": "sql"
+    },
+    {
+      "id": "external:payments",
+      "stableKey": "external_service:payments",
+      "kind": "external_service",
+      "name": "payments"
+    }
+  ],
+  "edges": [
+    {
+      "from": "module:app",
+      "to": "function:handler",
+      "kind": "contains",
+      "confidence": "certain",
+      "evidence": [
+        {
+          "id": "evidence:contains",
+          "kind": "source",
+          "path": "src/app.ts",
+          "line": 1,
+          "reference": "source://fixture/app",
+          "detector": "typescript@5.8.0",
+          "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    {
+      "from": "function:handler",
+      "to": "service:orders",
+      "kind": "calls",
+      "confidence": "inferred",
+      "evidence": [
+        {
+          "id": "evidence:calls",
+          "kind": "runtime",
+          "path": "src/app.ts",
+          "line": 4,
+          "reference": "runtime://fixture/handler-orders",
+          "observedCount": 2
+        }
+      ]
+    },
+    {
+      "from": "service:orders",
+      "to": "database:orders",
+      "kind": "reads",
+      "confidence": "observed",
+      "evidence": [
+        {
+          "id": "evidence:reads",
+          "kind": "git",
+          "path": "src/orders.ts",
+          "line": 8,
+          "reference": "git://fixture/orders-read",
+          "revision": "d018-fixture"
+        }
+      ]
+    },
+    {
+      "from": "service:orders",
+      "to": "external:payments",
+      "kind": "requests",
+      "confidence": "user_confirmed",
+      "evidence": [],
+      "unresolvedReason": "payment provider contract is not available in this snapshot"
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "diagnostic:unresolved-provider",
+      "code": "UNRESOLVED_PROVIDER_CONTRACT",
+      "severity": "warning",
+      "message": "the payment provider request has no local contract",
+      "remediation": "review the provider boundary before relying on the request edge",
+      "nodeId": "external:payments",
+      "evidence": [
+        {
+          "id": "evidence:provider-diagnostic",
+          "kind": "user",
+          "reference": "review://fixture/provider-contract"
+        }
+      ]
+    }
+  ]
+}

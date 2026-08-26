@@ -801,6 +801,26 @@ dropped. `npm run scip:validate` is the offline replay gate, and the contract
 does not change GraphSnapshot, GraphDiff, or STRATA's compiler-backed semantic
 analysis boundary.
 
+## D-018 portable graph interchange
+
+D-018 adds the additive `graphInterchange` contract and
+[`cartograph.graph-interchange`](../schema/graph-interchange.v0.1.schema.json)
+v1 projections for canonical GraphSnapshot records. Strict JSON, inline-context
+JSON-LD, and edge-list NDJSON preserve node IDs/stable keys, typed edge
+identities, full evidence and references, confidence, unresolved reasons,
+diagnostics, revision metadata, and the capability registry version. The
+checked-in
+[`scenarios.v0.1.json`](../test/fixtures/graph-interchange/scenarios.v0.1.json)
+fixture proves deterministic round trips across all three formats.
+
+Unknown fields, malformed records, duplicate/conflicting identities, invalid
+evidence, unsupported versions, over-limit inputs, and tampered JSON-LD digest
+identities fail visibly through `GraphInterchangeValidationError`. The edge-list
+format is documented NDJSON rather than a lossy `from,to` shorthand. The
+boundary is source-free, local, offline, and independent of STRATA's
+compiler-backed semantic analyzer; `npm run graph-interchange:validate` is the
+offline replay gate.
+
 ## G-001 explicit ownership resolution
 
 G-001 adds the reviewed additive `ownershipResolution` contract and
