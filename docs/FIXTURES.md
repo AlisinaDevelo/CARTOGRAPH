@@ -24,3 +24,9 @@ Apache-2.0 license. If an external fixture is added, its upstream reference,
 exact commit or release, transformation note, and redistribution decision must
 be recorded before it is checked in. Do not copy source from an upstream
 repository without confirming that local redistribution is permitted.
+
+The `generated-provenance` fixture intentionally contains both selected and
+excluded generated TypeScript. It verifies that selected modules are classified,
+explicit `generated-from` markers retain source relationships, and excluded
+distribution or configured output paths are reported with an exact path and
+reason rather than omitted silently.

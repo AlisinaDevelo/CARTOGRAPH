@@ -33,6 +33,7 @@ repository or materialized Git revision
 - `src/analyzers/prisma-schema`: bounded Prisma datasource, model, relation, and generated-client discovery without database access.
 - `src/analyzers/workspace`: bounded npm, pnpm, and Yarn workspace manifest discovery and package ownership edges.
 - `src/analyzers/lockfiles`: bounded npm, pnpm, Yarn, and Bun lockfile normalization with offline dependency evidence.
+- `src/analyzers/generated`: bounded generated-code classification, exclusion diagnostics, and explicit source provenance markers without running a generator.
 - `src/analyzers/express`: bounded Express route semantics.
 - `src/git`: read-only Git validation and revision materialization in narrow temporary directories.
 - `src/report`: deterministic JSON, Markdown, and standalone HTML rendering.
@@ -129,6 +130,19 @@ records become deterministic `package`-to-`module` or workspace-package
 integrity/checksum metadata, ambiguous manager files, malformed JSON, and Bun
 binary lockfiles remain diagnostics; no package manager, network, or install step
 is executed.
+
+The generated-code analyzer walks only regular in-repository TypeScript files and
+does not execute a generator. It classifies selected files by generated directory
+(`build`, `coverage`, `dist`, `generated`, or `out`), generated filename markers,
+explicit `@generated`/`cartograph:generated-from=...` comments, and configured
+generated-looking exclusions. Selected generated modules retain the normal
+`module:<path>` identity with `language: "typescript-generated"`. A resolvable
+`generated-from` marker adds an evidence-backed `depends_on` edge from the
+generated module to the selected source module. Every excluded generated source
+file produces one `EXCLUDED_GENERATED_FILE` diagnostic whose message includes the
+repository-relative path and reason; an explicit marker that cannot resolve to a
+selected local source produces `GENERATED_SOURCE_UNRESOLVED`. Discovery is
+deterministic and bounded by the analyzer resource policy.
 
 ## Diff semantics
 

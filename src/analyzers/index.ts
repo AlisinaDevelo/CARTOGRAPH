@@ -49,6 +49,17 @@ export {
   type LockfileManager,
   type LockfileSource,
 } from "./lockfiles.js";
+export {
+  GENERATED_CODE_DETECTOR,
+  discoverGeneratedCode,
+  type GeneratedArtifact,
+  type GeneratedDiscovery,
+  type GeneratedPartialDiagnostic,
+  type GeneratedPartialDiagnosticCode,
+  type GeneratedProvenanceKind,
+  type GeneratedRelationship,
+  type GeneratedSource,
+} from "./generated.js";
 export { CancellationError } from "../resources.js";
 export {
   analyzeExpressRouteCall,
