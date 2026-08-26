@@ -191,6 +191,11 @@
       "current": 1,
       "supportedReaders": [1],
       "reviewedVersions": [1]
+    },
+    "workspaceFederationEvaluation": {
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
     }
   }
 }

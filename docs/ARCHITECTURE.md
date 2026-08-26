@@ -346,6 +346,21 @@ rejects traversal and symbolic-link components, and temporary materialization
 is wrapped in an async `finally` cleanup helper. The contract remains local,
 offline, source-free, and does not execute repository code or package managers.
 
+## W-006 representative federation evaluation
+
+W-006 is a governance report over the W-002 through W-005 boundaries, not a new
+runtime graph type. The additive
+[`cartograph.workspace-federation-evaluation`](../schema/workspace-federation-evaluation.v0.1.schema.json)
+fixture replays three pinned sanitized portfolios and requires package,
+service, schema, missing-repository, version-skew, and cross-boundary-change
+scenarios at declared size tiers. It recomputes resolution, unknown, identity,
+incremental, reviewer-usefulness, and privacy metrics from aggregate records.
+
+The current decision is narrow: local replay remains allowed for explicitly
+declared portfolios, while broader federation, accuracy, performance, adoption,
+and reviewer-usefulness claims remain deferred. No source body, network input,
+credential, or hidden telemetry is introduced.
+
 ## Topology summaries
 
 `diffGraphSnapshots` accepts an optional `topology` configuration. The resulting

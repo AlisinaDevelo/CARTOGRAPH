@@ -750,3 +750,20 @@ data, or hidden telemetry. Sampling bias, missingness, retention, minimum-cell
 anonymization, consent withdrawal, and deletion responsibilities are explicit;
 changing the metric meaning or source authorization requires a new protocol
 version and review rather than silently changing an existing snapshot.
+
+## W-006 representative federation evaluation
+
+W-006 publishes the additive
+[`cartograph.workspace-federation-evaluation`](../schema/workspace-federation-evaluation.v0.1.schema.json)
+report and its
+[`report.v0.1.json`](../test/fixtures/workspace-federation-evaluation/report.v0.1.json)
+fixture. It replays three pinned sanitized portfolios across package,
+service, schema, missing-repository, version-skew, and cross-boundary-change
+scenarios. Resolution precision and recall, unknown coverage, identity
+stability, incremental performance, reviewer-usefulness missingness, and
+privacy findings are explicit and recomputed by an offline validator.
+
+The current evidence supports a narrow local aggregate replay only. The report
+does not change GraphSnapshot, GraphDiff, workspace identity, boundary,
+recomposition, or privacy versions and does not make a population-level
+accuracy, performance, adoption, certification, or reviewer-usefulness claim.

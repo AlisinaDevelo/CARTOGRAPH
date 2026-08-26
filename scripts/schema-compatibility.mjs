@@ -140,7 +140,8 @@ const checkHostedVersionChange = () => {
       file === "schema/workspace-boundaries.v0.1.schema.json" ||
       file === "schema/workspace-recomposition.v0.1.schema.json" ||
       file === "schema/workspace-privacy.v0.1.schema.json" ||
-      file === "schema/adoption-measurement.v0.1.schema.json",
+      file === "schema/adoption-measurement.v0.1.schema.json" ||
+      file === "schema/workspace-federation-evaluation.v0.1.schema.json",
   );
   const reviewRecorded = changed.some(
     (file) =>
@@ -301,6 +302,9 @@ const checkCompatibility = () => {
   const adoptionMeasurementSchema = readJson(
     "schema/adoption-measurement.v0.1.schema.json",
   );
+  const workspaceFederationEvaluationSchema = readJson(
+    "schema/workspace-federation-evaluation.v0.1.schema.json",
+  );
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
     source,
@@ -434,6 +438,8 @@ const checkCompatibility = () => {
   );
   const adoptionMeasurementVersion =
     adoptionMeasurementSchema.properties.schemaVersion.const;
+  const workspaceFederationEvaluationVersion =
+    workspaceFederationEvaluationSchema.properties.schemaVersion.const;
 
   if (
     snapshotVersion === undefined ||
@@ -469,7 +475,8 @@ const checkCompatibility = () => {
     workspaceIdentityVersion === undefined ||
     workspaceBoundaryVersion === undefined ||
     workspaceRecompositionVersion === undefined ||
-    workspacePrivacyVersion === undefined
+    workspacePrivacyVersion === undefined ||
+    workspaceFederationEvaluationVersion === undefined
   ) {
     throw new Error("runtime schema version constants are missing");
   }
@@ -835,6 +842,16 @@ const checkCompatibility = () => {
     adoptionMeasurementSchema.properties.schemaVersion.const,
     adoptionMeasurementVersion,
   );
+  requireEqual(
+    "workspace federation evaluation policy",
+    workspaceFederationEvaluationVersion,
+    contracts.workspaceFederationEvaluation.current,
+  );
+  requireEqual(
+    "workspace federation evaluation JSON Schema/runtime",
+    workspaceFederationEvaluationSchema.properties.schemaVersion.const,
+    workspaceFederationEvaluationVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -879,6 +896,7 @@ const checkCompatibility = () => {
     workspaceRecompositionVersion,
     workspacePrivacyVersion,
     adoptionMeasurementVersion,
+    workspaceFederationEvaluationVersion,
   };
 };
 

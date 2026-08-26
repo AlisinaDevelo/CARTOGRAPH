@@ -221,6 +221,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [OSS health and traction scorecard](docs/OSS_HEALTH_SCORECARD.md)
 - [Repository adoption evaluation](docs/ADOPTION_EVALUATION.md)
 - [Telemetry-free adoption measurement](docs/ADOPTION_MEASUREMENT.md)
+- [Workspace federation evaluation](docs/WORKSPACE_FEDERATION_EVALUATION.md)
 - [Sustainability and cost model](docs/SUSTAINABILITY_COST_MODEL.md)
 - [Year 1–3 claims audit](docs/CLAIMS_AUDIT.md)
 - [Strategy-branch privacy and security review](docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md)

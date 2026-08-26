@@ -1,0 +1,611 @@
+{
+  "$schema": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/workspace-federation-evaluation.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.workspace-federation-evaluation",
+  "mediaType": "application/vnd.cartograph.workspace-federation-evaluation+json",
+  "evaluationId": "w006-v0.1",
+  "reviewedAt": "2026-08-26T06:00:00Z",
+  "tool": {
+    "version": "0.1.0",
+    "commit": "3ed6340a",
+    "runtime": "Node.js 26.7.0",
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "method": {
+    "replayMode": "aggregate-fixture",
+    "rerunnable": true,
+    "command": "npm run workspace:federation:evaluation:validate",
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "credentialsUsed": false,
+    "hiddenTelemetry": false,
+    "userDataIncluded": false,
+    "sourceAcquisition": "not-run",
+    "limitations": [
+      "Replay validates pinned aggregate records and scenario metadata; it does not fetch repositories or rerun a live scan.",
+      "The portfolios are public or sanitized technical records, not a statistically representative population sample.",
+      "Reviewer usefulness is not observed because no external reviewer study or user telemetry is collected.",
+      "Timing values are bounded fixture measurements and do not establish performance across arbitrary portfolios."
+    ]
+  },
+  "portfolios": [
+    {
+      "id": "atlas",
+      "title": "Atlas package, service, and schema portfolio",
+      "source": {
+        "kind": "sanitized-record",
+        "reference": "sanitized://cartograph/atlas-portfolio",
+        "revision": "a1b2c3d4",
+        "license": "MIT",
+        "sourceBodiesIncluded": false
+      },
+      "sizeTier": "small",
+      "declaredSize": {
+        "repositories": 4,
+        "graphNodes": 44,
+        "graphEdges": 64
+      },
+      "repositories": [
+        {
+          "id": "atlas-core",
+          "role": "package",
+          "status": "present",
+          "identity": "github.com/example/atlas-core",
+          "version": "1.2.0",
+          "revision": "a2b3c4d5",
+          "graphNodes": 18,
+          "graphEdges": 24,
+          "sourceBodiesIncluded": false
+        },
+        {
+          "id": "atlas-api",
+          "role": "service",
+          "status": "present",
+          "identity": "github.com/example/atlas-api",
+          "version": "2.0.0",
+          "revision": "b3c4d5e6",
+          "graphNodes": 16,
+          "graphEdges": 28,
+          "sourceBodiesIncluded": false
+        },
+        {
+          "id": "atlas-schema",
+          "role": "schema",
+          "status": "present",
+          "identity": "github.com/example/atlas-schema",
+          "version": "3.1.0",
+          "revision": "c4d5e6f7",
+          "graphNodes": 10,
+          "graphEdges": 12,
+          "sourceBodiesIncluded": false
+        },
+        {
+          "id": "atlas-optional",
+          "role": "package",
+          "status": "missing",
+          "identity": "github.com/example/atlas-optional",
+          "version": null,
+          "revision": null,
+          "graphNodes": 0,
+          "graphEdges": 0,
+          "sourceBodiesIncluded": false
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "atlas-package",
+          "kind": "package",
+          "description": "A package import resolves to the pinned package namespace and carries aggregate evidence.",
+          "expected": { "state": "resolved", "count": 4 },
+          "observed": { "state": "resolved", "count": 4 },
+          "evidenceRef": "fixture:w006-v0.1/atlas/package",
+          "reproducible": true
+        },
+        {
+          "id": "atlas-service",
+          "kind": "service",
+          "description": "A service declaration resolves to the pinned API repository without source execution.",
+          "expected": { "state": "resolved", "count": 3 },
+          "observed": { "state": "resolved", "count": 3 },
+          "evidenceRef": "fixture:w006-v0.1/atlas/service",
+          "reproducible": true
+        },
+        {
+          "id": "atlas-schema",
+          "kind": "schema",
+          "description": "A schema contract resolves to the declared version and retains its repository identity.",
+          "expected": { "state": "resolved", "count": 2 },
+          "observed": { "state": "resolved", "count": 2 },
+          "evidenceRef": "fixture:w006-v0.1/atlas/schema",
+          "reproducible": true
+        },
+        {
+          "id": "atlas-missing-repository",
+          "kind": "missing-repository",
+          "description": "A missing optional repository remains visible and is not treated as an empty graph.",
+          "expected": { "state": "unresolved", "count": 1 },
+          "observed": { "state": "unresolved", "count": 1 },
+          "evidenceRef": "fixture:w006-v0.1/atlas/missing-repository",
+          "reproducible": true
+        },
+        {
+          "id": "atlas-version-skew",
+          "kind": "version-skew",
+          "description": "A request for an unavailable package version remains unresolved with the available version recorded.",
+          "expected": { "state": "unresolved", "count": 1 },
+          "observed": { "state": "unresolved", "count": 1 },
+          "evidenceRef": "fixture:w006-v0.1/atlas/version-skew",
+          "reproducible": true
+        },
+        {
+          "id": "atlas-cross-boundary-change",
+          "kind": "cross-boundary-change",
+          "description": "A package-to-service contract change replays through the declared cross-repository boundary.",
+          "expected": { "state": "replayed", "count": 2 },
+          "observed": { "state": "replayed", "count": 2 },
+          "evidenceRef": "fixture:w006-v0.1/atlas/cross-boundary-change",
+          "reproducible": true
+        }
+      ],
+      "metrics": {
+        "resolution": {
+          "truePositives": 10,
+          "falsePositives": 1,
+          "falseNegatives": 1,
+          "precision": 0.9090909090909091,
+          "recall": 0.9090909090909091
+        },
+        "unknownCoverage": {
+          "knownRecords": 10,
+          "unknownRecords": 2,
+          "totalRecords": 12,
+          "rate": 0.16666666666666666
+        },
+        "identityStability": {
+          "stableIdentities": 18,
+          "changedIdentities": 1,
+          "ambiguousIdentities": 1,
+          "comparedIdentities": 20,
+          "stability": 0.9
+        },
+        "incrementalPerformance": {
+          "coldDurationMs": 1200,
+          "warmDurationMs": 400,
+          "speedup": 3,
+          "totalUnits": 6,
+          "changedUnits": 1,
+          "recomputedUnits": 1,
+          "reusedUnits": 5
+        },
+        "reviewerUsefulness": {
+          "status": "not-observed",
+          "taskCount": 0,
+          "completedTasks": 0,
+          "completionRate": null,
+          "reason": "No external reviewer study is retained; technical replay cannot stand in for reviewer usefulness."
+        },
+        "privacy": {
+          "status": "pass",
+          "network": false,
+          "hiddenTelemetry": false,
+          "sourceBodiesIncluded": false,
+          "findingCount": 2,
+          "findings": [
+            "Only aggregate counts, digests, and public references are retained.",
+            "The missing repository is explicit without attempting acquisition."
+          ]
+        }
+      },
+      "limitations": [
+        "The public record is pinned metadata and aggregate output, not a live repository checkout.",
+        "No reviewer usefulness or population-level accuracy claim is made."
+      ]
+    },
+    {
+      "id": "beacon",
+      "title": "Beacon sanitized service portfolio",
+      "source": {
+        "kind": "sanitized-record",
+        "reference": "sanitized://cartograph/beacon-portfolio",
+        "revision": "d5e6f7a8",
+        "license": "Apache-2.0",
+        "sourceBodiesIncluded": false
+      },
+      "sizeTier": "medium",
+      "declaredSize": {
+        "repositories": 4,
+        "graphNodes": 60,
+        "graphEdges": 83
+      },
+      "repositories": [
+        {
+          "id": "beacon-core",
+          "role": "package",
+          "status": "present",
+          "identity": "sanitized://beacon/core",
+          "version": "2.4.0",
+          "revision": "e6f7a8b9",
+          "graphNodes": 24,
+          "graphEdges": 34,
+          "sourceBodiesIncluded": false
+        },
+        {
+          "id": "beacon-api",
+          "role": "service",
+          "status": "present",
+          "identity": "sanitized://beacon/api",
+          "version": "4.0.0",
+          "revision": "f7a8b9c0",
+          "graphNodes": 22,
+          "graphEdges": 31,
+          "sourceBodiesIncluded": false
+        },
+        {
+          "id": "beacon-schema",
+          "role": "schema",
+          "status": "present",
+          "identity": "sanitized://beacon/schema",
+          "version": "5.2.0",
+          "revision": "a8b9c0d1",
+          "graphNodes": 14,
+          "graphEdges": 18,
+          "sourceBodiesIncluded": false
+        },
+        {
+          "id": "beacon-archive",
+          "role": "service",
+          "status": "missing",
+          "identity": "sanitized://beacon/archive",
+          "version": null,
+          "revision": null,
+          "graphNodes": 0,
+          "graphEdges": 0,
+          "sourceBodiesIncluded": false
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "beacon-package",
+          "kind": "package",
+          "description": "A package dependency resolves through an alias while preserving the sanitized origin namespace.",
+          "expected": { "state": "resolved", "count": 6 },
+          "observed": { "state": "resolved", "count": 6 },
+          "evidenceRef": "fixture:w006-v0.1/beacon/package",
+          "reproducible": true
+        },
+        {
+          "id": "beacon-service",
+          "kind": "service",
+          "description": "A service declaration resolves across a sanitized repository boundary.",
+          "expected": { "state": "resolved", "count": 5 },
+          "observed": { "state": "resolved", "count": 5 },
+          "evidenceRef": "fixture:w006-v0.1/beacon/service",
+          "reproducible": true
+        },
+        {
+          "id": "beacon-schema",
+          "kind": "schema",
+          "description": "A schema dependency resolves while its exact requested version remains visible.",
+          "expected": { "state": "resolved", "count": 4 },
+          "observed": { "state": "resolved", "count": 4 },
+          "evidenceRef": "fixture:w006-v0.1/beacon/schema",
+          "reproducible": true
+        },
+        {
+          "id": "beacon-missing-repository",
+          "kind": "missing-repository",
+          "description": "An unavailable archive repository yields an explicit unresolved result.",
+          "expected": { "state": "unresolved", "count": 2 },
+          "observed": { "state": "unresolved", "count": 2 },
+          "evidenceRef": "fixture:w006-v0.1/beacon/missing-repository",
+          "reproducible": true
+        },
+        {
+          "id": "beacon-version-skew",
+          "kind": "version-skew",
+          "description": "A schema request for a future version remains unresolved instead of silently binding an older declaration.",
+          "expected": { "state": "unresolved", "count": 2 },
+          "observed": { "state": "unresolved", "count": 2 },
+          "evidenceRef": "fixture:w006-v0.1/beacon/version-skew",
+          "reproducible": true
+        },
+        {
+          "id": "beacon-cross-boundary-change",
+          "kind": "cross-boundary-change",
+          "description": "A service-to-schema change replays with the boundary and version diagnostics attached.",
+          "expected": { "state": "replayed", "count": 3 },
+          "observed": { "state": "replayed", "count": 3 },
+          "evidenceRef": "fixture:w006-v0.1/beacon/cross-boundary-change",
+          "reproducible": true
+        }
+      ],
+      "metrics": {
+        "resolution": {
+          "truePositives": 15,
+          "falsePositives": 2,
+          "falseNegatives": 1,
+          "precision": 0.8823529411764706,
+          "recall": 0.9375
+        },
+        "unknownCoverage": {
+          "knownRecords": 14,
+          "unknownRecords": 4,
+          "totalRecords": 18,
+          "rate": 0.2222222222222222
+        },
+        "identityStability": {
+          "stableIdentities": 25,
+          "changedIdentities": 0,
+          "ambiguousIdentities": 1,
+          "comparedIdentities": 26,
+          "stability": 0.9615384615384616
+        },
+        "incrementalPerformance": {
+          "coldDurationMs": 2400,
+          "warmDurationMs": 600,
+          "speedup": 4,
+          "totalUnits": 9,
+          "changedUnits": 2,
+          "recomputedUnits": 2,
+          "reusedUnits": 7
+        },
+        "reviewerUsefulness": {
+          "status": "not-observed",
+          "taskCount": 0,
+          "completedTasks": 0,
+          "completionRate": null,
+          "reason": "The sanitized portfolio has no external reviewer record and no hidden telemetry."
+        },
+        "privacy": {
+          "status": "limited",
+          "network": false,
+          "hiddenTelemetry": false,
+          "sourceBodiesIncluded": false,
+          "findingCount": 3,
+          "findings": [
+            "Sanitized identities preserve boundary shape without retaining source paths.",
+            "Missing and version-skew cases are retained as aggregate diagnostics.",
+            "No credentials, source bodies, or user data enter the replay."
+          ]
+        }
+      },
+      "limitations": [
+        "Sanitization preserves scenario shape but cannot establish external reviewer usefulness.",
+        "Timing is a bounded local replay measurement, not a service-level objective."
+      ]
+    },
+    {
+      "id": "relay",
+      "title": "Relay public contract portfolio",
+      "source": {
+        "kind": "sanitized-record",
+        "reference": "sanitized://cartograph/relay-portfolio",
+        "revision": "b9c0d1e2",
+        "license": "BSD-3-Clause",
+        "sourceBodiesIncluded": false
+      },
+      "sizeTier": "large",
+      "declaredSize": {
+        "repositories": 4,
+        "graphNodes": 79,
+        "graphEdges": 114
+      },
+      "repositories": [
+        {
+          "id": "relay-core",
+          "role": "package",
+          "status": "present",
+          "identity": "github.com/example/relay-core",
+          "version": "3.0.0",
+          "revision": "c0d1e2f3",
+          "graphNodes": 32,
+          "graphEdges": 48,
+          "sourceBodiesIncluded": false
+        },
+        {
+          "id": "relay-api",
+          "role": "service",
+          "status": "present",
+          "identity": "github.com/example/relay-api",
+          "version": "6.1.0",
+          "revision": "d1e2f3a4",
+          "graphNodes": 28,
+          "graphEdges": 42,
+          "sourceBodiesIncluded": false
+        },
+        {
+          "id": "relay-schema",
+          "role": "schema",
+          "status": "present",
+          "identity": "github.com/example/relay-schema",
+          "version": "7.0.0",
+          "revision": "e2f3a4b5",
+          "graphNodes": 19,
+          "graphEdges": 24,
+          "sourceBodiesIncluded": false
+        },
+        {
+          "id": "relay-legacy",
+          "role": "package",
+          "status": "missing",
+          "identity": "github.com/example/relay-legacy",
+          "version": null,
+          "revision": null,
+          "graphNodes": 0,
+          "graphEdges": 0,
+          "sourceBodiesIncluded": false
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "relay-package",
+          "kind": "package",
+          "description": "A package and its transitive declaration resolve with stable repository-qualified identities.",
+          "expected": { "state": "resolved", "count": 8 },
+          "observed": { "state": "resolved", "count": 8 },
+          "evidenceRef": "fixture:w006-v0.1/relay/package",
+          "reproducible": true
+        },
+        {
+          "id": "relay-service",
+          "kind": "service",
+          "description": "Several service routes resolve to the declared API repository without network access.",
+          "expected": { "state": "resolved", "count": 7 },
+          "observed": { "state": "resolved", "count": 7 },
+          "evidenceRef": "fixture:w006-v0.1/relay/service",
+          "reproducible": true
+        },
+        {
+          "id": "relay-schema",
+          "kind": "schema",
+          "description": "Schema references resolve against the pinned contract revision and adapter version.",
+          "expected": { "state": "resolved", "count": 6 },
+          "observed": { "state": "resolved", "count": 6 },
+          "evidenceRef": "fixture:w006-v0.1/relay/schema",
+          "reproducible": true
+        },
+        {
+          "id": "relay-missing-repository",
+          "kind": "missing-repository",
+          "description": "A legacy repository omitted from the portfolio is reported as unavailable.",
+          "expected": { "state": "unresolved", "count": 1 },
+          "observed": { "state": "unresolved", "count": 1 },
+          "evidenceRef": "fixture:w006-v0.1/relay/missing-repository",
+          "reproducible": true
+        },
+        {
+          "id": "relay-version-skew",
+          "kind": "version-skew",
+          "description": "A request for a newer service contract remains unresolved and records the version mismatch.",
+          "expected": { "state": "unresolved", "count": 2 },
+          "observed": { "state": "unresolved", "count": 2 },
+          "evidenceRef": "fixture:w006-v0.1/relay/version-skew",
+          "reproducible": true
+        },
+        {
+          "id": "relay-cross-boundary-change",
+          "kind": "cross-boundary-change",
+          "description": "A package-to-schema breaking change replays through the declared boundary with uncertainty visible.",
+          "expected": { "state": "replayed", "count": 4 },
+          "observed": { "state": "replayed", "count": 4 },
+          "evidenceRef": "fixture:w006-v0.1/relay/cross-boundary-change",
+          "reproducible": true
+        }
+      ],
+      "metrics": {
+        "resolution": {
+          "truePositives": 21,
+          "falsePositives": 1,
+          "falseNegatives": 2,
+          "precision": 0.9545454545454546,
+          "recall": 0.9130434782608695
+        },
+        "unknownCoverage": {
+          "knownRecords": 22,
+          "unknownRecords": 3,
+          "totalRecords": 25,
+          "rate": 0.12
+        },
+        "identityStability": {
+          "stableIdentities": 31,
+          "changedIdentities": 1,
+          "ambiguousIdentities": 0,
+          "comparedIdentities": 32,
+          "stability": 0.96875
+        },
+        "incrementalPerformance": {
+          "coldDurationMs": 4200,
+          "warmDurationMs": 700,
+          "speedup": 6,
+          "totalUnits": 12,
+          "changedUnits": 3,
+          "recomputedUnits": 3,
+          "reusedUnits": 9
+        },
+        "reviewerUsefulness": {
+          "status": "not-observed",
+          "taskCount": 0,
+          "completedTasks": 0,
+          "completionRate": null,
+          "reason": "The public record contains no consented reviewer study; no usefulness claim is inferred from replay success."
+        },
+        "privacy": {
+          "status": "pass",
+          "network": false,
+          "hiddenTelemetry": false,
+          "sourceBodiesIncluded": false,
+          "findingCount": 2,
+          "findings": [
+            "Repository and revision references are retained without source bodies or absolute paths.",
+            "Unresolved and ambiguous records remain visible instead of triggering acquisition."
+          ]
+        }
+      },
+      "limitations": [
+        "The public record is an aggregate compatibility sample and not a population estimate.",
+        "The cross-boundary change is replayed from a fixture, not a live pull request."
+      ]
+    }
+  ],
+  "summary": {
+    "portfolioCount": 3,
+    "scenarioKinds": [
+      "package",
+      "service",
+      "schema",
+      "missing-repository",
+      "version-skew",
+      "cross-boundary-change"
+    ],
+    "resolution": {
+      "truePositives": 46,
+      "falsePositives": 4,
+      "falseNegatives": 4,
+      "precision": 0.92,
+      "recall": 0.92
+    },
+    "unknownCoverage": {
+      "knownRecords": 46,
+      "unknownRecords": 9,
+      "totalRecords": 55,
+      "rate": 0.16363636363636364
+    },
+    "identityStability": {
+      "stableIdentities": 74,
+      "changedIdentities": 2,
+      "ambiguousIdentities": 2,
+      "comparedIdentities": 78,
+      "stability": 0.9487179487179487
+    },
+    "incrementalPerformance": {
+      "coldDurationMs": 7800,
+      "warmDurationMs": 1700,
+      "speedup": 4.588235294117647,
+      "totalUnits": 27,
+      "changedUnits": 6,
+      "recomputedUnits": 6,
+      "reusedUnits": 21
+    },
+    "reviewerUsefulnessStatus": "not-observed",
+    "privacyFindingCount": 7
+  },
+  "decision": {
+    "outcome": "narrow",
+    "rationale": "The three pinned aggregate portfolios replay package, service, schema, missing-repository, version-skew, and cross-boundary scenarios with 0.92 aggregate resolution precision and recall, visible unknowns, stable identities, and bounded warm recomposition speedups. Reviewer usefulness and broad population accuracy remain unobserved, so the evidence supports a narrow offline evaluation gate rather than general federation or adoption claims.",
+    "allowedScope": "Keep federation as a local, aggregate-only replay and development contract for explicitly declared portfolios; preserve unresolved and privacy findings in every report.",
+    "requiredBeforeChange": [
+      "Run a separately reviewed consented reviewer study without hidden telemetry.",
+      "Repeat the evaluation on additional public or sanitized portfolios with pinned revisions and declared size tiers.",
+      "Retain negative, missing-repository, version-skew, and privacy cases in every revision."
+    ],
+    "nextReview": "2026-11-15T00:00:00Z"
+  },
+  "provenance": {
+    "source": "CARTOGRAPH repository-authored aggregate federation evaluation",
+    "license": "Apache-2.0",
+    "reference": "W-006 representative portfolio evaluation; W-002 through W-005 workspace contracts; no source bodies retained",
+    "transformation": "Three pinned public or sanitized portfolio records project repository roles, scenario outcomes, resolution counts, unknown coverage, identity stability, incremental timings, reviewer missingness, and privacy findings into the W-006 report without source acquisition or network access.",
+    "redistribution": "allowed"
+  }
+}

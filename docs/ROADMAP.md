@@ -114,7 +114,7 @@ Exit gate: versioned query contract; deterministic reachability; impact scenario
 
 Teams can compose independently produced snapshots into an offline portfolio without uploading source.
 
-Exit gate: workspace manifest; cross-repository identity and boundary contracts; provenance-aware incremental recomposition; privacy/resource controls; representative federation evaluation.
+Exit gate: workspace manifest; cross-repository identity and boundary contracts; provenance-aware incremental recomposition; privacy/resource controls; and the [representative federation evaluation](WORKSPACE_FEDERATION_EVALUATION.md).
 
 ### Q3 — Governed review and interoperability
 
