@@ -646,6 +646,15 @@
       "reference": "G-002 auditable finding lifecycle contract; no external source data",
       "transformation": "An append-only hash-chain replay exercises finding states and transitions, identity migration, supersession, concurrent records, policy and evidence revisions, removed architecture, regression, and explicit tamper rejection without source bodies, execution, or network access.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "architecture-waivers",
+      "path": "architecture-waivers",
+      "source": "CARTOGRAPH repository-authored synthetic architecture waiver fixture",
+      "license": "Apache-2.0",
+      "reference": "G-003 locally verifiable, expiry-bound architecture waiver contract; no external source data",
+      "transformation": "Offline scenario metadata exercises exact-scope signed suppression, unsigned and invalid records, broadened and replayed scopes, revoked keys, expiry, evidence drift, policy drift, explicit local trust roots, and authority-free reports; ephemeral private keys are generated only in memory.",
+      "redistribution": "allowed"
     }
   ]
 }

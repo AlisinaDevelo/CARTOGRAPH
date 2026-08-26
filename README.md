@@ -225,6 +225,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [SCIP import and export](docs/SCIP_INTERCHANGE.md)
 - [Explicit ownership resolution](docs/OWNERSHIP.md)
 - [Auditable finding lifecycle](docs/FINDING_LIFECYCLE.md)
+- [Architecture waivers](docs/ARCHITECTURE_WAIVERS.md)
 - [Sustainability and cost model](docs/SUSTAINABILITY_COST_MODEL.md)
 - [Year 1–3 claims audit](docs/CLAIMS_AUDIT.md)
 - [Strategy-branch privacy and security review](docs/STRATEGY_PRIVACY_SECURITY_REVIEW.md)

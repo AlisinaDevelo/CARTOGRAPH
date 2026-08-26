@@ -416,6 +416,27 @@ is deterministic, source-free in its output, and offline. The
 [`finding lifecycle guide`](FINDING_LIFECYCLE.md) and replay fixture define the
 review boundary for this additive contract.
 
+## G-003 locally verifiable architecture waivers
+
+The [`cartograph.architecture-waiver`](../schema/architecture-waiver.v0.1.schema.json)
+contract binds a single policy rule and exact selector to one canonical
+snapshot or diff digest, affected graph identities, evidence revision,
+rationale, distinct owner and approver, expiry, and explicit local trust roots.
+An optional Ed25519 assurance-signing record is checked against the same waiver
+digest, but `authority: "none"` is mandatory and no private key is accepted or
+emitted.
+
+The evaluator runs offline and evaluates the base policy without this waiver
+list as an exception channel. It retains malformed, unsigned, tampered,
+broadened, replayed, stale, expired, revoked, untrusted, and otherwise invalid
+waivers as visible diagnostics. Only a fully verified waiver whose selector and
+affected IDs exactly match a current violation can suppress that violation;
+precedence chooses among multiple exact matches. Suppression and provenance
+records always set `authorityGranted: false`. The
+[`architecture waiver guide`](ARCHITECTURE_WAIVERS.md) and its in-memory-key
+fixture define this review boundary; no checkout, source body, network, or
+repository execution is involved.
+
 ## Topology summaries
 
 `diffGraphSnapshots` accepts an optional `topology` configuration. The resulting
