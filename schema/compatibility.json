@@ -216,6 +216,11 @@
       "current": 1,
       "supportedReaders": [1],
       "reviewedVersions": [1]
+    },
+    "ownershipWaiverDrift": {
+      "current": 1,
+      "supportedReaders": [1],
+      "reviewedVersions": [1]
     }
   }
 }

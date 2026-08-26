@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/ownership-waiver-drift-fixtures.v0.1.schema.json",
+  "title": "CARTOGRAPH ownership and waiver drift fixture corpus v0.1",
+  "description": "Checked-in, offline state transitions for ownership disappearance, repository moves, policy and evidence migration, expiry, signing-key rotation, and partial workspaces.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "fixtureId",
+    "method",
+    "scenarios"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.ownership-waiver-drift" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.ownership-waiver-drift+json"
+    },
+    "fixtureId": { "const": "g004-v0.1" },
+    "method": { "$ref": "#/definitions/method" },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": { "$ref": "#/definitions/scenario" }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "replayMode",
+        "rerunnable",
+        "network",
+        "sourceBodiesIncluded",
+        "credentialsUsed",
+        "hiddenTelemetry",
+        "appendOnly",
+        "authorityFree",
+        "command"
+      ],
+      "properties": {
+        "replayMode": { "const": "checked-in-ownership-waiver-states" },
+        "rerunnable": { "const": true },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "credentialsUsed": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "appendOnly": { "const": true },
+        "authorityFree": { "const": true },
+        "command": { "const": "npm run ownership-waiver-drift:validate" }
+      }
+    },
+    "state": { "type": "object" },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "diagnosticCodes", "summary", "trailIncludes"],
+      "properties": {
+        "status": { "enum": ["clean", "drift", "unsupported"] },
+        "diagnosticCodes": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^DRIFT_[A-Z0-9_]+$" }
+        },
+        "summary": { "type": "object" },
+        "trailIncludes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "input", "expected"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "input": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schemaVersion", "contract", "current"],
+          "properties": {
+            "schemaVersion": { "const": 1 },
+            "contract": { "const": "cartograph.ownership-waiver-drift" },
+            "current": { "$ref": "#/definitions/state" },
+            "previous": { "$ref": "#/definitions/state" }
+          }
+        },
+        "expected": { "$ref": "#/definitions/expected" }
+      }
+    }
+  }
+}

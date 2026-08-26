@@ -1,0 +1,423 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/ownership-waiver-drift.v0.1.schema.json",
+  "title": "CARTOGRAPH ownership and waiver drift report v0.1",
+  "description": "An offline comparison of reviewed ownership and architecture-waiver decisions. Reports are digest-oriented, preserve prior decision entries, and never renew or authorize a waiver.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "status",
+    "currentRevision",
+    "summary",
+    "changes",
+    "diagnostics",
+    "decisionTrail",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.ownership-waiver-drift" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.ownership-waiver-drift+json"
+    },
+    "status": { "enum": ["clean", "drift", "unsupported"] },
+    "previousRevision": { "$ref": "#/definitions/identifier" },
+    "currentRevision": { "$ref": "#/definitions/identifier" },
+    "summary": { "$ref": "#/definitions/summary" },
+    "changes": {
+      "type": "array",
+      "maxItems": 100000,
+      "items": { "$ref": "#/definitions/change" }
+    },
+    "diagnostics": {
+      "type": "array",
+      "maxItems": 100000,
+      "items": { "$ref": "#/definitions/diagnostic" }
+    },
+    "decisionTrail": {
+      "type": "array",
+      "maxItems": 20000,
+      "items": { "$ref": "#/definitions/decision" }
+    },
+    "provenance": { "$ref": "#/definitions/provenance" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "repositoryIds", "complete", "missingRepositoryIds"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "repositoryIds": {
+          "type": "array",
+          "maxItems": 1024,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "complete": { "type": "boolean" },
+        "missingRepositoryIds": {
+          "type": "array",
+          "maxItems": 1024,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "key": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "keyId",
+        "trustRootId",
+        "status",
+        "validFrom",
+        "validUntil",
+        "rotatedFrom",
+        "retiredAt",
+        "revokedAt"
+      ],
+      "properties": {
+        "keyId": { "$ref": "#/definitions/identifier" },
+        "trustRootId": { "$ref": "#/definitions/identifier" },
+        "status": { "enum": ["active", "retired", "revoked"] },
+        "validFrom": { "type": "string", "format": "date-time" },
+        "validUntil": { "type": "string", "format": "date-time" },
+        "rotatedFrom": {
+          "anyOf": [{ "$ref": "#/definitions/identifier" }, { "type": "null" }]
+        },
+        "retiredAt": {
+          "anyOf": [
+            { "type": "string", "format": "date-time" },
+            { "type": "null" }
+          ]
+        },
+        "revokedAt": {
+          "anyOf": [
+            { "type": "string", "format": "date-time" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "waiver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "ruleId",
+        "policyVersion",
+        "evidenceRevision",
+        "createdAt",
+        "expiresAt",
+        "waiverDigest",
+        "scopeDigest",
+        "affectedIds",
+        "trustRootIds",
+        "status",
+        "code",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "ruleId": { "$ref": "#/definitions/identifier" },
+        "policyVersion": { "$ref": "#/definitions/semver" },
+        "evidenceRevision": { "$ref": "#/definitions/identifier" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "waiverDigest": { "$ref": "#/definitions/digest" },
+        "scopeDigest": { "$ref": "#/definitions/digest" },
+        "affectedIds": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "signerKeyId": { "$ref": "#/definitions/identifier" },
+        "trustRootIds": {
+          "type": "array",
+          "maxItems": 32,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "status": {
+          "enum": [
+            "active",
+            "expiring",
+            "unsigned",
+            "invalid",
+            "broadened",
+            "replayed",
+            "expired",
+            "not-effective",
+            "revoked",
+            "signature-invalid",
+            "trust-root-untrusted",
+            "scope-mismatch",
+            "no-match",
+            "shadowed"
+          ]
+        },
+        "code": { "type": "string", "pattern": "^WAIVER_[A-Z0-9_]+$" },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sequence",
+        "revision",
+        "at",
+        "kind",
+        "subjectId",
+        "decision",
+        "ownerRefs",
+        "evidenceRefs",
+        "authorityGranted",
+        "autoExtended"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "revision": { "$ref": "#/definitions/identifier" },
+        "at": { "type": "string", "format": "date-time" },
+        "kind": { "enum": ["ownership", "waiver"] },
+        "subjectId": { "$ref": "#/definitions/identifier" },
+        "decision": {
+          "type": "string",
+          "pattern": "^(ownership|waiver):[a-z0-9-]+$"
+        },
+        "ownerRefs": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "policyVersion": { "$ref": "#/definitions/semver" },
+        "evidenceRevision": { "$ref": "#/definitions/identifier" },
+        "waiverDigest": { "$ref": "#/definitions/digest" },
+        "evidenceRefs": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "authorityGranted": { "const": false },
+        "autoExtended": { "const": false }
+      }
+    },
+    "changeValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "owners": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "repositoryId": { "$ref": "#/definitions/identifier" },
+        "status": { "type": "string", "maxLength": 160 },
+        "policyVersion": { "$ref": "#/definitions/semver" },
+        "evidenceRevision": { "$ref": "#/definitions/identifier" },
+        "signerKeyId": { "$ref": "#/definitions/identifier" },
+        "scopeDigest": { "$ref": "#/definitions/digest" },
+        "waiverDigest": { "$ref": "#/definitions/digest" }
+      }
+    },
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "subjectId",
+        "diagnosticCodes",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "kind": {
+          "enum": [
+            "owner",
+            "repository",
+            "waiver",
+            "policy",
+            "evidence",
+            "signing-key",
+            "workspace"
+          ]
+        },
+        "subjectId": { "$ref": "#/definitions/identifier" },
+        "previous": { "$ref": "#/definitions/changeValue" },
+        "current": { "$ref": "#/definitions/changeValue" },
+        "diagnosticCodes": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^DRIFT_[A-Z0-9_]+$" }
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "code",
+        "severity",
+        "message",
+        "currentRevision",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "code": { "type": "string", "pattern": "^DRIFT_[A-Z0-9_]+$" },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "message": { "$ref": "#/definitions/identifier" },
+        "subjectId": { "$ref": "#/definitions/identifier" },
+        "previousRevision": { "$ref": "#/definitions/identifier" },
+        "currentRevision": { "$ref": "#/definitions/identifier" },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "targets",
+        "waivers",
+        "ownerDisappeared",
+        "ambiguousReassignment",
+        "repositoryMoves",
+        "waiverScopeDrift",
+        "waiversExpiring",
+        "waiversExpired",
+        "invalidSignatures",
+        "evidenceChanges",
+        "policyChanges",
+        "keyRotations",
+        "partialWorkspaces",
+        "changes",
+        "diagnostics",
+        "decisionTrail"
+      ],
+      "properties": {
+        "targets": { "type": "integer", "minimum": 0 },
+        "waivers": { "type": "integer", "minimum": 0 },
+        "ownerDisappeared": { "type": "integer", "minimum": 0 },
+        "ambiguousReassignment": { "type": "integer", "minimum": 0 },
+        "repositoryMoves": { "type": "integer", "minimum": 0 },
+        "waiverScopeDrift": { "type": "integer", "minimum": 0 },
+        "waiversExpiring": { "type": "integer", "minimum": 0 },
+        "waiversExpired": { "type": "integer", "minimum": 0 },
+        "invalidSignatures": { "type": "integer", "minimum": 0 },
+        "evidenceChanges": { "type": "integer", "minimum": 0 },
+        "policyChanges": { "type": "integer", "minimum": 0 },
+        "keyRotations": { "type": "integer", "minimum": 0 },
+        "partialWorkspaces": { "type": "integer", "minimum": 0 },
+        "changes": { "type": "integer", "minimum": 0 },
+        "diagnostics": { "type": "integer", "minimum": 0 },
+        "decisionTrail": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resolver",
+        "resolverVersion",
+        "inputDigest",
+        "network",
+        "sourceBodiesIncluded",
+        "privateKeysIncluded",
+        "authorityGranted",
+        "autoExtended",
+        "deterministic"
+      ],
+      "properties": {
+        "resolver": { "const": "cartograph.ownership-waiver-drift" },
+        "resolverVersion": { "const": "1" },
+        "inputDigest": { "$ref": "#/definitions/digest" },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "privateKeysIncluded": { "const": false },
+        "authorityGranted": { "const": false },
+        "autoExtended": { "const": false },
+        "deterministic": { "const": true }
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "revision",
+        "at",
+        "workspace",
+        "policyId",
+        "policyVersion",
+        "evidenceRevision",
+        "ownership",
+        "waiverEvaluation",
+        "waivers",
+        "keyring",
+        "decisionTrail"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.ownership-waiver-drift" },
+        "revision": { "$ref": "#/definitions/identifier" },
+        "at": { "type": "string", "format": "date-time" },
+        "workspace": { "$ref": "#/definitions/workspace" },
+        "policyId": { "$ref": "#/definitions/identifier" },
+        "policyVersion": { "$ref": "#/definitions/semver" },
+        "evidenceRevision": { "$ref": "#/definitions/identifier" },
+        "ownership": { "type": "object" },
+        "waiverEvaluation": { "type": "object" },
+        "waivers": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/waiver" }
+        },
+        "keyring": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/definitions/key" }
+        },
+        "decisionTrail": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": { "$ref": "#/definitions/decision" }
+        }
+      }
+    }
+  }
+}

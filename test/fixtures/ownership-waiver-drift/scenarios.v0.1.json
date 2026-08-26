@@ -1,0 +1,694 @@
+{
+  "$schema": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/ownership-waiver-drift-fixtures.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.ownership-waiver-drift",
+  "mediaType": "application/vnd.cartograph.ownership-waiver-drift+json",
+  "fixtureId": "g004-v0.1",
+  "method": {
+    "replayMode": "checked-in-ownership-waiver-states",
+    "rerunnable": true,
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "credentialsUsed": false,
+    "hiddenTelemetry": false,
+    "appendOnly": true,
+    "authorityFree": true,
+    "command": "npm run ownership-waiver-drift:validate"
+  },
+  "scenarios": [
+    {
+      "id": "repository-policy-key-and-workspace-drift",
+      "input": {
+        "schemaVersion": 1,
+        "contract": "cartograph.ownership-waiver-drift",
+        "previous": {
+          "schemaVersion": 1,
+          "contract": "cartograph.ownership-waiver-drift",
+          "revision": "revision-previous",
+          "at": "2030-02-01T00:00:00.000Z",
+          "workspace": {
+            "id": "workspace-main",
+            "repositoryIds": ["repo-a", "repo-b", "repo-c"],
+            "complete": true,
+            "missingRepositoryIds": []
+          },
+          "policyId": "architecture-policy",
+          "policyVersion": "1.0.0",
+          "evidenceRevision": "evidence-v1",
+          "ownership": {
+            "schemaVersion": 1,
+            "contract": "cartograph.ownership-resolution",
+            "mediaType": "application/vnd.cartograph.ownership-resolution+json",
+            "provenance": {
+              "resolver": "cartograph.ownership-resolution",
+              "resolverVersion": "1",
+              "inputDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "sourceBodiesIncluded": false
+            },
+            "summary": {
+              "targets": 3,
+              "resolved": 3,
+              "unowned": 0,
+              "ambiguous": 0,
+              "unavailable": 0,
+              "unsupported": 0,
+              "matchedRules": 3
+            },
+            "results": [
+              {
+                "target": {
+                  "id": "checkout-v1",
+                  "repositoryId": "repo-a",
+                  "path": "packages/checkout/src/index.ts",
+                  "stableKey": "module:checkout",
+                  "kind": "node"
+                },
+                "status": "resolved",
+                "owners": ["team:payments"],
+                "matches": [],
+                "evidence": [
+                  {
+                    "sourceId": "ownership-a",
+                    "sourcePath": ".cartograph/ownership.json",
+                    "matchedPath": "current",
+                    "reference": "ownership://rule/checkout-v1"
+                  }
+                ],
+                "diagnosticCodes": []
+              },
+              {
+                "target": {
+                  "id": "legacy-v1",
+                  "repositoryId": "repo-a",
+                  "path": "packages/legacy/src/index.ts",
+                  "stableKey": "module:legacy",
+                  "kind": "node"
+                },
+                "status": "resolved",
+                "owners": ["team:legacy"],
+                "matches": [],
+                "evidence": [
+                  {
+                    "sourceId": "ownership-a",
+                    "sourcePath": ".cartograph/ownership.json",
+                    "matchedPath": "current",
+                    "reference": "ownership://rule/legacy-v1"
+                  }
+                ],
+                "diagnosticCodes": []
+              },
+              {
+                "target": {
+                  "id": "docs-v1",
+                  "repositoryId": "repo-a",
+                  "path": "docs/guide.md",
+                  "stableKey": "file:docs-guide",
+                  "kind": "file"
+                },
+                "status": "resolved",
+                "owners": ["team:docs"],
+                "matches": [],
+                "evidence": [
+                  {
+                    "sourceId": "ownership-a",
+                    "sourcePath": ".cartograph/ownership.json",
+                    "matchedPath": "current",
+                    "reference": "ownership://rule/docs-v1"
+                  }
+                ],
+                "diagnosticCodes": []
+              }
+            ],
+            "diagnostics": []
+          },
+          "waiverEvaluation": {
+            "schemaVersion": 1,
+            "contract": "cartograph.architecture-waiver",
+            "mediaType": "application/vnd.cartograph.architecture-waiver+json",
+            "policyId": "architecture-policy",
+            "policyVersion": "1.0.0",
+            "policyStatus": "violations",
+            "inputKind": "snapshot",
+            "inputDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "status": "violations",
+            "authorityGranted": false,
+            "violations": [
+              {
+                "id": "violation:boundary",
+                "policyId": "architecture-policy",
+                "ruleId": "boundary",
+                "target": "node",
+                "assertion": "exists",
+                "effect": "enforce",
+                "count": 0,
+                "matches": [],
+                "reason": "boundary is absent",
+                "evidenceRefs": ["node:boundary"]
+              }
+            ],
+            "unsupported": [],
+            "suppressed": [],
+            "waivers": [
+              {
+                "id": "waiver-expiring",
+                "ruleId": "boundary",
+                "status": "active",
+                "code": "WAIVER_ACTIVE",
+                "precedence": 1,
+                "suppresses": false,
+                "authorityGranted": false,
+                "reason": "signed waiver is active",
+                "evidenceRefs": ["waiver:waiver-expiring"]
+              },
+              {
+                "id": "waiver-expired",
+                "ruleId": "boundary",
+                "status": "active",
+                "code": "WAIVER_ACTIVE",
+                "precedence": 1,
+                "suppresses": false,
+                "authorityGranted": false,
+                "reason": "signed waiver is active",
+                "evidenceRefs": ["waiver:waiver-expired"]
+              },
+              {
+                "id": "waiver-invalid-signature",
+                "ruleId": "boundary",
+                "status": "active",
+                "code": "WAIVER_ACTIVE",
+                "precedence": 1,
+                "suppresses": false,
+                "authorityGranted": false,
+                "reason": "signed waiver is active",
+                "evidenceRefs": ["waiver:waiver-invalid-signature"]
+              },
+              {
+                "id": "waiver-evidence",
+                "ruleId": "boundary",
+                "status": "active",
+                "code": "WAIVER_ACTIVE",
+                "precedence": 1,
+                "suppresses": false,
+                "authorityGranted": false,
+                "reason": "signed waiver is active",
+                "evidenceRefs": ["waiver:waiver-evidence"]
+              },
+              {
+                "id": "waiver-policy",
+                "ruleId": "boundary",
+                "status": "active",
+                "code": "WAIVER_ACTIVE",
+                "precedence": 1,
+                "suppresses": false,
+                "authorityGranted": false,
+                "reason": "signed waiver is active",
+                "evidenceRefs": ["waiver:waiver-policy"]
+              }
+            ],
+            "summary": {
+              "waivers": 5,
+              "active": 5,
+              "expiring": 0,
+              "suppressed": 0,
+              "invalid": 0,
+              "unsigned": 0,
+              "replayed": 0,
+              "expired": 0
+            },
+            "provenance": {
+              "resolver": "cartograph.architecture-waiver",
+              "resolverVersion": "1",
+              "inputDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "network": false,
+              "sourceBodiesIncluded": false,
+              "privateKeysIncluded": false,
+              "authorityGranted": false,
+              "deterministic": true
+            }
+          },
+          "waivers": [
+            {
+              "id": "waiver-expiring",
+              "ruleId": "boundary",
+              "policyVersion": "1.0.0",
+              "evidenceRevision": "evidence-v1",
+              "createdAt": "2030-01-01T00:00:00.000Z",
+              "expiresAt": "2030-03-01T00:00:00.000Z",
+              "waiverDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "scopeDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "affectedIds": ["node:boundary"],
+              "signerKeyId": "key-old",
+              "trustRootIds": ["root-local"],
+              "status": "active",
+              "code": "WAIVER_ACTIVE",
+              "evidenceRefs": ["waiver:waiver-expiring"]
+            },
+            {
+              "id": "waiver-expired",
+              "ruleId": "boundary",
+              "policyVersion": "1.0.0",
+              "evidenceRevision": "evidence-v1",
+              "createdAt": "2030-01-01T00:00:00.000Z",
+              "expiresAt": "2030-03-01T00:00:00.000Z",
+              "waiverDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "scopeDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "affectedIds": ["node:boundary"],
+              "signerKeyId": "key-old",
+              "trustRootIds": ["root-local"],
+              "status": "active",
+              "code": "WAIVER_ACTIVE",
+              "evidenceRefs": ["waiver:waiver-expired"]
+            },
+            {
+              "id": "waiver-invalid-signature",
+              "ruleId": "boundary",
+              "policyVersion": "1.0.0",
+              "evidenceRevision": "evidence-v1",
+              "createdAt": "2030-01-01T00:00:00.000Z",
+              "expiresAt": "2030-03-01T00:00:00.000Z",
+              "waiverDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "scopeDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "affectedIds": ["node:boundary"],
+              "signerKeyId": "key-old",
+              "trustRootIds": ["root-local"],
+              "status": "active",
+              "code": "WAIVER_ACTIVE",
+              "evidenceRefs": ["waiver:waiver-invalid-signature"]
+            },
+            {
+              "id": "waiver-evidence",
+              "ruleId": "boundary",
+              "policyVersion": "1.0.0",
+              "evidenceRevision": "evidence-v1",
+              "createdAt": "2030-01-01T00:00:00.000Z",
+              "expiresAt": "2030-03-01T00:00:00.000Z",
+              "waiverDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "scopeDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "affectedIds": ["node:boundary"],
+              "signerKeyId": "key-old",
+              "trustRootIds": ["root-local"],
+              "status": "active",
+              "code": "WAIVER_ACTIVE",
+              "evidenceRefs": ["waiver:waiver-evidence"]
+            },
+            {
+              "id": "waiver-policy",
+              "ruleId": "boundary",
+              "policyVersion": "1.0.0",
+              "evidenceRevision": "evidence-v1",
+              "createdAt": "2030-01-01T00:00:00.000Z",
+              "expiresAt": "2030-03-01T00:00:00.000Z",
+              "waiverDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "scopeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "affectedIds": ["node:boundary"],
+              "signerKeyId": "key-old",
+              "trustRootIds": ["root-local"],
+              "status": "active",
+              "code": "WAIVER_ACTIVE",
+              "evidenceRefs": ["waiver:waiver-policy"]
+            }
+          ],
+          "keyring": [
+            {
+              "keyId": "key-old",
+              "trustRootId": "root-local",
+              "status": "active",
+              "validFrom": "2029-01-01T00:00:00.000Z",
+              "validUntil": "2031-12-31T23:59:59.000Z",
+              "rotatedFrom": null,
+              "retiredAt": null,
+              "revokedAt": null
+            }
+          ],
+          "decisionTrail": [
+            {
+              "id": "trail-prior",
+              "sequence": 1,
+              "revision": "revision-previous",
+              "at": "2030-02-01T00:00:00.000Z",
+              "kind": "waiver",
+              "subjectId": "waiver-expiring",
+              "decision": "waiver:active",
+              "ownerRefs": [],
+              "policyVersion": "1.0.0",
+              "evidenceRevision": "evidence-v1",
+              "waiverDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "evidenceRefs": ["waiver:waiver-expiring"],
+              "authorityGranted": false,
+              "autoExtended": false
+            }
+          ]
+        },
+        "current": {
+          "schemaVersion": 1,
+          "contract": "cartograph.ownership-waiver-drift",
+          "revision": "revision-current",
+          "at": "2030-02-22T00:00:00.000Z",
+          "workspace": {
+            "id": "workspace-main",
+            "repositoryIds": ["repo-b", "repo-a"],
+            "complete": false,
+            "missingRepositoryIds": ["repo-c"]
+          },
+          "policyId": "architecture-policy",
+          "policyVersion": "2.0.0",
+          "evidenceRevision": "evidence-v2",
+          "ownership": {
+            "schemaVersion": 1,
+            "contract": "cartograph.ownership-resolution",
+            "mediaType": "application/vnd.cartograph.ownership-resolution+json",
+            "provenance": {
+              "resolver": "cartograph.ownership-resolution",
+              "resolverVersion": "1",
+              "inputDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "sourceBodiesIncluded": false
+            },
+            "summary": {
+              "targets": 3,
+              "resolved": 1,
+              "unowned": 1,
+              "ambiguous": 1,
+              "unavailable": 0,
+              "unsupported": 0,
+              "matchedRules": 3
+            },
+            "results": [
+              {
+                "target": {
+                  "id": "checkout-v2",
+                  "repositoryId": "repo-b",
+                  "path": "services/checkout/src/index.ts",
+                  "stableKey": "module:checkout",
+                  "kind": "node"
+                },
+                "status": "ambiguous",
+                "owners": ["team:platform", "team:risk"],
+                "matches": [],
+                "evidence": [
+                  {
+                    "sourceId": "ownership-b",
+                    "sourcePath": ".cartograph/ownership.json",
+                    "matchedPath": "current",
+                    "reference": "ownership://rule/checkout-v2"
+                  }
+                ],
+                "diagnosticCodes": ["OWNERSHIP_CONFLICT"]
+              },
+              {
+                "target": {
+                  "id": "legacy-v2",
+                  "repositoryId": "repo-a",
+                  "path": "packages/legacy/src/index.ts",
+                  "stableKey": "module:legacy",
+                  "kind": "node"
+                },
+                "status": "unowned",
+                "owners": [],
+                "matches": [],
+                "evidence": [
+                  {
+                    "sourceId": "ownership-a",
+                    "sourcePath": ".cartograph/ownership.json",
+                    "matchedPath": "current",
+                    "reference": "ownership://rule/legacy-v2"
+                  }
+                ],
+                "diagnosticCodes": ["OWNERSHIP_NO_MATCH"]
+              },
+              {
+                "target": {
+                  "id": "docs-v1",
+                  "repositoryId": "repo-a",
+                  "path": "docs/guide.md",
+                  "stableKey": "file:docs-guide",
+                  "kind": "file"
+                },
+                "status": "resolved",
+                "owners": ["team:docs"],
+                "matches": [],
+                "evidence": [
+                  {
+                    "sourceId": "ownership-a",
+                    "sourcePath": ".cartograph/ownership.json",
+                    "matchedPath": "current",
+                    "reference": "ownership://rule/docs-v1"
+                  }
+                ],
+                "diagnosticCodes": []
+              }
+            ],
+            "diagnostics": []
+          },
+          "waiverEvaluation": {
+            "schemaVersion": 1,
+            "contract": "cartograph.architecture-waiver",
+            "mediaType": "application/vnd.cartograph.architecture-waiver+json",
+            "policyId": "architecture-policy",
+            "policyVersion": "2.0.0",
+            "policyStatus": "violations",
+            "inputKind": "snapshot",
+            "inputDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "status": "violations",
+            "authorityGranted": false,
+            "violations": [
+              {
+                "id": "violation:boundary",
+                "policyId": "architecture-policy",
+                "ruleId": "boundary",
+                "target": "node",
+                "assertion": "exists",
+                "effect": "enforce",
+                "count": 0,
+                "matches": [],
+                "reason": "boundary is absent",
+                "evidenceRefs": ["node:boundary"]
+              }
+            ],
+            "unsupported": [],
+            "suppressed": [],
+            "waivers": [
+              {
+                "id": "waiver-expiring",
+                "ruleId": "boundary",
+                "status": "expiring",
+                "code": "WAIVER_EXPIRING",
+                "precedence": 1,
+                "suppresses": false,
+                "authorityGranted": false,
+                "reason": "signed waiver is expiring",
+                "evidenceRefs": ["waiver:waiver-expiring"]
+              },
+              {
+                "id": "waiver-expired",
+                "ruleId": "boundary",
+                "status": "expired",
+                "code": "WAIVER_EXPIRED",
+                "precedence": 1,
+                "suppresses": false,
+                "authorityGranted": false,
+                "reason": "waiver expired",
+                "evidenceRefs": ["waiver:waiver-expired"]
+              },
+              {
+                "id": "waiver-invalid-signature",
+                "ruleId": "boundary",
+                "status": "signature-invalid",
+                "code": "WAIVER_SIGNATURE_INVALID",
+                "precedence": 1,
+                "suppresses": false,
+                "authorityGranted": false,
+                "reason": "signature verification failed",
+                "evidenceRefs": ["waiver:waiver-invalid-signature"],
+                "signatureCode": "invalid-signature"
+              },
+              {
+                "id": "waiver-evidence",
+                "ruleId": "boundary",
+                "status": "scope-mismatch",
+                "code": "WAIVER_EVIDENCE_CHANGED",
+                "precedence": 1,
+                "suppresses": false,
+                "authorityGranted": false,
+                "reason": "evidence changed",
+                "evidenceRefs": ["waiver:waiver-evidence"]
+              },
+              {
+                "id": "waiver-policy",
+                "ruleId": "boundary",
+                "status": "scope-mismatch",
+                "code": "WAIVER_POLICY_CHANGED",
+                "precedence": 1,
+                "suppresses": false,
+                "authorityGranted": false,
+                "reason": "policy changed",
+                "evidenceRefs": ["waiver:waiver-policy"]
+              }
+            ],
+            "summary": {
+              "waivers": 5,
+              "active": 0,
+              "expiring": 1,
+              "suppressed": 0,
+              "invalid": 3,
+              "unsigned": 0,
+              "replayed": 0,
+              "expired": 1
+            },
+            "provenance": {
+              "resolver": "cartograph.architecture-waiver",
+              "resolverVersion": "1",
+              "inputDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "network": false,
+              "sourceBodiesIncluded": false,
+              "privateKeysIncluded": false,
+              "authorityGranted": false,
+              "deterministic": true
+            }
+          },
+          "waivers": [
+            {
+              "id": "waiver-expiring",
+              "ruleId": "boundary",
+              "policyVersion": "1.0.0",
+              "evidenceRevision": "evidence-v1",
+              "createdAt": "2030-01-01T00:00:00.000Z",
+              "expiresAt": "2030-02-25T00:00:00.000Z",
+              "waiverDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
+              "scopeDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "affectedIds": ["node:boundary", "node:checkout"],
+              "signerKeyId": "key-old",
+              "trustRootIds": ["root-local"],
+              "status": "expiring",
+              "code": "WAIVER_EXPIRING",
+              "evidenceRefs": ["waiver:waiver-expiring"]
+            },
+            {
+              "id": "waiver-expired",
+              "ruleId": "boundary",
+              "policyVersion": "1.0.0",
+              "evidenceRevision": "evidence-v1",
+              "createdAt": "2030-01-01T00:00:00.000Z",
+              "expiresAt": "2030-02-01T00:00:00.000Z",
+              "waiverDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "scopeDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "affectedIds": ["node:boundary"],
+              "signerKeyId": "key-old",
+              "trustRootIds": ["root-local"],
+              "status": "expired",
+              "code": "WAIVER_EXPIRED",
+              "evidenceRefs": ["waiver:waiver-expired"]
+            },
+            {
+              "id": "waiver-invalid-signature",
+              "ruleId": "boundary",
+              "policyVersion": "1.0.0",
+              "evidenceRevision": "evidence-v1",
+              "createdAt": "2030-01-01T00:00:00.000Z",
+              "expiresAt": "2030-03-01T00:00:00.000Z",
+              "waiverDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccd",
+              "scopeDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "affectedIds": ["node:boundary"],
+              "signerKeyId": "key-new",
+              "trustRootIds": ["root-local"],
+              "status": "signature-invalid",
+              "code": "WAIVER_SIGNATURE_INVALID",
+              "evidenceRefs": ["waiver:waiver-invalid-signature"]
+            },
+            {
+              "id": "waiver-evidence",
+              "ruleId": "boundary",
+              "policyVersion": "1.0.0",
+              "evidenceRevision": "evidence-v2",
+              "createdAt": "2030-01-01T00:00:00.000Z",
+              "expiresAt": "2030-03-01T00:00:00.000Z",
+              "waiverDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "scopeDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "affectedIds": ["node:boundary"],
+              "signerKeyId": "key-old",
+              "trustRootIds": ["root-local"],
+              "status": "scope-mismatch",
+              "code": "WAIVER_EVIDENCE_CHANGED",
+              "evidenceRefs": ["waiver:waiver-evidence"]
+            },
+            {
+              "id": "waiver-policy",
+              "ruleId": "boundary",
+              "policyVersion": "2.0.0",
+              "evidenceRevision": "evidence-v1",
+              "createdAt": "2030-01-01T00:00:00.000Z",
+              "expiresAt": "2030-03-01T00:00:00.000Z",
+              "waiverDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeef",
+              "scopeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "affectedIds": ["node:boundary"],
+              "signerKeyId": "key-old",
+              "trustRootIds": ["root-local"],
+              "status": "scope-mismatch",
+              "code": "WAIVER_POLICY_CHANGED",
+              "evidenceRefs": ["waiver:waiver-policy"]
+            }
+          ],
+          "keyring": [
+            {
+              "keyId": "key-old",
+              "trustRootId": "root-local",
+              "status": "retired",
+              "validFrom": "2029-01-01T00:00:00.000Z",
+              "validUntil": "2031-12-31T23:59:59.000Z",
+              "rotatedFrom": null,
+              "retiredAt": "2030-02-10T00:00:00.000Z",
+              "revokedAt": null
+            },
+            {
+              "keyId": "key-new",
+              "trustRootId": "root-local",
+              "status": "active",
+              "validFrom": "2030-02-10T00:00:00.000Z",
+              "validUntil": "2032-12-31T23:59:59.000Z",
+              "rotatedFrom": "key-old",
+              "retiredAt": null,
+              "revokedAt": null
+            }
+          ],
+          "decisionTrail": []
+        }
+      },
+      "expected": {
+        "status": "unsupported",
+        "diagnosticCodes": [
+          "DRIFT_OWNER_DISAPPEARED",
+          "DRIFT_OWNER_REASSIGNED_AMBIGUOUS",
+          "DRIFT_REPOSITORY_MOVED",
+          "DRIFT_WAIVER_SCOPE_DRIFT",
+          "DRIFT_WAIVER_EXPIRING",
+          "DRIFT_WAIVER_EXPIRED",
+          "DRIFT_WAIVER_SIGNATURE_INVALID",
+          "DRIFT_WAIVER_EVIDENCE_CHANGED",
+          "DRIFT_WAIVER_POLICY_CHANGED",
+          "DRIFT_POLICY_MIGRATED",
+          "DRIFT_KEY_ROTATED",
+          "DRIFT_SIGNING_KEY_STATUS_CHANGED",
+          "DRIFT_PARTIAL_WORKSPACE"
+        ],
+        "summary": {
+          "targets": 3,
+          "waivers": 5,
+          "ownerDisappeared": 1,
+          "ambiguousReassignment": 1,
+          "repositoryMoves": 1,
+          "waiverScopeDrift": 1,
+          "waiversExpiring": 1,
+          "waiversExpired": 1,
+          "invalidSignatures": 1,
+          "evidenceChanges": 2,
+          "policyChanges": 3,
+          "keyRotations": 2,
+          "partialWorkspaces": 1,
+          "changes": 8,
+          "diagnostics": 16,
+          "decisionTrail": 9
+        },
+        "trailIncludes": ["trail-prior"]
+      }
+    }
+  ]
+}

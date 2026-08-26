@@ -655,6 +655,15 @@
       "reference": "G-003 locally verifiable, expiry-bound architecture waiver contract; no external source data",
       "transformation": "Offline scenario metadata exercises exact-scope signed suppression, unsigned and invalid records, broadened and replayed scopes, revoked keys, expiry, evidence drift, policy drift, explicit local trust roots, and authority-free reports; ephemeral private keys are generated only in memory.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "ownership-waiver-drift",
+      "path": "ownership-waiver-drift",
+      "source": "CARTOGRAPH repository-authored synthetic ownership and waiver drift fixture",
+      "license": "Apache-2.0",
+      "reference": "G-004 ownership and exception drift contract; no external source data",
+      "transformation": "Two point-in-time decision surfaces exercise owner disappearance, ambiguous reassignment, repository moves, policy and evidence migration, expiry, invalid signatures, signing-key rotation, prior decision retention, and partial workspaces without source bodies, private keys, execution, or network access.",
+      "redistribution": "allowed"
     }
   ]
 }

@@ -120,7 +120,7 @@ Exit gate: workspace manifest; cross-repository identity and boundary contracts;
 
 Architecture findings have explicit owners, lifecycle states, expiry-bound signed exceptions, and auditable local history.
 
-Exit gate: deterministic ownership resolution; the local [auditable finding lifecycle](FINDING_LIFECYCLE.md); [waiver verification and drift detection](ARCHITECTURE_WAIVERS.md); fork-safe review output; the bounded [SCIP interchange contract](SCIP_INTERCHANGE.md); and usability, integrity, and maintainer-load evaluation.
+Exit gate: deterministic ownership resolution; the local [auditable finding lifecycle](FINDING_LIFECYCLE.md); [waiver verification](ARCHITECTURE_WAIVERS.md) and [ownership/waiver drift detection](OWNERSHIP_WAIVER_DRIFT.md); fork-safe review output; the bounded [SCIP interchange contract](SCIP_INTERCHANGE.md); and usability, integrity, and maintainer-load evaluation.
 
 ### Q4 — Reproducible assurance bundles
 
