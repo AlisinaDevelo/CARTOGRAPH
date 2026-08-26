@@ -93,6 +93,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/workspace-recomposition.ts" ||
       file === "src/core/workspace-privacy.ts" ||
       file === "src/core/ownership.ts" ||
+      file === "src/core/finding-lifecycle.ts" ||
       file === "src/core/scip.ts" ||
       file === "src/report/adr.ts" ||
       file === "schema/graph-snapshot.v0.1.schema.json" ||
@@ -143,6 +144,7 @@ const checkHostedVersionChange = () => {
       file === "schema/workspace-recomposition.v0.1.schema.json" ||
       file === "schema/workspace-privacy.v0.1.schema.json" ||
       file === "schema/ownership-resolution.v0.1.schema.json" ||
+      file === "schema/finding-lifecycle.v0.1.schema.json" ||
       file === "schema/adoption-measurement.v0.1.schema.json" ||
       file === "schema/workspace-federation-evaluation.v0.1.schema.json" ||
       file === "schema/scip-interchange.v0.1.schema.json",
@@ -210,6 +212,7 @@ const checkCompatibility = () => {
   );
   const workspacePrivacySource = readText("src/core/workspace-privacy.ts");
   const ownershipSource = readText("src/core/ownership.ts");
+  const findingLifecycleSource = readText("src/core/finding-lifecycle.ts");
   const scipSource = readText("src/core/scip.ts");
   const snapshotSchema = readJson("schema/graph-snapshot.v0.1.schema.json");
   const supportSchema = readJson("schema/support-matrix.v0.1.schema.json");
@@ -316,6 +319,9 @@ const checkCompatibility = () => {
   );
   const ownershipResolutionSchema = readJson(
     "schema/ownership-resolution.v0.1.schema.json",
+  );
+  const findingLifecycleSchema = readJson(
+    "schema/finding-lifecycle.v0.1.schema.json",
   );
   const contracts = policy.contracts;
   const snapshotVersion = sourceVersion(
@@ -460,6 +466,10 @@ const checkCompatibility = () => {
     ownershipSource,
     "OWNERSHIP_SCHEMA_VERSION",
   );
+  const findingLifecycleVersion = sourceVersion(
+    findingLifecycleSource,
+    "FINDING_LIFECYCLE_SCHEMA_VERSION",
+  );
 
   if (
     snapshotVersion === undefined ||
@@ -498,7 +508,8 @@ const checkCompatibility = () => {
     workspacePrivacyVersion === undefined ||
     workspaceFederationEvaluationVersion === undefined ||
     scipInterchangeVersion === undefined ||
-    ownershipResolutionVersion === undefined
+    ownershipResolutionVersion === undefined ||
+    findingLifecycleVersion === undefined
   ) {
     throw new Error("runtime schema version constants are missing");
   }
@@ -894,6 +905,16 @@ const checkCompatibility = () => {
     ownershipResolutionSchema.properties.schemaVersion.const,
     ownershipResolutionVersion,
   );
+  requireEqual(
+    "finding lifecycle runtime/policy",
+    findingLifecycleVersion,
+    contracts.findingLifecycle.current,
+  );
+  requireEqual(
+    "finding lifecycle JSON Schema/runtime",
+    findingLifecycleSchema.properties.schemaVersion.const,
+    findingLifecycleVersion,
+  );
 
   for (const [label, contract] of Object.entries(contracts)) {
     requireReviewed(label, contract);
@@ -941,6 +962,7 @@ const checkCompatibility = () => {
     workspaceFederationEvaluationVersion,
     scipInterchangeVersion,
     ownershipResolutionVersion,
+    findingLifecycleVersion,
   };
 };
 

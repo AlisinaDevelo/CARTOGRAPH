@@ -1,0 +1,282 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/finding-lifecycle.v0.1.schema.json",
+  "title": "CARTOGRAPH finding lifecycle fixture v0.1",
+  "description": "A bounded, offline append-only finding lifecycle replay with explicit state transitions, identity migrations, supersession, evidence revisions, concurrency, and tamper detection.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "fixtureId",
+    "method",
+    "input",
+    "expected"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.finding-lifecycle" },
+    "mediaType": {
+      "const": "application/vnd.cartograph.finding-lifecycle+json"
+    },
+    "fixtureId": { "const": "g002-v0.1" },
+    "method": { "$ref": "#/definitions/method" },
+    "input": { "$ref": "#/definitions/input" },
+    "expected": { "$ref": "#/definitions/expected" }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "pattern": "^[^\\u0000-\\u001F]+$"
+    },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "dateTime": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "state": {
+      "enum": [
+        "open",
+        "acknowledged",
+        "remediated",
+        "waived",
+        "regressed",
+        "obsolete"
+      ]
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind"],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "kind": { "enum": ["user", "team", "service", "system"] }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stableKey", "code", "scope"],
+      "properties": {
+        "stableKey": { "$ref": "#/definitions/identifier" },
+        "code": { "$ref": "#/definitions/identifier" },
+        "scope": { "$ref": "#/definitions/identifier" }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "identity",
+        "initialState",
+        "policyRevision",
+        "evidenceRevision",
+        "evidenceRefs",
+        "createdAt"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "identity": { "$ref": "#/definitions/identity" },
+        "initialState": { "$ref": "#/definitions/state" },
+        "policyRevision": { "$ref": "#/definitions/identifier" },
+        "evidenceRevision": { "$ref": "#/definitions/identifier" },
+        "evidenceRefs": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "createdAt": { "$ref": "#/definitions/dateTime" }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "findingId",
+        "from",
+        "to",
+        "actor",
+        "at",
+        "rationale",
+        "policyRevision",
+        "evidenceRevision",
+        "evidenceRefs",
+        "sequence",
+        "previousDigest",
+        "digest",
+        "reasonCode",
+        "supersedesFindingIds"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "findingId": { "$ref": "#/definitions/identifier" },
+        "from": { "$ref": "#/definitions/state" },
+        "to": { "$ref": "#/definitions/state" },
+        "actor": { "$ref": "#/definitions/actor" },
+        "at": { "$ref": "#/definitions/dateTime" },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "policyRevision": { "$ref": "#/definitions/identifier" },
+        "evidenceRevision": { "$ref": "#/definitions/identifier" },
+        "evidenceRefs": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "sequence": { "type": "integer", "minimum": 1, "maximum": 1000000000 },
+        "previousDigest": { "$ref": "#/definitions/digest" },
+        "digest": { "$ref": "#/definitions/digest" },
+        "reasonCode": { "$ref": "#/definitions/identifier" },
+        "supersedesFindingIds": {
+          "type": "array",
+          "maxItems": 256,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "migration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "fromFindingId",
+        "toFindingId",
+        "actor",
+        "at",
+        "rationale",
+        "evidenceRevision",
+        "evidenceRefs",
+        "digest"
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/identifier" },
+        "fromFindingId": { "$ref": "#/definitions/identifier" },
+        "toFindingId": { "$ref": "#/definitions/identifier" },
+        "actor": { "$ref": "#/definitions/actor" },
+        "at": { "$ref": "#/definitions/dateTime" },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "evidenceRevision": { "$ref": "#/definitions/identifier" },
+        "evidenceRefs": {
+          "type": "array",
+          "maxItems": 128,
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "digest": { "$ref": "#/definitions/digest" }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "repositoryId",
+        "policyRevision",
+        "findings",
+        "events",
+        "migrations"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.finding-lifecycle" },
+        "repositoryId": { "$ref": "#/definitions/identifier" },
+        "policyRevision": { "$ref": "#/definitions/identifier" },
+        "findings": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/finding" }
+        },
+        "events": {
+          "type": "array",
+          "maxItems": 500000,
+          "items": { "$ref": "#/definitions/event" }
+        },
+        "migrations": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": { "$ref": "#/definitions/migration" }
+        }
+      }
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "replayMode",
+        "rerunnable",
+        "network",
+        "sourceBodiesIncluded",
+        "credentialsUsed",
+        "hiddenTelemetry",
+        "appendOnly",
+        "command"
+      ],
+      "properties": {
+        "replayMode": { "const": "checked-in-lifecycle-log" },
+        "rerunnable": { "const": true },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "credentialsUsed": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "appendOnly": { "const": true },
+        "command": { "const": "npm run finding-lifecycle:validate" }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "states",
+        "eventIds",
+        "diagnosticCodes",
+        "tamperDiagnostic"
+      ],
+      "properties": {
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "findings",
+            "events",
+            "appliedEvents",
+            "migrations",
+            "diagnostics",
+            "states"
+          ],
+          "properties": {
+            "findings": { "type": "integer", "minimum": 0 },
+            "events": { "type": "integer", "minimum": 0 },
+            "appliedEvents": { "type": "integer", "minimum": 0 },
+            "migrations": { "type": "integer", "minimum": 0 },
+            "diagnostics": { "type": "integer", "minimum": 0 },
+            "states": {
+              "type": "object",
+              "additionalProperties": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/state" }
+        },
+        "eventIds": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/identifier" }
+          }
+        },
+        "diagnosticCodes": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^LIFECYCLE_[A-Z0-9_]+$" }
+        },
+        "tamperDiagnostic": { "const": "LIFECYCLE_EVENT_TAMPERED" }
+      }
+    }
+  }
+}

@@ -1,0 +1,364 @@
+{
+  "$schema": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/finding-lifecycle.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.finding-lifecycle",
+  "mediaType": "application/vnd.cartograph.finding-lifecycle+json",
+  "fixtureId": "g002-v0.1",
+  "method": {
+    "replayMode": "checked-in-lifecycle-log",
+    "rerunnable": true,
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "credentialsUsed": false,
+    "hiddenTelemetry": false,
+    "appendOnly": true,
+    "command": "npm run finding-lifecycle:validate"
+  },
+  "input": {
+    "schemaVersion": 1,
+    "contract": "cartograph.finding-lifecycle",
+    "repositoryId": "repo-a",
+    "policyRevision": "policy-v2",
+    "findings": [
+      {
+        "id": "finding-api",
+        "identity": {
+          "stableKey": "node:api-handler",
+          "code": "policy.unknown-edge",
+          "scope": "repo-a"
+        },
+        "initialState": "open",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["graph://repo-a/rev-a#edge-api"],
+        "createdAt": "2030-01-01T00:00:00Z"
+      },
+      {
+        "id": "finding-concurrent",
+        "identity": {
+          "stableKey": "node:concurrent",
+          "code": "policy.boundary",
+          "scope": "repo-a"
+        },
+        "initialState": "open",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["graph://repo-a/rev-a#concurrent"],
+        "createdAt": "2030-01-01T00:00:00Z"
+      },
+      {
+        "id": "finding-policy",
+        "identity": {
+          "stableKey": "node:policy",
+          "code": "policy.rule-change",
+          "scope": "repo-a"
+        },
+        "initialState": "open",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["policy://repo-a/policy-v1#rule"],
+        "createdAt": "2030-01-01T00:00:00Z"
+      },
+      {
+        "id": "finding-removed",
+        "identity": {
+          "stableKey": "node:removed",
+          "code": "graph.removed",
+          "scope": "repo-a"
+        },
+        "initialState": "open",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["graph://repo-a/rev-a#removed"],
+        "createdAt": "2030-01-01T00:00:00Z"
+      },
+      {
+        "id": "finding-superseder",
+        "identity": {
+          "stableKey": "node:new-boundary",
+          "code": "policy.boundary",
+          "scope": "repo-a"
+        },
+        "initialState": "open",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["graph://repo-a/rev-b#new-boundary"],
+        "createdAt": "2030-01-01T00:00:00Z"
+      },
+      {
+        "id": "finding-superseded",
+        "identity": {
+          "stableKey": "node:old-boundary",
+          "code": "policy.boundary",
+          "scope": "repo-a"
+        },
+        "initialState": "open",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["graph://repo-a/rev-a#old-boundary"],
+        "createdAt": "2030-01-01T00:00:00Z"
+      },
+      {
+        "id": "finding-new",
+        "identity": {
+          "stableKey": "node:migrated-api",
+          "code": "policy.api",
+          "scope": "repo-a"
+        },
+        "initialState": "open",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["graph://repo-a/rev-b#migrated-api"],
+        "createdAt": "2030-01-01T00:00:00Z"
+      }
+    ],
+    "events": [
+      {
+        "id": "event-api-ack",
+        "findingId": "finding-api",
+        "from": "open",
+        "to": "acknowledged",
+        "actor": { "id": "team:platform", "kind": "team" },
+        "at": "2030-01-02T00:00:00Z",
+        "rationale": "A reviewer confirmed the graph evidence.",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["graph://repo-a/rev-a#edge-api"],
+        "sequence": 1,
+        "previousDigest": "sha256:459523802638c4db783504e4575039f3f373e8950cbf2c427ca79850da4c8cd1",
+        "digest": "sha256:82e30b48d52307ed79d6c6c36d5ca050a7ebae8406779d39b3af8ed216946e99",
+        "reasonCode": "manual-review",
+        "supersedesFindingIds": []
+      },
+      {
+        "id": "event-api-remediate",
+        "findingId": "finding-api",
+        "from": "acknowledged",
+        "to": "remediated",
+        "actor": { "id": "team:platform", "kind": "team" },
+        "at": "2030-01-03T00:00:00Z",
+        "rationale": "The dependency edge was corrected and re-scanned.",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["graph://repo-a/rev-b#edge-api"],
+        "sequence": 2,
+        "previousDigest": "sha256:82e30b48d52307ed79d6c6c36d5ca050a7ebae8406779d39b3af8ed216946e99",
+        "digest": "sha256:26f29b8b07c1c7da7577f0c8f80d44e849028f8360a7eabef8fb401acc3de9ea",
+        "reasonCode": "remediation",
+        "supersedesFindingIds": []
+      },
+      {
+        "id": "event-api-regress",
+        "findingId": "finding-api",
+        "from": "remediated",
+        "to": "regressed",
+        "actor": { "id": "system:replay", "kind": "system" },
+        "at": "2030-01-04T00:00:00Z",
+        "rationale": "The finding returned in a later revision.",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["graph://repo-a/rev-c#edge-api"],
+        "sequence": 3,
+        "previousDigest": "sha256:26f29b8b07c1c7da7577f0c8f80d44e849028f8360a7eabef8fb401acc3de9ea",
+        "digest": "sha256:17c0ea1769207a5ee283e3073596a3c30d5bd93f098ad62b68f831d97f0ce31d",
+        "reasonCode": "regression",
+        "supersedesFindingIds": []
+      },
+      {
+        "id": "event-api-remediate-again",
+        "findingId": "finding-api",
+        "from": "regressed",
+        "to": "remediated",
+        "actor": { "id": "team:platform", "kind": "team" },
+        "at": "2030-01-05T00:00:00Z",
+        "rationale": "The regression was corrected and verified.",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["graph://repo-a/rev-d#edge-api"],
+        "sequence": 4,
+        "previousDigest": "sha256:17c0ea1769207a5ee283e3073596a3c30d5bd93f098ad62b68f831d97f0ce31d",
+        "digest": "sha256:d18ae27053d5519497342b7ceeb2d8350eaa1ada734ce382c0fea3af6fd0ff2c",
+        "reasonCode": "remediation",
+        "supersedesFindingIds": []
+      },
+      {
+        "id": "event-concurrent-a",
+        "findingId": "finding-concurrent",
+        "from": "open",
+        "to": "acknowledged",
+        "actor": { "id": "alice", "kind": "user" },
+        "at": "2030-01-02T01:00:00Z",
+        "rationale": "First reviewer record wins deterministic replay order.",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["graph://repo-a/rev-a#concurrent"],
+        "sequence": 1,
+        "previousDigest": "sha256:3ec0eec243f1798cf9e270a8baa4335c317aeff86ee51208865c4d3acef7a9ef",
+        "digest": "sha256:3b97394337789b3bceafda5ebea4cd2e55fbb65e510ebc79f32fc7df75b5f644",
+        "reasonCode": "manual-review",
+        "supersedesFindingIds": []
+      },
+      {
+        "id": "event-concurrent-b",
+        "findingId": "finding-concurrent",
+        "from": "open",
+        "to": "waived",
+        "actor": { "id": "bob", "kind": "user" },
+        "at": "2030-01-02T01:00:00Z",
+        "rationale": "A concurrent reviewer record is retained but not applied.",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["graph://repo-a/rev-a#concurrent"],
+        "sequence": 1,
+        "previousDigest": "sha256:3ec0eec243f1798cf9e270a8baa4335c317aeff86ee51208865c4d3acef7a9ef",
+        "digest": "sha256:b33c1617f569cd0561e160120b184b6e959c9314e90bdacb536589ac630fdcc9",
+        "reasonCode": "manual-review",
+        "supersedesFindingIds": []
+      },
+      {
+        "id": "event-policy-change",
+        "findingId": "finding-policy",
+        "from": "open",
+        "to": "acknowledged",
+        "actor": { "id": "team:governance", "kind": "team" },
+        "at": "2030-01-03T01:00:00Z",
+        "rationale": "The finding was reviewed under the replacement policy revision.",
+        "policyRevision": "policy-v2",
+        "evidenceRevision": "evidence-v2",
+        "evidenceRefs": ["policy://repo-a/policy-v2#rule"],
+        "sequence": 1,
+        "previousDigest": "sha256:9fb40737cc8daa76723d37d87abed07a5c161efc581739fae34ef9638fa3eae2",
+        "digest": "sha256:3497a99dd0f6e196654aef7d3785761a8c5b0cc7ec60c937cf72810bf2782e87",
+        "reasonCode": "policy-change",
+        "supersedesFindingIds": []
+      },
+      {
+        "id": "event-removed-obsolete",
+        "findingId": "finding-removed",
+        "from": "open",
+        "to": "obsolete",
+        "actor": { "id": "system:replay", "kind": "system" },
+        "at": "2030-01-03T02:00:00Z",
+        "rationale": "The architecture object no longer exists in the supported graph.",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["graph://repo-a/rev-b#removed"],
+        "sequence": 1,
+        "previousDigest": "sha256:e42fda074aab243515e28dc76f1b36a170db01a6a84876246c8c26bbc2bf6203",
+        "digest": "sha256:bd5ccd35d9165873b3adc1b79a96b692e0601d7d850fa8eb3d3d4c3da5a716dd",
+        "reasonCode": "removed-architecture",
+        "supersedesFindingIds": []
+      },
+      {
+        "id": "event-superseder-ack",
+        "findingId": "finding-superseder",
+        "from": "open",
+        "to": "acknowledged",
+        "actor": { "id": "team:platform", "kind": "team" },
+        "at": "2030-01-04T01:00:00Z",
+        "rationale": "The replacement finding supersedes the old boundary record.",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["graph://repo-a/rev-b#new-boundary"],
+        "sequence": 1,
+        "previousDigest": "sha256:81d0cdf8abdc578415588542f05e284eb3d7b5ce0993386328efb73d3db0eedd",
+        "digest": "sha256:0e648ad4c6840984ee0aac672ab594dd78759810d05e991bdaf3dc27b4d02cf1",
+        "reasonCode": "supersession",
+        "supersedesFindingIds": ["finding-superseded"]
+      },
+      {
+        "id": "event-superseded-obsolete",
+        "findingId": "finding-superseded",
+        "from": "open",
+        "to": "obsolete",
+        "actor": { "id": "system:replay", "kind": "system" },
+        "at": "2030-01-04T01:01:00Z",
+        "rationale": "The old finding is obsolete after explicit supersession.",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["graph://repo-a/rev-b#old-boundary"],
+        "sequence": 1,
+        "previousDigest": "sha256:4eeb84c57e5a8f7f0b8d4bee55b151fdda039aab81ddd3fe019ce377a1170aca",
+        "digest": "sha256:4f5cd168ee7860167ad8050985b091c5ab342fdfcea1ccef5b6a64c0aaa91de0",
+        "reasonCode": "superseded",
+        "supersedesFindingIds": []
+      },
+      {
+        "id": "event-new-ack",
+        "findingId": "finding-new",
+        "from": "open",
+        "to": "acknowledged",
+        "actor": { "id": "team:platform", "kind": "team" },
+        "at": "2030-01-05T01:00:00Z",
+        "rationale": "The migrated finding was reviewed under its new identity.",
+        "policyRevision": "policy-v1",
+        "evidenceRevision": "evidence-v1",
+        "evidenceRefs": ["graph://repo-a/rev-b#migrated-api"],
+        "sequence": 1,
+        "previousDigest": "sha256:e15e3a43445a269192b919cd281d2dc5b4c6da23883c5f23fad97a4be02068b1",
+        "digest": "sha256:9a81cf703c3f1d5b26633c0a033446aeaf58935a33a763a44a23a166e9bd24f5",
+        "reasonCode": "identity-migration",
+        "supersedesFindingIds": []
+      }
+    ],
+    "migrations": [
+      {
+        "id": "migration-old-to-new",
+        "fromFindingId": "finding-old",
+        "toFindingId": "finding-new",
+        "actor": { "id": "team:platform", "kind": "team" },
+        "at": "2030-01-05T00:00:00Z",
+        "rationale": "The stable graph identity was migrated after a supported rename.",
+        "evidenceRevision": "evidence-v2",
+        "evidenceRefs": ["graph://repo-a/rev-b#migrated-api"],
+        "digest": "sha256:c757309a152e5858dda3872733fb463be6bb5adaec7fd938cbbba928bc09cd0d"
+      }
+    ]
+  },
+  "expected": {
+    "summary": {
+      "findings": 7,
+      "events": 11,
+      "appliedEvents": 10,
+      "migrations": 1,
+      "diagnostics": 3,
+      "states": {
+        "open": 0,
+        "acknowledged": 4,
+        "remediated": 1,
+        "waived": 0,
+        "regressed": 0,
+        "obsolete": 2
+      }
+    },
+    "states": {
+      "finding-api": "remediated",
+      "finding-concurrent": "acknowledged",
+      "finding-policy": "acknowledged",
+      "finding-removed": "obsolete",
+      "finding-superseder": "acknowledged",
+      "finding-superseded": "obsolete",
+      "finding-new": "acknowledged"
+    },
+    "eventIds": {
+      "finding-api": [
+        "event-api-ack",
+        "event-api-remediate",
+        "event-api-regress",
+        "event-api-remediate-again"
+      ],
+      "finding-concurrent": ["event-concurrent-a"],
+      "finding-policy": ["event-policy-change"],
+      "finding-removed": ["event-removed-obsolete"],
+      "finding-superseder": ["event-superseder-ack"],
+      "finding-superseded": ["event-superseded-obsolete"],
+      "finding-new": ["event-new-ack"]
+    },
+    "diagnosticCodes": [
+      "LIFECYCLE_CONCURRENT_EVENT",
+      "LIFECYCLE_EVIDENCE_CHANGED",
+      "LIFECYCLE_POLICY_CHANGED"
+    ],
+    "tamperDiagnostic": "LIFECYCLE_EVENT_TAMPERED"
+  }
+}
