@@ -565,6 +565,15 @@
           "reason": "Synthetic generated distribution output used to verify exact exclusion diagnostics."
         }
       ]
+    },
+    {
+      "id": "workspace-composition",
+      "path": "workspace-composition",
+      "source": "CARTOGRAPH repository-authored synthetic offline workspace fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "A minimal two-repository manifest with mixed compatible adapter versions, an explicit missing repository, and local boundary metadata exercises deterministic offline composition without source bodies, execution, or network access.",
+      "redistribution": "allowed"
     }
   ]
 }

@@ -1,0 +1,67 @@
+{
+  "$schema": "../../../schema/workspace-composition.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.workspace-composition",
+  "workspaceId": "portfolio",
+  "workspaceVersion": "0.1.0",
+  "repositories": [
+    {
+      "id": "cartograph",
+      "logicalName": "CARTOGRAPH",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "localPath": "repos/cartograph",
+      "snapshot": {
+        "path": "snapshots/cartograph.json",
+        "schemaVersion": 1,
+        "adapterId": "cartograph.typescript",
+        "adapterVersion": "1.0.0",
+        "sizeBytes": 1200
+      }
+    },
+    {
+      "id": "strata",
+      "logicalName": "STRATA",
+      "revision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "localPath": "repos/strata",
+      "snapshot": {
+        "path": "snapshots/strata.json",
+        "schemaVersion": 1,
+        "adapterId": "strata.typescript",
+        "adapterVersion": "1.2.0",
+        "sizeBytes": 1600
+      }
+    }
+  ],
+  "omissions": [
+    {
+      "id": "loom",
+      "logicalName": "LOOM",
+      "reason": "snapshot not materialized locally",
+      "requestedPath": "repos/loom"
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "cartograph-strata",
+      "fromRepository": "cartograph",
+      "toRepository": "strata",
+      "relation": "references",
+      "evidencePath": "boundaries/cartograph-strata.json"
+    },
+    {
+      "id": "cartograph-loom",
+      "fromRepository": "cartograph",
+      "toRepository": "loom",
+      "relation": "depends-on",
+      "status": "unresolved",
+      "evidencePath": "boundaries/cartograph-loom.json"
+    }
+  ],
+  "limits": {
+    "maxRepositories": 8,
+    "maxOmissions": 8,
+    "maxBoundaries": 16,
+    "maxSnapshotBytes": 1048576,
+    "maxTotalSnapshotBytes": 4194304
+  }
+}

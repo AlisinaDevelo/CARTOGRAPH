@@ -28,6 +28,7 @@ repository or materialized Git revision
 ## Module boundaries
 
 - `src/core`: versioned graph, diff, and configuration contracts, validation, canonicalization, and comparison.
+- `src/core/workspace-composition.ts`: bounded offline workspace manifests, local-path validation, snapshot/version compatibility, and omission/boundary metadata.
 - `src/analyzers/typescript`: TypeScript program loading and language-level relationships.
 - `src/analyzers/api-boundaries`: bounded GraphQL SDL/template and OpenAPI operation discovery with resolver/handler links.
 - `src/analyzers/prisma-schema`: bounded Prisma datasource, model, relation, and generated-client discovery without database access.
@@ -122,6 +123,16 @@ and supported client generators contain generated module nodes. Multiple schema
 files, unsupported providers, duplicate declarations, and unsafe output paths
 remain evidence-backed diagnostics; no database connection or generation command
 is run.
+
+The offline workspace composition contract is metadata-only. A manifest points
+to explicitly materialized local GraphSnapshot files and records each repository's
+logical identity, immutable revision, schema and adapter versions, bounded byte
+size, optional repository-relative root, and optional declared boundaries. Missing
+inputs are represented by explicit omissions rather than a network lookup. The
+validator rejects duplicate identities or paths, incompatible v1 schema/adapter
+versions, path escapes, over-limit snapshots, and boundary references to unknown
+identities. Manifest reads use bounded local JSON I/O only and do not execute
+repository code or contact a network.
 
 The lockfile analyzer reads only package-manager lockfiles at the repository root
 and declared workspace package roots. Supported npm, pnpm, Yarn, and JSON Bun
