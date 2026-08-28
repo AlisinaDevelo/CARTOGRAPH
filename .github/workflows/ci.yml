@@ -55,6 +55,9 @@ jobs:
       - name: Type-check
         run: npm run typecheck
 
+      - name: Build
+        run: npm run build
+
       - name: Validate support matrix
         run: npm run support:validate
 
@@ -110,9 +113,6 @@ jobs:
 
       - name: Validate roadmap
         run: npm run roadmap:validate && npm run roadmap:test
-
-      - name: Build
-        run: npm run build
 
       - name: Validate identity regression corpus
         run: npm run identity:validate
