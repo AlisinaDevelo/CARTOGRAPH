@@ -220,7 +220,12 @@ const inputFor = (entry, testCase, sourceRoot) => ({
     maxSourceBytes: 65_536,
     maxInputBytes: 16_384,
     maxOutputBytes: 2 * 1024 * 1024,
-    maxMemoryBytes: 512 * 1024 * 1024,
+    // The TypeScript compiler host can exceed 512 MiB on hosted Node 24
+    // runners even for this deliberately small Fastify fixture.
+    maxMemoryBytes:
+      entry.id === "cartograph.fastify"
+        ? 1024 * 1024 * 1024
+        : 512 * 1024 * 1024,
     maxWallClockMs: entry.maxDurationMs,
   },
 });

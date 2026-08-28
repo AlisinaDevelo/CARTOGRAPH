@@ -127,7 +127,7 @@ const adapterRequest = (rootDir, revision) => ({
     maxSourceBytes: 65_536,
     maxInputBytes: 16_384,
     maxOutputBytes: 2 * 1024 * 1024,
-    maxMemoryBytes: 512 * 1024 * 1024,
+    maxMemoryBytes: 1024 * 1024 * 1024,
     maxWallClockMs: 30_000,
   },
 });
@@ -143,7 +143,7 @@ const analyze = (language, rootDir, caseId) => {
         maxFiles: 32,
         maxFileBytes: 16_384,
         maxSourceBytes: 65_536,
-        maxMemoryBytes: 512 * 1024 * 1024,
+        maxMemoryBytes: 1024 * 1024 * 1024,
         maxWallClockMs: 30_000,
         maxReportItems: 256,
       },

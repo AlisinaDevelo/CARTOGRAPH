@@ -19,3 +19,7 @@ coverage/
 !test/fixtures/exclusions/dist/**
 !test/fixtures/exclusions/node_modules/
 !test/fixtures/exclusions/node_modules/**
+
+# Keep the generated-directory fixture required by provenance regressions.
+!test/fixtures/generated-provenance/dist/
+!test/fixtures/generated-provenance/dist/**

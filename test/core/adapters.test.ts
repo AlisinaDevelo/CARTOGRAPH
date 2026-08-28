@@ -73,7 +73,7 @@ const fastifyRequest = (overrides: Record<string, unknown> = {}) => ({
     maxSourceBytes: 65_536,
     maxInputBytes: 16_384,
     maxOutputBytes: 2 * 1024 * 1024,
-    maxMemoryBytes: 512 * 1024 * 1024,
+    maxMemoryBytes: 1024 * 1024 * 1024,
     maxWallClockMs: 30_000,
   },
   ...overrides,
