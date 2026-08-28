@@ -852,6 +852,26 @@ no secrets or write permissions. These additions are presentation-only and do
 not change GraphSnapshot, GraphDiff, or STRATA's compiler-backed semantic
 analysis boundary.
 
+## R-009 bounded SARIF policy-result bridge
+
+R-009 adds the reviewed additive `sarifInterchange` contract and
+[`cartograph.sarif-interchange`](../schema/sarif-interchange.v0.1.schema.json)
+v1 envelope around a strict SARIF 2.1.0 subset. Export maps only policy
+violations whose matched graph objects all have repository-relative line
+locations. Each result retains the policy violation ID, canonical graph IDs,
+portable evidence references, and a digest-bound CARTOGRAPH fingerprint in its
+property bag. Non-line-local and aggregate violations remain explicit in the
+envelope's `unsupported` list and are not presented as code-scanning findings.
+
+The checked-in
+[`round-trip.v0.1.json`](../test/fixtures/sarif-interchange/round-trip.v0.1.json)
+fixture is replayed by `npm run sarif:validate`. Import rejects unsupported
+result kinds, unknown fields, source bodies, absolute paths, missing or
+mismatched fingerprints, and over-limit logs. The native SARIF log contains no
+source text, network access, credentials, or telemetry; this additive bridge
+does not change GraphSnapshot, GraphDiff, policy evaluation, or STRATA's
+compiler-backed semantic analysis boundary.
+
 ## G-001 explicit ownership resolution
 
 G-001 adds the reviewed additive `ownershipResolution` contract and

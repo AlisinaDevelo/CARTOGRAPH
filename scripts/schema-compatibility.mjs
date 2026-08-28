@@ -100,6 +100,7 @@ const checkHostedVersionChange = () => {
       file === "src/core/ownership-waiver-drift.ts" ||
       file === "src/core/review-summary.ts" ||
       file === "src/core/scip.ts" ||
+      file === "src/core/sarif.ts" ||
       file === "src/core/graph-interchange.ts" ||
       file === "src/report/adr.ts" ||
       file === "src/report/review.ts" ||
@@ -166,7 +167,8 @@ const checkHostedVersionChange = () => {
       file === "schema/adoption-measurement.v0.1.schema.json" ||
       file === "schema/workspace-federation-evaluation.v0.1.schema.json" ||
       file === "schema/review-workflow-evaluation.v0.1.schema.json" ||
-      file === "schema/scip-interchange.v0.1.schema.json",
+      file === "schema/scip-interchange.v0.1.schema.json" ||
+      file === "schema/sarif-interchange.v0.1.schema.json",
   );
   const reviewRecorded = changed.some(
     (file) =>
@@ -353,6 +355,10 @@ const checkCompatibility = () => {
   const scipInterchangeSchema = readJson(
     "schema/scip-interchange.v0.1.schema.json",
   );
+  const sarifSource = readText("src/core/sarif.ts");
+  const sarifInterchangeSchema = readJson(
+    "schema/sarif-interchange.v0.1.schema.json",
+  );
   const graphInterchangeSchema = readJson(
     "schema/graph-interchange.v0.1.schema.json",
   );
@@ -525,6 +531,10 @@ const checkCompatibility = () => {
     scipSource,
     "SCIP_INTERCHANGE_SCHEMA_VERSION",
   );
+  const sarifInterchangeVersion = sourceVersion(
+    sarifSource,
+    "SARIF_INTERCHANGE_SCHEMA_VERSION",
+  );
   const graphInterchangeVersion = sourceVersion(
     graphInterchangeSource,
     "GRAPH_INTERCHANGE_SCHEMA_VERSION",
@@ -592,6 +602,7 @@ const checkCompatibility = () => {
     workspacePrivacyVersion === undefined ||
     workspaceFederationEvaluationVersion === undefined ||
     scipInterchangeVersion === undefined ||
+    sarifInterchangeVersion === undefined ||
     graphInterchangeVersion === undefined ||
     ownershipResolutionVersion === undefined ||
     findingLifecycleVersion === undefined ||
@@ -1020,6 +1031,16 @@ const checkCompatibility = () => {
     scipInterchangeVersion,
   );
   requireEqual(
+    "SARIF interchange runtime/policy",
+    sarifInterchangeVersion,
+    contracts.sarifInterchange.current,
+  );
+  requireEqual(
+    "SARIF interchange JSON Schema/runtime",
+    sarifInterchangeSchema.properties.schemaVersion.const,
+    sarifInterchangeVersion,
+  );
+  requireEqual(
     "graph interchange runtime/policy",
     graphInterchangeVersion,
     contracts.graphInterchange.current,
@@ -1151,6 +1172,7 @@ const checkCompatibility = () => {
     adoptionMeasurementVersion,
     workspaceFederationEvaluationVersion,
     scipInterchangeVersion,
+    sarifInterchangeVersion,
     graphInterchangeVersion,
     ownershipResolutionVersion,
     findingLifecycleVersion,
