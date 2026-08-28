@@ -213,9 +213,9 @@ Policy is evaluated against the complete GraphDiff before filtering. The report
 preserves that status and evaluation digest and partitions every violation into
 retained or omitted IDs. If no full-diff evaluation is supplied, the report
 publishes `not-provided` rather than claiming a pass. This is a review projection
-around CARTOGRAPH's graph/diff/policy artifacts; it does not replace STRATA's
-compiler-backed semantic analysis or infer architecture outside the declared
-evidence boundary. The checked-in rename/generated fixture is replayed by
+around CARTOGRAPH's graph/diff/policy artifacts; it does not infer architecture
+outside the declared evidence boundary. The checked-in rename/generated fixture
+is replayed by
 `npm run patch-filter:validate`.
 
 The D-010 diff pipeline runs the P-001 identity reconciliation before deriving
@@ -292,8 +292,8 @@ read-only executor fails closed at explicit depth, node, edge, change, time,
 and serialized-result ceilings and never reads source bodies, executes source,
 or contacts a network. Whitespace, predicate order, list order, and supported
 aliases normalize to one canonical selection. This reusable graph/diff query
-surface complements the existing JSON architecture-query contract and is
-distinct from STRATA's compiler-backed semantic analysis.
+surface complements the existing JSON architecture-query contract and consumes
+snapshots produced by CARTOGRAPH's compiler-backed TypeScript analyzer.
 
 ## D-017 filtered graph views
 
@@ -309,9 +309,8 @@ edge digests, and omitted node, edge, and diagnostic counts with bounded sample
 identities. Static JSON, Markdown, and HTML renderings are source-body-free,
 network-free, read-only, and resource-bounded. Omitted context remains visible
 as omission metadata rather than being presented as a complete architecture.
-The graph view is a presentation/report surface for CARTOGRAPH; it does not
-replace STRATA's compiler-backed semantic analyzer or claim semantic evidence
-that is absent from the selected snapshot.
+The graph view is a presentation/report surface for CARTOGRAPH; it never claims
+semantic evidence that is absent from the selected snapshot.
 
 ## Identity
 
@@ -455,9 +454,9 @@ root, bounds index cardinality, and emits explicit `SCIP_*` unsupported-field
 records for documentation, enclosing ranges, unsupported edge kinds, and other
 semantics that GraphSnapshot cannot represent. The
 [`SCIP interchange guide`](SCIP_INTERCHANGE.md) and its round-trip fixture are
-the review surface for this additive contract. STRATA remains the
-compiler-backed semantic analyzer; CARTOGRAPH owns the broader graph/report/
-policy/reconciliation interchange layer.
+the review surface for this additive contract. CARTOGRAPH's compiler-backed
+TypeScript analyzer owns source-backed analysis; the SCIP boundary remains the
+broader graph/report/policy/reconciliation interchange layer.
 
 ## D-018 portable graph interchange
 
@@ -503,8 +502,8 @@ owners, conflicts, unknown references, renamed paths, fallbacks, and explicit
 no-owner outcomes remain visible in the result rather than being inferred.
 
 The resolver is deterministic, source-free in its output, and offline. It never
-reads a checkout, executes code, contacts GitHub, or substitutes for STRATA's
-compiler-backed semantic analysis. The [`ownership guide`](OWNERSHIP.md) and
+reads a checkout, executes code, or contacts GitHub; it consumes snapshots
+already produced by the compiler-backed analyzer. The [`ownership guide`](OWNERSHIP.md) and
 G-001 fixture are the review surface for this additive contract.
 
 ## G-002 auditable finding lifecycle
@@ -562,8 +561,8 @@ remain visible and require a new explicit decision; comparison never renews or
 authorizes an exception. The checked-in
 [`ownership-waiver-drift` fixture](../test/fixtures/ownership-waiver-drift/scenarios.v0.1.json)
 is replayed with `npm run ownership-waiver-drift:validate`. This additive
-contract does not change GraphSnapshot, GraphDiff, or STRATA's compiler-backed
-semantic analysis boundary.
+contract does not rescan source or change the GraphSnapshot and GraphDiff
+contracts.
 
 ## G-005 review summaries
 
@@ -584,8 +583,7 @@ source bodies and private keys are excluded, and provenance records
 `readOnly: true`, `network: false`, `authorityGranted: false`, and
 `automaticActions: false`. The checked-in scenario corpus is replayed with
 `npm run review-summary:validate`. This additive contract does not change
-GraphSnapshot, GraphDiff, or STRATA's compiler-backed semantic analysis
-boundary.
+GraphSnapshot or GraphDiff, and does not rescan source.
 
 ## G-006 review workflow evaluation
 

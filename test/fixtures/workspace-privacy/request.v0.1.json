@@ -26,7 +26,7 @@
       ]
     },
     {
-      "id": "strata",
+      "id": "sample-service",
       "trust": "untrusted",
       "status": "available",
       "snapshot": {

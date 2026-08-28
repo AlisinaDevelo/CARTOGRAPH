@@ -798,8 +798,7 @@ The boundary is local and source-free: absolute roots, file URIs, source-body
 closed. Fields without a canonical GraphSnapshot equivalent are reported with
 stable `SCIP_*` codes and a preservation strategy; they are not silently
 dropped. `npm run scip:validate` is the offline replay gate, and the contract
-does not change GraphSnapshot, GraphDiff, or STRATA's compiler-backed semantic
-analysis boundary.
+does not change GraphSnapshot or GraphDiff or rescan source.
 
 ## D-018 portable graph interchange
 
@@ -817,8 +816,7 @@ Unknown fields, malformed records, duplicate/conflicting identities, invalid
 evidence, unsupported versions, over-limit inputs, and tampered JSON-LD digest
 identities fail visibly through `GraphInterchangeValidationError`. The edge-list
 format is documented NDJSON rather than a lossy `from,to` shorthand. The
-boundary is source-free, local, offline, and independent of STRATA's
-compiler-backed semantic analyzer; `npm run graph-interchange:validate` is the
+boundary is source-free, local, and offline; `npm run graph-interchange:validate` is the
 offline replay gate.
 
 ## D-020 accessible HTML reports
@@ -849,8 +847,7 @@ workflow-command properties are encoded, duplicate locations are removed, and
 messages contain no source body, evidence reference, absolute path, or
 credential. Fork runs continue to use `pull_request` with `contents: read` and
 no secrets or write permissions. These additions are presentation-only and do
-not change GraphSnapshot, GraphDiff, or STRATA's compiler-backed semantic
-analysis boundary.
+not change GraphSnapshot or GraphDiff or rescan source.
 
 ## R-009 bounded SARIF policy-result bridge
 
@@ -869,8 +866,7 @@ fixture is replayed by `npm run sarif:validate`. Import rejects unsupported
 result kinds, unknown fields, source bodies, absolute paths, missing or
 mismatched fingerprints, and over-limit logs. The native SARIF log contains no
 source text, network access, credentials, or telemetry; this additive bridge
-does not change GraphSnapshot, GraphDiff, policy evaluation, or STRATA's
-compiler-backed semantic analysis boundary.
+does not change GraphSnapshot, GraphDiff, or policy evaluation or rescan source.
 
 ## G-001 explicit ownership resolution
 
@@ -887,8 +883,7 @@ The checked-in
 [`report.v0.1.json`](../test/fixtures/ownership-resolution/report.v0.1.json)
 fixture is replayed by `npm run ownership:validate`. The contract is local and
 offline, does not retain source bodies in reports, and does not change
-GraphSnapshot, GraphDiff, or STRATA's compiler-backed semantic analysis
-boundary.
+GraphSnapshot or GraphDiff or rescan source.
 
 ## G-002 auditable finding lifecycle
 
@@ -906,8 +901,8 @@ The checked-in
 fixture covers identity migration, supersession, policy changes, removed
 architecture, regression, concurrent records, and tampered events. Replay is
 local and offline through `npm run finding-lifecycle:validate`; reports do not
-include source bodies and the contract does not change GraphSnapshot, GraphDiff,
-or STRATA's compiler-backed semantic analysis boundary.
+include source bodies and the contract does not change GraphSnapshot or
+GraphDiff or rescan source.
 
 ## G-003 locally verifiable architecture waivers
 
@@ -927,8 +922,7 @@ possible only for a fully verified exact-scope match, and every suppression and
 provenance record carries `authorityGranted: false`. The checked-in
 [`scenarios.v0.1.json`](../test/fixtures/architecture-waivers/scenarios.v0.1.json)
 corpus is replayed with `npm run architecture-waivers:validate`; this additive
-contract does not change GraphSnapshot, GraphDiff, or STRATA's compiler-backed
-semantic analysis boundary.
+contract does not change GraphSnapshot or GraphDiff or rescan source.
 
 ## G-004 ownership and waiver drift
 
@@ -1019,8 +1013,8 @@ depth, node, edge, change, wall-clock, and serialized-result ceilings and
 returns no partial result when a ceiling is reached. Predicate and list order,
 whitespace, and supported field aliases are normalized before execution, so
 equivalent queries produce byte-identical ASTs and canonical selections. The
-language is local, read-only, source-body-free, and network-free; it does not
-replace STRATA's compiler-backed semantic analysis. Replay the checked-in
+language is local, read-only, source-body-free, and network-free; it consumes
+canonical snapshots and diffs without rescanning source. Replay the checked-in
 grammar corpus with `npm run query-language:validate`.
 
 ## D-017 filtered graph views

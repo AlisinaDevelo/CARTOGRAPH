@@ -30,16 +30,15 @@ The local loop must be useful before a GitHub Action, policy engine, runtime int
 - A language model never writes canonical graph or decision state.
 - Expansion follows measured adapter quality, not a language-count target.
 
-## Platform boundary and interoperability
+## Analyzer and interoperability boundary
 
-CARTOGRAPH is the platform surface for repository architecture graphs, reports,
-policies, and bounded runtime reconciliation. STRATA is a separate,
-compiler-backed semantic architecture-change analyzer for TypeScript revisions.
-The products may exchange explicitly versioned, source-free evidence artifacts
-in the future, but CARTOGRAPH does not reimplement STRATA's compiler analysis,
-depend on its package, or present a broad graph report as a semantic proof.
-Interoperability must remain additive, local, deterministic, and subject to a
-compatibility and security review before it becomes a product dependency.
+CARTOGRAPH owns the complete local architecture-change loop: the
+compiler-backed TypeScript analyzer, canonical graph and diff contracts,
+evidence-linked reports, policy evaluation, and bounded runtime reconciliation.
+The analyzer reads only declared local repository inputs; serialized graph,
+diff, policy, and report artifacts are source-free, deterministic, and suitable
+for offline review. Interchange with external index formats remains additive,
+strictly versioned, local, and subject to compatibility and security review.
 
 ## Supported first slice
 

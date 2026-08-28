@@ -6,15 +6,20 @@ Deterministic architecture graph, revision-diff, policy, and bounded runtime-rec
 [![CodeQL](https://github.com/AlisinaDevelo/CARTOGRAPH/actions/workflows/codeql.yml/badge.svg)](https://github.com/AlisinaDevelo/CARTOGRAPH/actions/workflows/codeql.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-CARTOGRAPH scans a supported repository into a deterministic architecture graph, compares two Git revisions, and shows which nodes and relationships changed. Every emitted relationship carries repository-relative source evidence or an explicit unresolved reason.
+CARTOGRAPH scans a supported repository with compiler-backed TypeScript
+resolution, produces a deterministic architecture graph, compares two Git
+revisions, and shows which nodes and relationships changed. Every emitted
+relationship carries repository-relative source evidence or an explicit
+unresolved reason.
 
-## Boundary with STRATA
+## Analyzer boundary
 
-STRATA is the compiler-backed semantic architecture-change analyzer/package for
-TypeScript revisions. CARTOGRAPH is the broader architecture graph, report,
-policy, and bounded runtime-reconciliation product: it consumes explicit
-static/runtime evidence and emits reviewable graph artifacts, but does not
-replace STRATA's compiler-backed semantic analysis.
+CARTOGRAPH owns the complete local architecture-change loop: compiler-backed
+TypeScript extraction, canonical graph snapshots, semantic revision diffs,
+evidence-linked reports, policy evaluation, and bounded runtime reconciliation.
+The graph and report contracts remain source-free after analysis, while the
+analyzer itself reads only the declared local repository inputs and fails closed
+on unsupported or unresolved constructs.
 
 The project is pre-alpha. The local TypeScript/Express slice, bounded Fastify
 adapter, and a read-only, informational-by-default GitHub Action work and are
