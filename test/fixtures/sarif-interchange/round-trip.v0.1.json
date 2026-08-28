@@ -1,0 +1,100 @@
+{
+  "$schema": "../../schema/sarif-interchange.v0.1.schema.json",
+  "schemaVersion": 1,
+  "contract": "cartograph.sarif-interchange",
+  "mediaType": "application/sarif+json",
+  "fixtureId": "e018-v0.1",
+  "method": {
+    "replayMode": "checked-in-policy-and-snapshot",
+    "rerunnable": true,
+    "network": false,
+    "sourceBodiesIncluded": false,
+    "credentialsUsed": false,
+    "hiddenTelemetry": false,
+    "command": "npm run sarif:validate"
+  },
+  "evaluation": {
+    "schemaVersion": 1,
+    "contract": "cartograph.policy-evaluation",
+    "policyId": "architecture-boundaries",
+    "policyVersion": "1.0.0",
+    "inputKind": "snapshot",
+    "mode": "enforce",
+    "status": "violations",
+    "evaluatedRules": 2,
+    "passedRules": 0,
+    "unsupportedRules": 0,
+    "violations": [
+      {
+        "id": "violation:forbid-payment-module",
+        "policyId": "architecture-boundaries",
+        "ruleId": "forbid-payment-module",
+        "target": "node",
+        "assertion": "absent",
+        "effect": "enforce",
+        "count": 1,
+        "expected": 0,
+        "matches": ["node:module:payments"],
+        "reason": "the payment module crosses the protected boundary",
+        "evidenceRefs": [
+          "input:snapshot",
+          "policy:architecture-boundaries",
+          "policy-rule:forbid-payment-module",
+          "node:module:payments",
+          "stable-key:module:src/payments.ts",
+          "source:src/payments.ts:42",
+          "evidence:policy-fixture"
+        ]
+      },
+      {
+        "id": "violation:require-boundary-edge",
+        "policyId": "architecture-boundaries",
+        "ruleId": "require-boundary-edge",
+        "target": "edge",
+        "assertion": "exists",
+        "effect": "informational",
+        "count": 0,
+        "expected": 1,
+        "matches": [],
+        "reason": "the required boundary edge is not present",
+        "evidenceRefs": [
+          "input:snapshot",
+          "policy:architecture-boundaries",
+          "policy-rule:require-boundary-edge"
+        ]
+      }
+    ],
+    "unsupported": [],
+    "exceptions": []
+  },
+  "snapshot": {
+    "schemaVersion": 1,
+    "capabilityRegistryVersion": 1,
+    "revision": {
+      "commitSha": "e018-sarif-fixture",
+      "branch": "fixture"
+    },
+    "nodes": [
+      {
+        "id": "module:payments",
+        "stableKey": "module:src/payments.ts",
+        "kind": "module",
+        "name": "payments",
+        "language": "typescript",
+        "location": {
+          "path": "src/payments.ts",
+          "line": 42,
+          "column": 1,
+          "endLine": 42,
+          "endColumn": 9
+        }
+      }
+    ],
+    "edges": [],
+    "diagnostics": []
+  },
+  "expected": {
+    "mappedViolationIds": ["violation:forbid-payment-module"],
+    "unsupportedViolationIds": ["violation:require-boundary-edge"]
+  }
+}

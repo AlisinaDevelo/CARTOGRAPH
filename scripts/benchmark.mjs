@@ -378,6 +378,10 @@ const runBenchmark = async () => {
       snapshot = analyzeTypeScriptRepository({
         rootDir: root,
         ...(tsconfigPath ? { tsconfigPath: tsconfigPath } : {}),
+        // Sequential warm runs retain TypeScript compiler state on hosted
+        // Node 24 runners; keep the benchmark bounded without aborting a
+        // valid corpus before later fixtures execute.
+        resources: { maxMemoryBytes: 2 * 1024 * 1024 * 1024 },
       });
       const serialized = JSON.stringify(snapshot);
       if (serializedSnapshot === undefined) serializedSnapshot = serialized;

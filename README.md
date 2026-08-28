@@ -6,15 +6,20 @@ Deterministic architecture graph, revision-diff, policy, and bounded runtime-rec
 [![CodeQL](https://github.com/AlisinaDevelo/CARTOGRAPH/actions/workflows/codeql.yml/badge.svg)](https://github.com/AlisinaDevelo/CARTOGRAPH/actions/workflows/codeql.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-CARTOGRAPH scans a supported repository into a deterministic architecture graph, compares two Git revisions, and shows which nodes and relationships changed. Every emitted relationship carries repository-relative source evidence or an explicit unresolved reason.
+CARTOGRAPH scans a supported repository with compiler-backed TypeScript
+resolution, produces a deterministic architecture graph, compares two Git
+revisions, and shows which nodes and relationships changed. Every emitted
+relationship carries repository-relative source evidence or an explicit
+unresolved reason.
 
-## Boundary with STRATA
+## Analyzer boundary
 
-STRATA is the compiler-backed semantic architecture-change analyzer/package for
-TypeScript revisions. CARTOGRAPH is the broader architecture graph, report,
-policy, and bounded runtime-reconciliation product: it consumes explicit
-static/runtime evidence and emits reviewable graph artifacts, but does not
-replace STRATA's compiler-backed semantic analysis.
+CARTOGRAPH owns the complete local architecture-change loop: compiler-backed
+TypeScript extraction, canonical graph snapshots, semantic revision diffs,
+evidence-linked reports, policy evaluation, and bounded runtime reconciliation.
+The graph and report contracts remain source-free after analysis, while the
+analyzer itself reads only the declared local repository inputs and fails closed
+on unsupported or unresolved constructs.
 
 The project is pre-alpha. The local TypeScript/Express slice, bounded Fastify
 adapter, and a read-only, informational-by-default GitHub Action work and are
@@ -150,6 +155,13 @@ evidence, confidence, unresolved reasons, and diagnostics; unknown fields fail
 closed. See the [portable graph interchange guide](docs/GRAPH_INTERCHANGE.md)
 and run `npm run graph-interchange:validate` for the offline round-trip gate.
 
+The bounded [SARIF policy-result bridge](docs/SARIF_INTERCHANGE.md) projects
+only line-local policy violations into SARIF 2.1.0. Canonical graph IDs and
+evidence references remain in the property bag; source-less or aggregate
+findings are reported as omitted rather than misrepresented as code-scanning
+results. Run `npm run sarif:validate` to replay the offline import/export and
+security fixture.
+
 HTML diff reports include a semantic summary and evidence table, native
 keyboard disclosures, ordered internal navigation, visible live status text,
 focus-visible styling, and reduced-motion behavior. The offline fixture and
@@ -255,6 +267,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a broad change. Materia
 - [Telemetry-free adoption measurement](docs/ADOPTION_MEASUREMENT.md)
 - [Workspace federation evaluation](docs/WORKSPACE_FEDERATION_EVALUATION.md)
 - [SCIP import and export](docs/SCIP_INTERCHANGE.md)
+- [SARIF policy-result bridge](docs/SARIF_INTERCHANGE.md)
 - [Explicit ownership resolution](docs/OWNERSHIP.md)
 - [Auditable finding lifecycle](docs/FINDING_LIFECYCLE.md)
 - [Architecture waivers](docs/ARCHITECTURE_WAIVERS.md)

@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/sarif-interchange.v0.1.schema.json",
+  "title": "CARTOGRAPH SARIF policy-result bridge fixture v0.1",
+  "description": "An offline, bounded fixture for the line-local SARIF projection. Native source bodies and non-failing or non-line-local results are outside this contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contract",
+    "mediaType",
+    "fixtureId",
+    "method",
+    "evaluation",
+    "snapshot",
+    "expected"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.sarif-interchange" },
+    "mediaType": { "const": "application/sarif+json" },
+    "fixtureId": { "const": "e018-v0.1" },
+    "method": { "$ref": "#/definitions/method" },
+    "evaluation": { "$ref": "#/definitions/evaluation" },
+    "snapshot": { "$ref": "#/definitions/snapshot" },
+    "expected": { "$ref": "#/definitions/expected" }
+  },
+  "definitions": {
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "replayMode",
+        "rerunnable",
+        "network",
+        "sourceBodiesIncluded",
+        "credentialsUsed",
+        "hiddenTelemetry",
+        "command"
+      ],
+      "properties": {
+        "replayMode": { "const": "checked-in-policy-and-snapshot" },
+        "rerunnable": { "const": true },
+        "network": { "const": false },
+        "sourceBodiesIncluded": { "const": false },
+        "credentialsUsed": { "const": false },
+        "hiddenTelemetry": { "const": false },
+        "command": { "const": "npm run sarif:validate" }
+      }
+    },
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schemaVersion",
+        "contract",
+        "policyId",
+        "policyVersion",
+        "inputKind",
+        "mode",
+        "status",
+        "evaluatedRules",
+        "passedRules",
+        "unsupportedRules",
+        "violations",
+        "unsupported"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.policy-evaluation" },
+        "policyId": { "$ref": "#/definitions/identifier" },
+        "policyVersion": { "type": "string" },
+        "inputKind": { "const": "snapshot" },
+        "mode": { "enum": ["informational", "enforce"] },
+        "status": { "const": "violations" },
+        "evaluatedRules": { "type": "integer", "minimum": 0 },
+        "passedRules": { "type": "integer", "minimum": 0 },
+        "unsupportedRules": { "type": "integer", "minimum": 0 },
+        "violations": { "type": "array", "minItems": 1 },
+        "unsupported": { "type": "array" }
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schemaVersion",
+        "capabilityRegistryVersion",
+        "revision",
+        "nodes",
+        "edges",
+        "diagnostics"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "capabilityRegistryVersion": { "const": 1 },
+        "revision": { "type": "object" },
+        "nodes": { "type": "array", "minItems": 1 },
+        "edges": { "type": "array" },
+        "diagnostics": { "type": "array" }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mappedViolationIds", "unsupportedViolationIds"],
+      "properties": {
+        "mappedViolationIds": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/identifier" }
+        },
+        "unsupportedViolationIds": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    }
+  }
+}

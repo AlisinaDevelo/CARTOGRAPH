@@ -19,14 +19,14 @@
       }
     },
     {
-      "id": "strata",
-      "logicalName": "STRATA",
+      "id": "sample-service",
+      "logicalName": "sample-service",
       "revision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-      "localPath": "repos/strata",
+      "localPath": "repos/sample-service",
       "snapshot": {
-        "path": "snapshots/strata.json",
+        "path": "snapshots/sample-service.json",
         "schemaVersion": 1,
-        "adapterId": "strata.typescript",
+        "adapterId": "cartograph.typescript",
         "adapterVersion": "1.2.0",
         "sizeBytes": 1600
       }
@@ -42,11 +42,11 @@
   ],
   "boundaries": [
     {
-      "id": "cartograph-strata",
+      "id": "cartograph-sample-service",
       "fromRepository": "cartograph",
-      "toRepository": "strata",
+      "toRepository": "sample-service",
       "relation": "references",
-      "evidencePath": "boundaries/cartograph-strata.json"
+      "evidencePath": "boundaries/cartograph-sample-service.json"
     },
     {
       "id": "cartograph-loom",

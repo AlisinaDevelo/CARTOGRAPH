@@ -62,9 +62,9 @@ also reported. A report can be consumed only after its unsupported list has
 been reviewed by the caller.
 
 The contract preserves identity and evidence references, not source text or
-compiler internals. STRATA remains the compiler-backed semantic architecture
-change analyzer; CARTOGRAPH's SCIP boundary is the broader graph, report,
-policy, and reconciliation product's portable interchange layer.
+compiler internals. CARTOGRAPH's compiler-backed TypeScript analyzer owns
+source-backed analysis; the SCIP boundary is the broader graph, report, policy,
+and reconciliation product's portable interchange layer.
 
 ## Determinism and compatibility
 

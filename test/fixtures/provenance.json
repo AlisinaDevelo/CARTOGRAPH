@@ -666,6 +666,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "sarif-interchange",
+      "path": "sarif-interchange",
+      "source": "CARTOGRAPH repository-authored synthetic SARIF policy-result fixture",
+      "license": "Apache-2.0",
+      "reference": "R-009 bounded SARIF policy-result bridge; official SARIF 2.1.0 shape; no source bodies retained",
+      "transformation": "A checked-in policy evaluation and canonical snapshot exercise line-local result mapping, graph/evidence references, deterministic fingerprints, explicit aggregate omission, and fail-closed import rejection without source text, execution, credentials, or network access.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "ownership-resolution",
       "path": "ownership-resolution",
       "source": "CARTOGRAPH repository-authored synthetic ownership fixture",

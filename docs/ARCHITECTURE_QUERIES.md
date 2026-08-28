@@ -139,8 +139,8 @@ contract. Its `v1 nodes`, `v1 edges`, and `v1 changes` grammar supports
 evidence paths, confidence, exact revision selection, and bounded traversal;
 `parseGraphQueryLanguage` produces a canonical AST and
 `executeGraphQuery` fails closed at explicit resource ceilings. This language
-is intentionally read-only and source-free and does not replace STRATA's
-compiler-backed semantic analyzer.
+is intentionally read-only and source-free and consumes snapshots produced by
+the compiler-backed TypeScript analyzer.
 
 ## Inspectable explanations
 

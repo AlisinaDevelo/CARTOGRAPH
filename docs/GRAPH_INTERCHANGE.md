@@ -62,6 +62,6 @@ serialized artifact. Callers should review the error before retrying with a
 narrower artifact.
 
 This contract is an additive projection of GraphSnapshot v1. It does not change
-the canonical snapshot, diff, query, or STRATA compiler-backed semantic
-analysis contracts. CARTOGRAPH owns the broader graph, report, policy,
-reconciliation, and portable interchange boundary.
+the canonical snapshot, diff, query, or compiler-backed analyzer contracts.
+CARTOGRAPH owns the graph, report, policy, reconciliation, and portable
+interchange boundaries.

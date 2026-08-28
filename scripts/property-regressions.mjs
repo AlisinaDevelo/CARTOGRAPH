@@ -44,6 +44,14 @@ const scenarioSchemaPath = resolve(
   "schema/property-regression.v0.1.schema.json",
 );
 
+// This bounded corpus analyzes many fresh TypeScript projects in one process.
+// Hosted macOS Node 22 can retain compiler state between cases, so the
+// property runner gets an explicit ceiling without changing the analyzer's
+// production default.
+const PROPERTY_ANALYZER_RESOURCES = {
+  maxMemoryBytes: 2 * 1024 * 1024 * 1024,
+};
+
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 const fail = (message) => {
   throw new Error(
@@ -155,10 +163,16 @@ const runTypeScriptCase = (index, random, scenario) => {
   );
   try {
     const first = serializeGraphSnapshot(
-      analyzeTypeScriptRepository({ rootDir: root }),
+      analyzeTypeScriptRepository({
+        rootDir: root,
+        resources: PROPERTY_ANALYZER_RESOURCES,
+      }),
     );
     const second = serializeGraphSnapshot(
-      analyzeTypeScriptRepository({ rootDir: root }),
+      analyzeTypeScriptRepository({
+        rootDir: root,
+        resources: PROPERTY_ANALYZER_RESOURCES,
+      }),
     );
     if (first !== second) fail(`typescript case ${index} is not deterministic`);
   } finally {

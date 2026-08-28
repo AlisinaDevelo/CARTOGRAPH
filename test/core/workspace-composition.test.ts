@@ -52,7 +52,7 @@ describe("offline workspace composition contract", () => {
     expect(validate.errors).toBeNull();
     expect(manifest.repositories.map((repository) => repository.id)).toEqual([
       "cartograph",
-      "strata",
+      "sample-service",
     ]);
     expect(
       manifest.repositories.map(
