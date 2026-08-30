@@ -87,6 +87,9 @@ jobs:
       - name: Validate Action fixture
         run: npm run action:validate
 
+      - name: Validate Action security fixture
+        run: npm run action:security:validate
+
       - name: Validate benchmark baseline
         run: npm run benchmark:validate
 

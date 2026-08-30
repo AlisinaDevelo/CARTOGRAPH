@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-/* global console */
+/* global console, process */
 
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,6 +14,12 @@ const workflowPath = resolve(
 const workflow = readFileSync(workflowPath, "utf8");
 const action = readFileSync(resolve(repositoryRoot, "action.yml"), "utf8");
 const docs = readFileSync(resolve(repositoryRoot, "docs/ACTION.md"), "utf8");
+const readme = readFileSync(resolve(repositoryRoot, "README.md"), "utf8");
+
+const selfActionPattern =
+  /^\s*(?:-\s*)?uses:\s*AlisinaDevelo\/CARTOGRAPH@([0-9a-f]{40})(?:\s|$)/gmu;
+const actionlessHistoricalCommit = "629ee26cc179f08848b09f8c5caeaaf48f6e134c";
+const alternateActionCommit = "07de439b4473499e16681a0bef774901b003dadc";
 
 const fail = (message) => {
   throw new Error(`Action security fixture failed: ${message}`);
@@ -28,7 +35,61 @@ const forbidText = (source, text, label) => {
 const actionReferences = (source) =>
   [...source.matchAll(/^\s*uses:\s*([^\s#]+)/gmu)].map((match) => match[1]);
 
-const validatePolicy = (candidateWorkflow, candidateAction) => {
+const gitObjectExists = (specification) => {
+  try {
+    execFileSync("git", ["cat-file", "-e", specification], {
+      cwd: repositoryRoot,
+      env: {
+        ...process.env,
+        GIT_CONFIG_NOSYSTEM: "1",
+        GIT_TERMINAL_PROMPT: "0",
+      },
+      stdio: "ignore",
+    });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const validateSelfActionPin = (source, label) => {
+  const pins = [...source.matchAll(selfActionPattern)].map((match) => match[1]);
+  if (pins.length !== 1)
+    fail(`${label} must contain exactly one CARTOGRAPH self-Action pin`);
+  const pin = pins[0];
+  if (pin === undefined) fail(`${label} self-Action pin is missing`);
+  if (!gitObjectExists(`${pin}^{commit}`))
+    fail(`${label} self-Action pin does not resolve to a commit: ${pin}`);
+  if (!gitObjectExists(`${pin}:action.yml`))
+    fail(`${label} self-Action pin does not contain action.yml: ${pin}`);
+  return pin;
+};
+
+const validatePolicy = (
+  candidateWorkflow,
+  candidateAction,
+  candidateDocs = docs,
+  candidateReadme = readme,
+) => {
+  const workflowPin = validateSelfActionPin(
+    candidateWorkflow,
+    "fixture workflow",
+  );
+  const docsPin = validateSelfActionPin(candidateDocs, "Action docs");
+  const readmePin = validateSelfActionPin(candidateReadme, "README");
+  if (
+    workflowPin !== docsPin ||
+    workflowPin !== readmePin ||
+    docsPin !== readmePin
+  )
+    fail(
+      "self-Action pins disagree: fixture workflow=" +
+        workflowPin +
+        ", Action docs=" +
+        docsPin +
+        ", README=" +
+        readmePin,
+    );
   requireText(
     candidateWorkflow,
     "on:\n  # Deliberately use pull_request",
@@ -146,9 +207,20 @@ const validatePolicy = (candidateWorkflow, candidateAction) => {
   );
 };
 
-const expectPolicyRejection = (label, candidateWorkflow, candidateAction) => {
+const expectPolicyRejection = (
+  label,
+  candidateWorkflow,
+  candidateAction,
+  candidateDocs = docs,
+  candidateReadme = readme,
+) => {
   try {
-    validatePolicy(candidateWorkflow, candidateAction);
+    validatePolicy(
+      candidateWorkflow,
+      candidateAction,
+      candidateDocs,
+      candidateReadme,
+    );
   } catch {
     return;
   }
@@ -174,7 +246,23 @@ if (syntheticForkPullRequest.token.permissions.contents !== "read")
 if (Object.keys(syntheticForkPullRequest.secrets).length !== 0)
   fail("synthetic fork event unexpectedly contains secrets");
 
-validatePolicy(workflow, action);
+const workflowPin = validateSelfActionPin(workflow, "fixture workflow");
+const docsPin = validateSelfActionPin(docs, "Action docs");
+const readmePin = validateSelfActionPin(readme, "README");
+if (
+  workflowPin !== docsPin ||
+  workflowPin !== readmePin ||
+  docsPin !== readmePin
+)
+  fail(
+    "self-Action pins disagree: fixture workflow=" +
+      workflowPin +
+      ", Action docs=" +
+      docsPin +
+      ", README=" +
+      readmePin,
+  );
+validatePolicy(workflow, action, docs, readme);
 expectPolicyRejection(
   "write permission",
   workflow.replace(
@@ -195,6 +283,39 @@ expectPolicyRejection(
     "actions/checkout@main",
   ),
   action,
+);
+expectPolicyRejection(
+  "self Action commit without action metadata",
+  workflow.replace(workflowPin, actionlessHistoricalCommit),
+  action,
+);
+expectPolicyRejection(
+  "unknown self Action commit",
+  workflow.replace(workflowPin, "0".repeat(40)),
+  action,
+);
+for (const [label, reference] of [
+  ["self Action abbreviated commit", workflowPin.slice(0, 12)],
+  ["self Action branch", "main"],
+  ["self Action tag", "v0.1.0"],
+])
+  expectPolicyRejection(
+    label,
+    workflow.replace(workflowPin, reference),
+    action,
+  );
+expectPolicyRejection(
+  "docs/fixture self Action disagreement",
+  workflow,
+  action,
+  docs.replace(docsPin, alternateActionCommit),
+);
+expectPolicyRejection(
+  "README/fixture self Action disagreement",
+  workflow,
+  action,
+  docs,
+  readme.replace(readmePin, alternateActionCommit),
 );
 expectPolicyRejection(
   "secret-dependent analysis",
