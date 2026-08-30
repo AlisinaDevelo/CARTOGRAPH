@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,7 +12,48 @@ const repositoryRoot = resolve(
 const read = (relativePath: string): string =>
   readFileSync(resolve(repositoryRoot, relativePath), "utf8");
 
+const selfActionPin = (source: string): string => {
+  const pins = [
+    ...source.matchAll(
+      /^\s*(?:-\s*)?uses:\s*AlisinaDevelo\/CARTOGRAPH@([0-9a-f]{40})\b/gmu,
+    ),
+  ].map((match) => match[1]);
+  expect(pins).toHaveLength(1);
+  const pin = pins[0];
+  if (pin === undefined) throw new Error("self Action pin is missing");
+  return pin;
+};
+
+const assertRunnableSelfActionPin = (pin: string): void => {
+  execFileSync("git", ["cat-file", "-e", `${pin}^{commit}`], {
+    cwd: repositoryRoot,
+    stdio: "ignore",
+  });
+  execFileSync("git", ["cat-file", "-e", `${pin}:action.yml`], {
+    cwd: repositoryRoot,
+    stdio: "ignore",
+  });
+};
+
 describe("read-only GitHub Action contract", () => {
+  it("pins the documented self Action to a commit containing action metadata", () => {
+    const docsPin = selfActionPin(read("docs/ACTION.md"));
+    const workflowPin = selfActionPin(
+      read("examples/github-action-fixture/.github/workflows/cartograph.yml"),
+    );
+    const readmePin = selfActionPin(read("README.md"));
+
+    expect(workflowPin).toBe(docsPin);
+    expect(readmePin).toBe(docsPin);
+    expect(() => assertRunnableSelfActionPin(docsPin)).not.toThrow();
+  });
+
+  it("runs the Action security validator in the authoritative CI workflow", () => {
+    expect(read(".github/workflows/ci.yml")).toContain(
+      "      - name: Validate Action security fixture\n        run: npm run action:security:validate",
+    );
+  });
+
   it("uses exact pull-request revisions and a pinned artifact upload", () => {
     const action = read("action.yml");
     const workflow = read(
@@ -55,7 +97,7 @@ describe("read-only GitHub Action contract", () => {
     expect(workflow).toContain("persist-credentials: false");
     expect(workflow).toContain("github.event.pull_request.head.sha");
     expect(workflow).toContain(
-      "AlisinaDevelo/CARTOGRAPH@629ee26cc179f08848b09f8c5caeaaf48f6e134c",
+      "AlisinaDevelo/CARTOGRAPH@0491e7cdd8a558b025fc60a3897a01cf74577965",
     );
     expect(workflow).not.toContain("pull_request_target");
     expect(workflow).not.toContain("secrets.");

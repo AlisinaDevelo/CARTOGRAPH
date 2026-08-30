@@ -66,7 +66,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
-      - uses: AlisinaDevelo/CARTOGRAPH@629ee26cc179f08848b09f8c5caeaaf48f6e134c # D-013
+      - uses: AlisinaDevelo/CARTOGRAPH@0491e7cdd8a558b025fc60a3897a01cf74577965 # self-Action metadata verified
         with:
           comparison: merge-base
           retention-days: 7
