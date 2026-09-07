@@ -4074,6 +4074,18 @@ const analyzeCalls = (context: AnalyzerContext): void => {
   }
 };
 
+const disposeTypeScriptProject = (project: Project): void => {
+  try {
+    // Detach ts-morph wrappers before releasing the underlying compiler service.
+    // ts-morph 28.0.0 has no public Project.dispose(); see
+    // https://github.com/dsherret/ts-morph/issues/1666.
+    for (const sourceFile of project.getSourceFiles())
+      project.removeSourceFile(sourceFile);
+  } finally {
+    project.getLanguageService().compilerObject.dispose();
+  }
+};
+
 const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
   const requestedRootDir = resolve(options.rootDir);
   if (
@@ -4125,92 +4137,106 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
   const sourcePaths = new Set(paths);
   const projectSetup = projectFor(rootDir, loaded, sourcePaths, checkBudget);
   const project = projectSetup.project;
-  for (const path of loaded.projectPaths) project.addSourceFileAtPath(path);
+  try {
+    for (const path of loaded.projectPaths) project.addSourceFileAtPath(path);
 
-  const sourceFiles = paths
-    .map((path) => project.getSourceFile(path))
-    .filter((sourceFile): sourceFile is SourceFile => sourceFile !== undefined)
-    .sort((left, right) =>
-      compareStrings(
-        sourceFilePath(rootDir, left.getFilePath()),
-        sourceFilePath(rootDir, right.getFilePath()),
-      ),
+    const sourceFiles = paths
+      .map((path) => project.getSourceFile(path))
+      .filter(
+        (sourceFile): sourceFile is SourceFile => sourceFile !== undefined,
+      )
+      .sort((left, right) =>
+        compareStrings(
+          sourceFilePath(rootDir, left.getFilePath()),
+          sourceFilePath(rootDir, right.getFilePath()),
+        ),
+      );
+    const filesByPath = new Map(
+      sourceFiles.map((file) => [
+        sourceFilePath(rootDir, file.getFilePath()),
+        file,
+      ]),
     );
-  const filesByPath = new Map(
-    sourceFiles.map((file) => [
-      sourceFilePath(rootDir, file.getFilePath()),
-      file,
-    ]),
-  );
-  const fileHashes = new Map(
-    paths.map((path) => {
-      checkBudget();
-      return [sourceFilePath(rootDir, path), hashBytes(readFileSync(path))];
-    }),
-  );
-  const generatedDiscovery: GeneratedDiscovery = discoverGeneratedCode(
-    rootDir,
-    sourcePaths,
-    options.include ?? ["."],
-    options.exclude ?? [],
-    resources,
-    checkBudget,
-  );
-  for (const [path, contentHash] of generatedDiscovery.fileHashes)
-    fileHashes.set(path, contentHash);
-  const apiDiscovery: ApiBoundaryDiscovery = discoverApiBoundaries(
-    rootDir,
-    sourceFiles,
-    resources,
-    checkBudget,
-  );
-  for (const [path, contentHash] of apiDiscovery.fileHashes)
-    fileHashes.set(path, contentHash);
-  const prismaDiscovery: PrismaSchemaDiscovery = discoverPrismaSchema(
-    rootDir,
-    resources,
-    checkBudget,
-  );
-  for (const [path, contentHash] of prismaDiscovery.fileHashes)
-    fileHashes.set(path, contentHash);
-  for (const [path, contentHash] of lockfileDiscovery.fileHashes)
-    fileHashes.set(path, contentHash);
+    const fileHashes = new Map(
+      paths.map((path) => {
+        checkBudget();
+        return [sourceFilePath(rootDir, path), hashBytes(readFileSync(path))];
+      }),
+    );
+    const generatedDiscovery: GeneratedDiscovery = discoverGeneratedCode(
+      rootDir,
+      sourcePaths,
+      options.include ?? ["."],
+      options.exclude ?? [],
+      resources,
+      checkBudget,
+    );
+    for (const [path, contentHash] of generatedDiscovery.fileHashes)
+      fileHashes.set(path, contentHash);
+    const apiDiscovery: ApiBoundaryDiscovery = discoverApiBoundaries(
+      rootDir,
+      sourceFiles,
+      resources,
+      checkBudget,
+    );
+    for (const [path, contentHash] of apiDiscovery.fileHashes)
+      fileHashes.set(path, contentHash);
+    const prismaDiscovery: PrismaSchemaDiscovery = discoverPrismaSchema(
+      rootDir,
+      resources,
+      checkBudget,
+    );
+    for (const [path, contentHash] of prismaDiscovery.fileHashes)
+      fileHashes.set(path, contentHash);
+    for (const [path, contentHash] of lockfileDiscovery.fileHashes)
+      fileHashes.set(path, contentHash);
 
-  return {
-    apiBoundaries: apiDiscovery.boundaries,
-    apiDiagnostics: apiDiscovery.diagnostics,
-    apiResolverBindings: apiDiscovery.resolverBindings,
-    blockedRelativeImports: new Set(),
-    callablesByDeclaration: new Map(),
-    callablesByStableKey: new Map(),
-    diagnostics: new Map(),
-    edges: new Map(),
-    fileHashes,
-    generatedArtifacts: new Map(
-      generatedDiscovery.included.map((artifact) => [artifact.path, artifact]),
-    ),
-    generatedDiagnostics: generatedDiscovery.diagnostics,
-    generatedRelationships: generatedDiscovery.relationships,
-    filesByPath,
-    lockfileDependencies: lockfileDiscovery.dependencies,
-    lockfileDiagnostics: lockfileDiscovery.diagnostics,
-    nodes: new Map(),
-    prismaDatasources: prismaDiscovery.datasources,
-    prismaDiagnostics: prismaDiscovery.diagnostics,
-    prismaGeneratedClients: prismaDiscovery.generatedClients,
-    prismaModels: new Map(
-      prismaDiscovery.models.map((model) => [model.name, model]),
-    ),
-    project,
-    resolveModule: projectSetup.resolveModule,
-    resolveModuleInfo: projectSetup.resolveModuleInfo,
-    rootDir,
-    sourcePaths,
-    sourceFiles,
-    extractors,
-    workspace,
-    checkBudget,
-  };
+    return {
+      apiBoundaries: apiDiscovery.boundaries,
+      apiDiagnostics: apiDiscovery.diagnostics,
+      apiResolverBindings: apiDiscovery.resolverBindings,
+      blockedRelativeImports: new Set(),
+      callablesByDeclaration: new Map(),
+      callablesByStableKey: new Map(),
+      diagnostics: new Map(),
+      edges: new Map(),
+      fileHashes,
+      generatedArtifacts: new Map(
+        generatedDiscovery.included.map((artifact) => [
+          artifact.path,
+          artifact,
+        ]),
+      ),
+      generatedDiagnostics: generatedDiscovery.diagnostics,
+      generatedRelationships: generatedDiscovery.relationships,
+      filesByPath,
+      lockfileDependencies: lockfileDiscovery.dependencies,
+      lockfileDiagnostics: lockfileDiscovery.diagnostics,
+      nodes: new Map(),
+      prismaDatasources: prismaDiscovery.datasources,
+      prismaDiagnostics: prismaDiscovery.diagnostics,
+      prismaGeneratedClients: prismaDiscovery.generatedClients,
+      prismaModels: new Map(
+        prismaDiscovery.models.map((model) => [model.name, model]),
+      ),
+      project,
+      resolveModule: projectSetup.resolveModule,
+      resolveModuleInfo: projectSetup.resolveModuleInfo,
+      rootDir,
+      sourcePaths,
+      sourceFiles,
+      extractors,
+      workspace,
+      checkBudget,
+    };
+  } catch (error) {
+    try {
+      disposeTypeScriptProject(project);
+    } catch {
+      // Preserve the original setup failure if cleanup itself fails.
+    }
+    throw error;
+  }
 };
 
 export const analyzeTypeScriptRepository = (
@@ -4219,58 +4245,73 @@ export const analyzeTypeScriptRepository = (
   const options: TypeScriptAnalyzerOptions =
     typeof input === "string" ? { rootDir: input } : input;
   const context = createContext(options);
-  context.checkBudget();
-  for (const sourceFile of context.sourceFiles) {
+  let result: TypeScriptAnalyzerResult | undefined;
+  let analysisFailed = false;
+  let analysisError: unknown;
+  try {
     context.checkBudget();
-    moduleForFile(context, sourceFile);
-  }
-  addGeneratedEdges(context);
-  addWorkspaceEdges(context);
-  addLockfileEdges(context);
-  registerCallables(context);
-  addApiBoundaryEdges(context);
-  importSourceFiles(context);
-  addPrismaSchemaEdges(context);
-  analyzeCalls(context);
-  context.checkBudget();
+    for (const sourceFile of context.sourceFiles) {
+      context.checkBudget();
+      moduleForFile(context, sourceFile);
+    }
+    addGeneratedEdges(context);
+    addWorkspaceEdges(context);
+    addLockfileEdges(context);
+    registerCallables(context);
+    addApiBoundaryEdges(context);
+    importSourceFiles(context);
+    addPrismaSchemaEdges(context);
+    analyzeCalls(context);
+    context.checkBudget();
 
-  const revision: Revision = {
-    commitSha: options.revision?.commitSha ?? "working-tree",
-    ...(options.revision?.parentSha
-      ? { parentSha: options.revision.parentSha }
-      : {}),
-    ...(options.revision?.branch
-      ? { branch: options.revision.branch }
-      : { branch: "working-tree" }),
-    ...(options.revision?.authoredAt
-      ? { authoredAt: options.revision.authoredAt }
-      : {}),
-  };
+    const revision: Revision = {
+      commitSha: options.revision?.commitSha ?? "working-tree",
+      ...(options.revision?.parentSha
+        ? { parentSha: options.revision.parentSha }
+        : {}),
+      ...(options.revision?.branch
+        ? { branch: options.revision.branch }
+        : { branch: "working-tree" }),
+      ...(options.revision?.authoredAt
+        ? { authoredAt: options.revision.authoredAt }
+        : {}),
+    };
 
-  const result: TypeScriptAnalyzerResult = {
-    schemaVersion: 1,
-    capabilityRegistryVersion: CAPABILITY_REGISTRY_VERSION,
-    revision,
-    nodes: [...context.nodes.values()].sort((left, right) =>
-      compareStrings(left.stableKey, right.stableKey),
-    ),
-    edges: [...context.edges.values()].sort((left, right) =>
-      compareStrings(
-        edgeKey(left.from, left.to, left.kind),
-        edgeKey(right.from, right.to, right.kind),
+    result = {
+      schemaVersion: 1,
+      capabilityRegistryVersion: CAPABILITY_REGISTRY_VERSION,
+      revision,
+      nodes: [...context.nodes.values()].sort((left, right) =>
+        compareStrings(left.stableKey, right.stableKey),
       ),
-    ),
-    diagnostics: [...context.diagnostics.values()].sort((left, right) =>
-      compareStrings(left.id, right.id),
-    ),
-  };
+      edges: [...context.edges.values()].sort((left, right) =>
+        compareStrings(
+          edgeKey(left.from, left.to, left.kind),
+          edgeKey(right.from, right.to, right.kind),
+        ),
+      ),
+      diagnostics: [...context.diagnostics.values()].sort((left, right) =>
+        compareStrings(left.id, right.id),
+      ),
+    };
+  } catch (error) {
+    analysisFailed = true;
+    analysisError = error;
+  }
 
-  // ts-morph keeps compiler ASTs attached to the Project. The graph result is
-  // fully materialized above, so detach those source files before returning;
-  // repeated adapter analyses must not retain an entire compiler project.
-  for (const sourceFile of context.project.getSourceFiles())
-    context.project.removeSourceFile(sourceFile);
+  let cleanupFailed = false;
+  let cleanupError: unknown;
+  try {
+    disposeTypeScriptProject(context.project);
+  } catch (error) {
+    cleanupFailed = true;
+    cleanupError = error;
+  }
 
+  if (analysisFailed) throw analysisError;
+  if (cleanupFailed) throw cleanupError;
+  if (result === undefined)
+    throw new Error("TypeScript analyzer did not produce a result");
   return result;
 };
 
