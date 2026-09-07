@@ -4245,7 +4245,9 @@ export const analyzeTypeScriptRepository = (
   const options: TypeScriptAnalyzerOptions =
     typeof input === "string" ? { rootDir: input } : input;
   const context = createContext(options);
+  let result: TypeScriptAnalyzerResult | undefined;
   let analysisFailed = false;
+  let analysisError: unknown;
   try {
     context.checkBudget();
     for (const sourceFile of context.sourceFiles) {
@@ -4275,7 +4277,7 @@ export const analyzeTypeScriptRepository = (
         : {}),
     };
 
-    const result: TypeScriptAnalyzerResult = {
+    result = {
       schemaVersion: 1,
       capabilityRegistryVersion: CAPABILITY_REGISTRY_VERSION,
       revision,
@@ -4292,18 +4294,25 @@ export const analyzeTypeScriptRepository = (
         compareStrings(left.id, right.id),
       ),
     };
-
-    return result;
   } catch (error) {
     analysisFailed = true;
-    throw error;
-  } finally {
-    try {
-      disposeTypeScriptProject(context.project);
-    } catch (cleanupError) {
-      if (!analysisFailed) throw cleanupError;
-    }
+    analysisError = error;
   }
+
+  let cleanupFailed = false;
+  let cleanupError: unknown;
+  try {
+    disposeTypeScriptProject(context.project);
+  } catch (error) {
+    cleanupFailed = true;
+    cleanupError = error;
+  }
+
+  if (analysisFailed) throw analysisError;
+  if (cleanupFailed) throw cleanupError;
+  if (result === undefined)
+    throw new Error("TypeScript analyzer did not produce a result");
+  return result;
 };
 
 export const analyzeTypeScriptProject = analyzeTypeScriptRepository;

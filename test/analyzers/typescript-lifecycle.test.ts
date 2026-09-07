@@ -19,12 +19,15 @@ const analyzerOptions = {
   rootDir: fixtureRoot,
   extractors: ["typescript"] as const,
 };
+const originalGetLanguageService = Object.getOwnPropertyDescriptor(
+  Project.prototype,
+  "getLanguageService",
+)?.value as (this: Project) => ReturnType<Project["getLanguageService"]>;
 
 describe("TypeScript analyzer project lifecycle", () => {
   it("disposes the compiler service after every completed analysis", () => {
     let languageServiceCount = 0;
     let disposeCount = 0;
-    const originalGetLanguageService = Project.prototype.getLanguageService;
     const getLanguageServiceSpy = vi
       .spyOn(Project.prototype, "getLanguageService")
       .mockImplementation(function (this: Project) {
@@ -54,7 +57,6 @@ describe("TypeScript analyzer project lifecycle", () => {
   it("disposes a project created during setup without masking the failure", () => {
     let languageServiceCount = 0;
     let disposeCount = 0;
-    const originalGetLanguageService = Project.prototype.getLanguageService;
     const getLanguageServiceSpy = vi
       .spyOn(Project.prototype, "getLanguageService")
       .mockImplementation(function (this: Project) {
@@ -89,7 +91,6 @@ describe("TypeScript analyzer project lifecycle", () => {
 
   it("preserves an analysis failure when project cleanup also fails", () => {
     let disposeCount = 0;
-    const originalGetLanguageService = Project.prototype.getLanguageService;
     const getLanguageServiceSpy = vi
       .spyOn(Project.prototype, "getLanguageService")
       .mockImplementation(function (this: Project) {
