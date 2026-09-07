@@ -241,8 +241,48 @@ describe("review summary contract", () => {
       },
     });
     expect(renderReviewSummaryMarkdown(escapedReport)).toContain(
-      "- `escape\\`b\\\\c` — Escaping fixture",
+      "- `` escape`b\\\\c `` — Escaping fixture",
     );
+
+    const hostileArtifact = {
+      id: "artifact``id",
+      label: "[artifact](https://evil.test)",
+      kind: "review" as const,
+      path: "review.json",
+      local: true as const,
+    };
+    const hostileReport = {
+      ...report,
+      context: { ...report.context, artifacts: [hostileArtifact] },
+      artifacts: [hostileArtifact],
+      findings: report.findings.map((finding, index) =>
+        index === 0
+          ? { ...finding, title: "[finding](https://evil.test)" }
+          : finding,
+      ),
+      nextSteps: report.nextSteps.map((step, index) =>
+        index === 0
+          ? {
+              ...step,
+              title: "[step](https://evil.test)",
+              action: "**run**",
+            }
+          : step,
+      ),
+    };
+    const hostileMarkdown = renderReviewSummaryMarkdown(hostileReport);
+    expect(hostileMarkdown).toContain(
+      "- ``` artifact``id ``` — \\[artifact\\]\\(https://evil\\.test\\)",
+    );
+    expect(hostileMarkdown).not.toContain("[artifact](https://evil.test)");
+    if (report.findings.length > 0)
+      expect(hostileMarkdown).toContain(
+        "\\[finding\\]\\(https://evil\\.test\\)",
+      );
+    if (report.nextSteps.length > 0) {
+      expect(hostileMarkdown).toContain("\\[step\\]\\(https://evil\\.test\\)");
+      expect(hostileMarkdown).toContain("\\*\\*run\\*\\*");
+    }
   });
 
   it("rejects absolute paths and credential-shaped context", () => {
