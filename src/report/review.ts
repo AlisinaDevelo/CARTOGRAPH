@@ -21,8 +21,46 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-const markdownCode = (value: string): string =>
-  `\`${value.replace(/[\\`]/gu, (character) => `\\${character}`)}\``;
+const markdownCode = (value: string): string => {
+  const normalized = value.replace(/[\r\n]+/gu, " ");
+  const longestBacktickRun = Math.max(
+    0,
+    ...[...normalized.matchAll(/`+/gu)].map((match) => match[0].length),
+  );
+  const fence = "`".repeat(Math.max(1, longestBacktickRun + 1));
+  const padding =
+    fence.length > 1 || normalized.startsWith(" ") || normalized.endsWith(" ")
+      ? " "
+      : "";
+  const content =
+    fence.length === 1
+      ? normalized.replace(/[\\`]/gu, (character) => `\\${character}`)
+      : normalized.replaceAll("\\", "\\\\");
+  return `${fence}${padding}${content}${padding}${fence}`;
+};
+
+const markdownText = (value: string): string =>
+  value
+    .replace(/[\r\n]+/gu, " ")
+    .replaceAll("\\", "\\\\")
+    .replaceAll("`", "\\`")
+    .replaceAll("*", "\\*")
+    .replaceAll("_", "\\_")
+    .replaceAll("{", "\\{")
+    .replaceAll("}", "\\}")
+    .replaceAll("[", "\\[")
+    .replaceAll("]", "\\]")
+    .replaceAll("(", "\\(")
+    .replaceAll(")", "\\)")
+    .replaceAll("#", "\\#")
+    .replaceAll("+", "\\+")
+    .replaceAll("-", "\\-")
+    .replaceAll(".", "\\.")
+    .replaceAll("!", "\\!")
+    .replaceAll("|", "\\|")
+    .replaceAll("<", "\\<")
+    .replaceAll(">", "\\>")
+    .replaceAll("~", "\\~");
 
 const shortRevision = (value: string): string => value.slice(0, 12);
 
@@ -61,7 +99,7 @@ const policyText = (finding: ReviewSummaryFinding): string => {
 
 const findingMarkdown = (finding: ReviewSummaryFinding): string[] => {
   const lines = [
-    `### ${markdownCode(finding.id)} — ${finding.title}`,
+    `### ${markdownCode(finding.id)} — ${markdownText(finding.title)}`,
     "",
     `- Severity: ${markdownCode(finding.severity)}; kind: ${markdownCode(finding.kind)}; change: ${markdownCode(finding.change)}`,
     `- Lifecycle: ${finding.lifecycleState === undefined ? "not provided" : markdownCode(finding.lifecycleState)}`,
@@ -122,7 +160,7 @@ export function renderReviewSummaryMarkdown(value: unknown): string {
     lines.push(
       ...report.nextSteps.map(
         (step) =>
-          `- ${markdownCode(step.id)} — ${step.title}: ${step.action} (${markdownCode(step.severity)}; mutates: ${markdownCode(String(step.mutates))}; evidence: ${evidence(step.evidenceRefs)})`,
+          `- ${markdownCode(step.id)} — ${markdownText(step.title)}: ${markdownText(step.action)} (${markdownCode(step.severity)}; mutates: ${markdownCode(String(step.mutates))}; evidence: ${evidence(step.evidenceRefs)})`,
       ),
     );
 
@@ -141,7 +179,7 @@ export function renderReviewSummaryMarkdown(value: unknown): string {
     lines.push(
       ...report.artifacts.map(
         (artifact) =>
-          `- ${markdownCode(artifact.id)} — ${artifact.label} (${markdownCode(artifact.kind)}): ${markdownCode(artifact.path)}`,
+          `- ${markdownCode(artifact.id)} — ${markdownText(artifact.label)} (${markdownCode(artifact.kind)}): ${markdownCode(artifact.path)}`,
       ),
     );
   }
