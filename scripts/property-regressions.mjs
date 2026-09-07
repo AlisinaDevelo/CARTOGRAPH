@@ -181,7 +181,6 @@ const runTypeScriptCase = (index, random, scenario) => {
     if (first !== second) fail(`typescript case ${index} is not deterministic`);
   } finally {
     rmSync(root, { recursive: true, force: true });
-    collectGarbageIfAvailable();
   }
 };
 
@@ -355,7 +354,6 @@ const runRegressionFixtures = () => {
       fail("typescript no-execution regression executed source");
   } finally {
     rmSync(sentinelRoot, { recursive: true, force: true });
-    collectGarbageIfAvailable();
   }
 
   const malformedRoot = mkdtempSync(
@@ -372,7 +370,6 @@ const runRegressionFixtures = () => {
     );
   } finally {
     rmSync(malformedRoot, { recursive: true, force: true });
-    collectGarbageIfAvailable();
   }
 
   const prototypeInput = JSON.parse('{"__proto__":{"polluted":"property"}}');
@@ -553,6 +550,7 @@ const validate = () => {
     ),
   ];
 
+  collectGarbageIfAvailable();
   runRegressionFixtures();
   const elapsedMs = Number((performance.now() - runStarted).toFixed(3));
   if (elapsedMs > scenario.budgets.maxTotalMs)
