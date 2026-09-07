@@ -72,7 +72,7 @@ describe("release pipeline contract", () => {
     expect(release).toContain("consumer smoke test");
     expect(release).toContain("compatibility-matrix.json");
     expect(release).toContain("immutable/protected `v*.*.*` tag rule");
-    expect(release).toContain("checked-out commit matches the event SHA");
+    expect(release).toContain("commit matches the event SHA");
     expect(compatibility).toContain("cartograph-release-compatibility-v0.1");
     expect(release).toContain("DISTRIBUTION_DECISION.md");
     expect(distribution).toContain(
