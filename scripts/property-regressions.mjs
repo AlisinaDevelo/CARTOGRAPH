@@ -59,6 +59,10 @@ const fail = (message) => {
   );
 };
 
+const collectGarbageIfAvailable = () => {
+  if (typeof globalThis.gc === "function") globalThis.gc();
+};
+
 class XorShift32 {
   constructor(seed) {
     this.state = seed >>> 0;
@@ -177,6 +181,7 @@ const runTypeScriptCase = (index, random, scenario) => {
     if (first !== second) fail(`typescript case ${index} is not deterministic`);
   } finally {
     rmSync(root, { recursive: true, force: true });
+    collectGarbageIfAvailable();
   }
 };
 
@@ -350,6 +355,7 @@ const runRegressionFixtures = () => {
       fail("typescript no-execution regression executed source");
   } finally {
     rmSync(sentinelRoot, { recursive: true, force: true });
+    collectGarbageIfAvailable();
   }
 
   const malformedRoot = mkdtempSync(
@@ -366,6 +372,7 @@ const runRegressionFixtures = () => {
     );
   } finally {
     rmSync(malformedRoot, { recursive: true, force: true });
+    collectGarbageIfAvailable();
   }
 
   const prototypeInput = JSON.parse('{"__proto__":{"polluted":"property"}}');
@@ -580,7 +587,7 @@ const validate = () => {
 
 if (process.argv[2] !== "validate") {
   console.error(
-    "usage: node --import tsx scripts/property-regressions.mjs validate [--scenarios path]",
+    "usage: node --expose-gc --import tsx scripts/property-regressions.mjs validate [--scenarios path]",
   );
   process.exit(2);
 }

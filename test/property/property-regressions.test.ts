@@ -51,7 +51,7 @@ describe("bounded property and security regressions", () => {
   it("replays every bounded property and security case", () => {
     const output = execFileSync(
       process.execPath,
-      ["--import", "tsx", runnerPath, "validate"],
+      ["--expose-gc", "--import", "tsx", runnerPath, "validate"],
       { cwd: repositoryRoot, encoding: "utf8" },
     );
     expect(JSON.parse(output)).toMatchObject({
