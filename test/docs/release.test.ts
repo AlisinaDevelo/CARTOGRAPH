@@ -16,11 +16,15 @@ describe("release pipeline contract", () => {
     );
     expect(workflow).toContain("npm run check");
     expect(workflow).toContain("scripts/release-artifact.mjs");
-    expect(workflow).toContain("RELEASE_REF_PROTECTED: ${{ github.ref_protected }}");
+    expect(workflow).toContain(
+      "RELEASE_REF_PROTECTED: ${{ github.ref_protected }}",
+    );
     expect(workflow).toContain('test "$RELEASE_REF_PROTECTED" = "true"');
     expect(workflow).toContain('test "$actual_sha" = "$EXPECTED_SHA"');
     expect(workflow).toContain('test "$tag_sha" = "$EXPECTED_SHA"');
-    expect(workflow).toContain('git merge-base --is-ancestor "$EXPECTED_SHA" FETCH_HEAD');
+    expect(workflow).toContain(
+      'git merge-base --is-ancestor "$EXPECTED_SHA" FETCH_HEAD',
+    );
     expect(workflow).toContain("contents: write");
     expect(workflow).toContain("SHA256SUMS");
     expect(workflow).toContain(
