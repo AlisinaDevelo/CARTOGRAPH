@@ -28,6 +28,21 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
+      - name: Verify protected tag and source commit
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          RELEASE_REF: ${{ github.ref }}
+          RELEASE_REF_PROTECTED: ${{ github.ref_protected }}
+        run: |
+          set -euo pipefail
+          test "$RELEASE_REF_PROTECTED" = "true"
+          git fetch --no-tags origin main
+          actual_sha="$(git rev-parse HEAD)"
+          tag_sha="$(git rev-list -n 1 "$RELEASE_REF")"
+          test "$actual_sha" = "$EXPECTED_SHA"
+          test "$tag_sha" = "$EXPECTED_SHA"
+          git merge-base --is-ancestor "$EXPECTED_SHA" FETCH_HEAD
+
       - name: Set up Node.js
         # zizmor: ignore[cache-poisoning] Release builds run only from protected, immutable version tags; setup-node caching is disabled below.
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
