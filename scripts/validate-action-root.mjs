@@ -30,13 +30,18 @@ try {
   if (
     outsideWorkspace !== "" &&
     (outsideWorkspace === ".." ||
-      outsideWorkspace.startsWith(`..${process.platform === "win32" ? "\\" : "/"}`) ||
+      outsideWorkspace.startsWith(
+        `..${process.platform === "win32" ? "\\" : "/"}`,
+      ) ||
       isAbsolute(outsideWorkspace))
   )
     fail("root must resolve inside GITHUB_WORKSPACE");
   process.stdout.write(`${candidate}\n`);
 } catch (error) {
-  if (error instanceof Error && error.message.startsWith("CARTOGRAPH action root"))
+  if (
+    error instanceof Error &&
+    error.message.startsWith("CARTOGRAPH action root")
+  )
     throw error;
   fail("root must resolve to an existing path inside GITHUB_WORKSPACE");
 }
