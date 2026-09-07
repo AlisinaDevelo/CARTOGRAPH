@@ -28,16 +28,18 @@ Pass it to `scan` or `diff` with `--config <path>`.
 Omitted fields use deterministic defaults: `include` is `["."]`, built-in
 safe exclusions remain active, and the TypeScript/Express extractors remain
 selected by default. Add `fastify` explicitly to opt into the bounded Fastify
-route extractor. The resource ceilings above apply. Revision archives default to 128 MiB while
-extracted source defaults to 64 MiB; `tsconfigPath` is optional and remains
-repository-relative.
+route extractor. The resource ceilings above apply. `maxFiles` also bounds
+revision tree entries before archive extraction and during the post-extraction
+symlink/resource walk.
+Revision archives default to 128 MiB while extracted source defaults to 64 MiB;
+`tsconfigPath` is optional and remains repository-relative.
 
 Paths and glob patterns are normalized to POSIX separators and cannot be
 absolute, contain a drive or URI prefix, contain NUL bytes, or include a `..`
 segment. The config file itself must also be inside the analyzed repository.
-The analyzer never follows source symlinks. Exceeding a selected-file, byte,
-archive, memory, wall-clock, or report-cardinality ceiling fails closed with a
-stable diagnostic.
+The analyzer never follows source symlinks. Exceeding a selected-file,
+materialized-entry, byte, archive, memory, wall-clock, or report-cardinality
+ceiling fails closed with a stable diagnostic.
 
 Unknown keys fail closed by default. A config may set `unknownFields` to
 `"warn"`; unknown keys are ignored and each ignored key is reported on stderr
