@@ -1,3 +1,5 @@
+/* global process */
+
 import { realpath } from "node:fs/promises";
 import { isAbsolute, relative, resolve } from "node:path";
 
