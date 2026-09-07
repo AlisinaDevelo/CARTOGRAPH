@@ -67,12 +67,22 @@ runs:
         npm ci --ignore-scripts
         npm run build
 
+    - name: Validate repository root
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      env:
+        CARTOGRAPH_ACTION_PATH: ${{ github.action_path }}
+        CARTOGRAPH_ROOT_INPUT: ${{ inputs.root }}
+      run: |
+        set -euo pipefail
+        validated_root="$(node "$CARTOGRAPH_ACTION_PATH/scripts/validate-action-root.mjs")"
+        printf 'CARTOGRAPH_ROOT=%s\n' "$validated_root" >> "$GITHUB_ENV"
+
     - name: Analyze pull-request revisions
       shell: bash
       working-directory: ${{ github.workspace }}
       env:
         CARTOGRAPH_ACTION_PATH: ${{ github.action_path }}
-        CARTOGRAPH_ROOT: ${{ inputs.root }}
         CARTOGRAPH_BASE_INPUT: ${{ inputs.base }}
         CARTOGRAPH_HEAD_INPUT: ${{ inputs.head }}
         CARTOGRAPH_PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
