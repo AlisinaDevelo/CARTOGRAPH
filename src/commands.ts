@@ -194,6 +194,7 @@ const scanMaterializedRevision = async (
             resources: {
               maxArchiveBytes: config.resources.maxArchiveBytes,
               maxExtractedBytes: config.resources.maxSourceBytes,
+              maxExtractedEntries: config.resources.maxFiles,
               maxMemoryBytes: config.resources.maxMemoryBytes,
               maxWallClockMs: config.resources.maxWallClockMs,
             },
@@ -226,6 +227,7 @@ const revisionMaterializationOptions = (
   resources: {
     maxArchiveBytes: config.resources.maxArchiveBytes,
     maxExtractedBytes: config.resources.maxSourceBytes,
+    maxExtractedEntries: config.resources.maxFiles,
     maxMemoryBytes: config.resources.maxMemoryBytes,
     maxWallClockMs: config.resources.maxWallClockMs,
   },

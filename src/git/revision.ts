@@ -23,6 +23,7 @@ const COMMAND_TIMEOUT_MS = 30_000;
 const MAX_REF_LENGTH = 512;
 const DEFAULT_ARCHIVE_BYTES = 128 * 1024 * 1024;
 const DEFAULT_EXTRACTED_BYTES = 64 * 1024 * 1024;
+const DEFAULT_EXTRACTED_ENTRIES = 20_000;
 const DEFAULT_MEMORY_BYTES = 1024 * 1024 * 1024;
 
 export const revisionTemporaryPrefix = (repositoryRoot: string): string =>
@@ -35,6 +36,7 @@ export type MaterializationOptions = {
   resources?: {
     maxArchiveBytes?: number;
     maxExtractedBytes?: number;
+    maxExtractedEntries?: number;
     maxMemoryBytes?: number;
     maxWallClockMs?: number;
   };
@@ -66,6 +68,7 @@ export type GitPathHistoryEntry = {
 type ProcessOptions = {
   maxWallClockMs?: number;
   signal?: AbortSignal;
+  stdoutHandler?: (chunk: Buffer) => void;
 };
 
 export type MaterializedRevision = {
@@ -136,6 +139,7 @@ async function runProcess(
     let settled = false;
     let timeout: ReturnType<typeof setTimeout> | undefined = undefined;
     let abortHandler: (() => void) | undefined = undefined;
+    let streamError: Error | undefined = undefined;
 
     const finish = (callback: () => void): void => {
       if (settled) return;
@@ -160,11 +164,27 @@ async function runProcess(
         target.push(chunk);
       };
 
-    child.stdout.on("data", collect(stdout));
+    child.stdout.on("data", (chunk: Buffer) => {
+      if (streamError !== undefined) return;
+      if (options.stdoutHandler === undefined) {
+        collect(stdout)(chunk);
+        return;
+      }
+      try {
+        options.stdoutHandler(chunk);
+      } catch (error) {
+        streamError = error instanceof Error ? error : new Error(String(error));
+        child.kill("SIGKILL");
+      }
+    });
     child.stderr.on("data", collect(stderr));
-    child.on("error", (error) => finish(() => reject(error)));
+    child.on("error", (error) => finish(() => reject(streamError ?? error)));
     child.on("close", (code) => {
       finish(() => {
+        if (streamError !== undefined) {
+          reject(streamError);
+          return;
+        }
         if (code === 0) {
           resolve(Buffer.concat(stdout).toString("utf8"));
           return;
@@ -206,6 +226,43 @@ const processOptions = (options: MaterializationOptions): ProcessOptions => ({
   maxWallClockMs: options.resources?.maxWallClockMs ?? COMMAND_TIMEOUT_MS,
   ...(options.signal === undefined ? {} : { signal: options.signal }),
 });
+
+const assertRevisionEntryLimit = async (
+  root: string,
+  commit: string,
+  maxExtractedEntries: number,
+  options: ProcessOptions,
+): Promise<void> => {
+  let entryCount = 0;
+  await runProcess(
+    "git",
+    [
+      "-C",
+      root,
+      "ls-tree",
+      "-r",
+      "-t",
+      "-z",
+      "--name-only",
+      "--full-tree",
+      commit,
+    ],
+    undefined,
+    {
+      ...options,
+      stdoutHandler: (chunk) => {
+        for (const byte of chunk) {
+          if (byte !== 0) continue;
+          entryCount += 1;
+          if (entryCount > maxExtractedEntries)
+            throw new ResourceLimitError(
+              `materialized revision exceeds the ${maxExtractedEntries} extracted-entry ceiling`,
+            );
+        }
+      },
+    },
+  );
+};
 
 export async function resolveRepositoryRoot(
   inputPath: string,
@@ -414,9 +471,11 @@ async function assertTreeContainsNoSymbolicLinks(
   root: string,
   checkBudget: () => void,
   maxExtractedBytes: number,
+  maxExtractedEntries: number,
 ): Promise<void> {
   const directories = [root];
   let extractedBytes = 0;
+  let extractedEntries = 0;
   while (directories.length > 0) {
     checkBudget();
     const directory = directories.pop();
@@ -424,6 +483,11 @@ async function assertTreeContainsNoSymbolicLinks(
     const entries = await opendir(directory);
     for await (const entry of entries) {
       checkBudget();
+      extractedEntries += 1;
+      if (extractedEntries > maxExtractedEntries)
+        throw new ResourceLimitError(
+          `materialized revision exceeds the ${maxExtractedEntries} extracted-entry ceiling`,
+        );
       const path = join(directory, entry.name);
       const metadata = await lstat(path);
       if (metadata.isSymbolicLink()) {
@@ -450,6 +514,8 @@ export async function materializeRevision(
     options.resources?.maxArchiveBytes ?? DEFAULT_ARCHIVE_BYTES;
   const maxExtractedBytes =
     options.resources?.maxExtractedBytes ?? DEFAULT_EXTRACTED_BYTES;
+  const maxExtractedEntries =
+    options.resources?.maxExtractedEntries ?? DEFAULT_EXTRACTED_ENTRIES;
   const maxMemoryBytes =
     options.resources?.maxMemoryBytes ?? DEFAULT_MEMORY_BYTES;
   const maxWallClockMs =
@@ -465,6 +531,13 @@ export async function materializeRevision(
   const root = await resolveRepositoryRoot(repositoryRoot, processConfig);
   checkBudget();
   const commit = await resolveCommit(root, ref, processConfig);
+  checkBudget();
+  await assertRevisionEntryLimit(
+    root,
+    commit,
+    maxExtractedEntries,
+    processConfig,
+  );
   checkBudget();
   const temporaryRoot = await mkdtemp(
     join(tmpdir(), revisionTemporaryPrefix(root)),
@@ -511,6 +584,7 @@ export async function materializeRevision(
       treeRoot,
       checkBudget,
       maxExtractedBytes,
+      maxExtractedEntries,
     );
     checkBudget();
     return { cleanup, commit, root: treeRoot };
