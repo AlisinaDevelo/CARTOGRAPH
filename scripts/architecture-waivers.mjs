@@ -5,7 +5,7 @@ import { createHash, generateKeyPairSync, sign } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 const argumentValue = (name) => {
   const index = process.argv.indexOf(name);
@@ -39,7 +39,7 @@ const validate = async () => {
   const waiverSchema = readJson(
     resolve(repositoryRoot, "schema/architecture-waiver.v0.1.schema.json"),
   );
-  const ajv = new Ajv({ allErrors: true, strict: false });
+  const ajv = createAjv({ allErrors: true, strict: false });
   const validateFixture = ajv.compile(fixtureSchema);
   const validateWaiver = ajv.compile(waiverSchema);
   if (!validateFixture(fixture))

@@ -3,7 +3,7 @@
 
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 const repositoryRoot = resolve(
   process.argv.includes("--root")
@@ -91,7 +91,7 @@ const validate = async () => {
       ),
     ),
   );
-  const validateReport = new Ajv({ allErrors: true }).compile(reportSchema);
+  const validateReport = createAjv({ allErrors: true }).compile(reportSchema);
   const {
     generateRemediationSuggestions,
     serializeRemediationSuggestion,

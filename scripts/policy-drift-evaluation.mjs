@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   GraphSchemaVersionError,
@@ -502,7 +502,7 @@ const validate = () => {
   const fixture = readJson(fixturePath);
   const fixtureSchema = readJson(fixtureSchemaPath);
   const reportSchema = readJson(reportSchemaPath);
-  const ajv = new Ajv({ allErrors: true });
+  const ajv = createAjv({ allErrors: true });
   const validateFixture = ajv.compile(fixtureSchema);
   const validateReport = ajv.compile(reportSchema);
   if (!validateFixture(fixture))

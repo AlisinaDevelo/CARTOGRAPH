@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 const argumentValue = (name) => {
   const index = process.argv.indexOf(name);
@@ -37,7 +37,7 @@ const validate = () => {
   const policySchema = readJson(
     resolve(repositoryRoot, "schema/upgrade-policy.v0.1.schema.json"),
   );
-  const validateSchema = new Ajv({ allErrors: true, strict: false }).compile(
+  const validateSchema = createAjv({ allErrors: true, strict: false }).compile(
     policySchema,
   );
   if (!validateSchema(policy))

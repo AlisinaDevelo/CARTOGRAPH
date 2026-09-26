@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   parseRuntimeTrace,
@@ -44,7 +44,7 @@ const validate = () => {
   const reconciliationFixture = readJson(
     "schema/runtime-reconciliation-fixture.v0.1.json",
   );
-  const validateSchema = new Ajv({ allErrors: true }).compile(schema);
+  const validateSchema = createAjv({ allErrors: true }).compile(schema);
   if (!validateSchema(sample)) {
     throw new Error(
       `runtime trace safety JSON Schema validation failed: ${JSON.stringify(validateSchema.errors)}`,

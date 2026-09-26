@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -85,7 +85,7 @@ describe("language-neutral graph semantics", () => {
     const graphSchema = JSON.parse(
       readFileSync(graphSchemaPath, "utf8"),
     ) as object;
-    const ajv = new Ajv({ allErrors: true });
+    const ajv = createAjv({ allErrors: true });
     ajv.addSchema(graphSchema);
     const validate = ajv.compile(fixtureSchema);
     const value = JSON.parse(readFileSync(fixturePath, "utf8")) as unknown;

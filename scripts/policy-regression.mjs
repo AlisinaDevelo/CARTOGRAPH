@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   diffGraphSnapshots,
@@ -59,7 +59,7 @@ const idsEqual = (left, right) =>
 
 const validateFixtureShape = (fixture) => {
   const schema = readJson(fixtureSchemaPath);
-  const validateSchema = new Ajv({ allErrors: true, strict: false }).compile(
+  const validateSchema = createAjv({ allErrors: true, strict: false }).compile(
     schema,
   );
   if (!validateSchema(fixture)) {

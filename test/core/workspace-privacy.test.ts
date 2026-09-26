@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import {
   access,
   mkdtemp,
@@ -60,7 +60,7 @@ const expectDiagnostic = (
 describe("workspace privacy and resource boundary contract", () => {
   it("validates the mixed-trust fixture and publishes a deterministic assessment", () => {
     const request = parseWorkspacePrivacyRequest(fixture);
-    const validate = new Ajv({ allErrors: true }).compile(jsonSchema);
+    const validate = createAjv({ allErrors: true }).compile(jsonSchema);
     expect(validate(request)).toBe(true);
     expect(validate.errors).toBeNull();
 

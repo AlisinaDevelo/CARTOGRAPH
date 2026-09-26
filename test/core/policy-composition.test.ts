@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -135,7 +135,7 @@ describe("local policy composition", () => {
     try {
       const composition = composePolicyConfig(scenario.root, "root.json");
       const parsed = PolicyCompositionSchema.parse(composition);
-      const ajv = new Ajv({ allErrors: true });
+      const ajv = createAjv({ allErrors: true });
       ajv.addSchema(policySchema);
       const validate = ajv.compile(compositionSchema);
 

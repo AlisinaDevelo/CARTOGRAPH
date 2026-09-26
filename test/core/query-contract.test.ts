@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -503,7 +503,7 @@ describe("architecture query contract", () => {
   });
 
   it("matches the published result schema", () => {
-    const validate = new Ajv({ allErrors: true }).compile(
+    const validate = createAjv({ allErrors: true }).compile(
       JSON.parse(
         readFileSync(
           resolve(

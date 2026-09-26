@@ -12,7 +12,7 @@ import {
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import { analyzeTypeScriptRepository } from "../src/analyzers/typescript.js";
 import {
@@ -469,7 +469,7 @@ const runSuite = (scenario, suite, random, operation, rejectionRule) => {
 const validate = () => {
   const scenario = readJson(scenarioPath);
   const schema = readJson(scenarioSchemaPath);
-  const validateSchema = new Ajv({ allErrors: true, strict: false }).compile(
+  const validateSchema = createAjv({ allErrors: true, strict: false }).compile(
     schema,
   );
   if (!validateSchema(scenario))

@@ -6,7 +6,7 @@ import { appendFileSync, existsSync, readFileSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import { stableStringify } from "../src/index.js";
 
@@ -83,7 +83,7 @@ const compare = (operator, actual, target) => {
 const validate = () => {
   const report = readJson(reportPath);
   const schema = readJson(schemaPath);
-  const schemaValidator = new Ajv({ allErrors: true, strict: false }).compile(
+  const schemaValidator = createAjv({ allErrors: true, strict: false }).compile(
     schema,
   );
   if (!schemaValidator(report))

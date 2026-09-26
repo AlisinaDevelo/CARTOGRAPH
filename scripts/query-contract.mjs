@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 const repositoryRoot = resolve(process.cwd());
 const fixturePath = resolve(
@@ -125,7 +125,7 @@ const snapshot = (createGraphSnapshot) =>
 
 const validate = async () => {
   const fixture = readJson(fixturePath);
-  const ajv = new Ajv({ allErrors: true });
+  const ajv = createAjv({ allErrors: true });
   const validateFixture = ajv.compile(readJson(fixtureSchemaPath));
   const validateQuery = ajv.compile(readJson(querySchemaPath));
   const validateResult = ajv.compile(readJson(resultSchemaPath));

@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { describe, expect, it } from "vitest";
 
 const repositoryRoot = resolve(import.meta.dirname, "../..");
@@ -26,7 +26,7 @@ describe("bounded property and security regressions", () => {
       regressions: Array<{ id: string }>;
     };
     const schema = JSON.parse(readFileSync(schemaPath, "utf8")) as object;
-    const validate = new Ajv({ allErrors: true }).compile(schema);
+    const validate = createAjv({ allErrors: true }).compile(schema);
     expect(validate(scenario)).toBe(true);
     expect(validate.errors).toBeNull();
     expect(scenario).toMatchObject({

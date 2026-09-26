@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   evaluatePolicyOnSnapshot,
@@ -39,7 +39,7 @@ const validate = () => {
   const schema = readJson("schema/policy-evaluation.v0.1.schema.json");
   const sample = readJson("schema/policy-evaluation.v0.1.json");
   const policy = readJson("schema/policy.v0.1.json");
-  const validateSchema = new Ajv({ allErrors: true }).compile(schema);
+  const validateSchema = createAjv({ allErrors: true }).compile(schema);
   if (!validateSchema(sample)) {
     throw new Error(
       `policy evaluation JSON Schema validation failed: ${JSON.stringify(validateSchema.errors)}`,

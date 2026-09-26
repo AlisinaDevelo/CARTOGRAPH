@@ -5,7 +5,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   createPatchFilterReport,
@@ -64,9 +64,10 @@ const expectEqual = (actual, expected, label) => {
 const validate = () => {
   const fixture = readJson(fixturePath);
   const fixtureSchema = readJson(fixtureSchemaPath);
-  const fixtureValidator = new Ajv({ allErrors: true, strict: false }).compile(
-    fixtureSchema,
-  );
+  const fixtureValidator = createAjv({
+    allErrors: true,
+    strict: false,
+  }).compile(fixtureSchema);
   if (!fixtureValidator(fixture))
     fail(
       `fixture schema validation failed: ${JSON.stringify(fixtureValidator.errors)}`,
@@ -105,7 +106,7 @@ const validate = () => {
     policyEvaluation,
   });
   const reportSchema = readJson(schemaPath);
-  const reportValidator = new Ajv({ allErrors: true, strict: false }).compile(
+  const reportValidator = createAjv({ allErrors: true, strict: false }).compile(
     reportSchema,
   );
   if (!reportValidator(report))

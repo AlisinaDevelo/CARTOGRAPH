@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -25,7 +25,7 @@ const schema = JSON.parse(
 
 describe("configuration contract", () => {
   it("validates the machine-readable contract and deterministic defaults", () => {
-    const validate = new Ajv({ allErrors: true }).compile(schema);
+    const validate = createAjv({ allErrors: true }).compile(schema);
     const input = {
       schemaVersion: 1,
       include: ["src/**"],

@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { describe, expect, it } from "vitest";
 
 const repositoryRoot = resolve(import.meta.dirname, "../..");
@@ -114,7 +114,7 @@ describe("benchmark corpus and artifact governance", () => {
         "utf8",
       ),
     ) as unknown;
-    const validate = new Ajv({ allErrors: true }).compile(schema);
+    const validate = createAjv({ allErrors: true }).compile(schema);
     expect(validate(artifact)).toBe(true);
     expect(validate.errors).toBeNull();
   });

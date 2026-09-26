@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   ADAPTER_API_VERSION,
@@ -242,8 +242,10 @@ const validate = async () => {
   const schema = readJson("schema/adapter.v0.1.schema.json");
   const inputSchema = readJson("schema/adapter-input.v0.1.schema.json");
   const sample = readJson("schema/adapter.v0.1.json");
-  const validateSchema = new Ajv({ allErrors: true }).compile(schema);
-  const validateInputSchema = new Ajv({ allErrors: true }).compile(inputSchema);
+  const validateSchema = createAjv({ allErrors: true }).compile(schema);
+  const validateInputSchema = createAjv({ allErrors: true }).compile(
+    inputSchema,
+  );
   if (!validateSchema(sample)) {
     throw new Error(
       `adapter JSON Schema validation failed: ${JSON.stringify(validateSchema.errors)}`,

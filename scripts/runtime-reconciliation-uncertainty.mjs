@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   RuntimeReconciliationInputSchema,
@@ -108,7 +108,7 @@ const canonicalizeFixture = (fixture) => ({
 
 const validateFixtureShape = (fixture) => {
   const fixtureSchema = readJson(fixtureSchemaPath);
-  const validateSchema = new Ajv({ allErrors: true, strict: false }).compile(
+  const validateSchema = createAjv({ allErrors: true, strict: false }).compile(
     fixtureSchema,
   );
   if (!validateSchema(fixture)) {
@@ -485,7 +485,7 @@ export const validate = (fixturePath = defaultFixturePath) => {
     fixtureDigest: digest(stableStringify(canonicalizeFixture(fixture))),
   };
   const reportSchema = readJson(reportSchemaPath);
-  const validateReport = new Ajv({ allErrors: true, strict: false }).compile(
+  const validateReport = createAjv({ allErrors: true, strict: false }).compile(
     reportSchema,
   );
   if (!validateReport(report)) {

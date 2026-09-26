@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   evaluateCaseResult,
@@ -115,7 +115,7 @@ const range = (values) => ({
 
 const validateFixtureShape = (fixture) => {
   const fixtureSchema = readJson(fixtureSchemaPath);
-  const validateSchema = new Ajv({ allErrors: true, strict: false }).compile(
+  const validateSchema = createAjv({ allErrors: true, strict: false }).compile(
     fixtureSchema,
   );
   if (!validateSchema(fixture)) {
@@ -351,7 +351,7 @@ export const validate = (fixturePath = defaultFixturePath) => {
     reportDigest: digest(stableStringify(reportWithoutDigest)),
   };
   const reportSchema = readJson(reportSchemaPath);
-  const validateReport = new Ajv({ allErrors: true, strict: false }).compile(
+  const validateReport = createAjv({ allErrors: true, strict: false }).compile(
     reportSchema,
   );
   if (!validateReport(report)) {

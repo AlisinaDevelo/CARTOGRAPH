@@ -6,7 +6,7 @@ import { appendFileSync, existsSync, readFileSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   ADAPTER_API_VERSION,
@@ -375,7 +375,7 @@ const evaluateIdentity = (
 const validateSchemaAndLoad = () => {
   const corpus = readJson(corpusPath);
   const schema = readJson(schemaPath);
-  const validator = new Ajv({ allErrors: true }).compile(schema);
+  const validator = createAjv({ allErrors: true }).compile(schema);
   if (!validator(corpus))
     fail(
       `${LANGUAGE_EQUIVALENCE_CONTRACT} schema validation failed: ${JSON.stringify(validator.errors)}`,

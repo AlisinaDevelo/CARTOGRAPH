@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 import { stableStringify } from "../src/core/index.ts";
 
 const repositoryRoot = resolve(process.cwd());
@@ -157,7 +157,7 @@ const createFixtureGraph = (createGraphSnapshot) =>
 
 const validate = async () => {
   const fixture = readJson(fixturePath);
-  const ajv = new Ajv({ allErrors: true, strict: false });
+  const ajv = createAjv({ allErrors: true, strict: false });
   const querySchema = readJson(querySchemaPath);
   const resultSchema = readJson(resultSchemaPath);
   const explanationSchema = readJson(explanationSchemaPath);

@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -89,7 +89,7 @@ describe("graph interchange contract", () => {
   });
 
   it("keeps JSON and JSON-LD schemas aligned with the canonical snapshot", () => {
-    const ajv = new Ajv({ allErrors: true });
+    const ajv = createAjv({ allErrors: true });
     const snapshotSchema = JSON.parse(
       readFileSync(
         resolve(repositoryRoot, "schema/graph-snapshot.v0.1.schema.json"),

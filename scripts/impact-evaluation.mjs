@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 import {
   ArchitectureImpactAssessmentSchema,
   stableStringify,
@@ -222,7 +222,7 @@ const byChangeKind = (cases) => {
 
 const validate = async () => {
   const fixture = readJson(fixturePath);
-  const ajv = new Ajv({ allErrors: true });
+  const ajv = createAjv({ allErrors: true });
   const validateFixture = ajv.compile(readJson(fixtureSchemaPath));
   const validateImpact = ajv.compile(readJson(impactSchemaPath));
   const validateReport = ajv.compile(readJson(assessmentSchemaPath));

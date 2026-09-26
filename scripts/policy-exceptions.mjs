@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   evaluatePolicyOnSnapshot,
@@ -39,7 +39,7 @@ const validate = () => {
   const exceptionSchema = readJson(
     resolve(repositoryRoot, "schema/policy-exception.v0.1.schema.json"),
   );
-  const ajv = new Ajv({ allErrors: true, strict: false });
+  const ajv = createAjv({ allErrors: true, strict: false });
   const validateFixture = ajv.compile(fixtureSchema);
   const validateReport = ajv.compile(reportSchema);
   const validateException = ajv.compile(exceptionSchema);

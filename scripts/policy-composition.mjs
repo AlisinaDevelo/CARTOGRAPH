@@ -11,7 +11,7 @@ import {
 import { dirname, relative, resolve, sep } from "node:path";
 import { tmpdir } from "node:os";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 const argumentValue = (name) => {
   const index = process.argv.indexOf(name);
@@ -65,7 +65,7 @@ const validate = async () => {
   const policySchema = readJson(
     resolve(repositoryRoot, "schema/policy.v0.1.schema.json"),
   );
-  const ajv = new Ajv({ allErrors: true, strict: false });
+  const ajv = createAjv({ allErrors: true, strict: false });
   const validateFixture = ajv.compile(fixtureSchema);
   if (!validateFixture(fixture))
     fail(

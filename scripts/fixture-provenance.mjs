@@ -4,7 +4,7 @@
 import { readFileSync, readdirSync, lstatSync } from "node:fs";
 import { resolve, relative, sep } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 const argumentValue = (name) => {
   const index = process.argv.indexOf(name);
@@ -84,7 +84,7 @@ const generatedPaths = (fixtureRoot) => {
 const validate = () => {
   const manifest = readJson(manifestPath);
   const schema = readJson(schemaPath);
-  const validateSchema = new Ajv({ allErrors: true }).compile(schema);
+  const validateSchema = createAjv({ allErrors: true }).compile(schema);
   if (!validateSchema(manifest)) {
     fail(
       `fixture provenance schema validation failed: ${JSON.stringify(validateSchema.errors)}`,

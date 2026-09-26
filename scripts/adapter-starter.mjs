@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   ADAPTER_API_VERSION,
@@ -138,7 +138,7 @@ const validateFixture = () => {
   const fixture = readJson(fixturePath);
   const mirroredFixture = readJson(mirroredFixturePath);
   const schema = readJson(fixtureSchemaPath);
-  const validate = new Ajv({ allErrors: true }).compile(schema);
+  const validate = createAjv({ allErrors: true }).compile(schema);
   if (!validate(fixture))
     fail(`fixture schema failed: ${JSON.stringify(validate.errors)}`);
   const canonicalFixture = JSON.stringify({ ...fixture, $schema: undefined });

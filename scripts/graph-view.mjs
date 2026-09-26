@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   createGraphViewReport,
@@ -33,9 +33,10 @@ const validate = () => {
   const fixtureSchema = readJson(
     resolve(repositoryRoot, "schema/graph-view-fixtures.v0.1.schema.json"),
   );
-  const fixtureValidator = new Ajv({ allErrors: true, strict: false }).compile(
-    fixtureSchema,
-  );
+  const fixtureValidator = createAjv({
+    allErrors: true,
+    strict: false,
+  }).compile(fixtureSchema);
   if (!fixtureValidator(fixture))
     fail(
       `fixture schema validation failed: ${JSON.stringify(fixtureValidator.errors)}`,
@@ -44,7 +45,7 @@ const validate = () => {
   const reportSchema = readJson(
     resolve(repositoryRoot, "schema/graph-view.v0.1.schema.json"),
   );
-  const reportValidator = new Ajv({ allErrors: true, strict: false }).compile(
+  const reportValidator = createAjv({ allErrors: true, strict: false }).compile(
     reportSchema,
   );
   const results = [];

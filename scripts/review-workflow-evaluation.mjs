@@ -6,7 +6,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 const CONTRACT = "cartograph.review-workflow-evaluation";
 const SCHEMA_VERSION = 1;
@@ -524,7 +524,7 @@ const validateSemantics = (report) => {
 export const validate = (fixturePath = defaultFixturePath) => {
   const report = readJson(fixturePath);
   const schema = readJson(schemaPath);
-  const validateSchema = new Ajv({ allErrors: true, strict: false }).compile(
+  const validateSchema = createAjv({ allErrors: true, strict: false }).compile(
     schema,
   );
   if (!validateSchema(report))

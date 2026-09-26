@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   exportScipIndex,
@@ -62,7 +62,7 @@ const stableKeys = (snapshot) =>
 const validate = () => {
   const fixture = readJson(fixturePath);
   const schema = readJson(schemaPath);
-  const validator = new Ajv({ allErrors: true }).compile(schema);
+  const validator = createAjv({ allErrors: true }).compile(schema);
   if (!validator(fixture))
     fail(`schema validation failed: ${JSON.stringify(validator.errors)}`);
   if (fixture.contract !== CONTRACT || fixture.schemaVersion !== SCHEMA_VERSION)

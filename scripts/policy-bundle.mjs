@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 const argumentValue = (name) => {
   const index = process.argv.indexOf(name);
@@ -37,7 +37,7 @@ const validate = async () => {
   );
   const bundle = readJson(bundlePath);
   const schema = readJson(schemaPath);
-  const validateSchema = new Ajv({ allErrors: true }).compile(schema);
+  const validateSchema = createAjv({ allErrors: true }).compile(schema);
   if (!validateSchema(bundle)) {
     throw new Error(
       `policy bundle schema validation failed: ${JSON.stringify(validateSchema.errors)}`,

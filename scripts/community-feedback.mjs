@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 const CONTRACT = "cartograph.community-feedback";
 const SCHEMA_VERSION = 1;
@@ -210,7 +210,7 @@ const validateSemantics = (fixture) => {
 export const validate = (fixturePath = defaultFixturePath) => {
   const fixture = readJson(fixturePath);
   const schema = readJson(schemaPath);
-  const validateSchema = new Ajv({ allErrors: true, strict: false }).compile(
+  const validateSchema = createAjv({ allErrors: true, strict: false }).compile(
     schema,
   );
   if (!validateSchema(fixture))

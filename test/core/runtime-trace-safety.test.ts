@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -30,7 +30,7 @@ const reconciliationFixture = readJson(
 
 describe("runtime trace safety policy", () => {
   it("validates the policy and redacts every retained free-text field", () => {
-    const validate = new Ajv({ allErrors: true }).compile(schema);
+    const validate = createAjv({ allErrors: true }).compile(schema);
     expect(validate(sample)).toBe(true);
     expect(validate.errors).toBeNull();
 
