@@ -1,5 +1,11 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, realpathSync, rmSync } from "node:fs";
+import {
+  mkdtempSync,
+  mkdirSync,
+  realpathSync,
+  rmSync,
+  symlinkSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -43,6 +49,27 @@ describe("Action root boundary", () => {
         expect(() => runValidator(workspace, root)).toThrow();
       } finally {
         rmSync(workspace, { force: true, recursive: true });
+      }
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "rejects symlinks that escape the workspace or inject line breaks",
+    () => {
+      const workspace = mkdtempSync(join(tmpdir(), "cartograph-action-root-"));
+      const outside = mkdtempSync(join(tmpdir(), "cartograph-action-out-"));
+      try {
+        symlinkSync(outside, join(workspace, "escape"));
+        mkdirSync(join(workspace, "a\nCARTOGRAPH_INJECTED=1"));
+        symlinkSync(
+          join(workspace, "a\nCARTOGRAPH_INJECTED=1"),
+          join(workspace, "newline"),
+        );
+        expect(() => runValidator(workspace, "escape")).toThrow();
+        expect(() => runValidator(workspace, "newline")).toThrow();
+      } finally {
+        rmSync(workspace, { force: true, recursive: true });
+        rmSync(outside, { force: true, recursive: true });
       }
     },
   );

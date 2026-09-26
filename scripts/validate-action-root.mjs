@@ -38,6 +38,10 @@ try {
       isAbsolute(outsideWorkspace))
   )
     fail("root must resolve inside GITHUB_WORKSPACE");
+  // The path is appended to GITHUB_ENV, so a symlink target containing a line
+  // break must not be able to inject another variable.
+  if (/[\0\r\n]/u.test(candidate))
+    fail("root must not resolve to a path containing control characters");
   process.stdout.write(`${candidate}\n`);
 } catch (error) {
   if (
