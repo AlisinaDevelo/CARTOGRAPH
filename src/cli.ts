@@ -37,6 +37,7 @@ import {
   type PolicyCiMode,
 } from "./core/index.js";
 import type { ReportFormat } from "./report/render.js";
+import { runQueryCommand, type QueryRequest } from "./query-command.js";
 import type { RevisionComparisonMode } from "./git/revision.js";
 
 const VERSION = "0.1.0";
@@ -80,6 +81,21 @@ const reportFormat = (value: string): ReportFormat => {
   if (value === "html" || value === "json" || value === "markdown")
     return value;
   throw new InvalidArgumentError("format must be one of: html, json, markdown");
+};
+
+const queryFormat = (value: string): "json" | "markdown" => {
+  if (value === "json" || value === "markdown") return value;
+  throw new InvalidArgumentError("format must be one of: json, markdown");
+};
+
+const edgeKindList = (value: string): string[] => {
+  const kinds = value
+    .split(",")
+    .map((kind) => kind.trim())
+    .filter((kind) => kind.length > 0);
+  if (kinds.length === 0)
+    throw new InvalidArgumentError("edges must list at least one edge kind");
+  return [...new Set(kinds)];
 };
 
 const revisionComparison = (value: string): RevisionComparisonMode => {
@@ -353,6 +369,111 @@ export function createCli(): Command {
           await diffSnapshotFiles(before, after, options.format),
           options,
         );
+      },
+    );
+
+  program
+    .command("query")
+    .description(
+      "query a graph snapshot or diff: cycles, dependency paths, or a graph query",
+    )
+    .option("--snapshot <path>", "graph snapshot JSON input")
+    .option("--diff <path>", "GraphDiff JSON input (for change queries)")
+    .option(
+      "-e, --expr <query>",
+      'graph query language text, e.g. "v1 nodes where kind = function"',
+    )
+    .option(
+      "-q, --query <path>",
+      "query file: an architecture-query JSON request or graph query text",
+    )
+    .option("--cycles", "report dependency cycles between modules", false)
+    .option("--from <node>", "dependency-path start (node ID or module path)")
+    .option("--to <node>", "dependency-path end (node ID or module path)")
+    .option(
+      "--edges <kinds>",
+      "comma-separated edge kinds for --cycles and --from/--to",
+      edgeKindList,
+      ["imports"],
+    )
+    .option(
+      "-f, --format <format>",
+      "output format: json or markdown",
+      queryFormat,
+      "markdown",
+    )
+    .option(
+      "--fail-on-match",
+      "exit 2 when the query returns any result (for CI gates)",
+      false,
+    )
+    .option("-o, --output <path>", "output file; stdout when omitted")
+    .option("--force", "replace an existing output file", false)
+    .action(
+      async (
+        options: OutputOptions & {
+          snapshot?: string;
+          diff?: string;
+          expr?: string;
+          query?: string;
+          cycles: boolean;
+          from?: string;
+          to?: string;
+          edges: string[];
+          format: "json" | "markdown";
+          failOnMatch: boolean;
+        },
+      ): Promise<void> => {
+        if ((options.snapshot === undefined) === (options.diff === undefined))
+          throw new InvalidArgumentError(
+            "exactly one of --snapshot or --diff is required",
+          );
+        const pathRequested =
+          options.from !== undefined || options.to !== undefined;
+        const requested = [
+          options.expr !== undefined,
+          options.query !== undefined,
+          options.cycles,
+          pathRequested,
+        ].filter(Boolean).length;
+        if (requested !== 1)
+          throw new InvalidArgumentError(
+            "choose exactly one of --expr, --query, --cycles, or --from/--to",
+          );
+        let request: QueryRequest;
+        if (options.expr !== undefined)
+          request = { kind: "expression", expression: options.expr };
+        else if (options.query !== undefined)
+          request = { kind: "file", path: options.query };
+        else if (options.cycles)
+          request = { kind: "cycles", edgeKinds: options.edges };
+        else {
+          if (options.from === undefined || options.to === undefined)
+            throw new InvalidArgumentError(
+              "--from and --to must be used together",
+            );
+          request = {
+            kind: "path",
+            from: options.from,
+            to: options.to,
+            edgeKinds: options.edges,
+          };
+        }
+        const input = options.snapshot ?? options.diff;
+        if (input === undefined)
+          throw new InvalidArgumentError(
+            "exactly one of --snapshot or --diff is required",
+          );
+        const result = await runQueryCommand({
+          input,
+          inputKind: options.snapshot === undefined ? "diff" : "snapshot",
+          request,
+          format: options.format,
+        });
+        await emit(result.output, options);
+        if (result.status !== "ok") process.exitCode = 1;
+        else if (options.failOnMatch && result.matched > 0)
+          process.exitCode = 2;
       },
     );
 
