@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   exportSarifPolicyEvaluation,
@@ -57,7 +57,7 @@ const expectRejected = (operation, label) => {
 const validate = () => {
   const fixture = readJson(fixturePath);
   const schema = readJson(schemaPath);
-  const validateSchema = new Ajv({ allErrors: true }).compile(schema);
+  const validateSchema = createAjv({ allErrors: true }).compile(schema);
   if (!validateSchema(fixture))
     fail(`schema validation failed: ${JSON.stringify(validateSchema.errors)}`);
   if (fixture.contract !== CONTRACT || fixture.schemaVersion !== SCHEMA_VERSION)

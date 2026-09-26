@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -87,7 +87,7 @@ describe("adapter compatibility negotiation", () => {
       readFileSync(registrySchemaPath, "utf8"),
     ) as object;
     const data = JSON.parse(readFileSync(registryPath, "utf8")) as unknown;
-    const validate = new Ajv({ allErrors: true }).compile(schema);
+    const validate = createAjv({ allErrors: true }).compile(schema);
 
     expect(validate(data)).toBe(true);
     expect(validate.errors).toBeNull();
@@ -122,7 +122,7 @@ describe("adapter compatibility negotiation", () => {
         expectedGuidance?: string;
       }>;
     };
-    const validate = new Ajv({ allErrors: true }).compile(schema);
+    const validate = createAjv({ allErrors: true }).compile(schema);
     const value = JSON.parse(readFileSync(fixturePath, "utf8")) as unknown;
 
     expect(validate(value)).toBe(true);

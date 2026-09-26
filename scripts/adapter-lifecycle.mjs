@@ -6,7 +6,7 @@ import { appendFileSync, existsSync, readFileSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 const argumentValue = (name) => {
   const index = process.argv.indexOf(name);
@@ -246,7 +246,7 @@ export const validateAdapterLifecycle = () => {
   containedPath("test/fixtures/adapter-lifecycle", "fixture root");
   const fixture = readJson(fixturePath);
   const schema = readJson(schemaPath);
-  const validator = new Ajv({ allErrors: true }).compile(schema);
+  const validator = createAjv({ allErrors: true }).compile(schema);
   if (!validator(fixture))
     fail(`schema validation failed: ${JSON.stringify(validator.errors)}`);
   if (fixture.contract !== CONTRACT)

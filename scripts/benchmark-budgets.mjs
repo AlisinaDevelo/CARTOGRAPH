@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import { validateArtifact, validateManifest } from "./benchmark.mjs";
 
@@ -29,7 +29,7 @@ const validate = () => {
   const schema = readJson(
     resolve(repositoryRoot, "schema/benchmark-budgets.v0.1.schema.json"),
   );
-  const validateSchema = new Ajv({ allErrors: true, strict: false }).compile(
+  const validateSchema = createAjv({ allErrors: true, strict: false }).compile(
     schema,
   );
   if (!validateSchema(budgets))

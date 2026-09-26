@@ -5,7 +5,7 @@ import { generateKeyPairSync, sign } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 const argumentValue = (name) => {
   const index = process.argv.indexOf(name);
@@ -53,14 +53,14 @@ const validate = async () => {
       "schema/assurance-signing-keyring.v0.1.schema.json",
     ),
   );
-  const validateFixture = new Ajv({ allErrors: true }).compile(fixtureSchema);
+  const validateFixture = createAjv({ allErrors: true }).compile(fixtureSchema);
   if (!validateFixture(fixture))
     throw new Error(
       `assurance signing fixture schema validation failed: ${JSON.stringify(validateFixture.errors)}`,
     );
-  const validateReport = new Ajv({ allErrors: true }).compile(reportSchema);
-  const validateKey = new Ajv({ allErrors: true }).compile(keySchema);
-  const validateKeyring = new Ajv({ allErrors: true }).compile(keyringSchema);
+  const validateReport = createAjv({ allErrors: true }).compile(reportSchema);
+  const validateKey = createAjv({ allErrors: true }).compile(keySchema);
+  const validateKeyring = createAjv({ allErrors: true }).compile(keyringSchema);
   const {
     ASSURANCE_SIGNING_ALGORITHM,
     ASSURANCE_SIGNING_ALGORITHM_VERSION,

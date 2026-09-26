@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 const argumentValue = (name) => {
   const index = process.argv.indexOf(name);
@@ -36,7 +36,7 @@ const validate = async () => {
   const reportSchema = readJson(
     resolve(repositoryRoot, "schema/patch-preview-report.v0.1.schema.json"),
   );
-  const ajv = new Ajv({ allErrors: true });
+  const ajv = createAjv({ allErrors: true });
   const validateFixture = ajv.compile(fixtureSchema);
   const validateRequest = ajv.compile(requestSchema);
   const validateReport = ajv.compile(reportSchema);

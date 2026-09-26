@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -41,7 +41,7 @@ const fixture = JSON.parse(readFileSync(fixturePath, "utf8")) as {
 describe("ownership and waiver drift evaluation", () => {
   it("replays repository, policy, evidence, key, expiry, and partial-workspace drift", () => {
     const schema = JSON.parse(readFileSync(schemaPath, "utf8")) as object;
-    const validator = new Ajv({ allErrors: true }).compile(schema);
+    const validator = createAjv({ allErrors: true }).compile(schema);
     expect(validator(JSON.parse(readFileSync(fixturePath, "utf8")))).toBe(true);
 
     const scenario = fixture.scenarios[0];

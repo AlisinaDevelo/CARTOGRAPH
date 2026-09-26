@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -81,7 +81,7 @@ const fastifyRequest = (overrides: Record<string, unknown> = {}) => ({
 
 describe("adapter contract", () => {
   it("validates the published manifest and canonicalizes it deterministically", () => {
-    const validate = new Ajv({ allErrors: true }).compile(schema);
+    const validate = createAjv({ allErrors: true }).compile(schema);
     expect(validate(sample)).toBe(true);
     expect(validate.errors).toBeNull();
 

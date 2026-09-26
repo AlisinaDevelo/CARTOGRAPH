@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   parseWorkspaceCompositionManifest,
@@ -27,7 +27,7 @@ const validate = () => {
   const input = readJson(fixturePath);
   const schema = readJson(schemaPath);
   const manifest = parseWorkspaceCompositionManifest(input);
-  const validator = new Ajv({ allErrors: true }).compile(schema);
+  const validator = createAjv({ allErrors: true }).compile(schema);
   if (!validator(manifest)) {
     throw new Error(
       `workspace schema validation failed: ${JSON.stringify(validator.errors)}`,

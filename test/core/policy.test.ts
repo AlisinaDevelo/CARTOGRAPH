@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -40,7 +40,7 @@ const sample = JSON.parse(
 
 describe("local policy configuration", () => {
   it("validates the published schema and covers node, edge, and diff rules", () => {
-    const validate = new Ajv({ allErrors: true }).compile(schema);
+    const validate = createAjv({ allErrors: true }).compile(schema);
     expect(validate(sample)).toBe(true);
     expect(validate.errors).toBeNull();
 
@@ -56,7 +56,7 @@ describe("local policy configuration", () => {
     );
     expect(serializePolicyConfig(parsed)).toBe(serializePolicyConfig(sample));
 
-    const validateException = new Ajv({ allErrors: true }).compile(
+    const validateException = createAjv({ allErrors: true }).compile(
       exceptionSchema,
     );
     expect(
@@ -74,7 +74,7 @@ describe("local policy configuration", () => {
     ).toBe(true);
     expect(validateException.errors).toBeNull();
 
-    const validateAdrBinding = new Ajv({ allErrors: true }).compile(
+    const validateAdrBinding = createAjv({ allErrors: true }).compile(
       adrBindingSchema,
     );
     expect(

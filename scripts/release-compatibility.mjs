@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 const argumentValue = (name) => {
   const index = process.argv.indexOf(name);
@@ -56,7 +56,7 @@ const packageJson = readJson(resolve(repositoryRoot, "package.json"));
 const validate = () => {
   const matrix = readJson(matrixPath);
   const matrixSchema = readJson(matrixSchemaPath);
-  const validateMatrixSchema = new Ajv({
+  const validateMatrixSchema = createAjv({
     allErrors: true,
     strict: false,
   }).compile(matrixSchema);
@@ -273,7 +273,7 @@ const record = () => {
     result: "passed",
   };
   const recordSchema = readJson(recordSchemaPath);
-  const validateRecordSchema = new Ajv({
+  const validateRecordSchema = createAjv({
     allErrors: true,
     strict: false,
   }).compile(recordSchema);

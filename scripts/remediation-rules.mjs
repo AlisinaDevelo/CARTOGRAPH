@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 const argumentValue = (name) => {
   const index = process.argv.indexOf(name);
@@ -40,7 +40,7 @@ const validate = async () => {
       "schema/remediation-suggestion-report.v0.1.schema.json",
     ),
   );
-  const ajv = new Ajv({ allErrors: true });
+  const ajv = createAjv({ allErrors: true });
   const validateFixture = ajv.compile(fixtureSchema);
   const validateCatalog = ajv.compile(catalogSchema);
   const validateReport = ajv.compile(reportSchema);

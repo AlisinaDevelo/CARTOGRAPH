@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 const argumentValue = (name) => {
   const index = process.argv.indexOf(name);
@@ -69,13 +69,13 @@ const validate = async () => {
   const fixture = readJson(fixturePath);
   const fixtureSchema = readJson(fixtureSchemaPath);
   const reportSchema = readJson(reportSchemaPath);
-  const validateFixture = new Ajv({ allErrors: true }).compile(fixtureSchema);
+  const validateFixture = createAjv({ allErrors: true }).compile(fixtureSchema);
   if (!validateFixture(fixture))
     throw new Error(
       `migration fixture schema validation failed: ${JSON.stringify(validateFixture.errors)}`,
     );
   const baseBundle = readJson(contained(fixture.baseBundlePath));
-  const validateReport = new Ajv({ allErrors: true }).compile(reportSchema);
+  const validateReport = createAjv({ allErrors: true }).compile(reportSchema);
   const {
     evaluatePolicyBundleMigration,
     policySourceDigest,

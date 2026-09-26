@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -174,7 +174,7 @@ describe("digest-bound policy bundles", () => {
         "utf8",
       ),
     ) as object;
-    const validate = new Ajv({ allErrors: true }).compile(schema);
+    const validate = createAjv({ allErrors: true }).compile(schema);
     expect(validate(sample)).toBe(true);
     expect(validate.errors).toBeNull();
   });

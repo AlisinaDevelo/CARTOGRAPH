@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,7 +24,7 @@ const jsonSchema = readJson(schemaPath) as {
   definitions?: Record<string, unknown>;
   required?: string[];
 };
-const validateJsonSchema = new Ajv({ allErrors: true }).compile(jsonSchema);
+const validateJsonSchema = createAjv({ allErrors: true }).compile(jsonSchema);
 
 describe("GraphSnapshot v0.1 JSON Schema", () => {
   it("declares the complete portable snapshot surface", () => {

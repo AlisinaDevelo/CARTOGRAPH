@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -25,7 +25,7 @@ const fixture = readJson("schema/runtime-reconciliation-fixture.v0.1.json") as {
 
 describe("static/runtime reconciliation", () => {
   it("validates the published schema and classifies every fixture case", () => {
-    const validate = new Ajv({ allErrors: true }).compile(schema);
+    const validate = createAjv({ allErrors: true }).compile(schema);
     expect(validate(sample)).toBe(true);
     expect(validate.errors).toBeNull();
 

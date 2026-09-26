@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   assessWorkspacePrivacy,
@@ -31,7 +31,7 @@ const fail = (message) => {
 
 const validate = () => {
   const request = parseWorkspacePrivacyRequest(readJson(fixturePath));
-  const schemaValidator = new Ajv({ allErrors: true }).compile(
+  const schemaValidator = createAjv({ allErrors: true }).compile(
     readJson(schemaPath),
   );
   if (!schemaValidator(request)) {

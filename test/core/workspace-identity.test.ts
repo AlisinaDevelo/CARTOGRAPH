@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -51,7 +51,7 @@ const expectInvalid = (
 describe("cross-repository workspace identity contract", () => {
   it("composes the fixture, validates the published schema, and surfaces each ambiguity", () => {
     const composition = composeWorkspaceIdentities(fixture.repositories);
-    const ajv = new Ajv({ allErrors: true });
+    const ajv = createAjv({ allErrors: true });
     ajv.addSchema(graphSchema);
     const validate = ajv.compile(jsonSchema);
 

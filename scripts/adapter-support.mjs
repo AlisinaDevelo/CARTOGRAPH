@@ -6,7 +6,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   FASTIFY_ADAPTER_MANIFEST,
@@ -99,7 +99,7 @@ const manifestFor = (manifest) => ({
 const validate = async () => {
   const matrix = JSON.parse(readFileSync(matrixPath, "utf8"));
   const schema = readJson(schemaRelativePath);
-  const schemaValidator = new Ajv({ allErrors: true, strict: false }).compile(
+  const schemaValidator = createAjv({ allErrors: true, strict: false }).compile(
     schema,
   );
   ensure(

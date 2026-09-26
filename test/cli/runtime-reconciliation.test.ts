@@ -4,7 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { afterEach, describe, expect, it } from "vitest";
 
 const repositoryRoot = resolve(
@@ -196,7 +196,7 @@ describe("explicit local runtime reconciliation CLI", () => {
         maxTraces?: number;
       };
     };
-    const validate = new Ajv({ allErrors: true }).compile(
+    const validate = createAjv({ allErrors: true }).compile(
       JSON.parse(await readFile(reportSchemaPath, "utf8")) as object,
     );
     expect(validate(report)).toBe(true);

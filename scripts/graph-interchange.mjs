@@ -6,7 +6,7 @@ import { Buffer } from "node:buffer";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   GraphInterchangeValidationError,
@@ -102,7 +102,7 @@ const assertRejected = (action, pattern, label) => {
 };
 
 const makeValidator = () => {
-  const ajv = new Ajv({ allErrors: true, strict: false });
+  const ajv = createAjv({ allErrors: true, strict: false });
   const snapshotSchema = readJson(snapshotSchemaPath);
   ajv.addSchema(snapshotSchema, snapshotSchema.$id);
   return {
@@ -121,9 +121,10 @@ const validate = () => {
   const snapshotInput = readJson(resolve(fixtureRoot, fixture.snapshotFile));
   const snapshot = parseGraphSnapshot(snapshotInput);
   const snapshotSchema = readJson(snapshotSchemaPath);
-  const snapshotValidator = new Ajv({ allErrors: true, strict: false }).compile(
-    snapshotSchema,
-  );
+  const snapshotValidator = createAjv({
+    allErrors: true,
+    strict: false,
+  }).compile(snapshotSchema);
   assertSchema(snapshotValidator, snapshot, "snapshot");
 
   const reorderedInput = {

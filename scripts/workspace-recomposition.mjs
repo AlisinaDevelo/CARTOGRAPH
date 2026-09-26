@@ -6,7 +6,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   WorkspaceRecompositionCacheError,
@@ -41,7 +41,7 @@ const withoutResults = (request) => ({
 const validate = () => {
   const input = readJson(fixturePath);
   const request = parseWorkspaceRecompositionRequest(input);
-  const schemaValidator = new Ajv({ allErrors: true }).compile(
+  const schemaValidator = createAjv({ allErrors: true }).compile(
     readJson(schemaPath),
   );
   if (!schemaValidator(request)) {

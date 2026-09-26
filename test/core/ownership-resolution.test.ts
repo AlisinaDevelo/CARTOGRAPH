@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -63,7 +63,7 @@ const createInput = () => {
 describe("explicit ownership resolution", () => {
   it("validates the fixture and applies precedence, aliases, and CODEOWNERS order", () => {
     const schema = JSON.parse(readFileSync(schemaPath, "utf8")) as object;
-    const validator = new Ajv({ allErrors: true }).compile(schema);
+    const validator = createAjv({ allErrors: true }).compile(schema);
     expect(validator(JSON.parse(readFileSync(fixturePath, "utf8")))).toBe(true);
 
     const report = resolveOwnership(createInput());

@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   DEFAULT_RUNTIME_TRACE_BUDGET_POLICY,
@@ -41,7 +41,7 @@ const validate = () => {
   const schema = readJson("schema/runtime-trace-budgets.v0.1.schema.json");
   const sample = readJson("schema/runtime-trace-budgets.v0.1.json");
   const otlp = readJson("schema/runtime-traces-otlp.v0.1.json");
-  const validateSchema = new Ajv({ allErrors: true }).compile(schema);
+  const validateSchema = createAjv({ allErrors: true }).compile(schema);
   if (!validateSchema(sample)) {
     throw new Error(
       `runtime trace budget JSON Schema validation failed: ${JSON.stringify(validateSchema.errors)}`,

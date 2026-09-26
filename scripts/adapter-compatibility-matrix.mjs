@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   ADAPTER_API_VERSION,
@@ -108,7 +108,7 @@ const requirePath = (candidate, label, details) => {
 const schemaValidator = (schemaPath, details) => {
   const schema = readJson(schemaPath);
   try {
-    return new Ajv({ allErrors: true, strict: false }).compile(schema);
+    return createAjv({ allErrors: true, strict: false }).compile(schema);
   } catch (error) {
     fail(
       `${schemaPath} could not be compiled: ${error instanceof Error ? error.message : String(error)}`,
@@ -233,7 +233,7 @@ const validateMatrix = () => {
   const matrixSchemaPath =
     "schema/adapter-compatibility-matrix.v0.1.schema.json";
   const matrixSchema = readJson(matrixSchemaPath);
-  const validateMatrixSchema = new Ajv({
+  const validateMatrixSchema = createAjv({
     allErrors: true,
     strict: false,
   }).compile(matrixSchema);

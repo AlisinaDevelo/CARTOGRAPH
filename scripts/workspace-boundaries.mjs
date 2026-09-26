@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   resolveWorkspaceBoundaries,
@@ -32,7 +32,9 @@ const validate = () => {
   const composition = resolveWorkspaceBoundaries(input);
   if (JSON.stringify(input) !== before) fail("resolution mutated the request");
 
-  const validator = new Ajv({ allErrors: true }).compile(readJson(schemaPath));
+  const validator = createAjv({ allErrors: true }).compile(
+    readJson(schemaPath),
+  );
   if (!validator(composition)) {
     fail(
       `published schema rejected composition: ${JSON.stringify(validator.errors)}`,

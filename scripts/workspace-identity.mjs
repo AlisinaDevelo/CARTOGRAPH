@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   composeWorkspaceIdentities,
@@ -39,7 +39,7 @@ const validate = () => {
   if (JSON.stringify(input) !== before)
     fail("composition mutated an input repository or snapshot");
 
-  const ajv = new Ajv({ allErrors: true });
+  const ajv = createAjv({ allErrors: true });
   ajv.addSchema(readJson(graphSchemaPath));
   const validator = ajv.compile(readJson(schemaPath));
   if (!validator(composition))

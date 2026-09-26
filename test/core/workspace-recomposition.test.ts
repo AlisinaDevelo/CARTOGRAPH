@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -51,7 +51,7 @@ const removeResults = (
 describe("provenance-aware incremental workspace recomposition", () => {
   it("covers all cache-key dimensions and validates the request schema", () => {
     const request = parseWorkspaceRecompositionRequest(fixture);
-    const validate = new Ajv({ allErrors: true }).compile(jsonSchema);
+    const validate = createAjv({ allErrors: true }).compile(jsonSchema);
     expect(validate(request)).toBe(true);
     expect(validate.errors).toBeNull();
 

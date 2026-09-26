@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -225,7 +225,7 @@ describe("governed remediation suggestions", () => {
     expect(RemediationSuggestionSchema.parse(suggestion)).toEqual(suggestion);
     expect(RemediationSuggestionReportSchema.parse(report)).toEqual(report);
 
-    const ajv = new Ajv({ allErrors: true });
+    const ajv = createAjv({ allErrors: true });
     const suggestionSchema = JSON.parse(
       readFileSync(
         resolve(

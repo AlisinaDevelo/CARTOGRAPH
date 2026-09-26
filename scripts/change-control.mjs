@@ -5,7 +5,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, lstatSync, readFileSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 const argumentValue = (name) => {
   const index = process.argv.indexOf(name);
@@ -110,7 +110,7 @@ const previousRegister = (baseRef) => {
 const validate = () => {
   const register = readJson(registerPath);
   const schema = readJson(schemaPath);
-  const validateSchema = new Ajv({ allErrors: true }).compile(schema);
+  const validateSchema = createAjv({ allErrors: true }).compile(schema);
   if (!validateSchema(register))
     fail(
       `change-control schema validation failed: ${JSON.stringify(validateSchema.errors)}`,

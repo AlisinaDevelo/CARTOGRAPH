@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import {
   mkdirSync,
   mkdtempSync,
@@ -38,7 +38,7 @@ const sample = JSON.parse(
 
 describe("local ADR references", () => {
   it("validates the published schema and canonicalizes the sample", () => {
-    const validate = new Ajv({ allErrors: true }).compile(schema);
+    const validate = createAjv({ allErrors: true }).compile(schema);
     expect(validate(sample)).toBe(true);
     expect(validate.errors).toBeNull();
 

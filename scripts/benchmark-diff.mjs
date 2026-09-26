@@ -8,7 +8,7 @@ import { dirname, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 import { pathToFileURL } from "node:url";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   createGraphSnapshot,
@@ -106,7 +106,7 @@ const edgeDensity = (nodes, edges) =>
   Number((edges / Math.max(1, nodes * Math.max(1, nodes - 1))).toFixed(6));
 
 const schemaValidator = (path) =>
-  new Ajv({ allErrors: true, strict: false }).compile(readJson(path));
+  createAjv({ allErrors: true, strict: false }).compile(readJson(path));
 
 const validateManifestSchema = schemaValidator(workloadSchemaPath);
 const validateResultSchema = schemaValidator(resultSchemaPath);

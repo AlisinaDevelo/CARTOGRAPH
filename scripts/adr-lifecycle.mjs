@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "./json-schema.mjs";
 
 import {
   parseAdrReferenceDocument,
@@ -36,7 +36,7 @@ const validate = () => {
   const fixture = readJson(fixturePath);
   const fixtureSchema = readJson(fixtureSchemaPath);
   const adrSchema = readJson(adrSchemaPath);
-  const ajv = new Ajv({ allErrors: true });
+  const ajv = createAjv({ allErrors: true });
   const validateFixture = ajv.compile(fixtureSchema);
   if (!validateFixture(fixture)) {
     fail(

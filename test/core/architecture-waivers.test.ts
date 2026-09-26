@@ -3,7 +3,7 @@ import { generateKeyPairSync, sign } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -106,7 +106,9 @@ describe("locally verifiable architecture waivers", () => {
     const fixtureSchema = JSON.parse(
       readFileSync(fixtureSchemaPath, "utf8"),
     ) as object;
-    const validateFixture = new Ajv({ allErrors: true }).compile(fixtureSchema);
+    const validateFixture = createAjv({ allErrors: true }).compile(
+      fixtureSchema,
+    );
     expect(validateFixture(JSON.parse(readFileSync(fixturePath, "utf8")))).toBe(
       true,
     );
@@ -255,7 +257,7 @@ describe("locally verifiable architecture waivers", () => {
     );
 
     const schema = JSON.parse(readFileSync(waiverSchemaPath, "utf8")) as object;
-    const validateWaiver = new Ajv({ allErrors: true }).compile(schema);
+    const validateWaiver = createAjv({ allErrors: true }).compile(schema);
     const privateKeyRecord = { ...template, privateKey: "never-store-this" };
     expect(validateWaiver(privateKeyRecord)).toBe(false);
     expect(() => ArchitectureWaiverSchema.parse(privateKeyRecord)).toThrow();

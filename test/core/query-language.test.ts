@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -265,8 +265,10 @@ describe("graph and diff query language", () => {
         "utf8",
       ),
     ) as Record<string, unknown>;
-    const validateAst = new Ajv({ allErrors: true }).compile(astSchema);
-    const validateFixture = new Ajv({ allErrors: true }).compile(fixtureSchema);
+    const validateAst = createAjv({ allErrors: true }).compile(astSchema);
+    const validateFixture = createAjv({ allErrors: true }).compile(
+      fixtureSchema,
+    );
     const query = parseGraphQueryLanguage("v1 nodes where kind=function");
     const fixture = JSON.parse(
       readFileSync(

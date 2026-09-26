@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -39,7 +39,7 @@ const fixture = JSON.parse(readFileSync(fixturePath, "utf8")) as {
 describe("auditable finding lifecycle", () => {
   it("replays the append-only fixture deterministically", () => {
     const schema = JSON.parse(readFileSync(schemaPath, "utf8")) as object;
-    const validator = new Ajv({ allErrors: true }).compile(schema);
+    const validator = createAjv({ allErrors: true }).compile(schema);
     expect(validator(JSON.parse(readFileSync(fixturePath, "utf8")))).toBe(true);
 
     const input = parseFindingLifecycleInput(fixture.input);

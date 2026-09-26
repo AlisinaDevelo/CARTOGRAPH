@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import { createAjv } from "../../scripts/json-schema.mjs";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -30,7 +30,7 @@ const diffSchema = readJson(
     topology?: unknown;
   };
 };
-const validateJsonSchema = new Ajv({ allErrors: true }).compile(diffSchema);
+const validateJsonSchema = createAjv({ allErrors: true }).compile(diffSchema);
 
 describe("GraphDiff v0.1 JSON Schema", () => {
   it("publishes summary, revision, changes, evidence, and diagnostics", () => {
