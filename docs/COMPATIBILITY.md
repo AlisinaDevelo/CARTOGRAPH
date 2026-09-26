@@ -963,6 +963,11 @@ flags are part of the v1 reader/writer boundary. The checked-in scenarios are
 replayed by `npm run review-summary:validate`; a future meaning change requires
 a new review-summary version or an explicit migration review.
 
+The Markdown projection escapes untrusted titles, actions, and artifact labels
+as text and selects code fences that cannot be terminated by their values. This
+is presentation-layer safety hardening: it does not change the JSON contract,
+the report meaning, or the G-005 version.
+
 ## G-006 review workflow evaluation
 
 G-006 adds the reviewed report-only `reviewWorkflowEvaluation` contract and
