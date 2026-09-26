@@ -28,7 +28,7 @@ describe("release pipeline contract", () => {
     expect(workflow).toContain("contents: write");
     expect(workflow).toContain("SHA256SUMS");
     expect(workflow).toContain(
-      "actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a",
+      "actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8",
     );
     expect(workflow).toContain("id-token: write");
     expect(workflow).toContain("attestations: write");
