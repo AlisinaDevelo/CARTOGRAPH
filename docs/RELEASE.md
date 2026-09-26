@@ -4,7 +4,7 @@ The versioned acceptance and rollback record for the current package is
 [`RELEASE_REHEARSAL.md`](RELEASE_REHEARSAL.md). It is a local evidence record;
 the dry-run section does not alter an active release.
 
-CARTOGRAPH is not published to npm. The supported v0.1 distribution decision,
+The supported distribution decision,
 including the explicit deferral of a standalone native executable, is recorded
 in [`DISTRIBUTION_DECISION.md`](DISTRIBUTION_DECISION.md). A `v<package.version>`
 tag is the supported release trigger:
@@ -15,9 +15,11 @@ consumer smoke test, and creates a GitHub release containing the tarball,
 `release-metadata.json`, plus the matrix-bound `compatibility-matrix.json`
 record. The workflow obtains a Sigstore-backed GitHub
 attestation for each release subject and verifies it against the release
-workflow identity before creating the GitHub release. The workflow does not
-publish to npm; that remains a separate trusted-publishing decision after
-package ownership and adoption are established.
+workflow identity before creating the GitHub release. When the repository
+variable `CARTOGRAPH_NPM_TRUSTED_PUBLISHING` is `true`, the workflow then
+publishes that same attested tarball to npm through npm trusted publishing
+(GitHub OIDC, no stored token, npm provenance). Until the variable is set, the
+GitHub release is the only distribution.
 
 ## Release gate
 

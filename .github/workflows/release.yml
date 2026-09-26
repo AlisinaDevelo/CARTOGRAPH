@@ -130,3 +130,19 @@ jobs:
             "$RUNNER_TEMP/cartograph-release/SHA256SUMS" \
             "$RUNNER_TEMP/cartograph-release/release-metadata.json" \
             "$compatibility"
+
+      - name: Publish the attested tarball to npm
+        # Trusted publishing: npm exchanges this job's OIDC token for a
+        # short-lived publish credential, so no npm token exists anywhere.
+        if: vars.CARTOGRAPH_NPM_TRUSTED_PUBLISHING == 'true'
+        run: |
+          set -euo pipefail
+          npm_version="$(npm --version)"
+          node -e '
+            const [major, minor, patch] = process.argv[1].split(".").map(Number);
+            const ok = major > 11 || (major === 11 && (minor > 5 || (minor === 5 && patch >= 1)));
+            if (!ok) { console.error(`npm ${process.argv[1]} lacks trusted publishing (needs >= 11.5.1)`); process.exit(1); }
+          ' "$npm_version"
+          tarball="$(find "$RUNNER_TEMP/cartograph-release" -maxdepth 1 -name '*.tgz' -print -quit)"
+          test -n "$tarball"
+          npm publish "$tarball" --access public --provenance
