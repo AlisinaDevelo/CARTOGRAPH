@@ -16,10 +16,19 @@ describe("release pipeline contract", () => {
     );
     expect(workflow).toContain("npm run check");
     expect(workflow).toContain("scripts/release-artifact.mjs");
+    expect(workflow).toContain(
+      "RELEASE_REF_PROTECTED: ${{ github.ref_protected }}",
+    );
+    expect(workflow).toContain('test "$RELEASE_REF_PROTECTED" = "true"');
+    expect(workflow).toContain('test "$actual_sha" = "$EXPECTED_SHA"');
+    expect(workflow).toContain('test "$tag_sha" = "$EXPECTED_SHA"');
+    expect(workflow).toContain(
+      'git merge-base --is-ancestor "$EXPECTED_SHA" FETCH_HEAD',
+    );
     expect(workflow).toContain("contents: write");
     expect(workflow).toContain("SHA256SUMS");
     expect(workflow).toContain(
-      "actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a",
+      "actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8",
     );
     expect(workflow).toContain("id-token: write");
     expect(workflow).toContain("attestations: write");
@@ -62,6 +71,8 @@ describe("release pipeline contract", () => {
     expect(release).toContain("isolated offline package");
     expect(release).toContain("consumer smoke test");
     expect(release).toContain("compatibility-matrix.json");
+    expect(release).toContain("immutable/protected `v*.*.*` tag rule");
+    expect(release).toContain("commit matches the event SHA");
     expect(compatibility).toContain("cartograph-release-compatibility-v0.1");
     expect(release).toContain("DISTRIBUTION_DECISION.md");
     expect(distribution).toContain(
