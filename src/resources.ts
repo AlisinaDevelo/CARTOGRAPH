@@ -40,7 +40,7 @@ export const createResourceBudget = (
 
     if (
       options.maxMemoryBytes !== undefined &&
-      process.memoryUsage().rss > options.maxMemoryBytes
+      process.memoryUsage.rss() > options.maxMemoryBytes
     ) {
       throw new ResourceLimitError(
         `${subject} exceeded the ${options.maxMemoryBytes} byte memory ceiling`,

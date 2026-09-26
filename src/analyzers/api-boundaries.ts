@@ -6,6 +6,7 @@ import { Node, SyntaxKind, type Expression, type SourceFile } from "ts-morph";
 
 import type { ResourceLimits } from "../core/index.js";
 import { ResourceLimitError } from "../resources.js";
+import { lineAndColumnAtPos } from "./line-index.js";
 
 export const API_BOUNDARY_DETECTOR = "cartograph.typescript-api@1";
 
@@ -144,7 +145,7 @@ const sourceFromNode = (
 ): ApiSource => {
   const sourceFile = node.getSourceFile();
   const fullText = sourceFile.getFullText();
-  const location = sourceFile.getLineAndColumnAtPos(node.getStart());
+  const location = lineAndColumnAtPos(sourceFile, node.getStart());
   return {
     path: relativePath(rootDir, sourceFile.getFilePath()),
     line: location.line,
@@ -639,7 +640,7 @@ const collectTypeScriptBoundaries = (
       }
       const source = sourceFromNode(rootDir, template, contentHash);
       parseGraphqlText(boundaries, text, source.path, contentHash, (index) => {
-        const base = sourceFile.getLineAndColumnAtPos(template.getStart());
+        const base = lineAndColumnAtPos(sourceFile, template.getStart());
         const local = lineAndColumnAt(text, index);
         return {
           path: source.path,
@@ -684,7 +685,8 @@ const collectTypeScriptBoundaries = (
         source.path,
         contentHash,
         (index) => {
-          const base = sourceFile.getLineAndColumnAtPos(
+          const base = lineAndColumnAtPos(
+            sourceFile,
             (schemaExpression ?? call).getStart(),
           );
           const local = lineAndColumnAt(schemaText, index);
