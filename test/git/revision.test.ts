@@ -291,6 +291,26 @@ describe("Git revision materialization", () => {
     );
   });
 
+  it("fails closed when extracted revision entries exceed their ceiling", async () => {
+    const root = await createRepository();
+    await writeFile(join(root, "README.md"), "bounded\n", "utf8");
+    await run("git", ["add", "README.md"], root);
+    await run("git", ["commit", "-m", "add readme"], root);
+
+    await expect(
+      materializeRevision(root, "HEAD", {
+        resources: { maxExtractedEntries: 1 },
+      }),
+    ).rejects.toThrowError(ResourceLimitError);
+    await expect(
+      materializeRevision(root, "HEAD", {
+        resources: { maxExtractedEntries: 1 },
+      }),
+    ).rejects.toThrow(
+      "materialized revision exceeds the 1 extracted-entry ceiling",
+    );
+  });
+
   it("cleans a materialized tree when cancellation aborts analysis", async () => {
     const root = await createRepository();
     const controller = new AbortController();
