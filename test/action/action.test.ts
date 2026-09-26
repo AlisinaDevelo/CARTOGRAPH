@@ -70,6 +70,10 @@ describe("read-only GitHub Action contract", () => {
     expect(action).toContain("default: informational");
     expect(action).toContain("CARTOGRAPH_POLICY_PATH");
     expect(action).toContain("CARTOGRAPH_POLICY_MODE");
+    expect(action).toContain("Validate repository root");
+    expect(action).toContain("validate-action-root.mjs");
+    expect(action).toContain("CARTOGRAPH_ROOT_INPUT");
+    expect(action).toContain("GITHUB_ENV");
     expect(action).toContain("review-context");
     expect(action).toContain("CARTOGRAPH_REVIEW_CONTEXT_PATH");
     expect(action).toContain("--mode");
@@ -115,6 +119,7 @@ describe("read-only GitHub Action contract", () => {
     expect(docs).toContain("Fork pull requests and permissions");
     expect(docs).toContain("npm run action:security:validate");
     expect(docs).toContain("Sensitive repositories");
+    expect(docs).toContain("symlink escapes are rejected");
     expect(docs).toContain("source snippet");
     expect(fixtureReadme).toContain("read-only");
     expect(fixtureReadme).toContain("comment on the pull request");

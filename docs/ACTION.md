@@ -25,11 +25,13 @@ declare only `contents: read`; they do not grant `actions`, `issues`,
 The checkout disables credential persistence and checks out the event's exact
 head SHA. The analyzer receives only explicit repository-relative inputs and
 the two event SHAs; no token or secret is placed in its environment. The
-Action itself is referenced by an immutable commit SHA, and its checkout and
-artifact-upload dependencies are pinned to commit SHAs as well. A workflow
-file changed by a fork is still untrusted code, so maintainers should treat
-its job output and uploaded report as review material, not as an authorization
-or merge decision.
+`root` input is validated beneath `GITHUB_WORKSPACE`: absolute paths, URI or
+drive paths, parent-directory traversal, and symlink escapes are rejected, and
+the canonical in-workspace path is passed to the CLI. The Action itself is
+referenced by an immutable commit SHA, and its checkout and artifact-upload
+dependencies are pinned to commit SHAs as well. A workflow file changed by a
+fork is still untrusted code, so maintainers should treat its job output and
+uploaded report as review material, not as an authorization or merge decision.
 
 ## Pin and update policy
 
