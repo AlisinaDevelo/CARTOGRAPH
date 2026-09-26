@@ -59,6 +59,10 @@ const fail = (message) => {
   );
 };
 
+const collectGarbageIfAvailable = () => {
+  if (typeof globalThis.gc === "function") globalThis.gc();
+};
+
 class XorShift32 {
   constructor(seed) {
     this.state = seed >>> 0;
@@ -546,6 +550,7 @@ const validate = () => {
     ),
   ];
 
+  collectGarbageIfAvailable();
   runRegressionFixtures();
   const elapsedMs = Number((performance.now() - runStarted).toFixed(3));
   if (elapsedMs > scenario.budgets.maxTotalMs)
@@ -580,7 +585,7 @@ const validate = () => {
 
 if (process.argv[2] !== "validate") {
   console.error(
-    "usage: node --import tsx scripts/property-regressions.mjs validate [--scenarios path]",
+    "usage: node --expose-gc --import tsx scripts/property-regressions.mjs validate [--scenarios path]",
   );
   process.exit(2);
 }

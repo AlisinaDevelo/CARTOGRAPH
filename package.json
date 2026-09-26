@@ -76,7 +76,7 @@
     "benchmark:validate": "node scripts/benchmark.mjs validate",
     "benchmark:budgets:validate": "node scripts/benchmark-budgets.mjs validate",
     "benchmark:diff:validate": "node --import tsx scripts/benchmark-diff.mjs validate",
-    "property:validate": "node --import tsx scripts/property-regressions.mjs validate",
+    "property:validate": "node --expose-gc --import tsx scripts/property-regressions.mjs validate",
     "benchmark:ci": "node scripts/benchmark-gate.mjs",
     "benchmark:diff:ci": "node --import tsx scripts/benchmark-diff-gate.mjs",
     "adr:validate": "node --import tsx scripts/adr.mjs validate",
