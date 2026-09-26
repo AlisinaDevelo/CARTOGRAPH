@@ -90,6 +90,7 @@ import {
   type GeneratedRelationship,
 } from "./generated.js";
 import { createResourceBudget, ResourceLimitError } from "../resources.js";
+import { lineAndColumnAtPos } from "./line-index.js";
 
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts"]);
 const EXCLUDED_DIRECTORIES = new Set([
@@ -237,12 +238,33 @@ type QueueBinding = {
   name: string | undefined;
 };
 
+// Counts value changes so derived caches can tell when a lookup may resolve
+// differently.
+class VersionedMap<K, V> extends Map<K, V> {
+  version = 0;
+
+  override set(key: K, value: V): this {
+    if (!super.has(key) || super.get(key) !== value) this.version += 1;
+    return super.set(key, value);
+  }
+}
+
 interface AnalyzerContext {
   apiBoundaries: readonly ApiBoundary[];
   apiDiagnostics: readonly ApiPartialDiagnostic[];
   apiResolverBindings: ReadonlyMap<string, ApiResolverBinding>;
   blockedRelativeImports: Set<string>;
-  callablesByDeclaration: Map<string, CallableInfo>;
+  // Invalidated when blockedRelativeImports (which only grows) changes size.
+  blockedImportNamesByFile: Map<
+    SourceFile,
+    { blockedCount: number; names: ReadonlySet<string> }
+  >;
+  // Invalidated whenever callablesByDeclaration changes.
+  callableResolutions: Map<
+    Node,
+    { callableVersion: number; callable: CallableInfo | undefined }
+  >;
+  callablesByDeclaration: VersionedMap<string, CallableInfo>;
   callablesByStableKey: Map<string, CallableInfo>;
   diagnostics: Map<string, Diagnostic>;
   edges: Map<string, GraphEdge>;
@@ -292,7 +314,7 @@ const sourceFilePath = (rootDir: string, filePath: string): string => {
 
 const sourcePosition = (rootDir: string, node: Node): SourceLocation => {
   const sourceFile = node.getSourceFile();
-  const lineAndColumn = sourceFile.getLineAndColumnAtPos(node.getStart());
+  const lineAndColumn = lineAndColumnAtPos(sourceFile, node.getStart());
   return {
     path: sourceFilePath(rootDir, sourceFile.getFilePath()),
     line: lineAndColumn.line,
@@ -1425,23 +1447,39 @@ const expressionRootNode = (expression: Expression): Expression => {
   return current as Expression;
 };
 
+const blockedImportNames = (
+  context: AnalyzerContext,
+  sourceFile: SourceFile,
+): ReadonlySet<string> => {
+  const blockedCount = context.blockedRelativeImports.size;
+  const cached = context.blockedImportNamesByFile.get(sourceFile);
+  if (cached?.blockedCount === blockedCount) return cached.names;
+  const names = new Set<string>();
+  if (blockedCount > 0)
+    for (const declaration of sourceFile.getImportDeclarations()) {
+      const specifier = declaration.getModuleSpecifierValue();
+      if (
+        specifier.startsWith(".") &&
+        context.blockedRelativeImports.has(
+          relativeImportKey(sourceFile, specifier),
+        )
+      )
+        for (const name of importedLocalNames(declaration)) names.add(name);
+    }
+  context.blockedImportNamesByFile.set(sourceFile, { blockedCount, names });
+  return names;
+};
+
 const isBlockedImportedReference = (
   context: AnalyzerContext,
   expression: Expression,
 ): boolean => {
+  if (context.blockedRelativeImports.size === 0) return false;
   const root = expressionRootNode(expression);
   if (!Node.isIdentifier(root)) return false;
-  const sourceFile = expression.getSourceFile();
-  return sourceFile.getImportDeclarations().some((declaration) => {
-    const specifier = declaration.getModuleSpecifierValue();
-    return (
-      specifier.startsWith(".") &&
-      context.blockedRelativeImports.has(
-        relativeImportKey(sourceFile, specifier),
-      ) &&
-      importedLocalNames(declaration).includes(root.getText())
-    );
-  });
+  return blockedImportNames(context, expression.getSourceFile()).has(
+    root.getText(),
+  );
 };
 
 const declarationsFor = (
@@ -2343,10 +2381,10 @@ const callableForDeclaration = (
 ): CallableInfo | undefined =>
   context.callablesByDeclaration.get(declarationKey(node));
 
-const resolveCallable = (
+const resolveCallableUncached = (
   context: AnalyzerContext,
   expression: Expression,
-  seen = new Set<Node>(),
+  seen: Set<Node>,
 ): CallableInfo | undefined => {
   if (seen.has(expression) || isBlockedImportedReference(context, expression))
     return undefined;
@@ -2358,18 +2396,17 @@ const resolveCallable = (
   }
 
   if (Node.isIdentifier(expression)) {
-    const variable = expression
-      .getDefinitionNodes()
-      .find(Node.isVariableDeclaration);
+    const definitions = expression.getDefinitionNodes();
+    const variable = definitions.find(Node.isVariableDeclaration);
     if (variable) {
       const callable = callableForDeclaration(context, variable);
       if (callable) return callable;
       const initializer = variable.getInitializer();
       if (initializer && Node.isExpression(initializer)) {
-        return resolveCallable(context, initializer, seen);
+        return resolveCallableUncached(context, initializer, seen);
       }
     }
-    const declaration = expression.getDefinitionNodes().find(isCallableNode);
+    const declaration = definitions.find(isCallableNode);
     if (declaration) {
       const callable = callableForDeclaration(context, declaration);
       if (callable) return callable;
@@ -2377,6 +2414,18 @@ const resolveCallable = (
   }
 
   return undefined;
+};
+
+const resolveCallable = (
+  context: AnalyzerContext,
+  expression: Expression,
+): CallableInfo | undefined => {
+  const callableVersion = context.callablesByDeclaration.version;
+  const cached = context.callableResolutions.get(expression);
+  if (cached?.callableVersion === callableVersion) return cached.callable;
+  const callable = resolveCallableUncached(context, expression, new Set());
+  context.callableResolutions.set(expression, { callableVersion, callable });
+  return callable;
 };
 
 const enclosingCallable = (
@@ -4196,7 +4245,9 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
       apiDiagnostics: apiDiscovery.diagnostics,
       apiResolverBindings: apiDiscovery.resolverBindings,
       blockedRelativeImports: new Set(),
-      callablesByDeclaration: new Map(),
+      blockedImportNamesByFile: new Map(),
+      callableResolutions: new Map(),
+      callablesByDeclaration: new VersionedMap(),
       callablesByStableKey: new Map(),
       diagnostics: new Map(),
       edges: new Map(),
