@@ -9,7 +9,7 @@ runtime, operating-system, artifact version, or Action reference is introduced.
 
 Matrix ID: `cartograph-release-compatibility-v0.1`
 
-Matrix digest: `sha256:3cb9d7481a66e2b079e3bfe727ebb31f89a5ba073f23e25e037f90915801810f`
+Matrix digest: `sha256:b206fdf8589ce8f84d307017bb41fa4579d48dcc8467a1911dcabe3545c86085`
 
 ## Tested combinations
 
@@ -26,7 +26,7 @@ composite Action contracts.
 
 The composite Action itself runs on Node `24.x`. Its pinned dependencies are
 `actions/checkout@v7.0.1`, `actions/setup-node@v7.0.0`, and
-`actions/upload-artifact@v4.6.2`; the matrix records their immutable commit
+`actions/upload-artifact@v7.0.1`; the matrix records their immutable commit
 references.
 
 ## Release record
