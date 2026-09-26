@@ -29,8 +29,8 @@
     },
     {
       "id": "actions/upload-artifact",
-      "version": "v4.6.2",
-      "ref": "ea165f8d65b6e75b540449e92b4886f43607fa02"
+      "version": "v7.0.1",
+      "ref": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
     }
   ],
   "combinations": [
