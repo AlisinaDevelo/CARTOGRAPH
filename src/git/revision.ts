@@ -23,7 +23,9 @@ const COMMAND_TIMEOUT_MS = 30_000;
 const MAX_REF_LENGTH = 512;
 const DEFAULT_ARCHIVE_BYTES = 128 * 1024 * 1024;
 const DEFAULT_EXTRACTED_BYTES = 64 * 1024 * 1024;
-const DEFAULT_EXTRACTED_ENTRIES = 20_000;
+// Counts every tree entry (directories and non-source files included), so it is
+// intentionally independent of, and larger than, the source-file ceiling.
+const DEFAULT_EXTRACTED_ENTRIES = 250_000;
 const DEFAULT_MEMORY_BYTES = 1024 * 1024 * 1024;
 
 export const revisionTemporaryPrefix = (repositoryRoot: string): string =>

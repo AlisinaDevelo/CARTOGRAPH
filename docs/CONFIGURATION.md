@@ -28,9 +28,9 @@ Pass it to `scan` or `diff` with `--config <path>`.
 Omitted fields use deterministic defaults: `include` is `["."]`, built-in
 safe exclusions remain active, and the TypeScript/Express extractors remain
 selected by default. Add `fastify` explicitly to opt into the bounded Fastify
-route extractor. The resource ceilings above apply. `maxFiles` also bounds
-revision tree entries before archive extraction and during the post-extraction
-symlink/resource walk.
+route extractor. The resource ceilings above apply. Revision trees are also
+bounded to 250,000 entries (files and directories, source or not) before
+archive extraction and again during the post-extraction symlink/resource walk.
 Revision archives default to 128 MiB while extracted source defaults to 64 MiB;
 `tsconfigPath` is optional and remains repository-relative.
 
