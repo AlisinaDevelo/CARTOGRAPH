@@ -28,6 +28,21 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
+      - name: Verify protected tag and source commit
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          RELEASE_REF: ${{ github.ref }}
+          RELEASE_REF_PROTECTED: ${{ github.ref_protected }}
+        run: |
+          set -euo pipefail
+          test "$RELEASE_REF_PROTECTED" = "true"
+          git fetch --no-tags origin main
+          actual_sha="$(git rev-parse HEAD)"
+          tag_sha="$(git rev-list -n 1 "$RELEASE_REF")"
+          test "$actual_sha" = "$EXPECTED_SHA"
+          test "$tag_sha" = "$EXPECTED_SHA"
+          git merge-base --is-ancestor "$EXPECTED_SHA" FETCH_HEAD
+
       - name: Set up Node.js
         # zizmor: ignore[cache-poisoning] Release builds run only from protected, immutable version tags; setup-node caching is disabled below.
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -61,7 +76,7 @@ jobs:
         run: node scripts/release-artifact.mjs --output "$RUNNER_TEMP/cartograph-release"
 
       - name: Attest release subjects
-        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: |
             ${{ runner.temp }}/cartograph-release/*.tgz

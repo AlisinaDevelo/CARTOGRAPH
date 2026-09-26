@@ -41,7 +41,9 @@ Before creating a release tag:
 16. Review dependencies, pinned workflows, threat-model gates, and open security findings.
 17. Update `CHANGELOG.md` with the matching `[<version>]` section and migration notes.
 18. Confirm the package version matches the tag exactly (`v0.1.0` for package `0.1.0`).
-19. Create the tag from protected `main` and let the release workflow produce the artifacts.
+19. Configure an immutable/protected `v*.*.*` tag rule and create the tag from protected `main`.
+    The release workflow fails closed unless the tag ref is protected, the checked-out
+    commit matches the event SHA, and that commit is an ancestor of `main`.
 
 The release artifact metadata binds the package name and version, source commit,
 the downloaded tarball SHA-256 digest, the canonical gzip-decoded package-content
