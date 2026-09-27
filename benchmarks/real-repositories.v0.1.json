@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.real-repository-benchmark",
+  "description": "Pinned open-source TypeScript repositories scanned by the scheduled real-repository benchmark. Sources are fetched by commit at run time and never vendored.",
+  "repositories": [
+    {
+      "id": "ky",
+      "url": "https://github.com/sindresorhus/ky",
+      "commit": "0d59458a0a58e1c3d7c6db0ab17ed5c7cd671e47",
+      "license": "MIT",
+      "size": "small",
+      "resources": {},
+      "budgets": {
+        "maxMs": 30000,
+        "maxRssBytes": 536870912,
+        "maxDiagnosticsPerNode": 0.3,
+        "minNodes": 120,
+        "minEdges": 240
+      }
+    },
+    {
+      "id": "zod",
+      "url": "https://github.com/colinhacks/zod",
+      "commit": "2bf7b0630d5378033e90bcee82cb32b0fe04628e",
+      "license": "MIT",
+      "size": "medium",
+      "resources": { "maxMemoryBytes": 2147483648 },
+      "budgets": {
+        "maxMs": 90000,
+        "maxRssBytes": 1610612736,
+        "maxDiagnosticsPerNode": 3,
+        "minNodes": 2400,
+        "minEdges": 6000
+      }
+    },
+    {
+      "id": "nest",
+      "url": "https://github.com/nestjs/nest",
+      "commit": "b58554ea5857445841674963211e4f3f41b0a3a4",
+      "license": "MIT",
+      "size": "large",
+      "resources": {},
+      "budgets": {
+        "maxMs": 60000,
+        "maxRssBytes": 1073741824,
+        "maxDiagnosticsPerNode": 0.25,
+        "minNodes": 3500,
+        "minEdges": 6000
+      }
+    }
+  ]
+}
