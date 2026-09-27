@@ -69,6 +69,7 @@ const assertReportCardinality = (
   assertReportItemLimit(
     nodeCount + edgeCount + diagnosticCount + adrCount,
     maximum,
+    "resources.maxReportItems",
   );
 };
 

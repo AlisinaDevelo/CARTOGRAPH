@@ -68,8 +68,13 @@ const ResourceLimitsSchema = z
       .positive()
       .max(16 * 1024 * 1024 * 1024)
       .default(1024 * 1024 * 1024),
-    maxWallClockMs: z.number().int().positive().max(86_400_000).default(30_000),
-    maxReportItems: z.number().int().positive().max(1_000_000).default(10_000),
+    maxWallClockMs: z
+      .number()
+      .int()
+      .positive()
+      .max(86_400_000)
+      .default(120_000),
+    maxReportItems: z.number().int().positive().max(1_000_000).default(200_000),
   })
   .strict()
   .default({
@@ -78,8 +83,8 @@ const ResourceLimitsSchema = z
     maxSourceBytes: 64 * 1024 * 1024,
     maxArchiveBytes: 128 * 1024 * 1024,
     maxMemoryBytes: 1024 * 1024 * 1024,
-    maxWallClockMs: 30_000,
-    maxReportItems: 10_000,
+    maxWallClockMs: 120_000,
+    maxReportItems: 200_000,
   });
 
 const OutputSchema = z

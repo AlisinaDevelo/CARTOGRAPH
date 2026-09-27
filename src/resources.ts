@@ -17,6 +17,9 @@ export type ResourceBudgetOptions = {
   maxWallClockMs?: number;
   signal?: AbortSignal;
   subject?: string;
+  // Name the `resources.*` config keys in ceiling errors (analysis and
+  // revision materialization, which the config file controls).
+  configKeys?: boolean;
 };
 
 export const createResourceBudget = (
@@ -34,7 +37,7 @@ export const createResourceBudget = (
       Date.now() - startedAt > options.maxWallClockMs
     ) {
       throw new ResourceLimitError(
-        `${subject} exceeded the ${options.maxWallClockMs} ms wall-clock ceiling`,
+        `${subject} exceeded the ${options.maxWallClockMs} ms wall-clock ceiling${options.configKeys === true ? "; raise resources.maxWallClockMs in the --config file to allow more time" : ""}`,
       );
     }
 
@@ -43,7 +46,7 @@ export const createResourceBudget = (
       process.memoryUsage.rss() > options.maxMemoryBytes
     ) {
       throw new ResourceLimitError(
-        `${subject} exceeded the ${options.maxMemoryBytes} byte memory ceiling`,
+        `${subject} exceeded the ${options.maxMemoryBytes} byte memory ceiling${options.configKeys === true ? "; raise resources.maxMemoryBytes in the --config file" : ""}`,
       );
     }
   };
@@ -52,9 +55,10 @@ export const createResourceBudget = (
 export const assertReportItemLimit = (
   count: number,
   maximum: number | undefined,
+  configKey?: string,
 ): void => {
   if (maximum !== undefined && count > maximum)
     throw new ResourceLimitError(
-      `report exceeds the ${maximum} item report-cardinality ceiling`,
+      `report exceeds the ${maximum} item report-cardinality ceiling (${count} items)${configKey === undefined ? "" : `; raise ${configKey} in the --config file to at least ${count}`}`,
     );
 };

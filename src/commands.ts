@@ -161,6 +161,7 @@ export function scanRepository(options: ScanOptions): GraphSnapshot {
   assertReportItemLimit(
     snapshot.nodes.length + snapshot.edges.length + snapshot.diagnostics.length,
     config.resources.maxReportItems,
+    "resources.maxReportItems",
   );
   return snapshot;
 }
