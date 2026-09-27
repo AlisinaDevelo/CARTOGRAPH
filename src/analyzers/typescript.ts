@@ -259,6 +259,8 @@ interface AnalyzerContext {
     SourceFile,
     { blockedCount: number; names: ReadonlySet<string> }
   >;
+  // Per (file, specifier): whether a bare import resolves outside the repository.
+  externalSpecifiers: Map<string, boolean>;
   // Invalidated whenever callablesByDeclaration changes.
   callableResolutions: Map<
     Node,
@@ -459,14 +461,23 @@ const safeConfigHost = (
   rootDir: string,
   checkBudget: () => void,
 ): ts.ParseConfigHost => {
+  // Module resolution probes the same paths many times; one analysis never
+  // changes the tree, so each probe's answer is cached for the host's life.
+  const safePaths = new Map<string, string | undefined>();
+  const directories = new Map<string, boolean>();
   const safePath = (candidatePath: string): string | undefined => {
     const absolutePath = resolve(candidatePath);
-    if (!isInsideRoot(rootDir, absolutePath)) return undefined;
-    if (!existsSync(absolutePath)) return undefined;
-    const metadata = lstatSync(absolutePath);
-    if (metadata.isSymbolicLink() || !metadata.isFile()) return undefined;
-    const physicalPath = realpathSync(absolutePath);
-    return isInsideRoot(rootDir, physicalPath) ? absolutePath : undefined;
+    if (safePaths.has(absolutePath)) return safePaths.get(absolutePath);
+    let result: string | undefined;
+    if (isInsideRoot(rootDir, absolutePath) && existsSync(absolutePath)) {
+      const metadata = lstatSync(absolutePath);
+      if (!metadata.isSymbolicLink() && metadata.isFile()) {
+        const physicalPath = realpathSync(absolutePath);
+        if (isInsideRoot(rootDir, physicalPath)) result = absolutePath;
+      }
+    }
+    safePaths.set(absolutePath, result);
+    return result;
   };
 
   return {
@@ -495,11 +506,18 @@ const safeConfigHost = (
     directoryExists: (directory) => {
       checkBudget();
       const absolutePath = resolve(directory);
-      if (!isInsideRoot(rootDir, absolutePath) || !existsSync(absolutePath))
-        return false;
-      const metadata = lstatSync(absolutePath);
-      if (metadata.isSymbolicLink() || !metadata.isDirectory()) return false;
-      return isInsideRoot(rootDir, realpathSync(absolutePath));
+      const cached = directories.get(absolutePath);
+      if (cached !== undefined) return cached;
+      let exists = false;
+      if (isInsideRoot(rootDir, absolutePath) && existsSync(absolutePath)) {
+        const metadata = lstatSync(absolutePath);
+        exists =
+          !metadata.isSymbolicLink() &&
+          metadata.isDirectory() &&
+          isInsideRoot(rootDir, realpathSync(absolutePath));
+      }
+      directories.set(absolutePath, exists);
+      return exists;
     },
     realpath: (candidatePath) => {
       checkBudget();
@@ -3832,14 +3850,18 @@ const isExternalPackageSpecifier = (
   specifier: string,
 ): boolean => {
   if (specifier.startsWith(".") || specifier.startsWith("/")) return false;
+  const key = `${sourceFile.getFilePath()}\u0000${specifier}`;
+  const cached = context.externalSpecifiers.get(key);
+  if (cached !== undefined) return cached;
   const resolved = context.resolveModule(specifier, sourceFile.getFilePath());
   // An unresolved bare specifier is a package that is not installed; path
   // aliases and workspace packages that resolve into the repository stay local.
-  if (resolved === undefined) return true;
-  return (
+  const external =
+    resolved === undefined ||
     !isInsideRoot(context.rootDir, resolved) ||
-    normalizePath(resolved).includes("/node_modules/")
-  );
+    normalizePath(resolved).includes("/node_modules/");
+  context.externalSpecifiers.set(key, external);
+  return external;
 };
 
 const MAX_EXTERNAL_ORIGIN_DEPTH = 4;
@@ -4324,6 +4346,7 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
       blockedRelativeImports: new Set(),
       blockedImportNamesByFile: new Map(),
       callableResolutions: new Map(),
+      externalSpecifiers: new Map(),
       callablesByDeclaration: new VersionedMap(),
       callablesByStableKey: new Map(),
       diagnostics: new Map(),

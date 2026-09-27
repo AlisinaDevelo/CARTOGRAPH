@@ -6,7 +6,7 @@ import { Node, SyntaxKind, type Expression, type SourceFile } from "ts-morph";
 
 import type { ResourceLimits } from "../core/index.js";
 import { ResourceLimitError } from "../resources.js";
-import { lineAndColumnAtPos } from "./line-index.js";
+import { lineAndColumnAtPos, lineAndColumnInText } from "./line-index.js";
 
 export const API_BOUNDARY_DETECTOR = "cartograph.typescript-api@1";
 
@@ -110,26 +110,13 @@ const relativePath = (rootDir: string, candidate: string): string => {
 const countCharacter = (value: string, character: string): number =>
   [...value].filter((candidate) => candidate === character).length;
 
-const lineAndColumnAt = (
-  text: string,
-  index: number,
-): { line: number; column: number } => {
-  const prefix = text.slice(0, Math.max(0, index));
-  const line = prefix.split(/\r?\n/u).length;
-  const lastBreak = Math.max(
-    prefix.lastIndexOf("\n"),
-    prefix.lastIndexOf("\r"),
-  );
-  return { line, column: prefix.length - lastBreak };
-};
-
 const sourceAt = (
   path: string,
   contentHash: string,
   text: string,
   index: number,
 ): ApiSource => {
-  const location = lineAndColumnAt(text, index);
+  const location = lineAndColumnInText(text, index);
   return {
     path,
     line: location.line,
@@ -641,7 +628,7 @@ const collectTypeScriptBoundaries = (
       const source = sourceFromNode(rootDir, template, contentHash);
       parseGraphqlText(boundaries, text, source.path, contentHash, (index) => {
         const base = lineAndColumnAtPos(sourceFile, template.getStart());
-        const local = lineAndColumnAt(text, index);
+        const local = lineAndColumnInText(text, index);
         return {
           path: source.path,
           line: base.line + local.line - 1,
@@ -689,7 +676,7 @@ const collectTypeScriptBoundaries = (
             sourceFile,
             (schemaExpression ?? call).getStart(),
           );
-          const local = lineAndColumnAt(schemaText, index);
+          const local = lineAndColumnInText(schemaText, index);
           return {
             path: source.path,
             line: base.line + local.line - 1,

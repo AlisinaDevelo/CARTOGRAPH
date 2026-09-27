@@ -5,6 +5,7 @@ import { join, relative, resolve, sep } from "node:path";
 import type { ResourceLimits } from "../core/index.js";
 import { ResourceLimitError } from "../resources.js";
 import type { WorkspaceDiscovery } from "./workspace.js";
+import { lineAndColumnInText } from "./line-index.js";
 
 export const LOCKFILE_DETECTOR = "cartograph.lockfile@1";
 
@@ -101,26 +102,13 @@ const isRegularFile = (path: string): boolean => {
   }
 };
 
-const lineAndColumnAt = (
-  text: string,
-  index: number,
-): { line: number; column: number } => {
-  const prefix = text.slice(0, Math.max(0, index));
-  const line = prefix.split(/\r?\n/u).length;
-  const lastBreak = Math.max(
-    prefix.lastIndexOf("\n"),
-    prefix.lastIndexOf("\r"),
-  );
-  return { line, column: prefix.length - lastBreak };
-};
-
 const sourceAt = (
   path: string,
   text: string,
   contentHash: string,
   index: number,
 ): LockfileSource => {
-  const location = lineAndColumnAt(text, index);
+  const location = lineAndColumnInText(text, index);
   return {
     path,
     line: location.line,

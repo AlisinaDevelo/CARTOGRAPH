@@ -4,6 +4,7 @@ import { extname, join, relative, resolve, sep } from "node:path";
 
 import type { ResourceLimits } from "../core/index.js";
 import { ResourceLimitError } from "../resources.js";
+import { lineAndColumnInText } from "./line-index.js";
 
 export const PRISMA_SCHEMA_DETECTOR = "cartograph.prisma-schema@1";
 
@@ -140,26 +141,13 @@ const isInsideRoot = (rootDir: string, candidate: string): boolean => {
   return target === root || target.startsWith(`${root}${sep}`);
 };
 
-const lineAndColumnAt = (
-  text: string,
-  index: number,
-): { line: number; column: number } => {
-  const prefix = text.slice(0, Math.max(0, index));
-  const line = prefix.split(/\r?\n/u).length;
-  const lastBreak = Math.max(
-    prefix.lastIndexOf("\n"),
-    prefix.lastIndexOf("\r"),
-  );
-  return { line, column: prefix.length - lastBreak };
-};
-
 const sourceAt = (
   path: string,
   contentHash: string,
   text: string,
   index: number,
 ): PrismaSchemaSource => {
-  const location = lineAndColumnAt(text, index);
+  const location = lineAndColumnInText(text, index);
   return {
     path,
     line: location.line,
