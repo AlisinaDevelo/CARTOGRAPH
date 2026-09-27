@@ -20,6 +20,12 @@ checksums.
 
 ### Fixed
 
+- A `tsconfig.json` that extends a package (such as `@tsconfig/node20`) no
+  longer aborts the scan. The base is read from an in-repository
+  `node_modules` when installed; otherwise the scan continues with the local
+  options and reports `UNRESOLVED_TSCONFIG_EXTENDS`.
+- Scans of repositories with around 2,000 files no longer hit the default
+  report-item ceiling, and ceiling errors name the config key to raise.
 - Node and edge policy rules now match the added, changed, and rewired records
   of a `GraphDiff`; previously they never matched diff input.
 - Calls whose callee comes from an npm package, or through a parameter, no

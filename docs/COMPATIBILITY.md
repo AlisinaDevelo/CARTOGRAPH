@@ -1058,3 +1058,13 @@ The same change fixes node and edge rules on `GraphDiff` input: diff
 candidates previously carried no node or edge payload, so those rules could
 never match a diff. They now match added, changed, and rewired records;
 removed records still never match.
+
+## Package tsconfig bases
+
+The diagnostic registry gains `UNRESOLVED_TSCONFIG_EXTENDS` (warning). A
+`tsconfig` `extends` naming a package used to fail the scan with a
+configuration error. The analyzer now reads the base from a non-symlinked
+`node_modules` inside the repository, walking up from the config to the root,
+and otherwise continues with the local options and reports the diagnostic at
+the `extends` key. No snapshot field or schema version changes; snapshots of
+repositories that previously scanned are unchanged.
