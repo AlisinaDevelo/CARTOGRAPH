@@ -38,6 +38,12 @@ import {
 } from "./core/index.js";
 import type { ReportFormat } from "./report/render.js";
 import { runQueryCommand, type QueryRequest } from "./query-command.js";
+import {
+  EXPORT_FORMATS,
+  exportSnapshotFile,
+  policyEvaluationSarif,
+  type ExportFormat,
+} from "./export-command.js";
 import type { RevisionComparisonMode } from "./git/revision.js";
 
 const VERSION = "0.1.0";
@@ -81,6 +87,20 @@ const reportFormat = (value: string): ReportFormat => {
   if (value === "html" || value === "json" || value === "markdown")
     return value;
   throw new InvalidArgumentError("format must be one of: html, json, markdown");
+};
+
+const exportFormat = (value: string): ExportFormat => {
+  const format = EXPORT_FORMATS.find((candidate) => candidate === value);
+  if (format === undefined)
+    throw new InvalidArgumentError(
+      `format must be one of: ${EXPORT_FORMATS.join(", ")}`,
+    );
+  return format;
+};
+
+const policyOutputFormat = (value: string): "json" | "sarif" => {
+  if (value === "json" || value === "sarif") return value;
+  throw new InvalidArgumentError("format must be one of: json, sarif");
 };
 
 const queryFormat = (value: string): "json" | "markdown" => {
@@ -478,6 +498,30 @@ export function createCli(): Command {
     );
 
   program
+    .command("export")
+    .description(
+      "export a graph snapshot as graph-interchange JSON, JSON-LD, an edge list, or a SCIP index",
+    )
+    .requiredOption("--snapshot <path>", "graph snapshot JSON input")
+    .requiredOption(
+      "-f, --format <format>",
+      `export format: ${EXPORT_FORMATS.join(", ")}`,
+      exportFormat,
+    )
+    .option("-o, --output <path>", "output file; stdout when omitted")
+    .option("--force", "replace an existing output file", false)
+    .action(
+      async (
+        options: OutputOptions & { snapshot: string; format: ExportFormat },
+      ): Promise<void> => {
+        await emit(
+          await exportSnapshotFile(options.snapshot, options.format, VERSION),
+          options,
+        );
+      },
+    );
+
+  program
     .command("review")
     .description(
       "join a local GraphDiff with bounded lifecycle, ownership, waiver, policy, and ADR context",
@@ -529,7 +573,13 @@ export function createCli(): Command {
       "days before expiry to classify an exception as expiring",
       exceptionWindowDays,
     )
-    .option("-o, --output <path>", "output JSON report; stdout when omitted")
+    .option(
+      "-f, --format <format>",
+      "report format: json, or sarif for code scanning",
+      policyOutputFormat,
+      "json",
+    )
+    .option("-o, --output <path>", "output report; stdout when omitted")
     .option("--force", "replace an existing output file", false)
     .action(
       async (
@@ -540,6 +590,7 @@ export function createCli(): Command {
           mode?: PolicyCiMode;
           asOf?: string;
           exceptionWindowDays?: number;
+          format: "json" | "sarif";
           policy: string;
           snapshot?: string;
         },
@@ -569,7 +620,17 @@ export function createCli(): Command {
           policy: options.policy,
           root,
         });
-        await emit(`${serializePolicyEvaluation(report)}\n`, options);
+        await emit(
+          options.format === "sarif"
+            ? await policyEvaluationSarif(
+                report,
+                input,
+                hasSnapshot ? "snapshot" : "diff",
+                VERSION,
+              )
+            : `${serializePolicyEvaluation(report)}\n`,
+          options,
+        );
         process.exitCode = policyCiExitCode(
           options.mode ?? report.mode,
           report,

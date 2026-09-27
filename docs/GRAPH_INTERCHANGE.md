@@ -1,5 +1,8 @@
 # Portable graph interchange
 
+Export a snapshot with `cartograph export --snapshot graph.json --format graph-json|json-ld|edge-list`
+(or `scip` for the [SCIP bridge](SCIP_INTERCHANGE.md)).
+
 D-018 adds the versioned `cartograph.graph-interchange` boundary for consumers
 that need canonical architecture evidence without adopting CARTOGRAPH's report
 renderer. The boundary is local, deterministic, source-free, and offline. It
