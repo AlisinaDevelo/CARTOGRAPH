@@ -275,6 +275,7 @@ interface AnalyzerContext {
   filesByPath: Map<string, SourceFile>;
   lockfileDependencies: readonly LockfileDependency[];
   lockfileDiagnostics: readonly LockfileDiagnostic[];
+  configDiagnostics: readonly ConfigDiagnostic[];
   nodes: Map<string, GraphNode>;
   prismaDatasources: readonly PrismaDatasource[];
   prismaDiagnostics: readonly PrismaPartialDiagnostic[];
@@ -397,11 +398,18 @@ export class TypeScriptConfigError extends Error {
   }
 }
 
+type ConfigDiagnostic = {
+  code: "UNRESOLVED_TSCONFIG_EXTENDS";
+  source: LockfileSource;
+  detail: string;
+};
+
 type LoadedProjectSources = {
   projectPaths: string[];
   sourcePaths: string[];
   configs: LoadedProjectConfig[];
   compilerOptions: ts.CompilerOptions;
+  configDiagnostics: ConfigDiagnostic[];
 };
 
 const tsConfigDiagnosticText = (
@@ -689,11 +697,92 @@ const configReferencePath = (
   return resolved;
 };
 
+const isPackageExtends = (value: unknown): value is string =>
+  typeof value === "string" &&
+  value.trim().length > 0 &&
+  !value.trim().startsWith(".") &&
+  !value.trim().replaceAll("\\", "/").startsWith("/") &&
+  !/^[A-Za-z]:/u.test(value.trim());
+
+const safeInstalledFile = (
+  rootDir: string,
+  candidate: string,
+): string | undefined => {
+  if (!isInsideRoot(rootDir, candidate) || !existsSync(candidate))
+    return undefined;
+  try {
+    const metadata = lstatSync(candidate);
+    if (metadata.isSymbolicLink() || !metadata.isFile()) return undefined;
+    return isInsideRoot(rootDir, realpathSync(candidate))
+      ? candidate
+      : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * Resolve a package `extends` (for example `@tsconfig/node20`) from a
+ * `node_modules` directory inside the repository, walking up from the config
+ * to the repository root the way TypeScript does. Symlinked installs and
+ * anything outside the root are not followed.
+ */
+const packageExtendsTarget = (
+  rootDir: string,
+  configPath: string,
+  specifier: string,
+): string | undefined => {
+  const normalized = specifier.trim().replaceAll("\\", "/");
+  if (normalized.split("/").some((part) => part === ".." || part === "."))
+    return undefined;
+  const segments = normalized.split("/");
+  const packageName = normalized.startsWith("@")
+    ? segments.slice(0, 2).join("/")
+    : (segments[0] ?? normalized);
+  let directory = dirname(configPath);
+  while (isInsideRoot(rootDir, directory)) {
+    const base = join(directory, "node_modules", normalized);
+    const candidates =
+      extname(base) === ".json"
+        ? [base]
+        : [base, `${base}.json`, join(base, "tsconfig.json")];
+    if (normalized === packageName) {
+      const manifest = safeInstalledFile(
+        rootDir,
+        join(directory, "node_modules", packageName, "package.json"),
+      );
+      if (manifest !== undefined) {
+        try {
+          const field = (
+            JSON.parse(readFileSync(manifest, "utf8")) as { tsconfig?: unknown }
+          ).tsconfig;
+          if (typeof field === "string")
+            candidates.unshift(resolve(dirname(manifest), field));
+        } catch {
+          // An unreadable manifest just falls back to the conventional names.
+        }
+      }
+    }
+    for (const candidate of candidates) {
+      const found = safeInstalledFile(rootDir, candidate);
+      if (found !== undefined) return found;
+    }
+    const parent = dirname(directory);
+    if (parent === directory || resolve(directory) === resolve(rootDir)) break;
+    directory = parent;
+  }
+  return undefined;
+};
+
+type ExtendsTarget =
+  | { kind: "path"; path: string }
+  | { kind: "unresolved-package"; specifier: string };
+
 const extendsTarget = (
   rootDir: string,
   configPath: string,
   config: RawTypeScriptConfig,
-): string | undefined => {
+): ExtendsTarget | undefined => {
   if (!("extends" in config)) return undefined;
   if (Array.isArray(config.extends))
     throw configError(
@@ -702,7 +791,16 @@ const extendsTarget = (
       configPath,
       "tsconfig extends arrays are not supported; use a single in-repository base config",
     );
-  return configReferencePath(rootDir, configPath, config.extends, "extends");
+  if (isPackageExtends(config.extends)) {
+    const installed = packageExtendsTarget(rootDir, configPath, config.extends);
+    return installed === undefined
+      ? { kind: "unresolved-package", specifier: config.extends.trim() }
+      : { kind: "path", path: installed };
+  }
+  return {
+    kind: "path",
+    path: configReferencePath(rootDir, configPath, config.extends, "extends"),
+  };
 };
 
 const projectReferenceTargets = (
@@ -770,6 +868,7 @@ const loadedProjectSources = (
       projectPaths: paths,
       sourcePaths: paths,
       configs: [],
+      configDiagnostics: [],
       compilerOptions: {
         allowJs: false,
         module: ts.ModuleKind.NodeNext,
@@ -787,6 +886,44 @@ const loadedProjectSources = (
   const configCache = new Map<string, RawTypeScriptConfig>();
   const visited = new Set<string>();
   const extendsValidated = new Set<string>();
+  const configDiagnostics = new Map<string, ConfigDiagnostic>();
+
+  // The raw config handed to TypeScript: a package `extends` becomes the
+  // installed in-repository path, or is dropped with a diagnostic when the
+  // package is not installed, so analysis continues with the local options.
+  const effectiveConfig = (
+    configPath: string,
+    config: RawTypeScriptConfig,
+  ): RawTypeScriptConfig => {
+    const target = extendsTarget(rootDir, configPath, config);
+    if (target === undefined || !isPackageExtends(config.extends))
+      return config;
+    const copy: RawTypeScriptConfig = { ...config };
+    if (target.kind === "path") {
+      copy.extends = target.path;
+      return copy;
+    }
+    delete copy.extends;
+    if (!configDiagnostics.has(configPath)) {
+      const bytes = readFileSync(configPath);
+      const text = bytes.toString("utf8");
+      const offset = Math.max(0, text.indexOf('"extends"'));
+      const before = text.slice(0, offset);
+      const line = before.split("\n").length;
+      const column = offset - (before.lastIndexOf("\n") + 1) + 1;
+      configDiagnostics.set(configPath, {
+        code: "UNRESOLVED_TSCONFIG_EXTENDS",
+        source: {
+          path: normalizePath(relative(rootDir, configPath)),
+          line,
+          column,
+          contentHash: hashBytes(bytes),
+        },
+        detail: `(${target.specifier}; analysis used ${configDisplayPath(rootDir, configPath)} without it)`,
+      });
+    }
+    return copy;
+  };
   const projectPaths = new Set<string>();
   const sourcePaths = new Set<string>();
 
@@ -815,7 +952,8 @@ const loadedProjectSources = (
       checkBudget,
     );
     const target = extendsTarget(rootDir, configPath, config);
-    if (target !== undefined) validateExtends(target, [...stack, configPath]);
+    if (target?.kind === "path")
+      validateExtends(target.path, [...stack, configPath]);
     extendsValidated.add(configPath);
   };
 
@@ -843,7 +981,7 @@ const loadedProjectSources = (
     );
     validateExtends(configPath, []);
     const parsed = ts.parseJsonConfigFileContent(
-      config,
+      effectiveConfig(configPath, config),
       configHost,
       dirname(configPath),
       {},
@@ -919,6 +1057,9 @@ const loadedProjectSources = (
   return {
     projectPaths: sortedProjectPaths,
     sourcePaths: sortedSourcePaths,
+    configDiagnostics: [...configDiagnostics.values()].sort((left, right) =>
+      compareStrings(left.source.path, right.source.path),
+    ),
     configs: configs.sort((left, right) =>
       compareStrings(left.configPath, right.configPath),
     ),
@@ -1804,6 +1945,46 @@ const addLockfileDiagnostic = (
     evidence: [evidenceForLockfileSource(diagnostic.source, "diagnostic")],
   };
   context.diagnostics.set(record.id, record);
+};
+
+const addConfigDiagnostic = (
+  context: AnalyzerContext,
+  diagnostic: ConfigDiagnostic,
+): void => {
+  const definition = getDiagnosticDefinition(diagnostic.code);
+  if (!definition)
+    throw new Error(`unregistered diagnostic code: ${diagnostic.code}`);
+  const location: SourceLocation = {
+    path: diagnostic.source.path,
+    line: diagnostic.source.line,
+    column: diagnostic.source.column,
+  };
+  const message = `${definition.message} ${diagnostic.detail}`;
+  const detector = `${DETECTOR_VERSION}/tsconfig`;
+  context.diagnostics.set(diagnosticKey(diagnostic.code, location, message), {
+    id: diagnosticKey(diagnostic.code, location, message),
+    code: diagnostic.code,
+    severity: definition.severity,
+    message,
+    remediation: definition.remediation,
+    location,
+    evidence: [
+      {
+        id: evidenceKey(
+          diagnostic.source.path,
+          diagnostic.source.line,
+          diagnostic.source.column,
+          detector,
+        ),
+        kind: "source",
+        path: diagnostic.source.path,
+        line: diagnostic.source.line,
+        column: diagnostic.source.column,
+        detector,
+        contentHash: diagnostic.source.contentHash,
+      },
+    ],
+  });
 };
 
 const evidenceForGeneratedSource = (
@@ -4316,6 +4497,8 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
       fileHashes.set(path, contentHash);
     for (const [path, contentHash] of lockfileDiscovery.fileHashes)
       fileHashes.set(path, contentHash);
+    for (const diagnostic of loaded.configDiagnostics)
+      fileHashes.set(diagnostic.source.path, diagnostic.source.contentHash);
 
     return {
       apiBoundaries: apiDiscovery.boundaries,
@@ -4340,6 +4523,7 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
       filesByPath,
       lockfileDependencies: lockfileDiscovery.dependencies,
       lockfileDiagnostics: lockfileDiscovery.diagnostics,
+      configDiagnostics: loaded.configDiagnostics,
       nodes: new Map(),
       prismaDatasources: prismaDiscovery.datasources,
       prismaDiagnostics: prismaDiscovery.diagnostics,
@@ -4382,6 +4566,8 @@ export const analyzeTypeScriptRepository = (
       context.checkBudget();
       moduleForFile(context, sourceFile);
     }
+    for (const diagnostic of context.configDiagnostics)
+      addConfigDiagnostic(context, diagnostic);
     addGeneratedEdges(context);
     addWorkspaceEdges(context);
     addLockfileEdges(context);

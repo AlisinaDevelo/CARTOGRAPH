@@ -66,6 +66,15 @@ export const DIAGNOSTIC_REGISTRY: DiagnosticRegistry =
           "Verify the module path and keep the imported implementation inside the analyzed repository.",
       },
       {
+        code: "UNRESOLVED_TSCONFIG_EXTENDS",
+        severity: "warning",
+        message:
+          "A tsconfig extends a package that is not installed inside the repository.",
+        evidence: { kind: "source", location: "source-span" },
+        remediation:
+          "Install dependencies before scanning so the base config is read, or confirm the local compilerOptions alone match how the project is built.",
+      },
+      {
         code: "AMBIGUOUS_PACKAGE_CONDITION",
         severity: "warning",
         message:
