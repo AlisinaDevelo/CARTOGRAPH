@@ -109,3 +109,30 @@ environment mismatch itself fails closed.
 
 The CI workflow also runs the bounded revision-diff baseline and gate after the
 scan benchmark checks; neither command rewrites a checked-in artifact.
+
+## Real-repository benchmark
+
+The fixture corpus above is small and stable, which makes it good for
+regression gating but blind to how the analyzer behaves on real code. A
+separate scheduled workflow,
+[`real-repo-benchmark.yml`](../.github/workflows/real-repo-benchmark.yml),
+scans pinned open-source repositories listed in
+[`benchmarks/real-repositories.v0.1.json`](../benchmarks/real-repositories.v0.1.json):
+one small, one medium, and one large permissively licensed TypeScript project.
+Each is fetched at its full commit SHA into the runner's temporary directory,
+never vendored, and removed after its scan.
+
+Every scan runs in its own process and is checked against per-repository
+budgets: wall-clock time, peak RSS, diagnostics per node (a noise signal), and
+minimum node and edge counts (a coverage signal, so a change that silently
+drops relationships fails too). Results are written to the job summary and
+uploaded as a JSON report. The workflow runs weekly and on demand; it is not a
+pull-request gate because it depends on network fetches.
+
+```sh
+npm run benchmark:real-repos            # build, fetch, scan, and check budgets
+npm run benchmark:real-repos:validate   # offline manifest check (part of npm run check)
+```
+
+Change a pinned commit or a budget only together with a measured run, and
+record why in the pull request.
