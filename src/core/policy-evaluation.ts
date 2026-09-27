@@ -20,6 +20,12 @@ import {
   type LocalPolicyRule,
   type PolicyConfig,
 } from "./policy.js";
+import {
+  edgeCycles,
+  matchesPolicyEdgeSelector,
+  matchesPolicyNodeSelector,
+  nodePathResolver,
+} from "./policy-paths.js";
 import type {
   ChangedDiagnostic,
   Diagnostic,
@@ -75,6 +81,7 @@ const PolicyAssertionSchema = z.enum([
   "absent",
   "count-at-most",
   "count-at-least",
+  "acyclic",
 ]);
 const PolicyEffectSchema = z.enum(["informational", "enforce"]);
 const PolicyDateTimeSchema = z
@@ -246,6 +253,26 @@ type Candidate = {
     classification?: string;
   };
   evidenceRefs: string[];
+  // Resolves graph node IDs to repository paths for path-pattern selectors.
+  pathOf?: (nodeId: string) => string | undefined;
+};
+
+type CandidateSet = {
+  nodes: Candidate[];
+  edges: Candidate[];
+  diffs: Candidate[];
+};
+
+const noPath = (): undefined => undefined;
+
+const withPaths = (
+  set: CandidateSet,
+  nodes: readonly GraphNode[],
+): CandidateSet => {
+  const pathOf = nodePathResolver(nodes);
+  for (const candidate of [...set.nodes, ...set.edges, ...set.diffs])
+    candidate.pathOf = pathOf;
+  return set;
 };
 
 type AdrContextState = {
@@ -320,9 +347,13 @@ const diffCandidate = (input: {
   code?: string;
   classification?: string;
   evidenceRefs: string[];
+  node?: GraphNode;
+  edge?: GraphEdge;
 }): Candidate => ({
   id: input.id,
   target: "diff",
+  ...(input.node ? { node: input.node } : {}),
+  ...(input.edge ? { edge: input.edge } : {}),
   diff: {
     kind: input.kind,
     id: input.id,
@@ -342,6 +373,9 @@ const changedNodeCandidate = (
     id: `${kind}:${node.stableKey}`,
     ...(classification ? { classification } : {}),
     evidenceRefs: nodeEvidence(node),
+    // Node and edge rules on a diff judge what the change introduces or
+    // modifies; removing a forbidden node or edge is never a violation.
+    ...(kind === "node-removed" ? {} : { node }),
   });
 
 const changedEdgeCandidate = (
@@ -354,6 +388,7 @@ const changedEdgeCandidate = (
     id: `${kind}:${graphEdgeId(edge)}`,
     ...(classification ? { classification } : {}),
     evidenceRefs: edgeEvidence(edge),
+    ...(kind === "edge-removed" ? {} : { edge }),
   });
 
 const rewiredCandidate = (change: RewiredEdge): Candidate =>
@@ -365,6 +400,7 @@ const rewiredCandidate = (change: RewiredEdge): Candidate =>
       ...edgeEvidence(change.before),
       ...edgeEvidence(change.after),
     ],
+    edge: change.after,
   });
 
 const changedDiagnosticCandidate = (
@@ -480,22 +516,26 @@ const diffCandidates = (
 });
 
 const matchesNode = (
-  node: GraphNode,
+  candidate: Candidate,
   selector: Extract<LocalPolicyRule, { target: "node" }>["selector"],
 ): boolean =>
-  (selector.kind === undefined || selector.kind === node.kind) &&
-  (selector.id === undefined ||
-    selector.id === node.id ||
-    selector.id === node.stableKey) &&
-  (selector.name === undefined || selector.name === node.name);
+  candidate.node !== undefined &&
+  matchesPolicyNodeSelector(
+    candidate.node,
+    selector,
+    candidate.pathOf ?? noPath,
+  );
 
 const matchesEdge = (
-  edge: GraphEdge,
+  candidate: Candidate,
   selector: Extract<LocalPolicyRule, { target: "edge" }>["selector"],
 ): boolean =>
-  (selector.kind === undefined || selector.kind === edge.kind) &&
-  (selector.from === undefined || selector.from === edge.from) &&
-  (selector.to === undefined || selector.to === edge.to);
+  candidate.edge !== undefined &&
+  matchesPolicyEdgeSelector(
+    candidate.edge,
+    selector,
+    candidate.pathOf ?? noPath,
+  );
 
 const matchesDiff = (
   diff: NonNullable<Candidate["diff"]>,
@@ -519,14 +559,10 @@ const matchingCandidates = (
         : candidates.diffs;
   return targetCandidates.filter((candidate) => {
     if (rule.target === "node") {
-      return candidate.node
-        ? matchesNode(candidate.node, rule.selector)
-        : false;
+      return matchesNode(candidate, rule.selector);
     }
     if (rule.target === "edge") {
-      return candidate.edge
-        ? matchesEdge(candidate.edge, rule.selector)
-        : false;
+      return matchesEdge(candidate, rule.selector);
     }
     return candidate.diff ? matchesDiff(candidate.diff, rule.selector) : false;
   });
@@ -538,10 +574,10 @@ const matchesScopeCandidate = (
 ): boolean => {
   if (scope.target !== candidate.target) return false;
   if (scope.target === "node") {
-    return candidate.node ? matchesNode(candidate.node, scope.selector) : false;
+    return matchesNode(candidate, scope.selector);
   }
   if (scope.target === "edge") {
-    return candidate.edge ? matchesEdge(candidate.edge, scope.selector) : false;
+    return matchesEdge(candidate, scope.selector);
   }
   return candidate.diff ? matchesDiff(candidate.diff, scope.selector) : false;
 };
@@ -1050,6 +1086,8 @@ const ruleViolation = (
   inputKind: "snapshot" | "diff",
   matches: readonly Candidate[],
 ): PolicyViolation | undefined => {
+  if (rule.assertion === "acyclic")
+    return acyclicViolation(policy, rule, inputKind, matches);
   const count = matches.length;
   const violated =
     rule.assertion === "exists"
@@ -1094,6 +1132,63 @@ const ruleViolation = (
     matches: matches.map((candidate) => candidate.id).sort(compareStrings),
     reason,
     evidenceRefs,
+  };
+};
+
+const MAX_REASON_CYCLES = 3;
+const MAX_REASON_CYCLE_NODES = 8;
+
+const acyclicViolation = (
+  policy: PolicyConfig,
+  rule: LocalPolicyRule,
+  inputKind: "snapshot" | "diff",
+  matches: readonly Candidate[],
+): PolicyViolation | undefined => {
+  const byEdge = new Map<GraphEdge, Candidate>();
+  for (const candidate of matches)
+    if (candidate.edge) byEdge.set(candidate.edge, candidate);
+  const cycles = edgeCycles([...byEdge.keys()]);
+  if (cycles.length === 0) return undefined;
+  const cycleCandidates = cycles.flatMap((cycle) =>
+    cycle.flatMap((edge) => {
+      const candidate = byEdge.get(edge);
+      return candidate ? [candidate] : [];
+    }),
+  );
+  const described = cycles.slice(0, MAX_REASON_CYCLES).map((cycle) => {
+    const nodes = uniqueSorted(cycle.flatMap((edge) => [edge.from, edge.to]));
+    const shown = nodes.slice(0, MAX_REASON_CYCLE_NODES).join(", ");
+    return nodes.length > MAX_REASON_CYCLE_NODES
+      ? `{${shown}, +${nodes.length - MAX_REASON_CYCLE_NODES} more}`
+      : `{${shown}}`;
+  });
+  const more =
+    cycles.length > MAX_REASON_CYCLES
+      ? ` and ${cycles.length - MAX_REASON_CYCLES} more`
+      : "";
+  return {
+    id: `violation:${rule.id}`,
+    policyId: policy.policyId,
+    ruleId: rule.id,
+    target: rule.target,
+    assertion: rule.assertion,
+    effect: rule.effect ?? policy.mode,
+    count: cycles.length,
+    expected: 0,
+    matches: cycleCandidates
+      .map((candidate) => candidate.id)
+      .sort(compareStrings),
+    reason:
+      `policy rule ${rule.id} forbids cycles among matching edges, but ${cycles.length} cycle group${cycles.length === 1 ? "" : "s"} matched: ${described.join("; ")}${more}`.slice(
+        0,
+        2_048,
+      ),
+    evidenceRefs: uniqueSorted([
+      `input:${inputKind}`,
+      `policy:${policy.policyId}`,
+      `policy-rule:${rule.id}`,
+      ...cycleCandidates.flatMap((candidate) => candidate.evidenceRefs),
+    ]),
   };
 };
 
@@ -1309,11 +1404,15 @@ export const evaluatePolicy = (
   }
   const candidates =
     parsedInput.kind === "snapshot"
-      ? (() => {
-          const snapshot = snapshotCandidates(parsedInput.graph);
-          return { ...snapshot, diffs: [] };
-        })()
-      : diffCandidates(parsedInput.graph);
+      ? withPaths(
+          { ...snapshotCandidates(parsedInput.graph), diffs: [] },
+          parsedInput.graph.nodes,
+        )
+      : withPaths(diffCandidates(parsedInput.graph), [
+          ...parsedInput.graph.nodes.added,
+          ...parsedInput.graph.nodes.removed,
+          ...parsedInput.graph.nodes.changed.map((change) => change.after),
+        ]);
   const exceptionAnalyses = hasExceptionContext
     ? analyzeExceptions(policy, asOf, expiringWithinDays)
     : [];

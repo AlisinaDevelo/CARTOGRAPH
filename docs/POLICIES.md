@@ -20,15 +20,80 @@ reserves 1 for tool or configuration errors.
 Rules are deliberately data-only. Each rule has an identifier, a target, a
 selector, and an assertion:
 
-- `node` selectors match an exact node `kind`, `id`, or `name`;
-- `edge` selectors match an exact edge `kind`, `from`, or `to`;
+- `node` selectors match an exact node `kind`, `id`, or `name`, and a
+  repository `path` pattern (with an optional `pathExclude`);
+- `edge` selectors match an exact edge `kind`, `from`, or `to`; the endpoint
+  module paths with `fromPath`/`toPath` (and `fromPathExclude`/`toPathExclude`);
+  and an external dependency with `toPackage`;
 - `diff` selectors match a bounded diff `kind`, `id`, diagnostic `code`, or
   change `classification`.
 
-Assertions are `exists`, `absent`, `count-at-most`, and `count-at-least`.
+Assertions are `exists`, `absent`, `count-at-most`, `count-at-least`, and,
+for edge rules only, `acyclic`.
 Count assertions require a non-negative integer `value`; presence assertions
 reject one. Rules may carry an explicit `effect`, while omitted effects remain
 informational for compatibility with future evaluation.
+
+### Path patterns and boundary rules
+
+Path patterns are repository-relative globs with three wildcards: `*` matches
+within one path segment, `**` matches any number of segments, and `?` matches a
+single character. Absolute paths, `.`/`..` segments, URI prefixes, braces,
+character classes, and `!` negation are rejected; use the `…Exclude` field
+instead of negation. A node's path is its source location; for a diff, where
+unchanged endpoints are not carried, it is read from the canonical node ID
+(`module:<path>`, `function:<path>:<name>`). Nodes without a repository path,
+such as external packages, never satisfy a path constraint. `toPackage` matches
+an external module by package name or glob and also covers its subpaths, so
+`lodash` matches `lodash/fp`.
+
+The `acyclic` assertion fails when the matching edges form a cycle. It reports
+one violation for the rule, counting each strongly connected group of nodes
+once, with every edge in those groups and its source evidence.
+
+```json
+{
+  "policyId": "architecture",
+  "version": "1.0.0",
+  "mode": "enforce",
+  "rules": [
+    {
+      "id": "ui-does-not-touch-db",
+      "target": "edge",
+      "assertion": "absent",
+      "selector": {
+        "kind": "imports",
+        "fromPath": "src/ui/**",
+        "toPath": "src/db/**"
+      }
+    },
+    {
+      "id": "express-only-in-api",
+      "target": "edge",
+      "assertion": "absent",
+      "selector": {
+        "kind": "imports",
+        "toPackage": "express",
+        "fromPathExclude": "src/api/**"
+      }
+    },
+    {
+      "id": "core-is-acyclic",
+      "target": "edge",
+      "assertion": "acyclic",
+      "selector": {
+        "kind": "imports",
+        "fromPath": "src/core/**",
+        "toPath": "src/core/**"
+      }
+    }
+  ]
+}
+```
+
+On a `GraphDiff`, node and edge rules judge what the change introduces or
+modifies (added, changed, and rewired records). Removed nodes and edges never
+match, so deleting a forbidden import cannot produce a violation.
 
 Unknown fields, executable content, URLs, commands, and arbitrary selector
 expressions are rejected. Selectors are bounded by field-specific enums and

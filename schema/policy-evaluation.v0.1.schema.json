@@ -71,7 +71,7 @@
     },
     "target": { "enum": ["node", "edge", "diff"] },
     "assertion": {
-      "enum": ["exists", "absent", "count-at-most", "count-at-least"]
+      "enum": ["exists", "absent", "count-at-most", "count-at-least", "acyclic"]
     },
     "effect": { "enum": ["informational", "enforce"] },
     "exceptionStatus": {

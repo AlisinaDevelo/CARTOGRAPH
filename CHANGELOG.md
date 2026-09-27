@@ -7,7 +7,25 @@ checksums.
 
 ## [Unreleased]
 
-No unreleased changes.
+### Added
+
+- `cartograph query` for module import cycles, dependency paths, graph query
+  language expressions, and architecture-query requests, with
+  `--fail-on-match` for CI gates.
+- Policy path patterns (`path`, `fromPath`, `toPath`, their `…Exclude`
+  variants, and `toPackage`) for layering rules, and an `acyclic` assertion
+  for edge rules.
+- Optional npm publication of the attested release tarball through npm
+  trusted publishing.
+
+### Fixed
+
+- Node and edge policy rules now match the added, changed, and rewired records
+  of a `GraphDiff`; previously they never matched diff input.
+- Calls whose callee comes from an npm package, or through a parameter, no
+  longer produce `UNRESOLVED_CALL`, removing about 90% of diagnostics on real
+  repositories.
+- Faster analysis from cached line lookups and call resolution.
 
 ## [0.1.0]
 
