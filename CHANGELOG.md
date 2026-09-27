@@ -9,6 +9,9 @@ checksums.
 
 ### Added
 
+- JavaScript sources (`.js`, `.jsx`, `.mjs`, `.cjs`) are analyzed when a
+  `tsconfig.json` sets `allowJs`, under a `jsconfig.json`, or in a repository
+  with no TypeScript at all; their nodes carry `language: "javascript"`.
 - `cartograph query` for module import cycles, dependency paths, graph query
   language expressions, and architecture-query requests, with
   `--fail-on-match` for CI gates.

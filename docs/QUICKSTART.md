@@ -82,7 +82,8 @@ detector identities, and content hashes, not source bodies. Review
 before processing sensitive code.
 
 The first analyzer supports bounded TypeScript and Express constructs listed in
-the [support matrix](SUPPORT_MATRIX.md). JavaScript, generated routes,
+the [support matrix](SUPPORT_MATRIX.md), including JavaScript under
+`allowJs` or a `jsconfig.json`. Generated routes,
 framework metaprogramming, dynamic destinations, and unresolved calls remain
 explicit diagnostics or are excluded; a plausible graph outside the matrix is
 not a support claim.
