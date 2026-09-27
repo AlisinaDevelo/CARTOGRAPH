@@ -7,15 +7,9 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "policyId", "version", "rules"],
   "properties": {
-    "schemaVersion": {
-      "const": 1
-    },
-    "policyId": {
-      "$ref": "#/definitions/identifier"
-    },
-    "version": {
-      "$ref": "#/definitions/semver"
-    },
+    "schemaVersion": { "const": 1 },
+    "policyId": { "$ref": "#/definitions/identifier" },
+    "version": { "$ref": "#/definitions/semver" },
     "mode": {
       "enum": ["informational", "enforce"],
       "default": "informational",
@@ -44,9 +38,7 @@
       "type": "array",
       "maxItems": 32,
       "default": [],
-      "items": {
-        "$ref": "#/definitions/include"
-      },
+      "items": { "$ref": "#/definitions/include" },
       "description": "Repository-relative policy files composed offline before evaluation."
     },
     "exceptions": {
@@ -67,9 +59,7 @@
       "type": "array",
       "minItems": 1,
       "maxItems": 256,
-      "items": {
-        "$ref": "#/definitions/rule"
-      }
+      "items": { "$ref": "#/definitions/rule" }
     }
   },
   "definitions": {
@@ -83,11 +73,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["path"],
-      "properties": {
-        "path": {
-          "$ref": "#/definitions/policyPath"
-        }
-      }
+      "properties": { "path": { "$ref": "#/definitions/policyPath" } }
     },
     "identifier": {
       "type": "string",
@@ -130,12 +116,8 @@
           "additionalProperties": false,
           "required": ["target", "selector"],
           "properties": {
-            "target": {
-              "const": "node"
-            },
-            "selector": {
-              "$ref": "#/definitions/nodeSelector"
-            }
+            "target": { "const": "node" },
+            "selector": { "$ref": "#/definitions/nodeSelector" }
           }
         },
         {
@@ -143,12 +125,8 @@
           "additionalProperties": false,
           "required": ["target", "selector"],
           "properties": {
-            "target": {
-              "const": "edge"
-            },
-            "selector": {
-              "$ref": "#/definitions/edgeSelector"
-            }
+            "target": { "const": "edge" },
+            "selector": { "$ref": "#/definitions/edgeSelector" }
           }
         },
         {
@@ -156,12 +134,8 @@
           "additionalProperties": false,
           "required": ["target", "selector"],
           "properties": {
-            "target": {
-              "const": "diff"
-            },
-            "selector": {
-              "$ref": "#/definitions/diffSelector"
-            }
+            "target": { "const": "diff" },
+            "selector": { "$ref": "#/definitions/diffSelector" }
           }
         }
       ]
@@ -181,39 +155,21 @@
         "expiresAt"
       ],
       "properties": {
-        "schemaVersion": {
-          "const": 1
-        },
-        "contract": {
-          "const": "cartograph.policy-exception"
-        },
-        "id": {
-          "$ref": "#/definitions/identifier"
-        },
-        "ruleId": {
-          "$ref": "#/definitions/identifier"
-        },
-        "scope": {
-          "$ref": "#/definitions/exceptionScope"
-        },
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.policy-exception" },
+        "id": { "$ref": "#/definitions/identifier" },
+        "ruleId": { "$ref": "#/definitions/identifier" },
+        "scope": { "$ref": "#/definitions/exceptionScope" },
         "rationale": {
           "type": "string",
           "minLength": 1,
           "maxLength": 2048,
           "pattern": "^[^\\u0000\\r\\n]+$"
         },
-        "owner": {
-          "$ref": "#/definitions/identifier"
-        },
-        "createdAt": {
-          "$ref": "#/definitions/dateTime"
-        },
-        "expiresAt": {
-          "$ref": "#/definitions/dateTime"
-        },
-        "adrReferenceId": {
-          "$ref": "#/definitions/adrReferenceId"
-        },
+        "owner": { "$ref": "#/definitions/identifier" },
+        "createdAt": { "$ref": "#/definitions/dateTime" },
+        "expiresAt": { "$ref": "#/definitions/dateTime" },
+        "adrReferenceId": { "$ref": "#/definitions/adrReferenceId" },
         "precedence": {
           "type": "integer",
           "minimum": 0,
@@ -235,27 +191,15 @@
         "referenceId"
       ],
       "properties": {
-        "schemaVersion": {
-          "const": 1
-        },
-        "contract": {
-          "const": "cartograph.policy-adr-binding"
-        },
-        "id": {
-          "$ref": "#/definitions/identifier"
-        },
-        "ruleId": {
-          "$ref": "#/definitions/identifier"
-        },
+        "schemaVersion": { "const": 1 },
+        "contract": { "const": "cartograph.policy-adr-binding" },
+        "id": { "$ref": "#/definitions/identifier" },
+        "ruleId": { "$ref": "#/definitions/identifier" },
         "requirement": {
           "enum": ["boundary", "exception", "planned-violation"]
         },
-        "scope": {
-          "$ref": "#/definitions/exceptionScope"
-        },
-        "referenceId": {
-          "$ref": "#/definitions/adrReferenceId"
-        }
+        "scope": { "$ref": "#/definitions/exceptionScope" },
+        "referenceId": { "$ref": "#/definitions/adrReferenceId" }
       }
     },
     "nodeSelector": {
@@ -276,35 +220,17 @@
             "unknown"
           ]
         },
-        "id": {
-          "$ref": "#/definitions/selectorValue"
-        },
-        "name": {
-          "$ref": "#/definitions/selectorName"
-        },
-        "path": {
-          "$ref": "#/definitions/pathPattern"
-        },
-        "pathExclude": {
-          "$ref": "#/definitions/pathPattern"
-        }
+        "id": { "$ref": "#/definitions/selectorValue" },
+        "name": { "$ref": "#/definitions/selectorName" },
+        "path": { "$ref": "#/definitions/pathPattern" },
+        "pathExclude": { "$ref": "#/definitions/pathPattern" }
       },
       "anyOf": [
-        {
-          "required": ["kind"]
-        },
-        {
-          "required": ["id"]
-        },
-        {
-          "required": ["name"]
-        },
-        {
-          "required": ["path"]
-        },
-        {
-          "required": ["pathExclude"]
-        }
+        { "required": ["kind"] },
+        { "required": ["id"] },
+        { "required": ["name"] },
+        { "required": ["path"] },
+        { "required": ["pathExclude"] }
       ]
     },
     "edgeSelector": {
@@ -327,53 +253,23 @@
             "unknown"
           ]
         },
-        "from": {
-          "$ref": "#/definitions/selectorValue"
-        },
-        "to": {
-          "$ref": "#/definitions/selectorValue"
-        },
-        "fromPath": {
-          "$ref": "#/definitions/pathPattern"
-        },
-        "fromPathExclude": {
-          "$ref": "#/definitions/pathPattern"
-        },
-        "toPath": {
-          "$ref": "#/definitions/pathPattern"
-        },
-        "toPathExclude": {
-          "$ref": "#/definitions/pathPattern"
-        },
-        "toPackage": {
-          "$ref": "#/definitions/packagePattern"
-        }
+        "from": { "$ref": "#/definitions/selectorValue" },
+        "to": { "$ref": "#/definitions/selectorValue" },
+        "fromPath": { "$ref": "#/definitions/pathPattern" },
+        "fromPathExclude": { "$ref": "#/definitions/pathPattern" },
+        "toPath": { "$ref": "#/definitions/pathPattern" },
+        "toPathExclude": { "$ref": "#/definitions/pathPattern" },
+        "toPackage": { "$ref": "#/definitions/packagePattern" }
       },
       "anyOf": [
-        {
-          "required": ["kind"]
-        },
-        {
-          "required": ["from"]
-        },
-        {
-          "required": ["to"]
-        },
-        {
-          "required": ["fromPath"]
-        },
-        {
-          "required": ["fromPathExclude"]
-        },
-        {
-          "required": ["toPath"]
-        },
-        {
-          "required": ["toPathExclude"]
-        },
-        {
-          "required": ["toPackage"]
-        }
+        { "required": ["kind"] },
+        { "required": ["from"] },
+        { "required": ["to"] },
+        { "required": ["fromPath"] },
+        { "required": ["fromPathExclude"] },
+        { "required": ["toPath"] },
+        { "required": ["toPathExclude"] },
+        { "required": ["toPackage"] }
       ]
     },
     "diffSelector": {
@@ -397,12 +293,8 @@
             "identity-unsupported"
           ]
         },
-        "id": {
-          "$ref": "#/definitions/selectorValue"
-        },
-        "code": {
-          "$ref": "#/definitions/identifier"
-        },
+        "id": { "$ref": "#/definitions/selectorValue" },
+        "code": { "$ref": "#/definitions/identifier" },
         "classification": {
           "enum": [
             "node-changed",
@@ -415,26 +307,16 @@
         }
       },
       "anyOf": [
-        {
-          "required": ["kind"]
-        },
-        {
-          "required": ["id"]
-        },
-        {
-          "required": ["code"]
-        },
-        {
-          "required": ["classification"]
-        }
+        { "required": ["kind"] },
+        { "required": ["id"] },
+        { "required": ["code"] },
+        { "required": ["classification"] }
       ]
     },
     "ruleBase": {
       "type": "object",
       "properties": {
-        "id": {
-          "$ref": "#/definitions/identifier"
-        },
+        "id": { "$ref": "#/definitions/identifier" },
         "assertion": {
           "enum": [
             "exists",
@@ -444,14 +326,8 @@
             "acyclic"
           ]
         },
-        "value": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 1000000
-        },
-        "effect": {
-          "enum": ["informational", "enforce"]
-        }
+        "value": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+        "effect": { "enum": ["informational", "enforce"] }
       },
       "required": ["id", "assertion"]
     },
@@ -459,9 +335,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "id": {
-          "$ref": "#/definitions/identifier"
-        },
+        "id": { "$ref": "#/definitions/identifier" },
         "assertion": {
           "enum": [
             "exists",
@@ -471,36 +345,20 @@
             "acyclic"
           ]
         },
-        "value": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 1000000
-        },
-        "effect": {
-          "enum": ["informational", "enforce"]
-        },
-        "target": {
-          "enum": ["node", "edge", "diff"]
-        },
-        "selector": {
-          "type": "object"
-        }
+        "value": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+        "effect": { "enum": ["informational", "enforce"] },
+        "target": { "enum": ["node", "edge", "diff"] },
+        "selector": { "type": "object" }
       },
       "required": ["id", "assertion", "target", "selector"],
       "oneOf": [
         {
           "allOf": [
-            {
-              "$ref": "#/definitions/ruleBase"
-            },
+            { "$ref": "#/definitions/ruleBase" },
             {
               "properties": {
-                "target": {
-                  "const": "node"
-                },
-                "selector": {
-                  "$ref": "#/definitions/nodeSelector"
-                }
+                "target": { "const": "node" },
+                "selector": { "$ref": "#/definitions/nodeSelector" }
               },
               "required": ["target", "selector"]
             }
@@ -508,17 +366,11 @@
         },
         {
           "allOf": [
-            {
-              "$ref": "#/definitions/ruleBase"
-            },
+            { "$ref": "#/definitions/ruleBase" },
             {
               "properties": {
-                "target": {
-                  "const": "edge"
-                },
-                "selector": {
-                  "$ref": "#/definitions/edgeSelector"
-                }
+                "target": { "const": "edge" },
+                "selector": { "$ref": "#/definitions/edgeSelector" }
               },
               "required": ["target", "selector"]
             }
@@ -526,17 +378,11 @@
         },
         {
           "allOf": [
-            {
-              "$ref": "#/definitions/ruleBase"
-            },
+            { "$ref": "#/definitions/ruleBase" },
             {
               "properties": {
-                "target": {
-                  "const": "diff"
-                },
-                "selector": {
-                  "$ref": "#/definitions/diffSelector"
-                }
+                "target": { "const": "diff" },
+                "selector": { "$ref": "#/definitions/diffSelector" }
               },
               "required": ["target", "selector"]
             }
@@ -547,45 +393,25 @@
         {
           "if": {
             "properties": {
-              "assertion": {
-                "enum": ["count-at-most", "count-at-least"]
-              }
+              "assertion": { "enum": ["count-at-most", "count-at-least"] }
             }
           },
-          "then": {
-            "required": ["value"]
-          }
+          "then": { "required": ["value"] }
         },
         {
           "if": {
             "properties": {
-              "assertion": {
-                "enum": ["exists", "absent", "acyclic"]
-              }
+              "assertion": { "enum": ["exists", "absent", "acyclic"] }
             }
           },
-          "then": {
-            "not": {
-              "required": ["value"]
-            }
-          }
+          "then": { "not": { "required": ["value"] } }
         },
         {
           "if": {
-            "properties": {
-              "assertion": {
-                "const": "acyclic"
-              }
-            },
+            "properties": { "assertion": { "const": "acyclic" } },
             "required": ["assertion"]
           },
-          "then": {
-            "properties": {
-              "target": {
-                "const": "edge"
-              }
-            }
-          }
+          "then": { "properties": { "target": { "const": "edge" } } }
         }
       ]
     },
