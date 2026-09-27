@@ -73,9 +73,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["path"],
-      "properties": {
-        "path": { "$ref": "#/definitions/policyPath" }
-      }
+      "properties": { "path": { "$ref": "#/definitions/policyPath" } }
     },
     "identifier": {
       "type": "string",
@@ -223,12 +221,16 @@
           ]
         },
         "id": { "$ref": "#/definitions/selectorValue" },
-        "name": { "$ref": "#/definitions/selectorName" }
+        "name": { "$ref": "#/definitions/selectorName" },
+        "path": { "$ref": "#/definitions/pathPattern" },
+        "pathExclude": { "$ref": "#/definitions/pathPattern" }
       },
       "anyOf": [
         { "required": ["kind"] },
         { "required": ["id"] },
-        { "required": ["name"] }
+        { "required": ["name"] },
+        { "required": ["path"] },
+        { "required": ["pathExclude"] }
       ]
     },
     "edgeSelector": {
@@ -252,12 +254,22 @@
           ]
         },
         "from": { "$ref": "#/definitions/selectorValue" },
-        "to": { "$ref": "#/definitions/selectorValue" }
+        "to": { "$ref": "#/definitions/selectorValue" },
+        "fromPath": { "$ref": "#/definitions/pathPattern" },
+        "fromPathExclude": { "$ref": "#/definitions/pathPattern" },
+        "toPath": { "$ref": "#/definitions/pathPattern" },
+        "toPathExclude": { "$ref": "#/definitions/pathPattern" },
+        "toPackage": { "$ref": "#/definitions/packagePattern" }
       },
       "anyOf": [
         { "required": ["kind"] },
         { "required": ["from"] },
-        { "required": ["to"] }
+        { "required": ["to"] },
+        { "required": ["fromPath"] },
+        { "required": ["fromPathExclude"] },
+        { "required": ["toPath"] },
+        { "required": ["toPathExclude"] },
+        { "required": ["toPackage"] }
       ]
     },
     "diffSelector": {
@@ -306,13 +318,15 @@
       "properties": {
         "id": { "$ref": "#/definitions/identifier" },
         "assertion": {
-          "enum": ["exists", "absent", "count-at-most", "count-at-least"]
+          "enum": [
+            "exists",
+            "absent",
+            "count-at-most",
+            "count-at-least",
+            "acyclic"
+          ]
         },
-        "value": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 1000000
-        },
+        "value": { "type": "integer", "minimum": 0, "maximum": 1000000 },
         "effect": { "enum": ["informational", "enforce"] }
       },
       "required": ["id", "assertion"]
@@ -323,13 +337,15 @@
       "properties": {
         "id": { "$ref": "#/definitions/identifier" },
         "assertion": {
-          "enum": ["exists", "absent", "count-at-most", "count-at-least"]
+          "enum": [
+            "exists",
+            "absent",
+            "count-at-most",
+            "count-at-least",
+            "acyclic"
+          ]
         },
-        "value": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 1000000
-        },
+        "value": { "type": "integer", "minimum": 0, "maximum": 1000000 },
         "effect": { "enum": ["informational", "enforce"] },
         "target": { "enum": ["node", "edge", "diff"] },
         "selector": { "type": "object" }
@@ -385,12 +401,33 @@
         {
           "if": {
             "properties": {
-              "assertion": { "enum": ["exists", "absent"] }
+              "assertion": { "enum": ["exists", "absent", "acyclic"] }
             }
           },
           "then": { "not": { "required": ["value"] } }
+        },
+        {
+          "if": {
+            "properties": { "assertion": { "const": "acyclic" } },
+            "required": ["assertion"]
+          },
+          "then": { "properties": { "target": { "const": "edge" } } }
         }
       ]
+    },
+    "pathPattern": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?![/~])(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\u0000\\r\\n\\[\\]{}!]+$",
+      "description": "Repository-relative glob: * matches within a segment, ** across segments, ? one character."
+    },
+    "packagePattern": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 214,
+      "pattern": "^(?![/.])(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\u0000\\r\\n\\[\\]{}!\\\\]+$",
+      "description": "Package name or glob; also matches the package's subpaths."
     }
   }
 }

@@ -182,6 +182,9 @@ const boundsFor = (rule: LocalPolicyRule): Bounds => {
       return { min: 0, max: rule.value ?? 0 };
     case "count-at-least":
       return { min: rule.value ?? 0, max: Number.POSITIVE_INFINITY };
+    case "acyclic":
+      // Constrains structure, not count, so it cannot contradict a count rule.
+      return { min: 0, max: Number.POSITIVE_INFINITY };
   }
 };
 

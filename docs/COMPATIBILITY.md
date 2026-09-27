@@ -1041,3 +1041,20 @@ filtered view as a complete graph. The checked-in fixture and replay gate are
 run with `npm run graph-view:validate`; a future change to selection, omission,
 legend meaning, or layout semantics requires a new graph-view version or an
 explicit compatibility review.
+
+## Policy path patterns and the acyclic assertion
+
+`cartograph.policy` v1 gains additive, optional selector fields: node `path`
+and `pathExclude`; edge `fromPath`, `fromPathExclude`, `toPath`,
+`toPathExclude`, and `toPackage`. The rule assertion enum gains `acyclic`
+(edge rules only, no `value`), and the `cartograph.policy-evaluation` v1
+assertion enum gains the same value. Existing policies parse and evaluate
+exactly as before, so the schema version is unchanged; a reader that does not
+know the new fields rejects a policy that uses them, which is the intended
+fail-closed behavior. Policy composition treats `acyclic` as imposing no count
+bound, so it never conflicts with count rules.
+
+The same change fixes node and edge rules on `GraphDiff` input: diff
+candidates previously carried no node or edge payload, so those rules could
+never match a diff. They now match added, changed, and rewired records;
+removed records still never match.

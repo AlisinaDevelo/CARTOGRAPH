@@ -65,6 +65,37 @@ export const LocalPolicyPathSchema = z
     );
   }, "must be a repository-relative local policy path");
 
+// Repository-relative glob (`*`, `**`, `?` only); see policy-paths.ts.
+const PathPatternSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(512)
+  .refine((value) => {
+    const normalized = value.replaceAll("\\", "/");
+    return (
+      !normalized.startsWith("/") &&
+      !normalized.startsWith("~") &&
+      !/^[A-Za-z][A-Za-z\d+.-]*:/.test(normalized) &&
+      !/[\0\r\n[\]{}!]/u.test(normalized) &&
+      !normalized.split("/").some((part) => part === ".." || part === ".")
+    );
+  }, "must be a repository-relative glob using only *, **, and ?");
+
+const PackagePatternSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(214)
+  .refine(
+    (value) =>
+      !/[\0\r\n[\]{}!\\]/u.test(value) &&
+      !value.startsWith("/") &&
+      !value.startsWith(".") &&
+      !value.split("/").some((part) => part === ".." || part === "."),
+    "must be a package name or glob using only *, **, and ?",
+  );
+
 const NameSelectorSchema = z
   .string()
   .trim()
@@ -146,6 +177,8 @@ export const LocalPolicyNodeSelectorSchema = z
     kind: NodeKindSchema.optional(),
     id: SelectorValueSchema.optional(),
     name: NameSelectorSchema.optional(),
+    path: PathPatternSchema.optional(),
+    pathExclude: PathPatternSchema.optional(),
   })
   .strict()
   .superRefine(requireSelectorField);
@@ -155,6 +188,11 @@ export const LocalPolicyEdgeSelectorSchema = z
     kind: EdgeKindSchema.optional(),
     from: SelectorValueSchema.optional(),
     to: SelectorValueSchema.optional(),
+    fromPath: PathPatternSchema.optional(),
+    fromPathExclude: PathPatternSchema.optional(),
+    toPath: PathPatternSchema.optional(),
+    toPathExclude: PathPatternSchema.optional(),
+    toPackage: PackagePatternSchema.optional(),
   })
   .strict()
   .superRefine(requireSelectorField);
@@ -174,6 +212,7 @@ const AssertionSchema = z.enum([
   "absent",
   "count-at-most",
   "count-at-least",
+  "acyclic",
 ]);
 
 const EffectSchema = z.enum(["informational", "enforce"]);
@@ -294,9 +333,21 @@ const ruleInvariant = (
     context.addIssue({
       code: "custom",
       path: ["value"],
-      message: "exists and absent assertions do not accept value",
+      message: "exists, absent, and acyclic assertions do not accept value",
     });
   }
+};
+
+const edgeOnlyAssertion = (
+  rule: { assertion: z.infer<typeof AssertionSchema> },
+  context: z.RefinementCtx,
+): void => {
+  if (rule.assertion === "acyclic")
+    context.addIssue({
+      code: "custom",
+      path: ["assertion"],
+      message: "the acyclic assertion applies only to edge rules",
+    });
 };
 
 const PolicyRuleCommonShape = {
@@ -313,7 +364,8 @@ const PolicyNodeRuleSchema = z
     selector: LocalPolicyNodeSelectorSchema,
   })
   .strict()
-  .superRefine(ruleInvariant);
+  .superRefine(ruleInvariant)
+  .superRefine(edgeOnlyAssertion);
 
 const PolicyEdgeRuleSchema = z
   .object({
@@ -331,7 +383,8 @@ const PolicyDiffRuleSchema = z
     selector: LocalPolicyDiffSelectorSchema,
   })
   .strict()
-  .superRefine(ruleInvariant);
+  .superRefine(ruleInvariant)
+  .superRefine(edgeOnlyAssertion);
 
 export const LocalPolicyRuleSchema = z.discriminatedUnion("target", [
   PolicyNodeRuleSchema,

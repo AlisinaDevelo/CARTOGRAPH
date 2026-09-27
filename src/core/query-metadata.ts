@@ -14,6 +14,11 @@ import {
   type PolicyConfig,
 } from "./policy.js";
 import {
+  matchesPolicyEdgeSelector,
+  matchesPolicyNodeSelector,
+  nodePathResolver,
+} from "./policy-paths.js";
+import {
   PolicyEvaluationSchema,
   PolicyExceptionReportSchema,
   PolicyUnsupportedSchema,
@@ -190,7 +195,13 @@ const PolicyRuleProjectionSchema = z
     policyVersion: MetadataIdentifierSchema,
     ruleId: MetadataIdentifierSchema,
     target: z.enum(["node", "edge", "diff"]),
-    assertion: z.enum(["exists", "absent", "count-at-most", "count-at-least"]),
+    assertion: z.enum([
+      "exists",
+      "absent",
+      "count-at-most",
+      "count-at-least",
+      "acyclic",
+    ]),
     value: z.number().int().nonnegative().optional(),
     effect: z.enum(["informational", "enforce"]),
     applicableGraphIds: z.array(MetadataGraphIdSchema).max(100_000),
@@ -379,18 +390,11 @@ const policyRuleMatches = (
   nodes: readonly GraphNode[],
   edges: readonly GraphEdge[],
 ): SelectedTarget[] => {
+  const pathOf = nodePathResolver(nodes);
   if (rule.target === "node") {
+    const selector = rule.selector;
     return nodes
-      .filter(
-        (node) =>
-          (rule.selector.kind === undefined ||
-            rule.selector.kind === node.kind) &&
-          (rule.selector.id === undefined ||
-            rule.selector.id === node.id ||
-            rule.selector.id === node.stableKey) &&
-          (rule.selector.name === undefined ||
-            rule.selector.name === node.name),
-      )
+      .filter((node) => matchesPolicyNodeSelector(node, selector, pathOf))
       .map((node) => ({
         kind: "node" as const,
         canonicalId: `node:${node.id}`,
@@ -403,15 +407,9 @@ const policyRuleMatches = (
       }));
   }
   if (rule.target === "edge") {
+    const selector = rule.selector;
     return edges
-      .filter(
-        (edge) =>
-          (rule.selector.kind === undefined ||
-            rule.selector.kind === edge.kind) &&
-          (rule.selector.from === undefined ||
-            rule.selector.from === edge.from) &&
-          (rule.selector.to === undefined || rule.selector.to === edge.to),
-      )
+      .filter((edge) => matchesPolicyEdgeSelector(edge, selector, pathOf))
       .map((edge) => ({
         kind: "edge" as const,
         canonicalId: serializeAdrGraphEdgeId(edge),
