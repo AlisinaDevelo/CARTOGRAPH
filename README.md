@@ -123,11 +123,26 @@ JavaScript files, generated routes, framework metaprogramming, and complete runt
 cartograph scan [root]
 cartograph diff [root] --base <ref> [--head <ref>] [--comparison direct|merge-base] [--adr <path>]
 cartograph diff-snapshots <before.json> <after.json>
+cartograph query --snapshot <graph.json> (--cycles | --from <module> --to <module> | --expr <query> | --query <file>)
 cartograph review <input.json> [--format json|markdown|html]
 cartograph migrate-snapshot <input.json> --report <report.json>
 ```
 
 `scan` emits canonical graph JSON. `diff` and `diff-snapshots` support `json`, `markdown`, and self-contained `html` reports. Add `--adr <path>` to `diff` to compare a repository-local ADR reference index at both revisions; Markdown and HTML reports then include deterministic ADR title/status, graph evidence, added/removed/changed references, stale-link diagnostics, and bidirectional ADR coverage indexes with counts by node and edge kind. Use `--tsconfig <path>` to select a configuration inside the analyzed repository. Use `--config <path>` to apply the versioned, repository-relative [configuration contract](docs/CONFIGURATION.md); command-line flags override matching invocation settings.
+
+`query` answers questions about a snapshot without rescanning. `--cycles`
+lists module import cycles, `--from src/a.ts --to src/b.ts` prints the shortest
+dependency path with the import evidence for each hop, `--expr` runs a
+[graph query language](docs/ARCHITECTURE.md#d-015-query-language) expression
+(against a `--diff` it can select changes), and `--query` runs an
+[architecture query](docs/ARCHITECTURE_QUERIES.md) JSON request. Add
+`--fail-on-match` to make a CI step exit 2 when the query returns anything, for
+example to keep a codebase free of import cycles:
+
+```sh
+node dist/cli.js scan . --output .cartograph/graph.json
+node dist/cli.js query --snapshot .cartograph/graph.json --cycles --fail-on-match
+```
 
 `migrate-snapshot` rewrites the historical GraphSnapshot v0 fixture to v1 and
 records every changed node or edge identity. Migration output is deterministic
