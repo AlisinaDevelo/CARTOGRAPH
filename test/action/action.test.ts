@@ -101,7 +101,7 @@ describe("read-only GitHub Action contract", () => {
     expect(workflow).toContain("persist-credentials: false");
     expect(workflow).toContain("github.event.pull_request.head.sha");
     expect(workflow).toContain(
-      "AlisinaDevelo/CARTOGRAPH@0491e7cdd8a558b025fc60a3897a01cf74577965",
+      "AlisinaDevelo/CARTOGRAPH@addf08d96eb5be3f76e441fb879fe13352d8a871",
     );
     expect(workflow).not.toContain("pull_request_target");
     expect(workflow).not.toContain("secrets.");

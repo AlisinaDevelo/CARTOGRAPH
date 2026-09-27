@@ -91,7 +91,7 @@ steps:
       persist-credentials: false
       fetch-depth: 0
       ref: ${{ github.event.pull_request.head.sha }}
-  - uses: AlisinaDevelo/CARTOGRAPH@0491e7cdd8a558b025fc60a3897a01cf74577965 # self-Action metadata verified
+  - uses: AlisinaDevelo/CARTOGRAPH@addf08d96eb5be3f76e441fb879fe13352d8a871 # self-Action metadata verified
     with:
       comparison: merge-base
 ```
@@ -120,6 +120,7 @@ Generated routes, framework metaprogramming, and complete runtime behavior are n
 ## Commands
 
 ```text
+cartograph init [root] [--no-workflow] [--force]
 cartograph scan [root]
 cartograph diff [root] --base <ref> [--head <ref>] [--comparison direct|merge-base] [--adr <path>]
 cartograph diff-snapshots <before.json> <after.json>
@@ -131,6 +132,11 @@ cartograph migrate-snapshot <input.json> --report <report.json>
 ```
 
 `scan` emits canonical graph JSON. `diff` and `diff-snapshots` support `json`, `markdown`, and self-contained `html` reports. Add `--adr <path>` to `diff` to compare a repository-local ADR reference index at both revisions; Markdown and HTML reports then include deterministic ADR title/status, graph evidence, added/removed/changed references, stale-link diagnostics, and bidirectional ADR coverage indexes with counts by node and edge kind. Use `--tsconfig <path>` to select a configuration inside the analyzed repository. Use `--config <path>` to apply the versioned, repository-relative [configuration contract](docs/CONFIGURATION.md); command-line flags override matching invocation settings.
+
+`init` writes a starter `cartograph.config.json`, an informational
+`cartograph.policy.json` that reports import cycles, and a pull-request
+workflow pinned to the reviewed Action commit. Existing files are skipped
+unless you pass `--force`.
 
 `query` answers questions about a snapshot without rescanning. `--cycles`
 lists module import cycles, `--from src/a.ts --to src/b.ts` prints the shortest

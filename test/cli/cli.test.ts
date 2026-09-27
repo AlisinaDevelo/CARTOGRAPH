@@ -25,6 +25,7 @@ describe("CLI", () => {
       "diff-snapshots",
       "query",
       "export",
+      "init",
       "review",
       "policy",
       "migrate-snapshot",
