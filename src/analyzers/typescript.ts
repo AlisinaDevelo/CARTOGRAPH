@@ -3826,6 +3826,81 @@ const addPrismaEdge = (
   return true;
 };
 
+const isExternalPackageSpecifier = (
+  context: AnalyzerContext,
+  sourceFile: SourceFile,
+  specifier: string,
+): boolean => {
+  if (specifier.startsWith(".") || specifier.startsWith("/")) return false;
+  const resolved = context.resolveModule(specifier, sourceFile.getFilePath());
+  // An unresolved bare specifier is a package that is not installed; path
+  // aliases and workspace packages that resolve into the repository stay local.
+  if (resolved === undefined) return true;
+  return (
+    !isInsideRoot(context.rootDir, resolved) ||
+    normalizePath(resolved).includes("/node_modules/")
+  );
+};
+
+const MAX_EXTERNAL_ORIGIN_DEPTH = 4;
+
+/**
+ * True when a call target is a package export, a local binding initialized
+ * from one (`const { t } = useTranslation()`), or a value reached through a
+ * parameter (`props.onSelect()`). Package declarations are not loaded, so the
+ * first two can never resolve to repository code and are already represented
+ * by the package import edge; parameter-borne callees are dynamic dispatch,
+ * which direct parameter calls already leave undiagnosed.
+ */
+const hasExternalOrigin = (
+  context: AnalyzerContext,
+  expression: Expression,
+  depth = 0,
+): boolean => {
+  if (depth > MAX_EXTERNAL_ORIGIN_DEPTH) return false;
+  let root: Expression = expressionRootNode(expression);
+  while (
+    Node.isCallExpression(root) ||
+    Node.isNewExpression(root) ||
+    Node.isAwaitExpression(root) ||
+    Node.isNonNullExpression(root) ||
+    Node.isParenthesizedExpression(root)
+  ) {
+    root = expressionRootNode(root.getExpression());
+  }
+  if (!Node.isIdentifier(root)) return false;
+  const sourceFile = root.getSourceFile();
+  const name = root.getText();
+  const importDeclaration = sourceFile
+    .getImportDeclarations()
+    .find((declaration) => importedLocalNames(declaration).includes(name));
+  if (importDeclaration)
+    return isExternalPackageSpecifier(
+      context,
+      sourceFile,
+      importDeclaration.getModuleSpecifierValue(),
+    );
+  for (const declaration of symbolDeclarations(root)) {
+    let binding: Node = declaration;
+    while (Node.isBindingElement(binding)) {
+      const pattern = binding.getParent();
+      const owner = pattern?.getParent();
+      if (!owner) break;
+      binding = owner;
+    }
+    if (Node.isParameterDeclaration(binding)) return true;
+    if (!Node.isVariableDeclaration(binding)) continue;
+    const initializer = binding.getInitializer();
+    if (
+      initializer &&
+      Node.isExpression(initializer) &&
+      hasExternalOrigin(context, initializer, depth + 1)
+    )
+      return true;
+  }
+  return false;
+};
+
 const addCallEdge = (context: AnalyzerContext, call: CallExpression): void => {
   const expression = call.getExpression();
   const target = resolveCallable(context, expression);
@@ -3860,6 +3935,7 @@ const addCallEdge = (context: AnalyzerContext, call: CallExpression): void => {
   const root = expressionRootName(expression);
   if (!root || BUILTIN_CALL_ROOTS.has(root) || FRAMEWORK_CALL_ROOTS.has(root))
     return;
+  if (hasExternalOrigin(context, expression)) return;
   const declarations = declarationsFor(context, expression);
   const hasLocalDeclaration = declarations.some((declaration) =>
     isInsideRoot(context.rootDir, declaration.getSourceFile().getFilePath()),
