@@ -54,7 +54,13 @@ describe("release pipeline contract", () => {
     expect(read("scripts/release-artifact.mjs")).toContain(
       "release-compatibility.mjs",
     );
-    expect(workflow).not.toContain("npm publish");
+    expect(workflow).toContain(
+      "if: vars.CARTOGRAPH_NPM_TRUSTED_PUBLISHING == 'true'",
+    );
+    expect(workflow).toContain(
+      'npm publish "$tarball" --access public --provenance',
+    );
+    expect(workflow).not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN|secrets\./u);
   });
 
   it("keeps the release contract documented and generated output ignored", () => {
@@ -79,6 +85,8 @@ describe("release pipeline contract", () => {
       "standalone native executable is explicitly deferred",
     );
     expect(distribution).toContain("npm install --offline");
+    expect(distribution).toContain("distribution.v0.2");
+    expect(distribution).toContain("trusted publishing");
     expect(distribution).toContain("--ignore-scripts");
     expect(changelog).toContain("## [0.1.0]");
     expect(ignore).toContain("dist/");
