@@ -17,8 +17,8 @@ Pass it to `scan` or `diff` with `--config <path>`.
     "maxSourceBytes": 67108864,
     "maxArchiveBytes": 134217728,
     "maxMemoryBytes": 1073741824,
-    "maxWallClockMs": 30000,
-    "maxReportItems": 10000
+    "maxWallClockMs": 120000,
+    "maxReportItems": 200000
   },
   "policyRefs": [".cartograph/policy.json"],
   "unknownFields": "error"

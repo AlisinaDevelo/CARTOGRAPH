@@ -526,6 +526,7 @@ export async function materializeRevision(
     maxMemoryBytes,
     maxWallClockMs,
     subject: "revision materialization",
+    configKeys: true,
     ...(options.signal === undefined ? {} : { signal: options.signal }),
   });
   checkBudget();

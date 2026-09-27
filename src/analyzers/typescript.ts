@@ -365,8 +365,8 @@ const DEFAULT_RESOURCE_LIMITS: ResourceLimits = {
   maxSourceBytes: 64 * 1024 * 1024,
   maxArchiveBytes: 64 * 1024 * 1024,
   maxMemoryBytes: 1024 * 1024 * 1024,
-  maxWallClockMs: 30_000,
-  maxReportItems: 10_000,
+  maxWallClockMs: 120_000,
+  maxReportItems: 200_000,
 };
 
 type LoadedProjectConfig = {
@@ -4236,6 +4236,7 @@ const createContext = (options: TypeScriptAnalyzerOptions): AnalyzerContext => {
   const checkBudget = createResourceBudget({
     maxMemoryBytes: resources.maxMemoryBytes,
     maxWallClockMs: resources.maxWallClockMs,
+    configKeys: true,
     ...(options.signal === undefined ? {} : { signal: options.signal }),
   });
   checkBudget();
