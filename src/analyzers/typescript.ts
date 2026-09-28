@@ -4217,6 +4217,19 @@ const addCallEdge = (context: AnalyzerContext, call: CallExpression): void => {
     return;
   if (hasExternalOrigin(context, expression)) return;
   const declarations = declarationsFor(context, expression);
+  // A member declared only by an interface or object type (`schema.parse()`
+  // on a `Schema`) has no body to resolve to; like a parameter-borne callee,
+  // it is dynamic dispatch, not a missing edge.
+  if (
+    declarations.length > 0 &&
+    declarations.every(
+      (declaration) =>
+        Node.isMethodSignature(declaration) ||
+        Node.isPropertySignature(declaration) ||
+        Node.isCallSignatureDeclaration(declaration),
+    )
+  )
+    return;
   const hasLocalDeclaration = declarations.some((declaration) =>
     isInsideRoot(context.rootDir, declaration.getSourceFile().getFilePath()),
   );

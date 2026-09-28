@@ -90,6 +90,22 @@ describe("UNRESOLVED_CALL for package-originated call targets", () => {
     expect(unresolvedCallLines(root)).toEqual([]);
   });
 
+  it("does not report calls to members declared only by a type", () => {
+    const root = repository({
+      "src/schema.ts": [
+        "export interface Schema {",
+        "  parse(value: unknown): unknown;",
+        "  check: (value: unknown) => boolean;",
+        "}",
+        "export const make = (): Schema => ({ parse: (value) => value, check: () => true });",
+        "const schema = make();",
+        "export const use = (): unknown => (schema.check(1) ? schema.parse(1) : undefined);",
+        "",
+      ].join("\n"),
+    });
+    expect(unresolvedCallLines(root)).toEqual([]);
+  });
+
   it("still reports unresolved calls rooted in repository code", () => {
     const root = repository({
       "src/local.ts": ["export const make = () => () => 1;", ""].join("\n"),
