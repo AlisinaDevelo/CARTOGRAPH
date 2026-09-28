@@ -39,7 +39,10 @@ absolute, contain a drive or URI prefix, contain NUL bytes, or include a `..`
 segment. The config file itself must also be inside the analyzed repository.
 The analyzer never follows source symlinks. Exceeding a selected-file,
 materialized-entry, byte, archive, memory, wall-clock, or report-cardinality
-ceiling fails closed with a stable diagnostic.
+ceiling fails closed with a stable diagnostic. `maxMemoryBytes` bounds the
+resident memory an analysis adds to its process, measured from when the
+analysis starts, so a long-running host that embeds the analyzer is not
+charged for memory it was already using.
 
 Unknown keys fail closed by default. A config may set `unknownFields` to
 `"warn"`; unknown keys are ignored and each ignored key is reported on stderr

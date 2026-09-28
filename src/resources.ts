@@ -27,6 +27,13 @@ export const createResourceBudget = (
 ): (() => void) => {
   const startedAt = Date.now();
   const subject = options.subject ?? "analysis";
+  // The ceiling bounds what this budget's work adds on top of the process's
+  // resident memory when it started. A long-lived host (a test runner, an
+  // editor, a server) that has already grown past the ceiling must not make
+  // every later analysis fail; a fresh CLI process starts near zero, so its
+  // limit is effectively the same as an absolute one.
+  const baselineRss =
+    options.maxMemoryBytes === undefined ? 0 : process.memoryUsage.rss();
 
   return (): void => {
     if (options.signal?.aborted)
@@ -43,7 +50,7 @@ export const createResourceBudget = (
 
     if (
       options.maxMemoryBytes !== undefined &&
-      process.memoryUsage.rss() > options.maxMemoryBytes
+      process.memoryUsage.rss() - baselineRss > options.maxMemoryBytes
     ) {
       throw new ResourceLimitError(
         `${subject} exceeded the ${options.maxMemoryBytes} byte memory ceiling${options.configKeys === true ? "; raise resources.maxMemoryBytes in the --config file" : ""}`,
