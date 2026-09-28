@@ -2918,10 +2918,32 @@ const importSourceFiles = (context: AnalyzerContext): void => {
   }
 };
 
+const CALLABLE_KINDS = [
+  SyntaxKind.ArrowFunction,
+  SyntaxKind.FunctionDeclaration,
+  SyntaxKind.FunctionExpression,
+  SyntaxKind.MethodDeclaration,
+] as const;
+
+/**
+ * Callable declarations in document pre-order (the order getDescendants()
+ * yields them), without wrapping every syntax node in the file: ts-morph keeps
+ * a wrapper for each node it has handed out, which on type-heavy sources held
+ * hundreds of megabytes. Registration order feeds stable-key suffixes, so the
+ * order must stay exactly the same.
+ */
+const callableDeclarations = (sourceFile: SourceFile): FunctionLike[] =>
+  CALLABLE_KINDS.flatMap(
+    (kind) => sourceFile.getDescendantsOfKind(kind) as FunctionLike[],
+  ).sort(
+    (left, right) =>
+      left.getPos() - right.getPos() || right.getEnd() - left.getEnd(),
+  );
+
 const registerCallables = (context: AnalyzerContext): void => {
   for (const sourceFile of context.sourceFiles) {
     context.checkBudget();
-    const declarations = sourceFile.getDescendants().filter(isCallableNode);
+    const declarations = callableDeclarations(sourceFile);
     for (const declaration of declarations) {
       context.checkBudget();
       if (
