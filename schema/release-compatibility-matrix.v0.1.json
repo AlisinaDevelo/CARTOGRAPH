@@ -14,7 +14,7 @@
     "policy": 1,
     "adapterApi": 1,
     "adapterCompatibility": 1,
-    "action": "0.1.0"
+    "action": "0.1.1"
   },
   "actions": [
     {
@@ -42,7 +42,7 @@
       "policy": 1,
       "adapterApi": 1,
       "adapterCompatibility": 1,
-      "action": "0.1.0"
+      "action": "0.1.1"
     },
     {
       "os": "ubuntu-latest",
@@ -52,7 +52,7 @@
       "policy": 1,
       "adapterApi": 1,
       "adapterCompatibility": 1,
-      "action": "0.1.0"
+      "action": "0.1.1"
     },
     {
       "os": "macos-latest",
@@ -62,7 +62,7 @@
       "policy": 1,
       "adapterApi": 1,
       "adapterCompatibility": 1,
-      "action": "0.1.0"
+      "action": "0.1.1"
     },
     {
       "os": "macos-latest",
@@ -72,7 +72,7 @@
       "policy": 1,
       "adapterApi": 1,
       "adapterCompatibility": 1,
-      "action": "0.1.0"
+      "action": "0.1.1"
     }
   ],
   "release": {

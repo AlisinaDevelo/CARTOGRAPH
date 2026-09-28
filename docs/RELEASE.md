@@ -62,13 +62,13 @@ inspect the provenance statement:
 
 ```sh
 shasum -a 256 -c SHA256SUMS
-node -e 'const p=require("./cartograph-cli-0.1.0.tgz.provenance.json"); if (p.subject[0].digest.sha256.length !== 64 || p.predicateType !== "https://slsa.dev/provenance/v1") process.exit(1)'
+node -e 'const p=require("./cartograph-cli-0.1.1.tgz.provenance.json"); if (p.subject[0].digest.sha256.length !== 64 || p.predicateType !== "https://slsa.dev/provenance/v1") process.exit(1)'
 ```
 
 GitHub's signed attestation can be verified independently with the GitHub CLI:
 
 ```sh
-gh attestation verify cartograph-cli-0.1.0.tgz \
+gh attestation verify cartograph-cli-0.1.1.tgz \
   --repo AlisinaDevelo/CARTOGRAPH \
   --signer-workflow AlisinaDevelo/CARTOGRAPH/.github/workflows/release.yml
 ```

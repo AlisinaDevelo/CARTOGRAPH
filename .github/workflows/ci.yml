@@ -141,11 +141,11 @@ jobs:
       - name: Smoke-test the installed package
         run:
           | # zizmor: ignore[adhoc-packages] Fresh local tarball consumer smoke; lifecycle scripts stay disabled.
-          npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP"
+          tarball="$(npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP" --silent)"
           mkdir "$RUNNER_TEMP/cartograph-consumer"
           cd "$RUNNER_TEMP/cartograph-consumer"
           npm init -y
-          npm install --ignore-scripts "$RUNNER_TEMP/cartograph-cli-0.1.0.tgz"
+          npm install --ignore-scripts "$RUNNER_TEMP/$tarball"
           ./node_modules/.bin/cartograph --version
           ./node_modules/.bin/cartograph scan "$GITHUB_WORKSPACE/test/fixtures/typescript-express" > snapshot.json
           node -e 'const fs = require("node:fs"); const value = JSON.parse(fs.readFileSync("snapshot.json", "utf8")); if (value.schemaVersion !== 1 || value.edges.length === 0) process.exit(1)'

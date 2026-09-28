@@ -47,7 +47,7 @@ import {
 import { initRepository } from "./init-command.js";
 import type { RevisionComparisonMode } from "./git/revision.js";
 
-const VERSION = "0.1.0";
+const VERSION = "0.1.1";
 
 const writeRedactedError = (message: string): void => {
   process.stderr.write(

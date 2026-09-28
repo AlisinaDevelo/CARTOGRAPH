@@ -78,7 +78,7 @@ describe("CLI entrypoint", () => {
     expect(help.stdout).toContain("Usage: cartograph");
     expect(version.code).toBe(0);
     expect(version.stderr).toBe("");
-    expect(version.stdout.trim()).toBe("0.1.0");
+    expect(version.stdout.trim()).toBe("0.1.1");
   });
 
   it("keeps JSON reports on stdout and diagnostics on stderr", async () => {

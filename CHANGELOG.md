@@ -9,6 +9,27 @@ checksums.
 
 No unreleased changes.
 
+## [0.1.1] - 2026-09-28
+
+The first published release. `v0.1.0` was tagged, but its release workflow
+stopped at the package smoke test and published nothing; 0.1.1 contains
+everything listed under 0.1.0 plus the fix below.
+
+### Fixed
+
+- The release smoke test installs the packed tarball with `npm ci --offline`
+  from a lockfile derived from `package-lock.json`. The previous
+  `npm install --offline <tarball>` needed registry metadata that is never
+  cached, so it could not pass on a clean runner. CI now runs this check on
+  every pull request.
+- The release guide no longer tells consumers to install the tarball with
+  `--offline`.
+
+### Changed
+
+- Development dependencies: Vitest and `@vitest/coverage-v8` 5.0, plus minor
+  and patch updates to the lint, format, and type tooling.
+
 ## [0.1.0] - 2026-09-28
 
 First tagged release. The attested tarball is attached to the GitHub release.

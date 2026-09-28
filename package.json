@@ -1,6 +1,6 @@
 {
   "name": "cartograph-cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Deterministic architecture graph, revision-diff, policy, and bounded runtime-reconciliation tooling for TypeScript.",
   "type": "module",
   "bin": {
