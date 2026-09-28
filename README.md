@@ -42,7 +42,7 @@ shasum -a 256 -c SHA256SUMS --ignore-missing
 gh attestation verify cartograph-cli-0.1.1.tgz -R AlisinaDevelo/CARTOGRAPH
 npm install --global --ignore-scripts ./cartograph-cli-0.1.1.tgz
 cartograph init          # config, starter policy, and pull-request workflow
-cartograph scan . --output .cartograph/graph.json
+mkdir -p .cartograph && cartograph scan . --output .cartograph/graph.json
 ```
 
 CARTOGRAPH is not on npm yet. To run from source instead:
