@@ -9,7 +9,7 @@ runtime, operating-system, artifact version, or Action reference is introduced.
 
 Matrix ID: `cartograph-release-compatibility-v0.1`
 
-Matrix digest: `sha256:b206fdf8589ce8f84d307017bb41fa4579d48dcc8467a1911dcabe3545c86085`
+Matrix digest: `sha256:3fa309b503bdee7a9c08a2c95aa12c741aa63317de836f1db84287602326454f`
 
 ## Tested combinations
 
@@ -19,10 +19,10 @@ composite Action contracts.
 
 | OS              | Node   | Snapshot | Diff | Policy | Adapter API | Adapter compatibility | Action  |
 | --------------- | ------ | -------: | ---: | -----: | ----------: | --------------------: | ------- |
-| `ubuntu-latest` | `22.x` |        1 |    1 |      1 |           1 |                     1 | `0.1.0` |
-| `ubuntu-latest` | `24.x` |        1 |    1 |      1 |           1 |                     1 | `0.1.0` |
-| `macos-latest`  | `22.x` |        1 |    1 |      1 |           1 |                     1 | `0.1.0` |
-| `macos-latest`  | `24.x` |        1 |    1 |      1 |           1 |                     1 | `0.1.0` |
+| `ubuntu-latest` | `22.x` |        1 |    1 |      1 |           1 |                     1 | `0.1.1` |
+| `ubuntu-latest` | `24.x` |        1 |    1 |      1 |           1 |                     1 | `0.1.1` |
+| `macos-latest`  | `22.x` |        1 |    1 |      1 |           1 |                     1 | `0.1.1` |
+| `macos-latest`  | `24.x` |        1 |    1 |      1 |           1 |                     1 | `0.1.1` |
 
 The composite Action itself runs on Node `24.x`. Its pinned dependencies are
 `actions/checkout@v7.0.1`, `actions/setup-node@v7.0.0`, and
