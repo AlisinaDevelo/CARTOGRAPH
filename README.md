@@ -124,6 +124,8 @@ cartograph scan [root]
 cartograph diff [root] --base <ref> [--head <ref>] [--comparison direct|merge-base] [--adr <path>]
 cartograph diff-snapshots <before.json> <after.json>
 cartograph query --snapshot <graph.json> (--cycles | --from <module> --to <module> | --expr <query> | --query <file>)
+cartograph export --snapshot <graph.json> --format graph-json|json-ld|edge-list|scip
+cartograph policy [root] --policy <policy.json> (--snapshot <graph.json> | --diff <diff.json>) [--format json|sarif]
 cartograph review <input.json> [--format json|markdown|html]
 cartograph migrate-snapshot <input.json> --report <report.json>
 ```
@@ -163,9 +165,9 @@ turn a policy violation into a pass. The versioned contract is defined in
 [`schema/patch-filter.v0.1.schema.json`](schema/patch-filter.v0.1.schema.json)
 and validated locally with `npm run patch-filter:validate`.
 
-`graph-interchange` exports a canonical snapshot as strict JSON, inline-context
-JSON-LD, or streaming edge-list NDJSON for consumers that do not use
-CARTOGRAPH's renderer. All formats preserve typed edge identities, complete
+`export` writes a canonical snapshot as strict graph-interchange JSON
+(`graph-json`), inline-context JSON-LD, streaming edge-list NDJSON, or a SCIP
+index, for consumers that do not use CARTOGRAPH's renderer. All formats preserve typed edge identities, complete
 evidence, confidence, unresolved reasons, and diagnostics; unknown fields fail
 closed. See the [portable graph interchange guide](docs/GRAPH_INTERCHANGE.md)
 and run `npm run graph-interchange:validate` for the offline round-trip gate.
@@ -174,8 +176,10 @@ The bounded [SARIF policy-result bridge](docs/SARIF_INTERCHANGE.md) projects
 only line-local policy violations into SARIF 2.1.0. Canonical graph IDs and
 evidence references remain in the property bag; source-less or aggregate
 findings are reported as omitted rather than misrepresented as code-scanning
-results. Run `npm run sarif:validate` to replay the offline import/export and
-security fixture.
+results. `policy --format sarif` emits it directly, ready for
+`github/codeql-action/upload-sarif`; the policy exit codes are unchanged. Run
+`npm run sarif:validate` to replay the offline import/export and security
+fixture.
 
 HTML diff reports include a semantic summary and evidence table, native
 keyboard disclosures, ordered internal navigation, visible live status text,
