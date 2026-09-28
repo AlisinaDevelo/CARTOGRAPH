@@ -93,6 +93,10 @@ import { createResourceBudget, ResourceLimitError } from "../resources.js";
 import { lineAndColumnAtPos } from "./line-index.js";
 
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts"]);
+const JAVASCRIPT_EXTENSIONS = new Set([".js", ".jsx", ".mjs", ".cjs"]);
+
+const isJavaScriptPath = (filePath: string): boolean =>
+  JAVASCRIPT_EXTENSIONS.has(extname(filePath));
 const EXCLUDED_DIRECTORIES = new Set([
   ".git",
   ".cartograph",
@@ -190,6 +194,9 @@ const BUILTIN_CALL_ROOTS = new Set([
   "setTimeout",
   "structuredClone",
   "queueMicrotask",
+  // Literal require() calls are already module edges; dynamic ones get
+  // their own import diagnostic.
+  "require",
 ]);
 const FRAMEWORK_CALL_ROOTS = new Set([
   "Router",
@@ -568,8 +575,9 @@ const selectedByPatterns = (
   include.some((pattern) => matchesPathPattern(pattern, relativePath)) &&
   !exclude.some((pattern) => matchesPathPattern(pattern, relativePath));
 
-const isProjectSourcePath = (filePath: string): boolean =>
-  SOURCE_EXTENSIONS.has(extname(filePath)) && !filePath.endsWith(".d.ts");
+const isProjectSourcePath = (filePath: string, allowJs = false): boolean =>
+  (SOURCE_EXTENSIONS.has(extname(filePath)) && !filePath.endsWith(".d.ts")) ||
+  (allowJs && isJavaScriptPath(filePath));
 
 const isExcludedProjectPath = (rootDir: string, filePath: string): boolean => {
   const relativePath = relative(rootDir, filePath);
@@ -865,30 +873,49 @@ const loadedProjectSources = (
   const requestedConfigPath = tsconfigPath
     ? resolve(rootDir, tsconfigPath)
     : join(rootDir, "tsconfig.json");
-  const rootConfigPath = configPathInsideRoot(
-    rootDir,
-    requestedConfigPath,
-    "tsconfig",
-  );
+  // A jsconfig.json is TypeScript's config for JavaScript projects; parsing
+  // it by that name applies TypeScript's jsconfig defaults, including allowJs.
+  const rootConfigPath =
+    configPathInsideRoot(rootDir, requestedConfigPath, "tsconfig") ??
+    (tsconfigPath === undefined
+      ? configPathInsideRoot(
+          rootDir,
+          join(rootDir, "jsconfig.json"),
+          "jsconfig",
+        )
+      : undefined);
 
   if (tsconfigPath !== undefined && rootConfigPath === undefined)
     throw new Error(`tsconfig does not exist: ${tsconfigPath}`);
 
   if (rootConfigPath === undefined) {
-    const paths = discoverSourcePaths(
+    const typeScriptPaths = discoverSourcePaths(
       rootDir,
       include,
       exclude,
       resources,
       checkBudget,
     );
+    // With no tsconfig or jsconfig, a repository without TypeScript sources is
+    // treated as a JavaScript project; mixed repositories need allowJs.
+    const javaScriptOnly = typeScriptPaths.length === 0;
+    const paths = javaScriptOnly
+      ? discoverSourcePaths(
+          rootDir,
+          include,
+          exclude,
+          resources,
+          checkBudget,
+          JAVASCRIPT_EXTENSIONS,
+        )
+      : typeScriptPaths;
     return {
       projectPaths: paths,
       sourcePaths: paths,
       configs: [],
       configDiagnostics: [],
       compilerOptions: {
-        allowJs: false,
+        allowJs: javaScriptOnly,
         module: ts.ModuleKind.NodeNext,
         moduleResolution: ts.ModuleResolutionKind.NodeNext,
         noEmit: true,
@@ -1032,7 +1059,8 @@ const loadedProjectSources = (
       )
         continue;
       projectPaths.add(safePath);
-      if (isProjectSourcePath(safePath)) sourcePaths.add(safePath);
+      if (isProjectSourcePath(safePath, parsed.options.allowJs === true))
+        sourcePaths.add(safePath);
     }
 
     const nextStack = [...stack, configPath];
@@ -1099,6 +1127,7 @@ const discoverSourcePaths = (
   exclude: readonly string[],
   resources: ResourceLimits,
   checkBudget: () => void,
+  extensions: ReadonlySet<string> = SOURCE_EXTENSIONS,
 ): string[] => {
   const discovered: string[] = [];
   let totalBytes = 0;
@@ -1126,7 +1155,7 @@ const discoverSourcePaths = (
 
       if (
         entry.isFile() &&
-        SOURCE_EXTENSIONS.has(extname(entry.name)) &&
+        extensions.has(extname(entry.name)) &&
         !entry.name.endsWith(".d.ts") &&
         selectedByPatterns(relativePath, include, exclude)
       ) {
@@ -1160,8 +1189,11 @@ const localModuleCandidates = (
 ): string[] => {
   const basePath = resolve(dirname(containingFile), specifier);
   const sourceBasePath = basePath.replace(/\.(?:c|m)?jsx?$/iu, "");
+  // An explicit `./x.js` specifier still prefers `x.ts`, as TypeScript does;
+  // the JavaScript file itself is only a candidate after the TypeScript ones.
+  const explicitJavaScript = isJavaScriptPath(basePath);
   return [
-    basePath,
+    ...(explicitJavaScript ? [] : [basePath]),
     sourceBasePath,
     `${basePath}.ts`,
     `${basePath}.tsx`,
@@ -1177,6 +1209,15 @@ const localModuleCandidates = (
     join(basePath, "index.mts"),
     join(basePath, "index.cts"),
     join(basePath, "index.d.ts"),
+    ...(explicitJavaScript ? [basePath] : []),
+    `${sourceBasePath}.js`,
+    `${sourceBasePath}.jsx`,
+    `${sourceBasePath}.mjs`,
+    `${sourceBasePath}.cjs`,
+    join(basePath, "index.js"),
+    join(basePath, "index.jsx"),
+    join(basePath, "index.mjs"),
+    join(basePath, "index.cjs"),
   ];
 };
 
@@ -1230,6 +1271,14 @@ const moduleExtension = (filePath: string): string => {
       return ts.Extension.Mts;
     case ".cts":
       return ts.Extension.Cts;
+    case ".js":
+      return ts.Extension.Js;
+    case ".jsx":
+      return ts.Extension.Jsx;
+    case ".mjs":
+      return ts.Extension.Mjs;
+    case ".cjs":
+      return ts.Extension.Cjs;
     default:
       return ts.Extension.Ts;
   }
@@ -1708,11 +1757,17 @@ const addNode = (
   kind: GraphNode["kind"],
   name: string,
   location?: SourceLocation,
-  language = "typescript",
+  requestedLanguage = "typescript",
 ): GraphNode => {
   const existing = context.nodes.get(stableKey);
   if (existing) return existing;
 
+  // Nodes declared in JavaScript files carry the JavaScript language so
+  // policies and diffs can tell the two apart.
+  const language =
+    location !== undefined && isJavaScriptPath(location.path)
+      ? requestedLanguage.replace(/^typescript/u, "javascript")
+      : requestedLanguage;
   const node: GraphNode = {
     id: stableKey,
     stableKey,
@@ -2863,10 +2918,32 @@ const importSourceFiles = (context: AnalyzerContext): void => {
   }
 };
 
+const CALLABLE_KINDS = [
+  SyntaxKind.ArrowFunction,
+  SyntaxKind.FunctionDeclaration,
+  SyntaxKind.FunctionExpression,
+  SyntaxKind.MethodDeclaration,
+] as const;
+
+/**
+ * Callable declarations in document pre-order (the order getDescendants()
+ * yields them), without wrapping every syntax node in the file: ts-morph keeps
+ * a wrapper for each node it has handed out, which on type-heavy sources held
+ * hundreds of megabytes. Registration order feeds stable-key suffixes, so the
+ * order must stay exactly the same.
+ */
+const callableDeclarations = (sourceFile: SourceFile): FunctionLike[] =>
+  CALLABLE_KINDS.flatMap(
+    (kind) => sourceFile.getDescendantsOfKind(kind) as FunctionLike[],
+  ).sort(
+    (left, right) =>
+      left.getPos() - right.getPos() || right.getEnd() - left.getEnd(),
+  );
+
 const registerCallables = (context: AnalyzerContext): void => {
   for (const sourceFile of context.sourceFiles) {
     context.checkBudget();
-    const declarations = sourceFile.getDescendants().filter(isCallableNode);
+    const declarations = callableDeclarations(sourceFile);
     for (const declaration of declarations) {
       context.checkBudget();
       if (
@@ -4140,6 +4217,19 @@ const addCallEdge = (context: AnalyzerContext, call: CallExpression): void => {
     return;
   if (hasExternalOrigin(context, expression)) return;
   const declarations = declarationsFor(context, expression);
+  // A member declared only by an interface or object type (`schema.parse()`
+  // on a `Schema`) has no body to resolve to; like a parameter-borne callee,
+  // it is dynamic dispatch, not a missing edge.
+  if (
+    declarations.length > 0 &&
+    declarations.every(
+      (declaration) =>
+        Node.isMethodSignature(declaration) ||
+        Node.isPropertySignature(declaration) ||
+        Node.isCallSignatureDeclaration(declaration),
+    )
+  )
+    return;
   const hasLocalDeclaration = declarations.some((declaration) =>
     isInsideRoot(context.rootDir, declaration.getSourceFile().getFilePath()),
   );

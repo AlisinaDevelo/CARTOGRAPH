@@ -91,7 +91,7 @@ steps:
       persist-credentials: false
       fetch-depth: 0
       ref: ${{ github.event.pull_request.head.sha }}
-  - uses: AlisinaDevelo/CARTOGRAPH@0491e7cdd8a558b025fc60a3897a01cf74577965 # self-Action metadata verified
+  - uses: AlisinaDevelo/CARTOGRAPH@addf08d96eb5be3f76e441fb879fe13352d8a871 # self-Action metadata verified
     with:
       comparison: merge-base
 ```
@@ -100,35 +100,43 @@ New output files are created with private permissions and are not overwritten un
 
 ## What the first analyzer understands
 
-| Construct                                                                                                                                                              | Current behavior                                                                                                                        |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| TypeScript `.ts`, `.tsx`, `.mts`, and `.cts` files                                                                                                                     | Scanned; declaration files and bounded build/dependency directories are excluded, with generated provenance retained                    |
-| Local and external imports, re-exports, literal dynamic imports, and literal `require`                                                                                 | Module edges with source evidence                                                                                                       |
-| Named functions, class methods, and variable-bound arrow functions                                                                                                     | Function nodes; semantically resolvable calls become edges                                                                              |
-| Direct Express `app`/`router` routes and bounded `use` middleware with literal paths                                                                                   | Endpoint and handler relationships                                                                                                      |
-| GraphQL SDL root fields and OpenAPI path operations with local resolver/handler links                                                                                  | Evidence-backed endpoint boundaries and `routes_to` relationships                                                                       |
-| Prisma datasources, models, relations, and bounded generated-client references                                                                                         | Typed database, service, and module nodes with schema evidence                                                                          |
-| npm, pnpm, Yarn, and Bun lockfile dependency records                                                                                                                   | Deterministic offline `depends_on` edges with lockfile evidence                                                                         |
-| Generated directories, filename markers, configured exclusions, and `generated-from` markers                                                                           | Generated modules are classified; excluded generated paths receive exact-path diagnostics and selected sources receive provenance edges |
-| Literal EventEmitter events, bounded Bull/BullMQ queues, timers, and local callbacks                                                                                   | Queue publication/registration and handler relationships with source evidence                                                           |
-| Literal `fetch` and Axios destinations                                                                                                                                 | Outbound request relationships                                                                                                          |
-| Conventional Prisma model operations                                                                                                                                   | Read/write relationships to data nodes                                                                                                  |
-| Dynamic routes, API schema generation/aliases, imports, HTTP destinations, event/queue names, reflective handlers, unresolved calls, or ambiguous/mismatched lockfiles | Stable diagnostics with source evidence and remediation; no guessed edge                                                                |
+| Construct                                                                                                                                                                                    | Current behavior                                                                                                                                                      |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TypeScript `.ts`, `.tsx`, `.mts`, and `.cts` files; JavaScript `.js`, `.jsx`, `.mjs`, and `.cjs` files when `allowJs` is set, under a `jsconfig.json`, or in a repository with no TypeScript | Scanned; declaration files and bounded build/dependency directories are excluded, with generated provenance retained; JavaScript nodes carry `language: "javascript"` |
+| Local and external imports, re-exports, literal dynamic imports, and literal `require`                                                                                                       | Module edges with source evidence                                                                                                                                     |
+| Named functions, class methods, and variable-bound arrow functions                                                                                                                           | Function nodes; semantically resolvable calls become edges                                                                                                            |
+| Direct Express `app`/`router` routes and bounded `use` middleware with literal paths                                                                                                         | Endpoint and handler relationships                                                                                                                                    |
+| GraphQL SDL root fields and OpenAPI path operations with local resolver/handler links                                                                                                        | Evidence-backed endpoint boundaries and `routes_to` relationships                                                                                                     |
+| Prisma datasources, models, relations, and bounded generated-client references                                                                                                               | Typed database, service, and module nodes with schema evidence                                                                                                        |
+| npm, pnpm, Yarn, and Bun lockfile dependency records                                                                                                                                         | Deterministic offline `depends_on` edges with lockfile evidence                                                                                                       |
+| Generated directories, filename markers, configured exclusions, and `generated-from` markers                                                                                                 | Generated modules are classified; excluded generated paths receive exact-path diagnostics and selected sources receive provenance edges                               |
+| Literal EventEmitter events, bounded Bull/BullMQ queues, timers, and local callbacks                                                                                                         | Queue publication/registration and handler relationships with source evidence                                                                                         |
+| Literal `fetch` and Axios destinations                                                                                                                                                       | Outbound request relationships                                                                                                                                        |
+| Conventional Prisma model operations                                                                                                                                                         | Read/write relationships to data nodes                                                                                                                                |
+| Dynamic routes, API schema generation/aliases, imports, HTTP destinations, event/queue names, reflective handlers, unresolved calls, or ambiguous/mismatched lockfiles                       | Stable diagnostics with source evidence and remediation; no guessed edge                                                                                              |
 
-JavaScript files, generated routes, framework metaprogramming, and complete runtime behavior are not supported. Generated TypeScript is not silently treated as ordinary source: selected artifacts are marked `typescript-generated`, and excluded generated files remain visible through `EXCLUDED_GENERATED_FILE` diagnostics. A plausible-looking result outside the table is not a support claim.
+Generated routes, framework metaprogramming, and complete runtime behavior are not supported. JavaScript follows TypeScript's own rules: with a `tsconfig.json`, `.js` files are analyzed only when `allowJs` is set; a `jsconfig.json` is used when there is no `tsconfig.json`; and a repository with neither config and no TypeScript files is analyzed as JavaScript. Generated TypeScript is not silently treated as ordinary source: selected artifacts are marked `typescript-generated`, and excluded generated files remain visible through `EXCLUDED_GENERATED_FILE` diagnostics. A plausible-looking result outside the table is not a support claim.
 
 ## Commands
 
 ```text
+cartograph init [root] [--no-workflow] [--force]
 cartograph scan [root]
 cartograph diff [root] --base <ref> [--head <ref>] [--comparison direct|merge-base] [--adr <path>]
 cartograph diff-snapshots <before.json> <after.json>
 cartograph query --snapshot <graph.json> (--cycles | --from <module> --to <module> | --expr <query> | --query <file>)
+cartograph export --snapshot <graph.json> --format graph-json|json-ld|edge-list|scip
+cartograph policy [root] --policy <policy.json> (--snapshot <graph.json> | --diff <diff.json>) [--format json|sarif]
 cartograph review <input.json> [--format json|markdown|html]
 cartograph migrate-snapshot <input.json> --report <report.json>
 ```
 
 `scan` emits canonical graph JSON. `diff` and `diff-snapshots` support `json`, `markdown`, and self-contained `html` reports. Add `--adr <path>` to `diff` to compare a repository-local ADR reference index at both revisions; Markdown and HTML reports then include deterministic ADR title/status, graph evidence, added/removed/changed references, stale-link diagnostics, and bidirectional ADR coverage indexes with counts by node and edge kind. Use `--tsconfig <path>` to select a configuration inside the analyzed repository. Use `--config <path>` to apply the versioned, repository-relative [configuration contract](docs/CONFIGURATION.md); command-line flags override matching invocation settings.
+
+`init` writes a starter `cartograph.config.json`, an informational
+`cartograph.policy.json` that reports import cycles, and a pull-request
+workflow pinned to the reviewed Action commit. Existing files are skipped
+unless you pass `--force`.
 
 `query` answers questions about a snapshot without rescanning. `--cycles`
 lists module import cycles, `--from src/a.ts --to src/b.ts` prints the shortest
@@ -163,9 +171,9 @@ turn a policy violation into a pass. The versioned contract is defined in
 [`schema/patch-filter.v0.1.schema.json`](schema/patch-filter.v0.1.schema.json)
 and validated locally with `npm run patch-filter:validate`.
 
-`graph-interchange` exports a canonical snapshot as strict JSON, inline-context
-JSON-LD, or streaming edge-list NDJSON for consumers that do not use
-CARTOGRAPH's renderer. All formats preserve typed edge identities, complete
+`export` writes a canonical snapshot as strict graph-interchange JSON
+(`graph-json`), inline-context JSON-LD, streaming edge-list NDJSON, or a SCIP
+index, for consumers that do not use CARTOGRAPH's renderer. All formats preserve typed edge identities, complete
 evidence, confidence, unresolved reasons, and diagnostics; unknown fields fail
 closed. See the [portable graph interchange guide](docs/GRAPH_INTERCHANGE.md)
 and run `npm run graph-interchange:validate` for the offline round-trip gate.
@@ -174,8 +182,10 @@ The bounded [SARIF policy-result bridge](docs/SARIF_INTERCHANGE.md) projects
 only line-local policy violations into SARIF 2.1.0. Canonical graph IDs and
 evidence references remain in the property bag; source-less or aggregate
 findings are reported as omitted rather than misrepresented as code-scanning
-results. Run `npm run sarif:validate` to replay the offline import/export and
-security fixture.
+results. `policy --format sarif` emits it directly, ready for
+`github/codeql-action/upload-sarif`; the policy exit codes are unchanged. Run
+`npm run sarif:validate` to replay the offline import/export and security
+fixture.
 
 HTML diff reports include a semantic summary and evidence table, native
 keyboard disclosures, ordered internal navigation, visible live status text,

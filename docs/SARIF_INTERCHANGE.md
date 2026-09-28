@@ -22,6 +22,25 @@ policy identity, input kind, and the `sourceBodiesIncluded: false` guarantee.
 The output is deterministic: the same evaluation and graph produce identical
 serialized bytes and fingerprints.
 
+## Command line
+
+```sh
+cartograph policy . --policy .cartograph/policy.json --snapshot graph.json --format sarif --output cartograph.sarif
+```
+
+The command keeps the policy exit codes (2 for violations in enforce mode), so
+upload the file in a step that runs even when the policy step fails:
+
+```yaml
+- uses: github/codeql-action/upload-sarif@<full-commit-sha>
+  if: always()
+  with:
+    sarif_file: cartograph.sarif
+```
+
+Uploading needs `security-events: write` on that job. CARTOGRAPH's own Action
+stays `contents: read` and does not upload SARIF.
+
 ## Deliberate boundary
 
 Only violations whose matched graph objects all resolve to line-local source

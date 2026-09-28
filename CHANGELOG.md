@@ -9,6 +9,13 @@ checksums.
 
 ### Added
 
+- JavaScript sources (`.js`, `.jsx`, `.mjs`, `.cjs`) are analyzed when a
+  `tsconfig.json` sets `allowJs`, under a `jsconfig.json`, or in a repository
+  with no TypeScript at all; their nodes carry `language: "javascript"`.
+- `cartograph export` for graph-interchange JSON, JSON-LD, edge-list, and SCIP
+  output, and `policy --format sarif` for GitHub code scanning.
+- `cartograph init` scaffolds a config, an informational starter policy, and
+  the pull-request workflow.
 - `cartograph query` for module import cycles, dependency paths, graph query
   language expressions, and architecture-query requests, with
   `--fail-on-match` for CI gates.

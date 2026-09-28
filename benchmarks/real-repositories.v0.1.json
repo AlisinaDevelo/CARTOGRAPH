@@ -24,10 +24,10 @@
       "commit": "2bf7b0630d5378033e90bcee82cb32b0fe04628e",
       "license": "MIT",
       "size": "medium",
-      "resources": { "maxMemoryBytes": 2147483648 },
+      "resources": { "maxMemoryBytes": 4294967296 },
       "budgets": {
         "maxMs": 90000,
-        "maxRssBytes": 1610612736,
+        "maxRssBytes": 3221225472,
         "maxDiagnosticsPerNode": 3,
         "minNodes": 2400,
         "minEdges": 6000
