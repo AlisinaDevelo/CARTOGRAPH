@@ -75,8 +75,9 @@ gh attestation verify cartograph-cli-0.1.1.tgz \
 
 The package contents are fail-closed against workflow, fixture, test, script,
 benchmark, and coverage paths; credentials and repository source fixtures are
-not release subjects. Install the tarball with `--offline --ignore-scripts`
-until the package and its provenance have been reviewed.
+not release subjects. Install the tarball with `--ignore-scripts` (for example
+`npm install --ignore-scripts ./cartograph-cli-0.1.0.tgz`) until the package and
+its provenance have been reviewed.
 
 Generated `dist`, coverage, temporary repositories, reports, and package tarballs stay out of source commits.
 

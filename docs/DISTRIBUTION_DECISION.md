@@ -50,8 +50,9 @@ see v0.2 above.)
 ## Evidence
 
 `node scripts/release-artifact.mjs` packs the artifact, verifies its file set,
-installs it in an isolated consumer with `npm install --offline
---ignore-scripts`, validates the installed package metadata and public import,
+installs it in an isolated consumer with `npm ci --offline --ignore-scripts`
+against a consumer lockfile derived from the repository's `package-lock.json`
+(so the install needs only cached tarballs, never registry metadata), validates the installed package metadata and public import,
 then runs `cartograph --version`, `cartograph --help`, and a representative
 scan. Generated output is temporary unless an explicit output directory is
 provided.
