@@ -44,6 +44,7 @@ import {
   policyEvaluationSarif,
   type ExportFormat,
 } from "./export-command.js";
+import { initRepository } from "./init-command.js";
 import type { RevisionComparisonMode } from "./git/revision.js";
 
 const VERSION = "0.1.0";
@@ -518,6 +519,35 @@ export function createCli(): Command {
           await exportSnapshotFile(options.snapshot, options.format, VERSION),
           options,
         );
+      },
+    );
+
+  program
+    .command("init")
+    .description(
+      "write a starter config, an informational policy, and the pull-request workflow",
+    )
+    .argument("[root]", "repository root", ".")
+    .option("--no-workflow", "skip .github/workflows/cartograph.yml")
+    .option("--force", "replace files that already exist", false)
+    .action(
+      async (
+        root: string,
+        options: { force: boolean; workflow: boolean },
+      ): Promise<void> => {
+        const result = await initRepository({
+          root,
+          force: options.force,
+          workflow: options.workflow,
+        });
+        const lines = [
+          ...result.created.map((path) => `created  ${path}`),
+          ...result.replaced.map((path) => `replaced ${path}`),
+          ...result.skipped.map(
+            (path) => `skipped  ${path} (exists; use --force to replace)`,
+          ),
+        ];
+        process.stdout.write(`${lines.join("\n")}\n`);
       },
     );
 
