@@ -348,7 +348,8 @@ try {
       generatedFile: "release-notes.md",
     },
     smokeTest: {
-      install: "npm install --offline --ignore-scripts <tarball>",
+      install:
+        "npm ci --offline --ignore-scripts (consumer lockfile derived from package-lock.json)",
       commands: [
         "cartograph --version",
         "cartograph --help",
@@ -363,21 +364,72 @@ try {
     `${JSON.stringify(metadata, null, 2)}\n`,
   );
 
-  execFileSync("npm", ["init", "-y"], {
-    cwd: consumerRoot,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "inherit"],
-  });
+  // An offline install from a bare tarball must resolve the package's
+  // dependency ranges from registry metadata, which `npm ci` never caches. The
+  // consumer instead gets a lockfile built from this repository's
+  // package-lock.json: the same resolved production dependencies, so the
+  // install needs only tarballs already in the npm cache.
+  const repositoryLock = await readJson(packageLockPath);
+  const tarballSpecifier = `file:${relative(consumerRoot, tarballPath)
+    .split("\\")
+    .join("/")}`;
+  const tarballIntegrity = `sha512-${createHash("sha512")
+    .update(await readFile(tarballPath))
+    .digest("base64")}`;
+  const productionPackages = Object.fromEntries(
+    Object.entries(repositoryLock.packages ?? {}).filter(
+      ([path, entry]) =>
+        path.startsWith("node_modules/") &&
+        entry.dev !== true &&
+        entry.devOptional !== true &&
+        entry.link !== true,
+    ),
+  );
+  const consumerManifest = {
+    name: "cartograph-release-consumer",
+    version: "0.0.0",
+    private: true,
+    dependencies: { [packageJson.name]: tarballSpecifier },
+  };
+  await writeFile(
+    join(consumerRoot, "package.json"),
+    `${JSON.stringify(consumerManifest, null, 2)}\n`,
+  );
+  await writeFile(
+    join(consumerRoot, "package-lock.json"),
+    `${JSON.stringify(
+      {
+        name: consumerManifest.name,
+        version: consumerManifest.version,
+        lockfileVersion: 3,
+        requires: true,
+        packages: {
+          "": {
+            name: consumerManifest.name,
+            version: consumerManifest.version,
+            dependencies: consumerManifest.dependencies,
+          },
+          [`node_modules/${packageJson.name}`]: {
+            version,
+            resolved: tarballSpecifier,
+            integrity: tarballIntegrity,
+            license: packageJson.license,
+            dependencies: packageJson.dependencies ?? {},
+            ...(packageJson.bin === undefined ? {} : { bin: packageJson.bin }),
+            ...(packageJson.engines === undefined
+              ? {}
+              : { engines: packageJson.engines }),
+          },
+          ...productionPackages,
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  );
   execFileSync(
     "npm",
-    [
-      "install",
-      "--offline",
-      "--ignore-scripts",
-      "--no-audit",
-      "--no-fund",
-      tarballPath,
-    ],
+    ["ci", "--offline", "--ignore-scripts", "--no-audit", "--no-fund"],
     {
       cwd: consumerRoot,
       encoding: "utf8",

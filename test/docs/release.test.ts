@@ -84,7 +84,7 @@ describe("release pipeline contract", () => {
     expect(distribution).toContain(
       "standalone native executable is explicitly deferred",
     );
-    expect(distribution).toContain("npm install --offline");
+    expect(distribution).toContain("npm ci --offline --ignore-scripts");
     expect(distribution).toContain("distribution.v0.2");
     expect(distribution).toContain("trusted publishing");
     expect(distribution).toContain("--ignore-scripts");

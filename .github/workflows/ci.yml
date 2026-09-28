@@ -58,6 +58,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Pack and smoke-test the release artifact
+        run: npm run release:validate
+
       - name: Validate support matrix
         run: npm run support:validate
 
