@@ -7,8 +7,20 @@ checksums.
 
 ## [Unreleased]
 
+No unreleased changes.
+
+## [0.1.0] - 2026-09-28
+
+First tagged release. The attested tarball is attached to the GitHub release.
+
 ### Added
 
+- Initial public repository baseline for the local TypeScript architecture-analysis workflow.
+- Versioned graph/evidence schemas, deterministic canonicalization, and semantic architecture diffs.
+- TypeScript/Express extraction for supported imports, calls, routes, HTTP requests, and Prisma operations with explicit diagnostics.
+- Non-destructive Git revision comparison and JSON, Markdown, and self-contained HTML reports.
+- A validated five-year roadmap with 20 dated milestones, 179 outcome-bearing issues, 514 prerequisite relationships, and an idempotent GitHub reconciliation tool.
+- Community, security, and contribution policies for the project’s early development phase.
 - JavaScript sources (`.js`, `.jsx`, `.mjs`, `.cjs`) are analyzed when a
   `tsconfig.json` sets `allowJs`, under a `jsconfig.json`, or in a repository
   with no TypeScript at all; their nodes carry `language: "javascript"`.
@@ -38,19 +50,20 @@ checksums.
 - Calls whose callee comes from an npm package, or through a parameter, no
   longer produce `UNRESOLVED_CALL`, removing about 90% of diagnostics on real
   repositories.
-- Faster analysis from cached line lookups and call resolution.
-
-## [0.1.0]
-
-### Added
-
-- Initial public repository baseline for the local TypeScript architecture-analysis workflow.
-- Versioned graph/evidence schemas, deterministic canonicalization, and semantic architecture diffs.
-- TypeScript/Express extraction for supported imports, calls, routes, HTTP requests, and Prisma operations with explicit diagnostics.
-- Non-destructive Git revision comparison and JSON, Markdown, and self-contained HTML reports.
-- A validated five-year roadmap with 20 dated milestones, 179 outcome-bearing issues, 514 prerequisite relationships, and an idempotent GitHub reconciliation tool.
-- Community, security, and contribution policies for the project’s early development phase.
+- Calls to members declared only by an interface or object type
+  (`schema.parse()`) are treated as dynamic dispatch rather than reported as
+  `UNRESOLVED_CALL`.
+- `maxMemoryBytes` is measured from the resident memory when an analysis
+  starts, so hosts that embed the analyzer are not charged for memory they
+  were already using.
+- Faster, lighter analysis: cached line lookups, module-resolution probes, and
+  call resolution, and callable discovery that no longer wraps every syntax
+  node (about 4x faster and 12% less memory on a 1,900-file repository).
 
 ### Notes
 
-- Compatibility guarantees, stable APIs, and release support policies will be defined before the first versioned release.
+- Contract versions and the upgrade policy this release ships with are listed
+  in `docs/COMPATIBILITY.md` and `docs/UPGRADING.md`. Before 1.0, package
+  semver does not override the independently versioned snapshot, diff,
+  policy, and adapter contracts; each contract change still requires an
+  explicit compatibility review.
