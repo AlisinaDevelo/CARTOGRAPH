@@ -24,8 +24,10 @@ import type {
   FunctionDeclaration,
   FunctionExpression,
   MethodDeclaration,
+  PropertyDeclaration,
   SourceFile,
   Symbol,
+  VariableDeclaration,
 } from "ts-morph";
 
 import type {
@@ -1698,6 +1700,54 @@ const declarationsFor = (
     ? []
     : symbolDeclarations(expression);
 
+const isTransparentWrapper = (node: Node): boolean =>
+  Node.isAsExpression(node) ||
+  Node.isSatisfiesExpression(node) ||
+  Node.isParenthesizedExpression(node) ||
+  Node.isNonNullExpression(node) ||
+  Node.isTypeAssertion(node);
+
+/** An expression without its type assertions, parentheses, and `!`. */
+const unwrapExpression = (node: Node): Node => {
+  let current = node;
+  while (
+    Node.isAsExpression(current) ||
+    Node.isSatisfiesExpression(current) ||
+    Node.isParenthesizedExpression(current) ||
+    Node.isNonNullExpression(current) ||
+    Node.isTypeAssertion(current)
+  )
+    current = current.getExpression();
+  return current;
+};
+
+/**
+ * The variable or class field a function expression is the value of, looking
+ * through `as`, `satisfies`, parentheses, and `!` (`const f = (() => 1) as F`,
+ * `static create = () => ...`). Anything else (a callback argument, a returned
+ * function) has no owner.
+ */
+const bindingOwner = (
+  node: FunctionLike,
+): VariableDeclaration | PropertyDeclaration | undefined => {
+  if (!Node.isArrowFunction(node) && !Node.isFunctionExpression(node))
+    return undefined;
+  let value: Node = node;
+  let parent: Node | undefined = node.getParent();
+  while (parent && isTransparentWrapper(parent)) {
+    value = parent;
+    parent = parent.getParent();
+  }
+  if (
+    parent &&
+    (Node.isVariableDeclaration(parent) ||
+      Node.isPropertyDeclaration(parent)) &&
+    parent.getInitializer() === value
+  )
+    return parent;
+  return undefined;
+};
+
 const declaredCallableName = (
   rootDir: string,
   node: FunctionLike,
@@ -1707,6 +1757,9 @@ const declaredCallableName = (
     return node.getName() as string;
 
   if (Node.isMethodDeclaration(node)) return node.getName();
+
+  const owner = bindingOwner(node);
+  if (owner) return owner.getName();
 
   const variable = node.getFirstAncestorByKind(SyntaxKind.VariableDeclaration);
   if (variable?.getName()) return variable.getName();
@@ -2540,9 +2593,13 @@ const registerCallable = (
   const file = node.getSourceFile();
   const path = sourceFilePath(context.rootDir, file.getFilePath());
   const name = functionName(context.rootDir, node, fallbackName);
+  const owner = bindingOwner(node);
   const declarationNodes = [
     node,
     ...(() => {
+      // A bound function belongs to its own variable or field; only unbound
+      // functions (callbacks) fall back to the nearest enclosing variable.
+      if (owner) return [owner];
       const variable = node.getFirstAncestorByKind(
         SyntaxKind.VariableDeclaration,
       );
@@ -2656,8 +2713,9 @@ const resolveCallableUncached = (
       const callable = callableForDeclaration(context, variable);
       if (callable) return callable;
       const initializer = variable.getInitializer();
-      if (initializer && Node.isExpression(initializer)) {
-        return resolveCallableUncached(context, initializer, seen);
+      const unwrapped = initializer && unwrapExpression(initializer);
+      if (unwrapped && Node.isExpression(unwrapped)) {
+        return resolveCallableUncached(context, unwrapped, seen);
       }
     }
     const declaration = definitions.find(isCallableNode);
@@ -2947,14 +3005,11 @@ const registerCallables = (context: AnalyzerContext): void => {
     for (const declaration of declarations) {
       context.checkBudget();
       if (
-        Node.isArrowFunction(declaration) ||
-        Node.isFunctionExpression(declaration)
-      ) {
-        const variable = declaration.getFirstAncestorByKind(
-          SyntaxKind.VariableDeclaration,
-        );
-        if (!variable || variable.getInitializer() !== declaration) continue;
-      }
+        (Node.isArrowFunction(declaration) ||
+          Node.isFunctionExpression(declaration)) &&
+        bindingOwner(declaration) === undefined
+      )
+        continue;
       registerCallable(context, declaration);
     }
   }
