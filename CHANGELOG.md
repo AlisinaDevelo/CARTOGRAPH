@@ -7,7 +7,20 @@ checksums.
 
 ## [Unreleased]
 
-No unreleased changes.
+### Added
+
+- `diff --cache-dir` reuses revision snapshots keyed by the analyzer build,
+  contracts, configuration, and the commit and tree being analyzed.
+- Query predicates for evidence source spans (`evidence.line`), extractor
+  versions (`evidence.detector`), and unresolved edges (`unresolved`,
+  `unresolved.reason`), plus a query regression and authorization-boundary
+  corpus.
+- Functions bound to class fields and to `as`/`satisfies`-wrapped initializers
+  are analyzed as callables.
+
+### Fixed
+
+- Query path checks reject `..` segments written with backslashes.
 
 ## [0.1.1] - 2026-09-28
 
