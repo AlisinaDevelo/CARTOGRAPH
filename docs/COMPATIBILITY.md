@@ -1068,3 +1068,12 @@ configuration error. The analyzer now reads the base from a non-symlinked
 and otherwise continues with the local options and reports the diagnostic at
 the `extends` key. No snapshot field or schema version changes; snapshots of
 repositories that previously scanned are unchanged.
+
+## Query evidence predicates
+
+`cartograph.graph-query-language` v1 gains four optional predicate fields:
+`evidence.line`, `evidence.detector`, `unresolved`, and `unresolved.reason`
+(with the `line` and `detector` aliases). They are additive: existing queries
+parse to the same canonical AST and select the same records, so the contract
+version is unchanged. A reader that predates them rejects a query that uses
+them. The fields are rejected in change queries rather than matching nothing.

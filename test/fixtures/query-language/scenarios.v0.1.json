@@ -54,6 +54,97 @@
         "status": "error",
         "errorCode": "QUERY_PARSE_UNSUPPORTED_VERSION"
       }
+    },
+    {
+      "id": "span-detector-unresolved",
+      "scenario": "positive",
+      "query": "v1 edges where evidence.line >= 10 and evidence.detector ^= cartograph.typescript-express@1 and unresolved = false",
+      "expected": { "status": "ok", "target": "edges", "predicateCount": 3 }
+    },
+    {
+      "id": "unresolved-reason",
+      "scenario": "positive",
+      "query": "v1 edges where unresolved.reason ^= \"dynamic\"",
+      "expected": { "status": "ok", "target": "edges", "predicateCount": 1 }
+    },
+    {
+      "id": "span-alias-equivalence",
+      "scenario": "canonical",
+      "query": "v1 edges where evidence.line >= 10 and evidence.detector ^= cartograph.typescript-express@1",
+      "equivalentQuery": "v1 edges where detector ^= cartograph.typescript-express@1 and line >= 10",
+      "expected": { "status": "ok", "target": "edges", "predicateCount": 2 }
+    },
+    {
+      "id": "reject-path-traversal",
+      "scenario": "malformed",
+      "query": "v1 edges where evidence.path ^= ../secret",
+      "expected": {
+        "status": "error",
+        "errorCode": "QUERY_PARSE_INVALID_VALUE"
+      }
+    },
+    {
+      "id": "reject-absolute-path",
+      "scenario": "malformed",
+      "query": "v1 edges where evidence.path = /etc/passwd",
+      "expected": {
+        "status": "error",
+        "errorCode": "QUERY_PARSE_INVALID_VALUE"
+      }
+    },
+    {
+      "id": "reject-drive-path",
+      "scenario": "malformed",
+      "query": "v1 edges where evidence.path = C:/src/a.ts",
+      "expected": {
+        "status": "error",
+        "errorCode": "QUERY_PARSE_INVALID_VALUE"
+      }
+    },
+    {
+      "id": "reject-zero-line",
+      "scenario": "malformed",
+      "query": "v1 edges where evidence.line = 0",
+      "expected": {
+        "status": "error",
+        "errorCode": "QUERY_PARSE_INVALID_VALUE"
+      }
+    },
+    {
+      "id": "reject-range-span",
+      "scenario": "malformed",
+      "query": "v1 edges where evidence.line in [12, 3-7]",
+      "expected": {
+        "status": "error",
+        "errorCode": "QUERY_PARSE_INVALID_VALUE"
+      }
+    },
+    {
+      "id": "reject-span-in-change-query",
+      "scenario": "malformed",
+      "query": "v1 changes where evidence.line = 3",
+      "expected": {
+        "status": "error",
+        "errorCode": "QUERY_PARSE_INVALID_VALUE"
+      }
+    },
+    {
+      "id": "reject-malformed-detector",
+      "scenario": "malformed",
+      "query": "v1 edges where evidence.detector = \"Bad Detector\"",
+      "expected": {
+        "status": "error",
+        "errorCode": "QUERY_PARSE_INVALID_VALUE"
+      }
+    },
+    {
+      "id": "reject-unresolved-value",
+      "scenario": "malformed",
+      "query": "v1 edges where unresolved = maybe",
+      "expected": {
+        "status": "error",
+        "errorCode": "QUERY_PARSE_INVALID_VALUE"
+      }
     }
   ]
 }

@@ -287,6 +287,22 @@ Example:
 v1 changes where change in [node-added, edge-changed] and evidence.path ^= src/ revision from base to head limit maxChanges=100
 ```
 
+Predicates can also select by where evidence lives and how it was produced:
+`evidence.line` (alias `line`) compares against evidence source spans
+(`=` and `in` match any line inside a multi-line span; `<`, `<=`, `>`, `>=`
+compare the span's start or end), `evidence.detector` (alias `detector`) matches
+extractor identifiers and versions such as
+`cartograph.typescript-express@1/call`, `unresolved = true|false` selects edges
+without resolved evidence, and `unresolved.reason` matches their recorded
+reason. Line values must be positive integers, detectors must be well-formed
+identifiers, and all four fields are rejected in change queries, whose records
+carry evidence paths only.
+
+```text
+v1 edges where evidence.path = src/api.ts and line >= 40 and detector ^= cartograph.typescript-express@1
+v1 edges where unresolved = true
+```
+
 `parseGraphQueryLanguage` reports stable location-aware parser codes. The
 read-only executor fails closed at explicit depth, node, edge, change, time,
 and serialized-result ceilings and never reads source bodies, executes source,

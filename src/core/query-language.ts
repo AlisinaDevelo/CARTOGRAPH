@@ -146,6 +146,10 @@ export const GraphQueryPredicateFieldSchema = z.enum([
   "to",
   "evidence.path",
   "path",
+  "evidence.line",
+  "evidence.detector",
+  "unresolved",
+  "unresolved.reason",
   "confidence",
   "change",
   "change.kind",
@@ -228,6 +232,54 @@ export const GraphQueryRevisionSchema = z
   })
   .strict();
 
+const LINE_NUMBER_PATTERN = /^[1-9]\d{0,6}$/u;
+const DETECTOR_PATTERN =
+  /^[a-z0-9][a-z0-9._-]*(?:@[0-9A-Za-z._-]+)?(?:\/[a-z0-9._-]+)*$/u;
+const EVIDENCE_FIELDS = new Set([
+  "evidence.line",
+  "evidence.detector",
+  "unresolved",
+  "unresolved.reason",
+]);
+
+/**
+ * Field-specific rules for span, extractor, and unresolved-reason predicates:
+ * which operators apply and what a well-formed value looks like. Change
+ * records carry evidence paths only, so these fields are rejected there
+ * rather than silently matching nothing.
+ */
+const evidencePredicateIssue = (
+  target: string,
+  predicate: { field: string; operator: string; values: readonly string[] },
+): string | undefined => {
+  if (!EVIDENCE_FIELDS.has(predicate.field)) return undefined;
+  if (target === "changes")
+    return `${predicate.field} is not supported in change queries`;
+  if (predicate.field === "evidence.line") {
+    if (predicate.operator === "^=")
+      return "evidence.line does not support the ^= operator";
+    if (!predicate.values.every((value) => LINE_NUMBER_PATTERN.test(value)))
+      return "evidence.line values must be positive integer line numbers";
+    return undefined;
+  }
+  if (!["=", "!=", "^=", "in"].includes(predicate.operator))
+    return `${predicate.field} supports only =, !=, ^=, and in`;
+  if (predicate.field === "evidence.detector") {
+    if (!predicate.values.every((value) => DETECTOR_PATTERN.test(value)))
+      return "evidence.detector values must be detector identifiers such as cartograph.typescript-express@1/call";
+    return undefined;
+  }
+  if (predicate.field === "unresolved") {
+    if (predicate.operator !== "=" && predicate.operator !== "!=")
+      return "unresolved supports only = and !=";
+    if (
+      !predicate.values.every((value) => value === "true" || value === "false")
+    )
+      return "unresolved values must be true or false";
+  }
+  return undefined;
+};
+
 export const GraphQuerySchema = z
   .object({
     schemaVersion: z.literal(GRAPH_QUERY_LANGUAGE_SCHEMA_VERSION),
@@ -245,6 +297,13 @@ export const GraphQuerySchema = z
   .strict()
   .superRefine((query, context) => {
     for (const predicate of query.predicates) {
+      const issue = evidencePredicateIssue(query.target, predicate);
+      if (issue !== undefined)
+        context.addIssue({
+          code: "custom",
+          path: ["predicates"],
+          message: issue,
+        });
       if (predicate.field === "evidence.path" || predicate.field === "path") {
         for (const value of predicate.values) {
           const checked = PortablePathSchema.safeParse(value);
@@ -480,6 +539,12 @@ const canonicalPredicateField = (
     to: "to",
     "evidence.path": "evidence.path",
     path: "path",
+    "evidence.line": "evidence.line",
+    line: "evidence.line",
+    "evidence.detector": "evidence.detector",
+    detector: "evidence.detector",
+    unresolved: "unresolved",
+    "unresolved.reason": "unresolved.reason",
     confidence: "confidence",
     change: "change",
     "change.kind": "change.kind",
@@ -1247,12 +1312,57 @@ const predicateMatchesValue = (
   return actualRank >= expectedRank;
 };
 
+const numberMatches = (
+  operator: GraphQueryPredicateOperator,
+  start: number,
+  end: number,
+  values: readonly string[],
+): boolean => {
+  const numbers = values.map(Number);
+  const first = numbers[0] as number;
+  if (operator === "=") return start <= first && first <= end;
+  if (operator === "in")
+    return numbers.some((value) => start <= value && value <= end);
+  if (operator === "!=")
+    return numbers.every((value) => value < start || value > end);
+  if (operator === "<") return start < first;
+  if (operator === "<=") return start <= first;
+  if (operator === ">") return end > first;
+  return end >= first;
+};
+
+/** Source spans of evidence records, as [line, endLine] pairs. */
+const evidenceSpans = (evidence: readonly Evidence[]): [number, number][] =>
+  evidence.flatMap((item) => {
+    const line = item.line ?? item.location?.line;
+    if (line === undefined) return [];
+    const end = item.endLine ?? item.location?.endLine ?? line;
+    return [[line, Math.max(line, end)] as [number, number]];
+  });
+
 const nodeMatches = (
   node: GraphNode,
   predicates: readonly GraphQueryPredicate[],
 ): boolean =>
   predicates.every((predicate) => {
     const field = predicate.field;
+    if (field === "evidence.line") {
+      const location = node.location;
+      if (location === undefined) return predicate.operator === "!=";
+      return numberMatches(
+        predicate.operator,
+        location.line,
+        Math.max(location.line, location.endLine ?? location.line),
+        predicate.values,
+      );
+    }
+    // Nodes have no evidence records or unresolved reasons of their own.
+    if (
+      field === "evidence.detector" ||
+      field === "unresolved" ||
+      field === "unresolved.reason"
+    )
+      return true;
     if (
       field === "edge.kind" ||
       field === "from" ||
@@ -1290,6 +1400,42 @@ const edgeMatches = (
 ): boolean =>
   predicates.every((predicate) => {
     const field = predicate.field;
+    if (field === "evidence.line") {
+      const spans = evidenceSpans(edge.evidence);
+      if (predicate.operator === "!=")
+        return spans.every(([start, end]) =>
+          numberMatches("!=", start, end, predicate.values),
+        );
+      return spans.some(([start, end]) =>
+        numberMatches(predicate.operator, start, end, predicate.values),
+      );
+    }
+    if (field === "evidence.detector") {
+      const detectors = edge.evidence.flatMap((item) =>
+        item.detector === undefined ? [] : [item.detector],
+      );
+      if (predicate.operator === "!=")
+        return detectors.every(
+          (detector) => !predicate.values.includes(detector),
+        );
+      return detectors.some((detector) =>
+        predicateMatchesValue(predicate.operator, detector, predicate.values),
+      );
+    }
+    if (field === "unresolved")
+      return predicateMatchesValue(
+        predicate.operator,
+        String(
+          edge.evidence.length === 0 || edge.unresolvedReason !== undefined,
+        ),
+        predicate.values,
+      );
+    if (field === "unresolved.reason")
+      return predicateMatchesValue(
+        predicate.operator,
+        edge.unresolvedReason,
+        predicate.values,
+      );
     if (
       field === "node.kind" ||
       field === "id" ||
