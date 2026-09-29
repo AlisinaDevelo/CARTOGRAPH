@@ -45,6 +45,7 @@ import {
   type ExportFormat,
 } from "./export-command.js";
 import { initRepository } from "./init-command.js";
+import { createBundle, verifyBundle } from "./bundle-command.js";
 import type { RevisionComparisonMode } from "./git/revision.js";
 
 const VERSION = "0.1.1";
@@ -118,6 +119,23 @@ const edgeKindList = (value: string): string[] => {
     throw new InvalidArgumentError("edges must list at least one edge kind");
   return [...new Set(kinds)];
 };
+
+const keyValue =
+  (flag: string) =>
+  (value: string, previous: { key: string; value: string }[] = []) => {
+    const separator = value.indexOf("=");
+    if (separator <= 0 || separator === value.length - 1)
+      throw new InvalidArgumentError(`${flag} must be <role>=<value>`);
+    return [
+      ...previous,
+      { key: value.slice(0, separator), value: value.slice(separator + 1) },
+    ];
+  };
+
+const collect = (value: string, previous: string[] = []): string[] => [
+  ...previous,
+  value,
+];
 
 const revisionComparison = (value: string): RevisionComparisonMode => {
   if (value === "direct" || value === "merge-base") return value;
@@ -558,6 +576,71 @@ export function createCli(): Command {
         process.stdout.write(`${lines.join("\n")}\n`);
       },
     );
+
+  const bundle = program
+    .command("bundle")
+    .description("create or verify an offline assurance bundle");
+  bundle
+    .command("create")
+    .description(
+      "package snapshots, diffs, policies, evaluations, and reports into a verifiable bundle",
+    )
+    .requiredOption("-o, --output <dir>", "new bundle directory")
+    .option(
+      "-a, --artifact <role=path>",
+      "add an artifact (repeatable), e.g. diff=diff.json",
+      keyValue("--artifact"),
+      [],
+    )
+    .option(
+      "--missing <role=reason>",
+      "declare a required artifact as intentionally absent (repeatable)",
+      keyValue("--missing"),
+      [],
+    )
+    .option(
+      "--require <role>",
+      "require a role (repeatable); defaults to the roles supplied",
+      collect,
+    )
+    .action(
+      async (options: {
+        output: string;
+        artifact: { key: string; value: string }[];
+        missing: { key: string; value: string }[];
+        require?: string[];
+      }): Promise<void> => {
+        const result = await createBundle({
+          output: options.output,
+          artifacts: options.artifact.map((item) => ({
+            role: item.key,
+            path: item.value,
+          })),
+          missing: options.missing.map((item) => ({
+            role: item.key,
+            reason: item.value,
+          })),
+          ...(options.require === undefined
+            ? {}
+            : { requiredRoles: options.require }),
+          toolVersion: VERSION,
+        });
+        process.stdout.write(
+          `${JSON.stringify({ ok: true, bundleId: result.bundleId, artifacts: result.artifacts })}\n`,
+        );
+      },
+    );
+  bundle
+    .command("verify")
+    .description(
+      "verify a bundle offline: digests, sizes, contracts, and required roles",
+    )
+    .argument("<dir>", "bundle directory")
+    .action(async (directory: string): Promise<void> => {
+      const report = await verifyBundle(directory);
+      process.stdout.write(`${JSON.stringify(report)}\n`);
+      if (!report.ok) process.exitCode = 2;
+    });
 
   program
     .command("review")

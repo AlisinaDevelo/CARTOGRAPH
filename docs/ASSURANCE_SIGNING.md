@@ -28,5 +28,6 @@ missing signer that must not fall back to another key:
 npm run assurance-signing:validate
 ```
 
-This is signing metadata and verification only. Assurance-bundle packaging,
-redaction, retention, and independent replay remain separate roadmap work.
+This is signing metadata and verification only. Bundle packaging is described
+in [assurance bundles](ASSURANCE_BUNDLE.md); redaction, retention, and
+independent replay remain separate roadmap work.
