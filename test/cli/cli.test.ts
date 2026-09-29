@@ -26,6 +26,7 @@ describe("CLI", () => {
       "query",
       "export",
       "init",
+      "bundle",
       "review",
       "policy",
       "migrate-snapshot",

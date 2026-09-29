@@ -1085,3 +1085,12 @@ on both `/` and `\` before looking for `..`, so `src\..\secret` is rejected
 like `src/../secret`. Graph paths are always stored with forward slashes, so
 such a value could never match a record; the change only turns a silent
 no-match into the documented rejection.
+
+## Assurance bundle v1
+
+A new, independent contract, `cartograph.assurance-bundle` v1
+([schema](../schema/assurance-bundle.v0.1.schema.json)), with
+`cartograph bundle create` and `cartograph bundle verify`. It references the
+existing contracts without changing any of them. Adding a role or changing a
+limit, the path pattern, or the `bundleId` computation requires a new manifest
+version.

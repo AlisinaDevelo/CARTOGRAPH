@@ -1463,3 +1463,20 @@ export type {
   Revision,
   SourceLocation,
 } from "./schemas.js";
+export {
+  ASSURANCE_BUNDLE_CONTRACT,
+  ASSURANCE_BUNDLE_LIMITS,
+  ASSURANCE_BUNDLE_MANIFEST,
+  ASSURANCE_BUNDLE_ROLES,
+  ASSURANCE_BUNDLE_SCHEMA_VERSION,
+  AssuranceBundleArtifactSchema,
+  AssuranceBundleError,
+  AssuranceBundleManifestSchema,
+  buildAssuranceBundle,
+  verifyAssuranceBundle,
+  type AssuranceBundleBuildOptions,
+  type AssuranceBundleInput,
+  type AssuranceBundleManifest,
+  type AssuranceBundleRole,
+  type AssuranceBundleVerification,
+} from "./assurance-bundle.js";
