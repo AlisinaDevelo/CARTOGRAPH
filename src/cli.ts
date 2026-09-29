@@ -45,7 +45,11 @@ import {
   type ExportFormat,
 } from "./export-command.js";
 import { initRepository } from "./init-command.js";
-import { createBundle, verifyBundle } from "./bundle-command.js";
+import {
+  bundleSigningPayload,
+  createBundle,
+  verifyBundle,
+} from "./bundle-command.js";
 import type { RevisionComparisonMode } from "./git/revision.js";
 
 const VERSION = "0.1.1";
@@ -631,16 +635,69 @@ export function createCli(): Command {
       },
     );
   bundle
-    .command("verify")
+    .command("payload")
     .description(
-      "verify a bundle offline: digests, sizes, contracts, and required roles",
+      "print the unsigned signing record and exact payload to sign with your own Ed25519 key",
     )
     .argument("<dir>", "bundle directory")
-    .action(async (directory: string): Promise<void> => {
-      const report = await verifyBundle(directory);
-      process.stdout.write(`${JSON.stringify(report)}\n`);
-      if (!report.ok) process.exitCode = 2;
-    });
+    .requiredOption("--key-id <id>", "signer key ID in your keyring")
+    .requiredOption("--signed-at <date-time>", "signing time (ISO 8601)")
+    .requiredOption("--expires-at <date-time>", "signature expiry (ISO 8601)")
+    .action(
+      async (
+        directory: string,
+        options: { keyId: string; signedAt: string; expiresAt: string },
+      ): Promise<void> => {
+        const result = await bundleSigningPayload(directory, {
+          signerKeyId: options.keyId,
+          signedAt: options.signedAt,
+          expiresAt: options.expiresAt,
+        });
+        process.stdout.write(`${JSON.stringify(result)}\n`);
+      },
+    );
+  bundle
+    .command("verify")
+    .description(
+      "verify a bundle offline: digests, sizes, contracts, required roles, and optionally its signature",
+    )
+    .argument("<dir>", "bundle directory")
+    .option("--signature <path>", "assurance signing record for the manifest")
+    .option("--keyring <path>", "public-key keyring JSON")
+    .option("--trust-root <id>", "trusted root ID (repeatable)", collect)
+    .option("--as-of <date-time>", "evaluate expiry and validity at this time")
+    .action(
+      async (
+        directory: string,
+        options: {
+          signature?: string;
+          keyring?: string;
+          trustRoot?: string[];
+          asOf?: string;
+        },
+      ): Promise<void> => {
+        if (
+          options.signature !== undefined &&
+          (options.keyring === undefined || options.trustRoot === undefined)
+        )
+          throw new InvalidArgumentError(
+            "--signature requires --keyring and at least one --trust-root",
+          );
+        const report = await verifyBundle(
+          directory,
+          options.signature === undefined || options.keyring === undefined
+            ? undefined
+            : {
+                signature: options.signature,
+                keyring: options.keyring,
+                trustRoots: options.trustRoot ?? [],
+                ...(options.asOf === undefined ? {} : { asOf: options.asOf }),
+              },
+        );
+        process.stdout.write(`${JSON.stringify(report)}\n`);
+        if (!report.ok) process.exitCode = 2;
+      },
+    );
 
   program
     .command("review")

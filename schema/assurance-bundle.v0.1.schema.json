@@ -83,7 +83,15 @@
         }
       }
     },
-    "sourceBodiesIncluded": { "const": false }
+    "sourceBodiesIncluded": { "const": false },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["analyzerFingerprint"],
+      "properties": {
+        "analyzerFingerprint": { "$ref": "#/definitions/digest" }
+      }
+    }
   },
   "definitions": {
     "role": {

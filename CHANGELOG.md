@@ -12,6 +12,9 @@ checksums.
 - `cartograph bundle create` and `bundle verify`: reproducible, offline-verifiable
   assurance bundles of snapshots, diffs, policies, evaluations, decisions,
   waivers, query results, configuration, and reports.
+- Bundles record the analyzer build fingerprint and can be signed with your own
+  Ed25519 key (`bundle payload`) and verified offline against a keyring and
+  trust roots (`bundle verify --signature`).
 - `diff --cache-dir` reuses revision snapshots keyed by the analyzer build,
   contracts, configuration, and the commit and tree being analyzed.
 - Query predicates for evidence source spans (`evidence.line`), extractor
