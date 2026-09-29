@@ -21,6 +21,9 @@ const run = (script: string, args: string[]) =>
   execFileSync(process.execPath, ["--import", "tsx", script, ...args], {
     cwd: repositoryRoot,
     encoding: "utf8",
+    // benchmark:diff:ci enforces p95 time budgets on its own; here other test
+    // files share the CPU, so only correctness and size limits are checked.
+    env: { ...process.env, CARTOGRAPH_BENCHMARK_TIMING: "report" },
   });
 
 describe("bounded revision-diff benchmark", () => {

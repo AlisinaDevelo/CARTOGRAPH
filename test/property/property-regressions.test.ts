@@ -52,13 +52,20 @@ describe("bounded property and security regressions", () => {
     const output = execFileSync(
       process.execPath,
       ["--expose-gc", "--import", "tsx", runnerPath, "validate"],
-      { cwd: repositoryRoot, encoding: "utf8" },
+      {
+        cwd: repositoryRoot,
+        encoding: "utf8",
+        // Time budgets are enforced by the standalone property:validate step;
+        // here other test files share the CPU, so overruns are only reported.
+        env: { ...process.env, CARTOGRAPH_PROPERTY_TIMING: "report" },
+      },
     );
     expect(JSON.parse(output)).toMatchObject({
       ok: true,
       totalCases: 112,
       expectedRejections: 24,
       runtimeBudgetMs: 15000,
+      timing: "reported",
       security: {
         sourceExecution: false,
         prototypePollution: false,

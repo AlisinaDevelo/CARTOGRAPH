@@ -426,6 +426,17 @@ const runRegressionFixtures = () => {
   );
 };
 
+// `npm run property:validate` (and its CI step) enforces the time budgets.
+// The test suite runs this script while other test files compete for the
+// CPU, so it sets CARTOGRAPH_PROPERTY_TIMING=report to record overruns in
+// the report instead of failing on them; correctness checks are unchanged.
+const enforceTiming = process.env.CARTOGRAPH_PROPERTY_TIMING !== "report";
+const timingOverruns = [];
+const budgetExceeded = (message) => {
+  if (enforceTiming) fail(message);
+  timingOverruns.push(message);
+};
+
 const runSuite = (scenario, suite, random, operation, rejectionRule) => {
   let rejected = 0;
   let maxCaseMs = 0;
@@ -442,7 +453,7 @@ const runSuite = (scenario, suite, random, operation, rejectionRule) => {
     const elapsed = performance.now() - caseStarted;
     maxCaseMs = Math.max(maxCaseMs, elapsed);
     if (elapsed > scenario.budgets.maxCaseMs)
-      fail(
+      budgetExceeded(
         `${suite.id} case ${index} exceeded ${scenario.budgets.maxCaseMs}ms`,
       );
     if (shouldReject && thrown === undefined)
@@ -554,7 +565,7 @@ const validate = () => {
   runRegressionFixtures();
   const elapsedMs = Number((performance.now() - runStarted).toFixed(3));
   if (elapsedMs > scenario.budgets.maxTotalMs)
-    fail(
+    budgetExceeded(
       `property suite exceeded ${scenario.budgets.maxTotalMs}ms: ${elapsedMs}ms`,
     );
   console.log(
@@ -572,6 +583,8 @@ const validate = () => {
       regressions: scenario.regressions.map((regression) => regression.id),
       runtimeBudgetMs: scenario.budgets.maxTotalMs,
       elapsedMs,
+      timing: enforceTiming ? "enforced" : "reported",
+      timingOverruns,
       security: {
         sourceExecution: false,
         prototypePollution: false,
