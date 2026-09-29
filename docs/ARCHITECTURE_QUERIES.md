@@ -182,3 +182,21 @@ independent reviewer evidence are not measured. Run:
 ```sh
 npm run query:quality:validate
 ```
+
+## Regression and authorization-boundary corpus
+
+[`test/fixtures/query-regression/cases.v0.1.json`](../test/fixtures/query-regression/cases.v0.1.json)
+is replayed by `npm run query-regression:validate` and the test suite. It
+covers parser bugs (value and predicate ceilings, empty lists, trailing
+tokens, unterminated strings, unsupported versions, over-deep traversal),
+path containment (`..` with either separator, absolute, drive, URI, and
+home-relative paths, plus a check that every returned path stays
+repository-relative), stale references (revisions that don't match the diff,
+revision clauses without a diff, and dependency paths to nodes that no longer
+exist), and adversarial selectors (regex metacharacters are literal, traversal
+stops at its node ceiling, and every query finishes inside a fixed time budget).
+
+The runner also proves that queries are read-only with respect to policy: it
+evaluates a policy, runs every query, confirms the input snapshot is unchanged
+and the policy decision is byte-identical, and confirms that a query result is
+rejected as policy input.

@@ -112,7 +112,8 @@ const PortablePathSchema = QueryValueSchema.refine(
     !value.startsWith("~") &&
     !value.startsWith("\\") &&
     !/^[A-Za-z][A-Za-z\d+.-]*:/.test(value) &&
-    !value.split("/").some((part) => part === ".."),
+    // Split on both separators so `src\..\secret` is traversal too.
+    !value.split(/[\\/]/u).some((part) => part === ".."),
   "must be a repository-relative path",
 );
 
