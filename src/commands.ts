@@ -51,12 +51,19 @@ import {
 import {
   readPathHistory,
   resolveRevisionComparison,
+  resolveTree,
   withMaterializedRevision,
   type RevisionComparisonMode,
 } from "./git/revision.js";
 import { buildAdrReport, type AdrReport } from "./report/adr.js";
 import { renderDiff, type ReportFormat } from "./report/render.js";
 import { renderReviewSummary } from "./report/review.js";
+import {
+  analyzerFingerprint,
+  readCachedSnapshot,
+  scanCacheKey,
+  writeCachedSnapshot,
+} from "./scan-cache.js";
 
 const MAX_SNAPSHOT_BYTES = 64 * 1024 * 1024;
 const MAX_POLICY_INPUT_BYTES = 64 * 1024 * 1024;
@@ -89,6 +96,8 @@ export type RevisionDiffOptions = {
   configPath?: string;
   adr?: string;
   signal?: AbortSignal;
+  /** Reuse and store revision snapshots keyed by content (see scan-cache.ts). */
+  cacheDir?: string;
 };
 
 type ConfigOptions = {
@@ -203,6 +212,46 @@ const scanMaterializedRevision = async (
     },
   );
 
+const scanRevisionWithCache = async (
+  repositoryRoot: string,
+  commit: string,
+  tsconfigPath: string | undefined,
+  config: CartographConfig,
+  signal: AbortSignal | undefined,
+  cacheDir: string | undefined,
+): Promise<GraphSnapshot> => {
+  if (cacheDir === undefined)
+    return await scanMaterializedRevision(
+      repositoryRoot,
+      commit,
+      tsconfigPath,
+      config,
+      signal,
+    );
+  const key = scanCacheKey({
+    analyzer: analyzerFingerprint(),
+    commitSha: commit,
+    treeSha: await resolveTree(
+      repositoryRoot,
+      commit,
+      signal === undefined ? {} : { signal },
+    ),
+    config,
+    tsconfigPath,
+  });
+  const cached = await readCachedSnapshot(cacheDir, key, commit);
+  if (cached !== undefined) return cached;
+  const snapshot = await scanMaterializedRevision(
+    repositoryRoot,
+    commit,
+    tsconfigPath,
+    config,
+    signal,
+  );
+  await writeCachedSnapshot(cacheDir, key, snapshot);
+  return snapshot;
+};
+
 const readAdrReferenceAtRoot = (
   root: string,
   referencePath: string,
@@ -245,19 +294,23 @@ export async function diffRepositoryRevisions(
     options.comparison ?? "direct",
     options.signal === undefined ? {} : { signal: options.signal },
   );
-  const before = await scanMaterializedRevision(
+  const cacheDir =
+    options.cacheDir === undefined ? undefined : resolve(options.cacheDir);
+  const before = await scanRevisionWithCache(
     repositoryRoot,
     comparison.fromCommitSha,
     options.tsconfigPath ?? config.tsconfigPath,
     config,
     options.signal,
+    cacheDir,
   );
-  const after = await scanMaterializedRevision(
+  const after = await scanRevisionWithCache(
     repositoryRoot,
     comparison.headCommitSha,
     options.tsconfigPath ?? config.tsconfigPath,
     config,
     options.signal,
+    cacheDir,
   );
   const pathHistory = await readPathHistory(
     repositoryRoot,

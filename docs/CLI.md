@@ -164,6 +164,39 @@ redacted diagnostic remains actionable: relative repository paths and stable
 field names remain when they are safe to show. The redaction is a log boundary
 only; it does not change the canonical artifact or the library error object.
 
+## Revision snapshot cache
+
+`diff --cache-dir <path>` stores each revision's snapshot under a
+content-addressed key and reuses it on later runs. Pull requests against the
+same base commit then scan the base once. The key is a SHA-256 over:
+
+- a fingerprint of the running analyzer (every file of the installed package,
+  plus the resolved TypeScript and ts-morph versions), so a rebuilt tool never
+  reuses another build's output;
+- the snapshot, capability, and diagnostic contract versions;
+- the scan-relevant configuration, including resource ceilings, so a cached
+  result never bypasses a stricter limit, and the tsconfig selection;
+- the commit SHA and its Git tree SHA, which covers lockfiles and every other
+  source input.
+
+A cached file is used only if it parses as a snapshot of exactly that commit;
+anything else is a miss and is rescanned and overwritten. Working-tree scans
+are never cached. Files are written with private permissions and replaced
+atomically.
+
+The cache is trusted like the workflow that restores it: CARTOGRAPH cannot
+tell a cached snapshot from a fresh one beyond those checks. In GitHub Actions,
+key it on the base commit so pull requests only restore caches written by the
+base branch:
+
+```yaml
+- uses: actions/cache@<full-commit-sha>
+  with:
+    path: ${{ runner.temp }}/cartograph-cache
+    key: cartograph-${{ github.event.pull_request.base.sha }}
+- run: cartograph diff . --base "$BASE_SHA" --head "$HEAD_SHA" --cache-dir "$RUNNER_TEMP/cartograph-cache" --format json --output diff.json
+```
+
 ## Exit codes
 
 - **Exit code 0** means the requested command completed successfully. `--help`,

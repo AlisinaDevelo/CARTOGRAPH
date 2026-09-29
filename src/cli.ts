@@ -241,6 +241,10 @@ export function createCli(): Command {
       "--adr <path>",
       "repository-relative local ADR reference JSON for report links",
     )
+    .option(
+      "--cache-dir <path>",
+      "reuse revision snapshots stored here, keyed by analyzer, config, and commit tree",
+    )
     .option("-o, --output <path>", "output file; stdout when omitted")
     .option("--force", "replace an existing output file", false)
     .action(
@@ -254,10 +258,14 @@ export function createCli(): Command {
           tsconfig?: string;
           config?: string;
           adr?: string;
+          cacheDir?: string;
         },
       ): Promise<void> => {
         const config = readConfigOption(root, options.config);
         const report = await diffRepositoryRevisions({
+          ...(options.cacheDir === undefined
+            ? {}
+            : { cacheDir: options.cacheDir }),
           base: options.base,
           comparison: options.comparison,
           format: options.format,

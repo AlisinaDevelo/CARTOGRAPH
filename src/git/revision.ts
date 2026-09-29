@@ -290,6 +290,35 @@ export async function resolveCommit(
   return await resolveCommitAtRoot(root, ref, options);
 }
 
+/** The tree object a commit points at: a digest of every file it contains. */
+export async function resolveTree(
+  repositoryRoot: string,
+  commit: string,
+  options: ProcessOptions = {},
+): Promise<string> {
+  assertSafeRef(commit);
+  const root = await resolveRepositoryRoot(repositoryRoot, options);
+  const output = await runProcess(
+    "git",
+    [
+      "-C",
+      root,
+      "rev-parse",
+      "--verify",
+      "--end-of-options",
+      `${commit}^{tree}`,
+    ],
+    undefined,
+    options,
+  );
+  const tree = output.trim();
+  if (!/^[0-9a-f]{40,64}$/u.test(tree))
+    throw new Error(
+      `Git returned an invalid tree identifier for ${JSON.stringify(commit)}`,
+    );
+  return tree;
+}
+
 const resolveCommitAtRoot = async (
   root: string,
   ref: string,
