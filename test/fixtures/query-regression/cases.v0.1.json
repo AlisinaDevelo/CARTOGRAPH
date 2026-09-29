@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.query-regression-fixtures",
+  "fixtureId": "query-regression-v0.1",
+  "scope": {
+    "network": false,
+    "filesystemWrites": false,
+    "sourceBodiesIncluded": false,
+    "deterministic": true
+  },
+  "parse": [
+    {
+      "id": "too-many-values",
+      "query": "v1 nodes where name in [v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32]",
+      "errorCode": "QUERY_PARSE_INVALID_VALUE"
+    },
+    {
+      "id": "empty-in-list",
+      "query": "v1 nodes where name in []",
+      "errorCode": "QUERY_PARSE_UNEXPECTED_TOKEN"
+    },
+    {
+      "id": "trailing-token",
+      "query": "v1 nodes where kind = function extra",
+      "errorCode": "QUERY_PARSE_INVALID_FIELD"
+    },
+    {
+      "id": "unterminated-string",
+      "query": "v1 nodes where name = \"open",
+      "errorCode": "QUERY_PARSE_UNTERMINATED_STRING"
+    },
+    {
+      "id": "unsupported-version",
+      "query": "v9 nodes where kind = function",
+      "errorCode": "QUERY_PARSE_UNSUPPORTED_VERSION"
+    },
+    {
+      "id": "traversal-depth-over-limit",
+      "query": "v1 nodes where kind = function traverse downstream depth=65",
+      "errorCode": "QUERY_PARSE_INVALID_VALUE"
+    },
+    {
+      "id": "path-dotdot-traversal",
+      "query": "v1 edges where evidence.path ^= ../secret",
+      "errorCode": "QUERY_PARSE_INVALID_VALUE"
+    },
+    {
+      "id": "path-backslash-traversal",
+      "query": "v1 edges where evidence.path = \"src\\\\..\\\\secret\"",
+      "errorCode": "QUERY_PARSE_INVALID_VALUE"
+    },
+    {
+      "id": "path-absolute",
+      "query": "v1 edges where evidence.path = /etc/passwd",
+      "errorCode": "QUERY_PARSE_INVALID_VALUE"
+    },
+    {
+      "id": "path-drive",
+      "query": "v1 edges where evidence.path = C:/src/a.ts",
+      "errorCode": "QUERY_PARSE_INVALID_VALUE"
+    },
+    {
+      "id": "path-uri",
+      "query": "v1 edges where evidence.path = file:///etc/passwd",
+      "errorCode": "QUERY_PARSE_INVALID_VALUE"
+    },
+    {
+      "id": "path-home",
+      "query": "v1 edges where evidence.path ^= ~/secrets",
+      "errorCode": "QUERY_PARSE_INVALID_VALUE"
+    },
+    {
+      "id": "malformed-span",
+      "query": "v1 edges where evidence.line = 0",
+      "errorCode": "QUERY_PARSE_INVALID_VALUE"
+    }
+  ],
+  "execute": [
+    {
+      "id": "literal-metacharacters",
+      "input": "snapshot",
+      "query": "v1 nodes where name ^= \".*\"",
+      "status": "ok",
+      "nodes": 0,
+      "edges": 0
+    },
+    {
+      "id": "contained-evidence-paths",
+      "input": "snapshot",
+      "query": "v1 edges where evidence.path ^= src/",
+      "status": "ok",
+      "nodes": 2,
+      "edges": 1
+    },
+    {
+      "id": "stale-revision",
+      "input": "diff",
+      "query": "v1 changes where change = node-added revision from stale to head",
+      "diagnostics": ["QUERY_REVISION_MISMATCH"]
+    },
+    {
+      "id": "revision-without-diff",
+      "input": "snapshot",
+      "query": "v1 changes where change = node-added revision from base to head",
+      "diagnostics": ["QUERY_DIFF_REQUIRED"]
+    },
+    {
+      "id": "bounded-traversal",
+      "input": "snapshot",
+      "query": "v1 nodes where kind = function traverse downstream depth=64 limit maxNodes=1",
+      "status": "resource-limit"
+    }
+  ],
+  "architecture": [
+    {
+      "id": "stale-node-reference",
+      "query": {
+        "schemaVersion": 1,
+        "contract": "cartograph.architecture-query",
+        "queryId": "stale-node-reference",
+        "operation": "dependency-path",
+        "path": {
+          "from": "function:src/removed.ts:gone",
+          "to": "module:src/b.ts"
+        }
+      },
+      "diagnostics": ["QUERY_NODE_NOT_FOUND"]
+    }
+  ]
+}

@@ -497,6 +497,15 @@
       "redistribution": "allowed"
     },
     {
+      "id": "query-regression",
+      "path": "query-regression",
+      "source": "CARTOGRAPH repository-authored synthetic query regression fixture",
+      "license": "Apache-2.0",
+      "reference": "CARTOGRAPH repository history; no external source",
+      "transformation": "Versioned local cases replay query parser regressions, path-containment rejections (either separator, absolute, drive, URI, and home paths), stale revision and node references, and adversarial selectors against synthetic in-memory snapshots, and check that running queries never mutates input or changes a policy decision; no source bodies, execution, or network access.",
+      "redistribution": "allowed"
+    },
+    {
       "id": "graph-view",
       "path": "graph-view",
       "source": "CARTOGRAPH repository-authored synthetic graph-view fixture",

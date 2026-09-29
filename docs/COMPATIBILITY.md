@@ -1077,3 +1077,11 @@ repositories that previously scanned are unchanged.
 parse to the same canonical AST and select the same records, so the contract
 version is unchanged. A reader that predates them rejects a query that uses
 them. The fields are rejected in change queries rather than matching nothing.
+
+## Query path containment
+
+The graph query language and architecture-query path checks now split values
+on both `/` and `\` before looking for `..`, so `src\..\secret` is rejected
+like `src/../secret`. Graph paths are always stored with forward slashes, so
+such a value could never match a record; the change only turns a silent
+no-match into the documented rejection.
