@@ -462,7 +462,13 @@ export const validateArtifact = (artifact, manifest) => {
     if (tier === undefined)
       fail(`workload ${result.id} has unsupported tier ${workload.tier}`);
     for (const mode of ["cold", "warm"]) {
-      if (result[mode].p95Ms > tier.maxP95Ms)
+      // Time budgets are enforced by the standalone benchmark:diff:ci step.
+      // The test suite sets CARTOGRAPH_BENCHMARK_TIMING=report because other
+      // test files share the CPU there; memory and size limits stay enforced.
+      if (
+        result[mode].p95Ms > tier.maxP95Ms &&
+        process.env.CARTOGRAPH_BENCHMARK_TIMING !== "report"
+      )
         fail(
           `${workload.tier} workload ${result.id} ${mode} p95 ${result[mode].p95Ms}ms exceeds ${tier.maxP95Ms}ms`,
         );
