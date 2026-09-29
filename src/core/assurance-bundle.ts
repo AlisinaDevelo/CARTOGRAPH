@@ -3,6 +3,16 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 
 import { parseAdrReferenceDocument } from "./adr.js";
+import {
+  ASSURANCE_SIGNING_ALGORITHM,
+  ASSURANCE_SIGNING_ALGORITHM_VERSION,
+  ASSURANCE_SIGNING_CONTRACT,
+  ASSURANCE_SIGNING_SCHEMA_VERSION,
+  assuranceSigningPayload,
+  evaluateAssuranceSigningRecord,
+  type AssuranceSigningKey,
+  type AssuranceSigningKeyring,
+} from "./assurance-signing.js";
 import { parseArchitectureWaiver } from "./architecture-waivers.js";
 import { stableStringify } from "./canonical.js";
 import { parseCartographConfig } from "./config.js";
@@ -108,6 +118,12 @@ export const AssuranceBundleManifestSchema = z
     tool: z
       .object({ name: z.literal("cartograph-cli"), version: TextSchema })
       .strict(),
+    // Digest of the analyzer build that produced the bundle (every file of the
+    // installed package plus the TypeScript and ts-morph versions).
+    provenance: z
+      .object({ analyzerFingerprint: DigestSchema })
+      .strict()
+      .optional(),
     limits: z
       .object({
         maxArtifacts: z.literal(ASSURANCE_BUNDLE_LIMITS.maxArtifacts),
@@ -145,6 +161,7 @@ export type AssuranceBundleInput = {
 
 export type AssuranceBundleBuildOptions = {
   toolVersion: string;
+  analyzerFingerprint?: string;
   requiredRoles?: readonly AssuranceBundleRole[];
   missing?: readonly { role: AssuranceBundleRole; reason: string }[];
 };
@@ -258,6 +275,9 @@ export const buildAssuranceBundle = (
     schemaVersion: ASSURANCE_BUNDLE_SCHEMA_VERSION,
     contract: ASSURANCE_BUNDLE_CONTRACT,
     tool: { name: "cartograph-cli" as const, version: options.toolVersion },
+    ...(options.analyzerFingerprint === undefined
+      ? {}
+      : { provenance: { analyzerFingerprint: options.analyzerFingerprint } }),
     limits: { ...ASSURANCE_BUNDLE_LIMITS },
     requiredRoles,
     artifacts,
@@ -361,5 +381,80 @@ export const verifyAssuranceBundle = (
     bundleId,
     artifacts: manifest.artifacts.length,
     problems,
+  };
+};
+
+/**
+ * Digest a signature covers: the exact bytes of manifest.json, in the
+ * assurance-signing `sha256:<hex>` form.
+ */
+export const assuranceBundleManifestDigest = (manifestText: string): string =>
+  `sha256:${sha256(manifestText)}`;
+
+export type AssuranceBundleSigningRequest = {
+  signerKeyId: string;
+  signedAt: string;
+  expiresAt: string;
+};
+
+/**
+ * The unsigned signing record for a bundle and the exact UTF-8 payload to
+ * sign with Ed25519. Signing happens outside CARTOGRAPH, so no private key is
+ * ever read, stored, or reported by the tool.
+ */
+export const assuranceBundleSigningPayload = (
+  manifestText: string,
+  request: AssuranceBundleSigningRequest,
+): {
+  payload: string;
+  record: Record<string, unknown>;
+} => {
+  const record = {
+    schemaVersion: ASSURANCE_SIGNING_SCHEMA_VERSION,
+    contract: ASSURANCE_SIGNING_CONTRACT,
+    manifestDigest: assuranceBundleManifestDigest(manifestText),
+    signerKeyId: request.signerKeyId,
+    algorithm: ASSURANCE_SIGNING_ALGORITHM,
+    algorithmVersion: ASSURANCE_SIGNING_ALGORITHM_VERSION,
+    signedAt: request.signedAt,
+    expiresAt: request.expiresAt,
+  };
+  return { payload: assuranceSigningPayload(record), record };
+};
+
+export type AssuranceBundleSignatureResult = {
+  status: "verified" | "failed";
+  code: string;
+  signerKeyId?: string;
+};
+
+/**
+ * Verify a signing record against this bundle's manifest: it must cover the
+ * manifest's exact digest, then pass the assurance-signing checks (trusted
+ * root, key validity window, rotation, revocation, record expiry, algorithm,
+ * and signature).
+ */
+export const verifyAssuranceBundleSignature = (
+  manifestText: string,
+  record: unknown,
+  options: {
+    keyring: AssuranceSigningKeyring | readonly AssuranceSigningKey[];
+    trustedRootIds: readonly string[];
+    now?: Date | string;
+  },
+): AssuranceBundleSignatureResult => {
+  const digest =
+    record && typeof record === "object" && "manifestDigest" in record
+      ? record.manifestDigest
+      : undefined;
+  if (digest !== assuranceBundleManifestDigest(manifestText))
+    return { status: "failed", code: "manifest-mismatch" };
+  const report = evaluateAssuranceSigningRecord(record, options);
+  return {
+    status: report.status === "verified" ? "verified" : "failed",
+    code: report.code,
+    ...(report.signerKeyId === undefined
+      ? {}
+      : { signerKeyId: report.signerKeyId }),
   };
 };

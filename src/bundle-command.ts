@@ -7,11 +7,17 @@ import {
   ASSURANCE_BUNDLE_MANIFEST,
   ASSURANCE_BUNDLE_ROLES,
   AssuranceBundleError,
+  AssuranceSigningKeyringSchema,
+  assuranceBundleSigningPayload,
   buildAssuranceBundle,
   verifyAssuranceBundle,
+  verifyAssuranceBundleSignature,
+  type AssuranceBundleSignatureResult,
+  type AssuranceBundleSigningRequest,
   type AssuranceBundleRole,
   type AssuranceBundleVerification,
 } from "./core/index.js";
+import { analyzerFingerprint } from "./scan-cache.js";
 
 export type BundleCreateOptions = {
   output: string;
@@ -70,6 +76,7 @@ export async function createBundle(
   );
   const built = buildAssuranceBundle(inputs, {
     toolVersion: options.toolVersion,
+    analyzerFingerprint: analyzerFingerprint(),
     ...(options.requiredRoles === undefined
       ? {}
       : { requiredRoles: options.requiredRoles.map(roleOf) }),
@@ -114,10 +121,49 @@ const listBundleFiles = (root: string): string[] => {
   return files.sort();
 };
 
-/** Verify a bundle directory offline. */
+const readJsonFile = async (path: string, label: string): Promise<unknown> => {
+  const metadata = await lstat(resolve(path));
+  if (
+    !metadata.isFile() ||
+    metadata.isSymbolicLink() ||
+    metadata.size > 4 * 1024 * 1024
+  )
+    throw new AssuranceBundleError(
+      `${label} is not a regular file under 4 MiB: ${path}`,
+    );
+  try {
+    return JSON.parse(await readFile(resolve(path), "utf8")) as unknown;
+  } catch {
+    throw new AssuranceBundleError(`${label} is not valid JSON: ${path}`);
+  }
+};
+
+/** The unsigned record and exact payload to sign for a bundle. */
+export async function bundleSigningPayload(
+  directory: string,
+  request: AssuranceBundleSigningRequest,
+): Promise<ReturnType<typeof assuranceBundleSigningPayload>> {
+  const manifest = await readFile(
+    join(resolve(directory), ASSURANCE_BUNDLE_MANIFEST),
+    "utf8",
+  );
+  return assuranceBundleSigningPayload(manifest, request);
+}
+
+export type BundleSignatureOptions = {
+  signature: string;
+  keyring: string;
+  trustRoots: readonly string[];
+  asOf?: string;
+};
+
+/** Verify a bundle directory offline, and its signature when one is given. */
 export async function verifyBundle(
   directory: string,
-): Promise<AssuranceBundleVerification> {
+  signatureOptions?: BundleSignatureOptions,
+): Promise<
+  AssuranceBundleVerification & { signature?: AssuranceBundleSignatureResult }
+> {
   const root = resolve(directory);
   const files = listBundleFiles(root);
   const contents = new Map<string, Uint8Array>();
@@ -129,10 +175,33 @@ export async function verifyBundle(
       throw new AssuranceBundleError("bundle exceeds its total byte ceiling");
     contents.set(file, content);
   }
-  return verifyAssuranceBundle(files, (path) => {
+  const report = verifyAssuranceBundle(files, (path) => {
     const content = contents.get(path);
     if (content === undefined)
       throw new AssuranceBundleError(`missing ${path}`);
     return content;
   });
+  if (signatureOptions === undefined) return report;
+  const manifest = contents.get(ASSURANCE_BUNDLE_MANIFEST);
+  const signature: AssuranceBundleSignatureResult =
+    manifest === undefined
+      ? { status: "failed", code: "manifest-missing" }
+      : verifyAssuranceBundleSignature(
+          Buffer.from(manifest).toString("utf8"),
+          await readJsonFile(signatureOptions.signature, "signature record"),
+          {
+            keyring: AssuranceSigningKeyringSchema.parse(
+              await readJsonFile(signatureOptions.keyring, "keyring"),
+            ),
+            trustedRootIds: signatureOptions.trustRoots,
+            ...(signatureOptions.asOf === undefined
+              ? {}
+              : { now: signatureOptions.asOf }),
+          },
+        );
+  return {
+    ...report,
+    ok: report.ok && signature.status === "verified",
+    signature,
+  };
 }

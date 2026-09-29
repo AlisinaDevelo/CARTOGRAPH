@@ -71,5 +71,42 @@ problem when:
 - a required role is absent without a declaration.
 
 Symbolic links and special files inside a bundle are refused outright.
-Signing a bundle's manifest digest is covered by
-[assurance signing](ASSURANCE_SIGNING.md).
+
+## Provenance
+
+`bundle create` records `provenance.analyzerFingerprint`, a SHA-256 over every
+file of the installed CARTOGRAPH package plus the TypeScript and ts-morph
+versions it resolved. Two bundles with the same fingerprint were produced by
+the same analyzer build.
+
+## Signing
+
+A bundle is signed over the SHA-256 of its exact `manifest.json` bytes using
+the [assurance signing](ASSURANCE_SIGNING.md) record format (Ed25519, public
+keys in a keyring with trust roots, validity windows, rotation, and
+revocation). CARTOGRAPH never reads a private key: it prints what to sign, you
+sign with your own tooling, and it verifies the result.
+
+```sh
+# 1. The unsigned record and the exact payload to sign.
+cartograph bundle payload bundle/ --key-id release-2026 \
+  --signed-at 2026-09-29T00:00:00.000Z --expires-at 2027-09-29T00:00:00.000Z > request.json
+jq -j .payload request.json > payload.txt
+
+# 2. Sign with your Ed25519 key (OpenSSL 3 shown) and complete the record.
+b64u() { base64 | tr -d '\n=' | tr '+/' '-_'; }
+signature=$(openssl pkeyutl -sign -rawin -inkey key.pem -in payload.txt | b64u)
+jq --arg s "$signature" '.record + {signature: $s}' request.json > signature.json
+
+# 3. Verify offline.
+cartograph bundle verify bundle/ --signature signature.json \
+  --keyring keyring.json --trust-root cartograph-maintainers
+```
+
+The keyring's `publicKey` is the base64url SPKI DER form
+(`openssl pkey -in key.pem -pubout -outform DER | b64u`). Verification adds a
+`signature` result to the report and fails the bundle when the signature
+doesn't cover this manifest (`manifest-mismatch`), or when the record is
+expired, the key is revoked, retired, or outside its validity window, the
+signer's root isn't trusted, the algorithm is unsupported, or the signature is
+invalid. `--as-of` evaluates expiry at a fixed time.
