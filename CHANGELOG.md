@@ -9,6 +9,10 @@ checksums.
 
 ### Added
 
+- `cartograph history governance`: ownership changes, gap opening, closing,
+  and recurrence, waiver renewals, expiry, lapses, and scope growth, and
+  review latency over stored history, each linked to evidence, with missing
+  history kept apart from a verified no-change.
 - `cartograph history indicators`: evidence-backed debt indicators (finding
   age and recurrence, waiver history, ownership gaps, policy severity,
   boundary erosion, unknown coverage, remediation evidence) with configurable

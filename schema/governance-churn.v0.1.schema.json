@@ -1,0 +1,421 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/governance-churn.v0.1.schema.json",
+  "title": "CARTOGRAPH ownership and waiver churn v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "measuresVersion",
+    "asOf",
+    "limitation",
+    "ownership",
+    "waivers",
+    "reviewLatency"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "contract": {
+      "const": "cartograph.governance-churn"
+    },
+    "measuresVersion": {
+      "const": 1
+    },
+    "asOf": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "limitation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ownership": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "reason"],
+          "properties": {
+            "status": {
+              "const": "unavailable"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "points", "intervals", "gapRecurrence"],
+          "properties": {
+            "status": {
+              "const": "measured"
+            },
+            "points": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["revision", "status"],
+                "properties": {
+                  "revision": {
+                    "type": "string"
+                  },
+                  "recordId": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "status": {
+                    "enum": ["measured", "missing"]
+                  },
+                  "targets": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "gaps": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            },
+            "intervals": {
+              "type": "array",
+              "items": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["from", "to", "status"],
+                    "properties": {
+                      "from": {
+                        "type": "string"
+                      },
+                      "to": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "const": "missing-history"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "from",
+                      "to",
+                      "status",
+                      "verifiedNoChange",
+                      "ownerChanges",
+                      "gapsOpened",
+                      "gapsClosed",
+                      "targetsAdded",
+                      "targetsRemoved"
+                    ],
+                    "properties": {
+                      "from": {
+                        "type": "string"
+                      },
+                      "to": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "const": "measured"
+                      },
+                      "verifiedNoChange": {
+                        "type": "boolean"
+                      },
+                      "ownerChanges": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["numerator", "denominator", "evidence"],
+                        "properties": {
+                          "numerator": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "denominator": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "evidence": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      },
+                      "gapsOpened": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["numerator", "denominator", "evidence"],
+                        "properties": {
+                          "numerator": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "denominator": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "evidence": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      },
+                      "gapsClosed": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["numerator", "denominator", "evidence"],
+                        "properties": {
+                          "numerator": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "denominator": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "evidence": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      },
+                      "targetsAdded": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "targetsRemoved": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "gapRecurrence": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["numerator", "denominator", "evidence"],
+              "properties": {
+                "numerator": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "denominator": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "evidence": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "waivers": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "reason"],
+          "properties": {
+            "status": {
+              "const": "unavailable"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "renewalGraceDays", "rules", "totals"],
+          "properties": {
+            "status": {
+              "const": "measured"
+            },
+            "renewalGraceDays": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "ruleId",
+                  "waivers",
+                  "renewals",
+                  "expired",
+                  "lapsed",
+                  "active",
+                  "scopeGrowth"
+                ],
+                "properties": {
+                  "ruleId": {
+                    "type": "string"
+                  },
+                  "waivers": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "renewals": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "expired": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "lapsed": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "active": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "scopeGrowth": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["first", "last"],
+                    "properties": {
+                      "first": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "last": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "totals": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "waivers",
+                "renewals",
+                "expired",
+                "lapsed",
+                "rulesWithScopeGrowth"
+              ],
+              "properties": {
+                "waivers": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "renewals": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "expired": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "lapsed": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "rulesWithScopeGrowth": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "reviewLatency": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "reason"],
+          "properties": {
+            "status": {
+              "const": "unavailable"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "findings",
+            "reviewed",
+            "unreviewed",
+            "evidence"
+          ],
+          "properties": {
+            "status": {
+              "const": "measured"
+            },
+            "findings": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "reviewed": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "medianDays": {
+              "type": "number",
+              "minimum": 0
+            },
+            "p90Days": {
+              "type": "number",
+              "minimum": 0
+            },
+            "unreviewed": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "evidence": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -6,8 +6,11 @@ import {
   evaluatePolicyOnSnapshot,
   parseAdrReferenceDocument,
   parseArchitectureWaiver,
+  parseCodeowners,
   parseControlMapping,
+  parseOwnershipInput,
   parsePolicyConfig,
+  resolveOwnership,
   FindingLifecycleInputSchema,
 } from "../../src/core/index.js";
 
@@ -200,3 +203,38 @@ export const mapping = parseControlMapping({
     control("C-declared-missing", [{ type: "bundle-artifact", role: "diff" }]),
   ],
 });
+
+const ownershipFixture = json(
+  "test/fixtures/ownership-resolution/report.v0.1.json",
+) as {
+  request: Record<string, unknown> & {
+    sources: unknown[];
+    sourceDiagnostics: unknown[];
+  };
+  codeowners: {
+    id: string;
+    repositoryId: string;
+    path: string;
+    revision: string;
+    precedence: number;
+    text: string;
+  }[];
+};
+const codeowners = ownershipFixture.codeowners.map((entry) =>
+  parseCodeowners(entry.text, entry),
+);
+
+/** The resolved ownership fixture: 10 targets, 2 gaps, 3 unresolvable. */
+export const ownershipReport = resolveOwnership(
+  parseOwnershipInput({
+    ...ownershipFixture.request,
+    sources: [
+      ...ownershipFixture.request.sources,
+      ...codeowners.map((entry) => entry.source),
+    ],
+    sourceDiagnostics: [
+      ...ownershipFixture.request.sourceDiagnostics,
+      ...codeowners.flatMap((entry) => entry.diagnostics),
+    ],
+  }),
+);

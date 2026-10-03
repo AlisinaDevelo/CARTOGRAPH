@@ -1175,3 +1175,10 @@ configuration contract, `cartograph.debt-indicators-config` v1, from
 `cartograph history indicators` ([guide](HISTORY.md#debt-indicators)). The
 history record kinds gain `waiver` and `ownership`. That is an additive enum
 change: existing records and IDs are unchanged.
+
+## Ownership and waiver churn v1
+
+A new report contract, `cartograph.governance-churn` v1, from
+`cartograph history governance` ([guide](HISTORY.md#ownership-and-waiver-churn)).
+It reads stored ownership, waiver, and finding-lifecycle records without
+changing them. Changing a measure's definition bumps `measuresVersion`.
