@@ -106,6 +106,9 @@ describe("trend metrics", () => {
     expect(report.revisions[0]?.evidence).toEqual({
       snapshotSchemaVersion: 1,
       capabilityRegistryVersion: base.capabilityRegistryVersion ?? 0,
+      extractors: ["test@1"],
+      workspaceScope: [],
+      evidenceKinds: ["source"],
     });
   });
 
@@ -158,6 +161,7 @@ describe("trend metrics", () => {
     expect(report.revisions[1]).toEqual({
       revision: "gone",
       status: "missing",
+      marks: [{ reason: "missing-revision" }],
       metrics: [],
     });
     for (const interval of report.intervals)

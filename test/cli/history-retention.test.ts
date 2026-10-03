@@ -343,3 +343,100 @@ describe("history export scope and redaction", () => {
     expect(error?.message).not.toContain(TOKEN);
   });
 });
+
+describe("history trends breaks on disk", () => {
+  it("marks migrated and removed revisions, policy overrides, and reads notes and earlier reports", async () => {
+    const { store, policy, write, directory } = await setup({ diff: false });
+    await importHistoryRecords({
+      store,
+      inputs: [
+        {
+          kind: "snapshot",
+          path: "test/fixtures/snapshots/legacy-v0.graph.json",
+        },
+      ],
+      toolVersion: "0.1.1",
+    });
+    await historyGc({
+      store,
+      policy: policy({
+        rules: [{ id: "year", kind: "snapshot", maxAgeDays: 365 }],
+      }),
+      asOf: AS_OF,
+      apply: true,
+    });
+    const policyFile = (id: string) =>
+      write(`p-${id}.json`, {
+        policyId: id,
+        version: "1.0.0",
+        mode: "enforce",
+        rules: [
+          {
+            id: "imports",
+            target: "edge",
+            assertion: "exists",
+            selector: { kind: "imports" },
+          },
+        ],
+      });
+    const imported = await importHistoryRecords({
+      store,
+      inputs: [
+        { kind: "policy", path: policyFile("one") },
+        { kind: "policy", path: policyFile("two") },
+      ],
+      toolVersion: "0.1.1",
+    });
+    const [one, two] = imported.imported
+      .filter((item) => item.kind === "policy")
+      .map((item) => item.id) as [string, string];
+    const notes = write("notes.json", {
+      schemaVersion: 1,
+      contract: "cartograph.trend-explanations",
+      explanations: [
+        {
+          from: "bbbb",
+          to: "cccc",
+          reason: "policy-change",
+          reviewer: "arch-review",
+          note: "Policy two replaced policy one.",
+        },
+      ],
+    });
+    const options = {
+      store,
+      revisions: ["aaaa", "legacy-v0-fixture", "bbbb", "cccc"],
+      policyRecord: one,
+      policyAt: [{ revision: "cccc", id: two }],
+      explanations: notes,
+    };
+    const report = await historyTrends(options);
+    const marks = Object.fromEntries(
+      report.revisions.map((item) => [
+        item.revision,
+        item.marks.map((mark) => mark.reason),
+      ]),
+    );
+    expect(marks).toMatchObject({
+      aaaa: ["removed-by-retention"],
+      "legacy-v0-fixture": ["migration"],
+      bbbb: [],
+    });
+    const last = report.intervals[2];
+    expect(last?.breaks).toEqual([
+      {
+        reason: "policy-change",
+        explanation: {
+          reviewer: "arch-review",
+          note: "Policy two replaced policy one.",
+        },
+      },
+    ]);
+    const previousPath = join(directory, "previous.json");
+    writeFileSync(previousPath, JSON.stringify(report));
+    expect(
+      (await historyTrends({ ...options, previous: previousPath }))
+        .restatements,
+    ).toEqual([]);
+  });
+});

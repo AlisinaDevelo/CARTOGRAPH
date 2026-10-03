@@ -1140,3 +1140,13 @@ history gc` ([guide](HISTORY.md#retention-and-compaction)), and a
 history record and index contracts are unchanged. `history import` now
 also returns `conflicts`, and `history export` returns `redactions`, as
 additive fields.
+
+## Trend breaks and history migration markers
+
+`cartograph.trend-metrics` v1 (not yet released) gains revision `marks`,
+interval `breaks` and `changes`, `restatements`, `unexplainedBreaks`, an
+optional `uncertainty` band, and more revision `evidence` fields. A new
+input contract, `cartograph.trend-explanations` v1, holds reviewer notes.
+History records and index entries gain an optional `migratedFrom`, set only
+when a legacy input is migrated on import, so the IDs of existing records do
+not change.

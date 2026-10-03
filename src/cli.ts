@@ -1011,12 +1011,36 @@ export function createCli(): Command {
       "--decisions-record <id>",
       "decisions record applied to every revision",
     )
+    .option(
+      "--policy-at <revision=id>",
+      "use this policy record from that revision on (repeatable); the change is reported as a break",
+      keyValue("--policy-at"),
+      [],
+    )
+    .option(
+      "--decisions-at <revision=id>",
+      "use this decisions record from that revision on (repeatable)",
+      keyValue("--decisions-at"),
+      [],
+    )
+    .option(
+      "--previous <path>",
+      "an earlier trends report; changed values are listed as restatements",
+    )
+    .option(
+      "--explanations <path>",
+      "reviewer notes for known breaks (cartograph.trend-explanations)",
+    )
     .action(
       async (options: {
         store: string;
         revision?: string[];
         policyRecord?: string;
         decisionsRecord?: string;
+        policyAt: { key: string; value: string }[];
+        decisionsAt: { key: string; value: string }[];
+        previous?: string;
+        explanations?: string;
       }): Promise<void> => {
         if (options.revision === undefined || options.revision.length === 0)
           throw new InvalidArgumentError("give at least one --revision");
@@ -1030,6 +1054,20 @@ export function createCli(): Command {
             ...(options.decisionsRecord === undefined
               ? {}
               : { decisionsRecord: options.decisionsRecord }),
+            policyAt: options.policyAt.map((item) => ({
+              revision: item.key,
+              id: item.value,
+            })),
+            decisionsAt: options.decisionsAt.map((item) => ({
+              revision: item.key,
+              id: item.value,
+            })),
+            ...(options.previous === undefined
+              ? {}
+              : { previous: options.previous }),
+            ...(options.explanations === undefined
+              ? {}
+              : { explanations: options.explanations }),
           }),
         );
       },

@@ -120,6 +120,45 @@ are migrated on import, so they produce the same metrics as current ones.
 Changing any metric's definition, scope, or denominator bumps
 `metricsVersion`.
 
+### Breaks, uncertainty, and restatements
+
+Trends never interpolate across gaps or rank values that are not comparable.
+Each revision lists `marks`, and each interval lists the `breaks` between its
+two revisions, with machine-readable reasons:
+
+| Reason                   | When                                                                |
+| ------------------------ | ------------------------------------------------------------------- |
+| `missing-revision`       | no stored snapshot for the revision                                 |
+| `removed-by-retention`   | the snapshot was removed by `history gc` (a tombstone names it)     |
+| `partial-snapshot`       | the snapshot has error or `PARTIAL_*` diagnostics                   |
+| `contract-change`        | snapshot or capability registry versions differ                     |
+| `adapter-change`         | an extractor present in both revisions changed version              |
+| `policy-change`          | a different policy record applies (`--policy-at revision=id`)       |
+| `decisions-change`       | a different decisions record applies (`--decisions-at revision=id`) |
+| `workspace-scope-change` | the set of workspace package nodes differs                          |
+| `migration`              | the snapshot was migrated from an older contract on import          |
+| `sampling-change`        | the evidence kinds differ (for example runtime evidence appears)    |
+
+Each interval's `changes` lists every per-revision metric as `comparable`
+(with `from`, `to`, and `delta`), `incomparable` (with `from`, `to`, and the
+reasons, but no delta), or `unavailable`. A policy or decisions change only
+affects its own metric; every other break affects all of them. Churn is not
+computed across a contract change.
+
+`boundary-crossing-imports` carries an `uncertainty` band when local modules
+have unresolved imports: the value it would take if every unknown import
+crossed a boundary (`upper`) or none did (`lower`).
+
+`--explanations notes.json` (`cartograph.trend-explanations` v1,
+[schema](../schema/trend-explanations.v0.1.schema.json)) attaches a
+reviewer's note to the break it explains, matched by `from`, `to`, and
+`reason`. `unexplainedBreaks` counts the rest.
+
+`--previous report.json` compares this run with an earlier report for the
+same revisions. Every value that changed is listed under `restatements`, with
+the reasons that apply: `evidence-changed` (a different stored snapshot),
+`metrics-version-change`, `policy-change`, or `decisions-change`.
+
 ## Retention and compaction
 
 ```bash

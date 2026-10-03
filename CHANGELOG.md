@@ -9,6 +9,10 @@ checksums.
 
 ### Added
 
+- History trends mark gaps, retention removals, partial snapshots, contract,
+  extractor, policy, decisions, workspace-scope, migration, and sampling
+  changes; withhold deltas for incomparable metrics; report uncertainty
+  bands, restatements against an earlier report, and reviewer explanations.
 - `cartograph sbom link`: relate CycloneDX or SPDX components and SLSA build
   subjects to graph objects, with link method, confidence, unresolved
   reasons, version skew, and measured coverage only
