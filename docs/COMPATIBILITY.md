@@ -1094,3 +1094,12 @@ A new, independent contract, `cartograph.assurance-bundle` v1
 existing contracts without changing any of them. Adding a role or changing a
 limit, the path pattern, or the `bundleId` computation requires a new manifest
 version.
+
+## Local history store v1
+
+New, independent contracts: `cartograph.history-record` and
+`cartograph.history-store` (the index), both version 1, with the
+`cartograph history` commands ([guide](HISTORY.md)). Records wrap existing
+contract documents without changing them. Changing the record or index shape,
+the canonical serialization, or the object layout requires a new store version
+and a migration step.

@@ -9,6 +9,9 @@ checksums.
 
 ### Added
 
+- `cartograph history`: a local, content-addressed store of snapshots, diffs,
+  policies, decisions, finding lifecycles, workspace compositions, and
+  provenance, with `import`, `list`, `verify`, `repair`, and `export`.
 - `cartograph bundle create` and `bundle verify`: reproducible, offline-verifiable
   assurance bundles of snapshots, diffs, policies, evaluations, decisions,
   waivers, query results, configuration, and reports.

@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/history-record.v0.1.schema.json",
+  "title": "CARTOGRAPH history record v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "kind",
+    "recordSchemaVersion",
+    "references",
+    "body"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.history-record" },
+    "kind": {
+      "enum": [
+        "snapshot",
+        "diff",
+        "policy",
+        "decisions",
+        "finding-lifecycle",
+        "workspace-composition",
+        "provenance"
+      ]
+    },
+    "recordSchemaVersion": { "type": "integer", "minimum": 0 },
+    "revision": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "references": {
+      "type": "array",
+      "maxItems": 64,
+      "items": { "$ref": "#/definitions/reference" }
+    },
+    "body": { "description": "The canonical contract document for this kind." }
+  },
+  "definitions": {
+    "reference": {
+      "type": "string",
+      "pattern": "^(?:revision:[0-9a-zA-Z._-]{1,128}|record:[0-9a-f]{64})$"
+    }
+  }
+}

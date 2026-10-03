@@ -46,6 +46,14 @@ import {
 } from "./export-command.js";
 import { initRepository } from "./init-command.js";
 import {
+  DEFAULT_HISTORY_STORE,
+  exportHistoryRecords,
+  importHistoryRecords,
+  listHistoryRecords,
+  repairHistory,
+  verifyHistory,
+} from "./history-command.js";
+import {
   bundleSigningPayload,
   createBundle,
   verifyBundle,
@@ -696,6 +704,120 @@ export function createCli(): Command {
         );
         process.stdout.write(`${JSON.stringify(report)}\n`);
         if (!report.ok) process.exitCode = 2;
+      },
+    );
+
+  const history = program
+    .command("history")
+    .description(
+      "keep a local, content-addressed history of snapshots, diffs, policies, and decisions",
+    );
+  const storeOption = [
+    "--store <dir>",
+    "history store directory",
+    DEFAULT_HISTORY_STORE,
+  ] as const;
+  const printJson = (value: unknown): void => {
+    process.stdout.write(`${JSON.stringify(value)}\n`);
+  };
+  history
+    .command("import")
+    .description("validate, canonicalize, and store records (deduplicated)")
+    .option(...storeOption)
+    .option(
+      "-r, --record <kind=path>",
+      "record to import (repeatable), e.g. snapshot=graph.json",
+      keyValue("--record"),
+      [],
+    )
+    .action(
+      async (options: {
+        store: string;
+        record: { key: string; value: string }[];
+      }): Promise<void> => {
+        if (options.record.length === 0)
+          throw new InvalidArgumentError(
+            "give at least one --record kind=path",
+          );
+        printJson(
+          await importHistoryRecords({
+            store: options.store,
+            inputs: options.record.map((item) => ({
+              kind: item.key,
+              path: item.value,
+            })),
+            toolVersion: VERSION,
+          }),
+        );
+      },
+    );
+  history
+    .command("list")
+    .description("list indexed records")
+    .option(...storeOption)
+    .option("--kind <kind>", "only this record kind")
+    .option("--revision <sha>", "only records for or referencing this revision")
+    .action(
+      async (options: {
+        store: string;
+        kind?: string;
+        revision?: string;
+      }): Promise<void> => {
+        printJson(
+          await listHistoryRecords({
+            store: options.store,
+            ...(options.kind === undefined ? {} : { kind: options.kind }),
+            ...(options.revision === undefined
+              ? {}
+              : { revision: options.revision }),
+          }),
+        );
+      },
+    );
+  history
+    .command("verify")
+    .description(
+      "check every object's digest, contract, and canonical form against the index",
+    )
+    .option(...storeOption)
+    .action(async (options: { store: string }): Promise<void> => {
+      const report = await verifyHistory(options.store);
+      printJson(report);
+      if (!report.ok) process.exitCode = 2;
+    });
+  history
+    .command("repair")
+    .description(
+      "quarantine corrupt objects, clear leftovers and stale locks, and rebuild the index",
+    )
+    .option(...storeOption)
+    .action(async (options: { store: string }): Promise<void> => {
+      printJson(await repairHistory(options.store));
+    });
+  history
+    .command("export")
+    .description("write selected records as standalone contract documents")
+    .option(...storeOption)
+    .requiredOption("-o, --output <dir>", "new export directory")
+    .option("--revision <sha>", "records for or referencing this revision")
+    .option("--id <id>", "a record ID (repeatable)", collect)
+    .action(
+      async (options: {
+        store: string;
+        output: string;
+        revision?: string;
+        id?: string[];
+      }): Promise<void> => {
+        printJson(
+          await exportHistoryRecords({
+            store: options.store,
+            output: options.output,
+            ...(options.revision === undefined
+              ? {}
+              : { revision: options.revision }),
+            ...(options.id === undefined ? {} : { ids: options.id }),
+          }),
+        );
       },
     );
 
