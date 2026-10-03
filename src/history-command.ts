@@ -18,6 +18,14 @@ import {
   parseAdrReferenceDocument,
   parseGraphSnapshot,
   parsePolicyConfig,
+  diffGraphSnapshots,
+  parseGraphDiff,
+  parseHistoryRetentionPolicy,
+  planHistoryRetention,
+  redactArtifactForSharing,
+  SHARING_PROFILES,
+  type RetentionPlan,
+  type RetentionRecord,
   type HistoryIndexEntry,
   type HistoryRecord,
   type TrendMetricsReport,
@@ -41,6 +49,21 @@ const kindOf = (value: string): HistoryRecordKind => {
 
 const objectPath = (store: string, id: string): string =>
   join(store, "objects", id.slice(0, 2), `${id}.json`);
+
+const tombstonePath = (store: string, id: string): string =>
+  join(store, "tombstones", `${id}.json`);
+
+const tombstoned = (store: string): Set<string> => {
+  try {
+    return new Set(
+      readdirSync(join(store, "tombstones"))
+        .filter((name) => OBJECT_NAME.test(name))
+        .map((name) => name.slice(0, -".json".length)),
+    );
+  } catch {
+    return new Set();
+  }
+};
 
 const exists = async (path: string): Promise<boolean> => {
   try {
@@ -240,6 +263,8 @@ export async function importHistoryRecords(options: {
           mode: 0o700,
         });
         await writeAtomic(path, text);
+        // An explicit re-import restores a record that retention removed.
+        await rm(tombstonePath(store, id), { force: true });
       }
       entries.set(id, historyIndexEntry(id, record));
       imported.push({ id, kind: record.kind, existing });
@@ -305,7 +330,13 @@ export async function repairHistory(storePath: string): Promise<{
     const { objects, leftovers } = await readObjects(store);
     const quarantined: string[] = [];
     const entries: HistoryIndexEntry[] = [];
+    const removed = tombstoned(store);
     for (const [id, content] of objects) {
+      if (removed.has(id)) {
+        // An interrupted gc: finish removing what it already tombstoned.
+        await rm(objectPath(store, id), { force: true });
+        continue;
+      }
       const check = checkHistoryObject(id, content);
       if (check.status === "ok") {
         entries.push(historyIndexEntry(id, check.record));
@@ -336,11 +367,24 @@ export async function exportHistoryRecords(options: {
   output: string;
   revision?: string;
   ids?: readonly string[];
-}): Promise<{ exported: string[] }> {
+  kinds?: readonly string[];
+  /** Redact values unsafe for this recipient profile; fail if that breaks a contract. */
+  profile?: string;
+}): Promise<{ exported: string[]; redactions: number }> {
   const store = resolve(options.store);
+  const kinds = options.kinds?.map(kindOf);
+  const profile =
+    options.profile === undefined
+      ? undefined
+      : SHARING_PROFILES.find((candidate) => candidate === options.profile);
+  if (options.profile !== undefined && profile === undefined)
+    throw new HistoryStoreError(
+      `unknown sharing profile ${JSON.stringify(options.profile)}; expected one of ${SHARING_PROFILES.join(", ")}`,
+    );
   const entries = (await readIndexEntries(store)).filter(
     (entry) =>
       (options.ids === undefined || options.ids.includes(entry.id)) &&
+      (kinds === undefined || kinds.includes(entry.kind)) &&
       (options.revision === undefined ||
         entry.revision === options.revision ||
         entry.references.includes(`revision:${options.revision}`)),
@@ -352,6 +396,7 @@ export async function exportHistoryRecords(options: {
       `export directory is not empty: ${options.output}`,
     );
   const exported: string[] = [];
+  let redactions = 0;
   for (const entry of entries) {
     const check = checkHistoryObject(
       entry.id,
@@ -361,14 +406,36 @@ export async function exportHistoryRecords(options: {
       throw new HistoryStoreError(
         `record ${entry.id} is corrupt: ${check.reason}`,
       );
+    let body = check.record.body;
+    if (profile !== undefined) {
+      const redacted = redactArtifactForSharing(
+        {
+          path: entry.id,
+          role: "manifest",
+          content: Buffer.from(stableStringify(body), "utf8"),
+        },
+        { profile },
+      );
+      redactions += redacted.redactions;
+      body = JSON.parse(redacted.content) as unknown;
+      try {
+        // Canonicalization must not change the redacted body, or redaction
+        // has merged or reordered evidence (for example two IDs that redact
+        // to the same value).
+        const canonical = createHistoryRecord(entry.kind, body).body;
+        if (stableStringify(canonical) !== stableStringify(body))
+          throw new HistoryStoreError("redaction changed the record's shape");
+      } catch {
+        throw new HistoryStoreError(
+          `${entry.kind} record ${entry.id} no longer satisfies its contract after redaction; nothing was exported for it`,
+        );
+      }
+    }
     const name = `${entry.kind}-${entry.id.slice(0, 12)}.json`;
-    await writeAtomic(
-      join(output, name),
-      `${stableStringify(check.record.body)}\n`,
-    );
+    await writeAtomic(join(output, name), `${stableStringify(body)}\n`);
     exported.push(name);
   }
-  return { exported: exported.sort() };
+  return { exported: exported.sort(), redactions };
 }
 
 const readRecord = async (
@@ -446,4 +513,139 @@ export async function historyTrends(options: {
     });
   }
   return computeTrendMetrics(inputs);
+}
+
+const recordDate = (record: HistoryRecord): string | undefined => {
+  const body = record.body as {
+    revision?: { authoredAt?: string };
+    toRevision?: { authoredAt?: string };
+  };
+  return record.kind === "snapshot"
+    ? body.revision?.authoredAt
+    : record.kind === "diff"
+      ? body.toRevision?.authoredAt
+      : undefined;
+};
+
+export type HistoryGcResult = RetentionPlan & {
+  applied: boolean;
+  /** Removed records whose object files were confirmed gone. */
+  deleted: string[];
+  records: number;
+};
+
+/**
+ * Apply a retention policy. Without `apply` it only reports the plan. With
+ * it, each removal is tombstoned first (ID, kind, revision, rule, time), then
+ * dropped from the index, then its object is deleted and the deletion
+ * checked. Deleted evidence cannot be recovered from the store.
+ */
+export async function historyGc(options: {
+  store: string;
+  policy: string;
+  asOf: string;
+  apply?: boolean;
+}): Promise<HistoryGcResult> {
+  const store = resolve(options.store);
+  await assertRealDirectories(store);
+  let policyValue: unknown;
+  try {
+    policyValue = JSON.parse(await readFile(resolve(options.policy), "utf8"));
+  } catch {
+    throw new HistoryStoreError(
+      `retention policy is not readable JSON: ${options.policy}`,
+    );
+  }
+  const policy = parseHistoryRetentionPolicy(policyValue);
+  return await withLock(store, async () => {
+    const verification = await verifyHistory(store);
+    if (!verification.ok)
+      throw new HistoryStoreError(
+        "history store does not verify; run `cartograph history repair` before applying retention",
+      );
+    const entries = await readIndexEntries(store);
+    const loaded = new Map<string, HistoryRecord>();
+    for (const entry of entries) {
+      const check = checkHistoryObject(
+        entry.id,
+        await readFile(objectPath(store, entry.id)),
+      );
+      if (check.status !== "ok")
+        throw new HistoryStoreError(`record ${entry.id} is corrupt`);
+      loaded.set(entry.id, check.record);
+    }
+    const records: RetentionRecord[] = entries.map((entry) => {
+      const date = recordDate(loaded.get(entry.id) as HistoryRecord);
+      return {
+        id: entry.id,
+        kind: entry.kind,
+        ...(entry.revision === undefined ? {} : { revision: entry.revision }),
+        references: entry.references,
+        ...(date === undefined ? {} : { date }),
+      };
+    });
+    const snapshotFor = (revision: string): HistoryRecord | undefined => {
+      const matches = entries.filter(
+        (entry) => entry.kind === "snapshot" && entry.revision === revision,
+      );
+      return matches.length === 1
+        ? loaded.get((matches[0] as HistoryIndexEntry).id)
+        : undefined;
+    };
+    const reproducible = (diff: RetentionRecord): boolean => {
+      const body = parseGraphDiff(loaded.get(diff.id)?.body);
+      const before = snapshotFor(body.fromRevision.commitSha);
+      const after = snapshotFor(body.toRevision.commitSha);
+      if (before === undefined || after === undefined) return false;
+      try {
+        const regenerated = createHistoryRecord(
+          "diff",
+          diffGraphSnapshots(
+            parseGraphSnapshot(before.body),
+            parseGraphSnapshot(after.body),
+          ),
+        );
+        return serializeHistoryRecord(regenerated).id === diff.id;
+      } catch {
+        return false;
+      }
+    };
+    const plan = planHistoryRetention(
+      records,
+      policy,
+      options.asOf,
+      reproducible,
+    );
+    if (options.apply !== true)
+      return { ...plan, applied: false, deleted: [], records: entries.length };
+
+    await mkdir(join(store, "tombstones"), { recursive: true, mode: 0o700 });
+    for (const item of plan.remove)
+      await writeAtomic(
+        tombstonePath(store, item.id),
+        `${stableStringify({
+          schemaVersion: 1,
+          contract: "cartograph.history-tombstone",
+          id: item.id,
+          kind: item.kind,
+          ...(item.revision === undefined ? {} : { revision: item.revision }),
+          rule: item.rule,
+          removedAt: options.asOf,
+        })}\n`,
+      );
+    const removing = new Set(plan.remove.map((item) => item.id));
+    const kept = entries.filter((entry) => !removing.has(entry.id));
+    const { text } = buildHistoryIndex(kept);
+    await writeAtomic(join(store, "index.json"), text);
+    const deleted: string[] = [];
+    for (const item of plan.remove) {
+      await rm(objectPath(store, item.id), { force: true });
+      if (await exists(objectPath(store, item.id)))
+        throw new HistoryStoreError(
+          `record ${item.id} could not be deleted; it is tombstoned and \`history repair\` will finish removing it`,
+        );
+      deleted.push(item.id);
+    }
+    return { ...plan, applied: true, deleted, records: kept.length };
+  });
 }

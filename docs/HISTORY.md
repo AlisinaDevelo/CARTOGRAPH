@@ -119,3 +119,64 @@ intervals next to it are unavailable rather than bridged. Legacy snapshots
 are migrated on import, so they produce the same metrics as current ones.
 Changing any metric's definition, scope, or denominator bumps
 `metricsVersion`.
+
+## Retention and compaction
+
+```bash
+cartograph history gc --policy retention.json --as-of 2026-10-01T00:00:00Z          # plan only
+cartograph history gc --policy retention.json --as-of 2026-10-01T00:00:00Z --apply  # delete
+```
+
+A retention policy (`cartograph.history-retention` v1,
+[schema](../schema/history-retention.v0.1.schema.json)) has:
+
+- `rules`: per record kind, and optionally per classification, a
+  `maxAgeDays` and/or `keepLast`. A record is removed only if a rule that
+  applies to it says so and no applicable rule keeps it. A record older than
+  `maxAgeDays` days at `--as-of` (strictly older; exactly at the boundary is
+  kept) or outside the newest `keepLast` is a candidate.
+- `classifications`: `public`, `internal` (the default), or `restricted`,
+  assigned by record ID or revision, so rules can treat restricted evidence
+  differently.
+- `holds`: legal or owner holds by record ID or revision, with an owner,
+  reason, and optional `until` (inclusive). A held record is never removed.
+- `compactDerivedDiffs`: drop stored diffs that the retained snapshots
+  regenerate byte for byte. A diff that cannot be regenerated, or whose
+  snapshots would not be retained, stays (`not-reproducible`).
+
+Age comes from evidence, not from import time: a snapshot's
+`revision.authoredAt`, and a diff's `toRevision.authoredAt`. Undated records,
+including migrated legacy snapshots without `authoredAt`, and kinds without a
+date are never removed by age (`undated`).
+
+Removal never breaks retained evidence. A snapshot whose revision, or a
+record whose ID, is referenced by a record that stays is kept
+(`referenced`). This is repeated until nothing changes, so removing a diff
+can release the snapshots only it referenced.
+
+`gc` refuses a store that does not verify. Run `repair` first. Without
+`--apply` it only reports the plan: every record kept with its reasons, and
+every removal with its rule. With `--apply`, for each removal it:
+
+1. writes `tombstones/<id>.json` (ID, kind, revision, rule, and `--as-of`),
+2. rewrites the index without it,
+3. deletes the object and checks that the file is gone.
+
+If this is interrupted, `repair` deletes objects that already have a
+tombstone instead of re-indexing them. Re-importing the same content later
+removes its tombstone and restores the record.
+
+**Removal is irreversible.** The tombstone keeps only metadata. The evidence
+itself cannot be recovered from the store. Export what you need first.
+Retained metrics are recomputed from what stays, so `trends` over retained
+revisions gives the same result before and after `gc`.
+
+## Selective and redacted export
+
+`export` selects by `--revision`, `--id`, and `--kind` (each repeatable
+except `--revision`). `--profile team|public` applies the
+[bundle sharing](SHARING.md) redaction to every exported record, then checks
+that each record still satisfies its contract unchanged by
+canonicalization. If redaction would break or merge evidence (for example
+two IDs that redact to the same value), the export fails, and the error names
+the record, not the value.

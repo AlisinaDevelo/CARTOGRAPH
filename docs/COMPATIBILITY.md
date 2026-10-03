@@ -1131,3 +1131,12 @@ CycloneDX 1.4–1.6, SPDX 2.2–2.3, and in-toto SLSA provenance without changin
 any CARTOGRAPH contract. Adding an accepted input version or a link method
 is additive. Changing a status, reason, method, or coverage field requires a
 new version.
+
+## History retention policy v1
+
+A new input contract, `cartograph.history-retention` v1, for `cartograph
+history gc` ([guide](HISTORY.md#retention-and-compaction)), and a
+`cartograph.history-tombstone` record written under `tombstones/`. The
+history record and index contracts are unchanged. `history import` now
+also returns `conflicts`, and `history export` returns `redactions`, as
+additive fields.

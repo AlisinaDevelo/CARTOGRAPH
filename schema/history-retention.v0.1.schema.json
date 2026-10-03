@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/history-retention.v0.1.schema.json",
+  "title": "CARTOGRAPH history retention policy v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "contract", "rules"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.history-retention" },
+    "classifications": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["classification"],
+        "oneOf": [{ "required": ["id"] }, { "required": ["revision"] }],
+        "properties": {
+          "id": { "$ref": "#/definitions/digest" },
+          "revision": { "$ref": "#/definitions/revision" },
+          "classification": { "$ref": "#/definitions/classification" }
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind"],
+        "anyOf": [{ "required": ["maxAgeDays"] }, { "required": ["keepLast"] }],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$" },
+          "kind": {
+            "enum": [
+              "snapshot",
+              "diff",
+              "policy",
+              "decisions",
+              "finding-lifecycle",
+              "workspace-composition",
+              "provenance"
+            ]
+          },
+          "classification": { "$ref": "#/definitions/classification" },
+          "maxAgeDays": { "type": "integer", "minimum": 1, "maximum": 36500 },
+          "keepLast": { "type": "integer", "minimum": 0, "maximum": 100000 }
+        }
+      }
+    },
+    "holds": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["owner", "reason"],
+        "oneOf": [{ "required": ["id"] }, { "required": ["revision"] }],
+        "properties": {
+          "id": { "$ref": "#/definitions/digest" },
+          "revision": { "$ref": "#/definitions/revision" },
+          "owner": { "type": "string", "minLength": 1, "maxLength": 512 },
+          "reason": { "type": "string", "minLength": 1, "maxLength": 512 },
+          "until": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "compactDerivedDiffs": { "type": "boolean" }
+  },
+  "definitions": {
+    "digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "revision": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "classification": { "enum": ["public", "internal", "restricted"] }
+  }
+}
