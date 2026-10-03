@@ -179,6 +179,41 @@ describe("SBOM links from CycloneDX", () => {
   });
 });
 
+describe("purl parsing", () => {
+  it.each([
+    ["pkg:npm/@scope/util", "module:external:@scope/util"],
+    ["pkg:npm/%40scope/util@2.0.0?arch=x#lib", "module:external:@scope/util"],
+    ["pkg:npm/left-pad", "module:external:left-pad"],
+  ])("reads %s", (purl, nodeId) => {
+    const report = linkSbomToGraph(
+      graph,
+      parseSbom({
+        bomFormat: "CycloneDX",
+        specVersion: "1.6",
+        components: [{ "bom-ref": "c", name: "x", purl }],
+      }),
+    );
+    expect(report.components[0]?.targets[0]?.nodeId).toBe(nodeId);
+  });
+
+  it("falls back to the name for a purl with too many segments", () => {
+    const report = linkSbomToGraph(
+      graph,
+      parseSbom({
+        bomFormat: "CycloneDX",
+        specVersion: "1.6",
+        components: [
+          { "bom-ref": "c", name: "left-pad", purl: "pkg:npm/a/b/c" },
+        ],
+      }),
+    );
+    expect(report.components[0]?.targets[0]).toMatchObject({
+      nodeId: "module:external:left-pad",
+      method: "name",
+    });
+  });
+});
+
 describe("SBOM links from SPDX", () => {
   const report = link("spdx.json");
 

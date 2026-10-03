@@ -349,11 +349,23 @@ const EXTERNAL_PREFIX = "module:external:";
 
 /** npm package name from a purl, or undefined when it is not an npm purl. */
 const npmNameFromPurl = (purl: string): string | undefined => {
-  const match =
-    /^pkg:npm\/([^@?#]+(?:\/[^@?#]+)?)(?:@[^?#]*)?(?:[?#].*)?$/u.exec(purl);
-  if (match?.[1] === undefined) return undefined;
+  if (!purl.startsWith("pkg:npm/")) return undefined;
+  // Linear parsing: drop qualifiers and subpath, then the version, which
+  // follows the last "@" that is not the scope marker.
+  let rest = purl.slice("pkg:npm/".length);
+  const end = rest.search(/[?#]/u);
+  if (end >= 0) rest = rest.slice(0, end);
+  const at = rest.lastIndexOf("@");
+  if (at > 0) rest = rest.slice(0, at);
+  const parts = rest.split("/");
+  if (
+    rest.length === 0 ||
+    parts.length > 2 ||
+    parts.some((part) => part.length === 0)
+  )
+    return undefined;
   try {
-    return decodeURIComponent(match[1]).toLowerCase();
+    return decodeURIComponent(rest).toLowerCase();
   } catch {
     return undefined;
   }
