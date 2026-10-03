@@ -9,6 +9,10 @@ checksums.
 
 ### Added
 
+- `cartograph sbom link`: relate CycloneDX or SPDX components and SLSA build
+  subjects to graph objects, with link method, confidence, unresolved
+  reasons, version skew, and measured coverage only
+  ([guide](docs/SBOM_LINK.md)).
 - Local export and import boundary review ([M-018](docs/LOCAL_HANDOFF_REVIEW.md)).
   `history import` now re-reads existing objects before deduplicating,
   refuses a symbolic-linked store, and reports conflicting snapshots of one

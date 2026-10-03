@@ -1,0 +1,103 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "bom-ref": "root",
+      "type": "application",
+      "name": "demo-app",
+      "version": "1.2.0",
+      "purl": "pkg:npm/demo-app@1.2.0",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6a48fb9de02a18cd02f4ad87efc6a5c284ad5750cdfcbe062a7665acdfc3a708"
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "left-pad",
+      "type": "library",
+      "name": "left-pad",
+      "version": "1.3.0",
+      "purl": "pkg:npm/left-pad@1.3.0"
+    },
+    {
+      "bom-ref": "scope-util",
+      "type": "library",
+      "name": "@scope/util",
+      "version": "2.0.0",
+      "purl": "pkg:npm/%40scope/util@2.0.0"
+    },
+    {
+      "bom-ref": "lodash-new",
+      "type": "library",
+      "name": "lodash",
+      "version": "4.17.21",
+      "purl": "pkg:npm/lodash@4.17.21"
+    },
+    {
+      "bom-ref": "lodash-old",
+      "type": "library",
+      "name": "lodash",
+      "version": "4.17.20",
+      "purl": "pkg:npm/lodash@4.17.20"
+    },
+    {
+      "bom-ref": "real-fetch",
+      "type": "library",
+      "name": "real-fetch",
+      "version": "3.0.0",
+      "purl": "pkg:npm/real-fetch@3.0.0"
+    },
+    {
+      "bom-ref": "missing",
+      "type": "library",
+      "name": "missing-pkg",
+      "version": "1.0.0",
+      "purl": "pkg:npm/missing-pkg@1.0.0"
+    },
+    {
+      "bom-ref": "shared",
+      "type": "library",
+      "name": "shared",
+      "version": "0.1.0"
+    },
+    {
+      "bom-ref": "requests",
+      "type": "library",
+      "name": "requests",
+      "version": "2.32.0",
+      "purl": "pkg:pypi/requests@2.32.0"
+    },
+    {
+      "bom-ref": "demo-lib",
+      "type": "library",
+      "name": "@demo/lib",
+      "version": "0.4.0",
+      "purl": "pkg:npm/%40demo/lib@0.4.0",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b9e2fe0b83ecc507a6ec3e152e2fd51f81fc1943feb1c775cd38933b0bd59966"
+        }
+      ],
+      "components": [
+        {
+          "bom-ref": "vendored",
+          "type": "library",
+          "name": "tiny-vendored",
+          "version": "1.0.0",
+          "purl": "pkg:npm/tiny-vendored@1.0.0"
+        }
+      ]
+    },
+    { "bom-ref": "file-a", "type": "file", "name": "./src/a.ts" },
+    { "bom-ref": "file-gen", "type": "file", "name": "src/gen.ts" },
+    { "bom-ref": "file-missing", "type": "file", "name": "src/deleted.ts" },
+    { "bom-ref": "nameless", "type": "library", "version": "9.9.9" }
+  ]
+}

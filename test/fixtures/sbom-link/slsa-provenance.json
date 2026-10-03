@@ -1,0 +1,37 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "subject": [
+    {
+      "name": "demo-app-1.2.0.tgz",
+      "digest": {
+        "sha256": "6a48fb9de02a18cd02f4ad87efc6a5c284ad5750cdfcbe062a7665acdfc3a708"
+      }
+    },
+    {
+      "name": "demo-lib-0.4.0.tgz",
+      "digest": {
+        "sha256": "b9e2fe0b83ecc507a6ec3e152e2fd51f81fc1943feb1c775cd38933b0bd59966"
+      }
+    },
+    {
+      "name": "unrelated-9.9.9.tgz",
+      "digest": {
+        "sha256": "c2703a7ddf6c74b39505339af20dd6dd4f0794720e038b78ba395600c72417d4"
+      }
+    }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://example.invalid/build/v1",
+      "externalParameters": {},
+      "resolvedDependencies": [
+        {
+          "uri": "git+https://example.invalid/demo-app",
+          "digest": { "gitCommit": "4b825dc642cb6eb9a060e54bf8d69288fbee4904" }
+        }
+      ]
+    },
+    "runDetails": { "builder": { "id": "https://example.invalid/builder" } }
+  }
+}

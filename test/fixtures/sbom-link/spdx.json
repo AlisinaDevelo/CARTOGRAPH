@@ -1,0 +1,78 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "demo-app",
+  "documentNamespace": "https://example.invalid/spdx/demo-app-1.2.0",
+  "documentDescribes": ["SPDXRef-root"],
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-root",
+      "name": "demo-app",
+      "versionInfo": "1.2.0",
+      "primaryPackagePurpose": "APPLICATION",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "6a48fb9de02a18cd02f4ad87efc6a5c284ad5750cdfcbe062a7665acdfc3a708"
+        }
+      ],
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/demo-app@1.2.0"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-left-pad",
+      "name": "left-pad",
+      "versionInfo": "1.3.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/left-pad@1.3.0"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-lib",
+      "name": "@demo/lib",
+      "versionInfo": "0.4.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40demo/lib@0.4.0"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-vendored",
+      "name": "tiny-vendored",
+      "versionInfo": "1.0.0"
+    },
+    { "SPDXID": "SPDXRef-nameless", "versionInfo": "1.0.0" }
+  ],
+  "files": [
+    {
+      "SPDXID": "SPDXRef-file-gen",
+      "fileName": "./src/gen.ts",
+      "checksums": []
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-root"
+    },
+    {
+      "spdxElementId": "SPDXRef-lib",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-vendored"
+    }
+  ]
+}

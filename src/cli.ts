@@ -45,6 +45,7 @@ import {
   type ExportFormat,
 } from "./export-command.js";
 import { initRepository } from "./init-command.js";
+import { linkSbomFiles } from "./sbom-command.js";
 import {
   DEFAULT_HISTORY_STORE,
   exportHistoryRecords,
@@ -560,6 +561,48 @@ export function createCli(): Command {
           await exportSnapshotFile(options.snapshot, options.format, VERSION),
           options,
         );
+      },
+    );
+
+  program
+    .command("sbom")
+    .description("relate released software inventory to the architecture graph")
+    .command("link")
+    .description(
+      "link CycloneDX or SPDX components, and SLSA build subjects, to graph objects with evidence and unresolved reasons",
+    )
+    .requiredOption("--snapshot <path>", "graph snapshot JSON input")
+    .requiredOption(
+      "--sbom <path>",
+      "CycloneDX (1.4-1.6) or SPDX (2.2-2.3) JSON",
+    )
+    .option("--provenance <path>", "in-toto Statement with SLSA provenance")
+    .option(
+      "--alias <sbom-name=graph-name>",
+      "an npm alias: the SBOM package name and the name the code imports (repeatable)",
+      keyValue("--alias"),
+      [],
+    )
+    .option("-o, --output <path>", "output file; stdout when omitted")
+    .option("--force", "replace an existing output file", false)
+    .action(
+      async (
+        options: OutputOptions & {
+          snapshot: string;
+          sbom: string;
+          provenance?: string;
+          alias: { key: string; value: string }[];
+        },
+      ): Promise<void> => {
+        const report = await linkSbomFiles({
+          snapshot: options.snapshot,
+          sbom: options.sbom,
+          ...(options.provenance === undefined
+            ? {}
+            : { provenance: options.provenance }),
+          aliases: options.alias,
+        });
+        await emit(`${JSON.stringify(report)}\n`, options);
       },
     );
 
