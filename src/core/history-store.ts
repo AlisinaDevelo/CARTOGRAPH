@@ -45,6 +45,8 @@ export const HistoryRecordSchema = z
     contract: z.literal(HISTORY_RECORD_CONTRACT),
     kind: z.enum(HISTORY_RECORD_KINDS),
     recordSchemaVersion: z.number().int().nonnegative(),
+    // Present only when the input was migrated from an older contract.
+    migratedFrom: z.number().int().nonnegative().optional(),
     revision: z.string().min(1).max(128).optional(),
     references: z.array(ReferenceSchema).max(64),
     body: z.unknown(),
@@ -57,6 +59,7 @@ export const HistoryIndexEntrySchema = z
     id: DigestSchema,
     kind: z.enum(HISTORY_RECORD_KINDS),
     recordSchemaVersion: z.number().int().nonnegative(),
+    migratedFrom: z.number().int().nonnegative().optional(),
     revision: z.string().min(1).max(128).optional(),
     references: z.array(ReferenceSchema).max(64),
   })
@@ -119,6 +122,8 @@ const contractErrorText = (error: unknown): string => {
 export const createHistoryRecord = (
   kind: HistoryRecordKind,
   value: unknown,
+  /** Keep the migration marker of a stored record whose body is already migrated. */
+  stored?: { migratedFrom?: number | undefined },
 ): HistoryRecord => {
   const invalid = (error: unknown): never => {
     throw new HistoryStoreError(
@@ -128,13 +133,15 @@ export const createHistoryRecord = (
   let body: unknown;
   let revision: string | undefined;
   let references: string[] = [];
+  let migratedFrom = stored?.migratedFrom;
   try {
     switch (kind) {
       case "snapshot": {
-        const snapshot =
-          schemaVersionOf(value) === 0
-            ? migrateGraphSnapshot(value).snapshot
-            : canonicalizeGraphSnapshot(value);
+        const legacy = schemaVersionOf(value) === 0;
+        if (legacy) migratedFrom = 0;
+        const snapshot = legacy
+          ? migrateGraphSnapshot(value).snapshot
+          : canonicalizeGraphSnapshot(value);
         body = snapshot;
         revision = snapshot.revision.commitSha;
         break;
@@ -174,6 +181,7 @@ export const createHistoryRecord = (
     contract: HISTORY_RECORD_CONTRACT,
     kind,
     recordSchemaVersion: schemaVersionOf(body),
+    ...(migratedFrom === undefined ? {} : { migratedFrom }),
     ...(revision === undefined ? {} : { revision }),
     references: [...new Set(references)].sort(compare),
     body,
@@ -199,6 +207,9 @@ export const historyIndexEntry = (
   id,
   kind: record.kind,
   recordSchemaVersion: record.recordSchemaVersion,
+  ...(record.migratedFrom === undefined
+    ? {}
+    : { migratedFrom: record.migratedFrom }),
   ...(record.revision === undefined ? {} : { revision: record.revision }),
   references: record.references,
 });
@@ -244,7 +255,7 @@ export const checkHistoryObject = (
   }
   try {
     const canonical = serializeHistoryRecord(
-      createHistoryRecord(record.kind, record.body),
+      createHistoryRecord(record.kind, record.body, record),
     );
     if (canonical.id !== id)
       return {

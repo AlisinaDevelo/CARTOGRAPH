@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/trend-explanations.v0.1.schema.json",
+  "title": "CARTOGRAPH trend break explanations v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "contract", "explanations"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.trend-explanations" },
+    "explanations": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to", "reason", "reviewer", "note"],
+        "properties": {
+          "from": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "to": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "reason": {
+            "enum": [
+              "missing-revision",
+              "removed-by-retention",
+              "partial-snapshot",
+              "contract-change",
+              "adapter-change",
+              "policy-change",
+              "decisions-change",
+              "workspace-scope-change",
+              "migration",
+              "sampling-change"
+            ]
+          },
+          "reviewer": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "note": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        }
+      }
+    }
+  }
+}

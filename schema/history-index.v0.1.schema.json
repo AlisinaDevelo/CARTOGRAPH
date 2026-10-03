@@ -28,6 +28,7 @@
             ]
           },
           "recordSchemaVersion": { "type": "integer", "minimum": 0 },
+          "migratedFrom": { "type": "integer", "minimum": 0 },
           "revision": { "type": "string", "minLength": 1, "maxLength": 128 },
           "references": {
             "type": "array",

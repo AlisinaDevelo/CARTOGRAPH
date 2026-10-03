@@ -1,4 +1,4 @@
-import { constants, readdirSync } from "node:fs";
+import { constants, readdirSync, readFileSync } from "node:fs";
 import { lstat, mkdir, open, readFile, rename, rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
@@ -15,6 +15,8 @@ import {
   verifyHistoryStore,
   HistoryIndexSchema,
   computeTrendMetrics,
+  parseTrendExplanations,
+  parseTrendMetricsReport,
   parseAdrReferenceDocument,
   parseGraphSnapshot,
   parsePolicyConfig,
@@ -63,6 +65,23 @@ const tombstoned = (store: string): Set<string> => {
   } catch {
     return new Set();
   }
+};
+
+/** Revisions whose snapshot a retention policy removed. */
+const tombstonedRevisions = (store: string): Set<string> => {
+  const revisions = new Set<string>();
+  for (const id of tombstoned(store)) {
+    try {
+      const value = JSON.parse(
+        readFileSync(tombstonePath(store, id), "utf8"),
+      ) as { kind?: unknown; revision?: unknown };
+      if (value.kind === "snapshot" && typeof value.revision === "string")
+        revisions.add(value.revision);
+    } catch {
+      // An unreadable tombstone says nothing about a revision.
+    }
+  }
+  return revisions;
 };
 
 const exists = async (path: string): Promise<boolean> => {
@@ -464,9 +483,15 @@ export async function historyTrends(options: {
   revisions: readonly string[];
   policyRecord?: string;
   decisionsRecord?: string;
+  /** Per-revision overrides: a different policy or decisions record from that revision on. */
+  policyAt?: readonly { revision: string; id: string }[];
+  decisionsAt?: readonly { revision: string; id: string }[];
+  previous?: string;
+  explanations?: string;
 }): Promise<TrendMetricsReport> {
   const store = resolve(options.store);
   const entries = await readIndexEntries(store);
+  const removed = tombstonedRevisions(store);
   const byId = (id: string, kind: HistoryRecordKind): HistoryIndexEntry => {
     const entry = entries.find(
       (candidate) => candidate.id === id && candidate.kind === kind,
@@ -475,21 +500,50 @@ export async function historyTrends(options: {
       throw new HistoryStoreError(`no ${kind} record ${id} in the store`);
     return entry;
   };
-  const policy =
-    options.policyRecord === undefined
+  const loadPolicy = async (id: string) =>
+    parsePolicyConfig((await readRecord(store, byId(id, "policy"))).body);
+  const loadDecisions = async (id: string) =>
+    parseAdrReferenceDocument(
+      (await readRecord(store, byId(id, "decisions"))).body,
+    );
+  for (const item of [
+    ...(options.policyAt ?? []),
+    ...(options.decisionsAt ?? []),
+  ])
+    if (!options.revisions.includes(item.revision))
+      throw new HistoryStoreError(
+        `override names revision ${item.revision}, which is not in --revision`,
+      );
+  const readJson = async (path: string, label: string): Promise<unknown> => {
+    try {
+      return JSON.parse(await readFile(resolve(path), "utf8")) as unknown;
+    } catch {
+      throw new HistoryStoreError(`${label} is not readable JSON: ${path}`);
+    }
+  };
+  const previous =
+    options.previous === undefined
       ? undefined
-      : parsePolicyConfig(
-          (await readRecord(store, byId(options.policyRecord, "policy"))).body,
+      : parseTrendMetricsReport(
+          await readJson(options.previous, "previous trends report"),
         );
-  const decisions =
-    options.decisionsRecord === undefined
+  const explanations =
+    options.explanations === undefined
       ? undefined
-      : parseAdrReferenceDocument(
-          (await readRecord(store, byId(options.decisionsRecord, "decisions")))
-            .body,
+      : parseTrendExplanations(
+          await readJson(options.explanations, "explanations"),
         );
+
+  let policyId = options.policyRecord;
+  let decisionsId = options.decisionsRecord;
   const inputs: TrendRevisionInput[] = [];
   for (const revision of options.revisions) {
+    policyId =
+      options.policyAt?.find((item) => item.revision === revision)?.id ??
+      policyId;
+    decisionsId =
+      options.decisionsAt?.find((item) => item.revision === revision)?.id ??
+      decisionsId;
     const matches = entries.filter(
       (entry) => entry.kind === "snapshot" && entry.revision === revision,
     );
@@ -499,7 +553,10 @@ export async function historyTrends(options: {
       );
     const entry = matches[0];
     if (entry === undefined) {
-      inputs.push({ revision });
+      inputs.push({
+        revision,
+        ...(removed.has(revision) ? { removed: true } : {}),
+      });
       continue;
     }
     const record = await readRecord(store, entry);
@@ -508,11 +565,24 @@ export async function historyTrends(options: {
       snapshot: parseGraphSnapshot(record.body),
       recordId: entry.id,
       recordSchemaVersion: record.recordSchemaVersion,
-      ...(policy === undefined ? {} : { policy }),
-      ...(decisions === undefined ? {} : { decisions }),
+      ...(record.migratedFrom === undefined
+        ? {}
+        : { migratedFrom: record.migratedFrom }),
+      ...(policyId === undefined
+        ? {}
+        : { policy: await loadPolicy(policyId), policyRecordId: policyId }),
+      ...(decisionsId === undefined
+        ? {}
+        : {
+            decisions: await loadDecisions(decisionsId),
+            decisionsRecordId: decisionsId,
+          }),
     });
   }
-  return computeTrendMetrics(inputs);
+  return computeTrendMetrics(inputs, {
+    ...(previous === undefined ? {} : { previous }),
+    ...(explanations === undefined ? {} : { explanations }),
+  });
 }
 
 const recordDate = (record: HistoryRecord): string | undefined => {

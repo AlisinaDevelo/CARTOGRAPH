@@ -9,35 +9,107 @@
     "contract",
     "metricsVersion",
     "revisions",
-    "intervals"
+    "intervals",
+    "restatements",
+    "unexplainedBreaks"
   ],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "contract": { "const": "cartograph.trend-metrics" },
-    "metricsVersion": { "const": 1 },
+    "schemaVersion": {
+      "const": 1
+    },
+    "contract": {
+      "const": "cartograph.trend-metrics"
+    },
+    "metricsVersion": {
+      "const": 1
+    },
     "revisions": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["revision", "status", "metrics"],
+        "required": ["revision", "status", "marks", "metrics"],
         "properties": {
-          "revision": { "type": "string", "minLength": 1 },
-          "status": { "enum": ["measured", "missing"] },
+          "revision": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": ["measured", "missing"]
+          },
           "evidence": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["snapshotSchemaVersion", "capabilityRegistryVersion"],
+            "required": [
+              "snapshotSchemaVersion",
+              "capabilityRegistryVersion",
+              "extractors",
+              "workspaceScope",
+              "evidenceKinds"
+            ],
             "properties": {
-              "recordId": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
-              "snapshotSchemaVersion": { "type": "integer", "minimum": 0 },
-              "recordSchemaVersion": { "type": "integer", "minimum": 0 },
-              "capabilityRegistryVersion": { "type": "integer", "minimum": 0 }
+              "recordId": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "snapshotSchemaVersion": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "recordSchemaVersion": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "capabilityRegistryVersion": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "migratedFrom": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "policyRecordId": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "decisionsRecordId": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "extractors": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "workspaceScope": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "evidenceKinds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
             }
           },
           "metrics": {
             "type": "array",
-            "items": { "$ref": "#/definitions/metric" }
+            "items": {
+              "$ref": "#/definitions/metric"
+            }
+          },
+          "marks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/mark"
+            }
           }
         }
       }
@@ -47,16 +119,175 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["from", "to", "metrics"],
+        "required": ["from", "to", "breaks", "changes", "metrics"],
         "properties": {
-          "from": { "type": "string", "minLength": 1 },
-          "to": { "type": "string", "minLength": 1 },
+          "from": {
+            "type": "string",
+            "minLength": 1
+          },
+          "to": {
+            "type": "string",
+            "minLength": 1
+          },
           "metrics": {
             "type": "array",
-            "items": { "$ref": "#/definitions/metric" }
+            "items": {
+              "$ref": "#/definitions/metric"
+            }
+          },
+          "breaks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["reason"],
+              "properties": {
+                "reason": {
+                  "$ref": "#/definitions/reason"
+                },
+                "detail": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "explanation": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["reviewer", "note"],
+                  "properties": {
+                    "reviewer": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "note": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["id", "status", "from", "to", "delta"],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "const": "comparable"
+                    },
+                    "from": {
+                      "type": "number"
+                    },
+                    "to": {
+                      "type": "number"
+                    },
+                    "delta": {
+                      "type": "number"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["id", "status", "from", "to", "reasons"],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "const": "incomparable"
+                    },
+                    "from": {
+                      "type": "number"
+                    },
+                    "to": {
+                      "type": "number"
+                    },
+                    "reasons": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "$ref": "#/definitions/reason"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["id", "status"],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "const": "unavailable"
+                    }
+                  }
+                }
+              ]
+            }
           }
         }
       }
+    },
+    "restatements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["revision", "metric", "previous", "current", "reasons"],
+        "properties": {
+          "revision": {
+            "type": "string"
+          },
+          "metric": {
+            "type": "string"
+          },
+          "previous": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "const": "unavailable"
+              }
+            ]
+          },
+          "current": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "const": "unavailable"
+              }
+            ]
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "evidence-changed",
+                "metrics-version-change",
+                "policy-change",
+                "decisions-change"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "unexplainedBreaks": {
+      "type": "integer",
+      "minimum": 0
     }
   },
   "definitions": {
@@ -74,12 +305,48 @@
             "scope"
           ],
           "properties": {
-            "id": { "type": "string", "minLength": 1 },
-            "status": { "const": "measured" },
-            "value": { "type": "number", "minimum": 0 },
-            "numerator": { "type": "integer", "minimum": 0 },
-            "denominator": { "type": "integer", "minimum": 1 },
-            "scope": { "type": "string", "minLength": 1 }
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "status": {
+              "const": "measured"
+            },
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "numerator": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "denominator": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["lower", "upper", "unknowns"],
+              "properties": {
+                "lower": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "upper": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "unknowns": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
           }
         },
         {
@@ -87,13 +354,52 @@
           "additionalProperties": false,
           "required": ["id", "status", "reason", "scope"],
           "properties": {
-            "id": { "type": "string", "minLength": 1 },
-            "status": { "const": "unavailable" },
-            "reason": { "type": "string", "minLength": 1 },
-            "scope": { "type": "string", "minLength": 1 }
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "status": {
+              "const": "unavailable"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         }
       ]
+    },
+    "reason": {
+      "enum": [
+        "missing-revision",
+        "removed-by-retention",
+        "partial-snapshot",
+        "contract-change",
+        "adapter-change",
+        "policy-change",
+        "decisions-change",
+        "workspace-scope-change",
+        "migration",
+        "sampling-change"
+      ]
+    },
+    "mark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason"],
+      "properties": {
+        "reason": {
+          "$ref": "#/definitions/reason"
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     }
   }
 }
