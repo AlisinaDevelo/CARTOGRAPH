@@ -9,6 +9,10 @@ checksums.
 
 ### Added
 
+- Local export and import boundary review ([M-018](docs/LOCAL_HANDOFF_REVIEW.md)).
+  `history import` now re-reads existing objects before deduplicating,
+  refuses a symbolic-linked store, and reports conflicting snapshots of one
+  revision.
 - `cartograph bundle check` and `bundle share`: fail-closed safe-sharing
   checks for `team` and `public` recipients that never print the flagged
   values, field-level redaction, keyed path and host pseudonymization, and a

@@ -156,6 +156,14 @@ execution disabled. Any hosted, team, provider, automatic-binding, or broader
 runtime proposal requires a public RFC, refreshed evidence, and a separate
 reviewed ADR before implementation.
 
+## Local export and import boundary
+
+Handoff of bundles and history records is local and offline. The M-018
+review in [`LOCAL_HANDOFF_REVIEW.md`](LOCAL_HANDOFF_REVIEW.md) defines
+identity (content addresses and optional signatures), authorization (file
+permissions only), integrity checks, conflict handling, retention, and the
+gate for any account, hosted, or networked workflow.
+
 ## Accepted residual risks
 
 Static analysis is incomplete for dynamic JavaScript. CARTOGRAPH mitigates this with diagnostics and confidence labels; it does not claim completeness. The TypeScript compiler and npm dependency chain remain trusted dependencies and require ongoing patching and release review.

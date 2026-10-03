@@ -60,3 +60,27 @@ describe("offline analysis boundary", () => {
     await expect(access(marker)).rejects.toMatchObject({ code: "ENOENT" });
   });
 });
+
+describe("no-network source boundary", () => {
+  it("imports no network module and calls no fetch anywhere in src", async () => {
+    const { readdir, readFile } = await import("node:fs/promises");
+    const root = join(import.meta.dirname, "../../src");
+    const files = (await readdir(root, { recursive: true }))
+      .map(String)
+      .filter((name) => name.endsWith(".ts"));
+    const offenders: string[] = [];
+    for (const file of files) {
+      const text = await readFile(join(root, file), "utf8");
+      if (
+        /from\s+["'](?:node:)?(?:http|https|http2|net|tls|dns|dgram)["']/u.test(
+          text,
+        ) ||
+        /\bfetch\s*\(/u.test(text) ||
+        /\bnew\s+(?:WebSocket|XMLHttpRequest)\b/u.test(text)
+      )
+        offenders.push(file);
+    }
+    expect(files.length).toBeGreaterThan(50);
+    expect(offenders).toEqual([]);
+  });
+});
