@@ -1597,3 +1597,10 @@ export {
   type ControlStatus,
   type EvaluatedEvidence,
 } from "./control-evidence.js";
+export {
+  BUNDLE_REPLAY_CONTRACT,
+  BUNDLE_REPLAY_SCHEMA_VERSION,
+  replayBundleArtifacts,
+  type ReplayArtifacts,
+  type ReplayCheck,
+} from "./bundle-replay.js";

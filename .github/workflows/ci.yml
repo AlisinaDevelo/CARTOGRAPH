@@ -61,6 +61,12 @@ jobs:
       - name: Pack and smoke-test the release artifact
         run: npm run release:validate
 
+      - name: Replay a bundle with networking disabled
+        if: runner.os == 'Linux'
+        env:
+          REPLAY_ISOLATE: sudo unshare --net --
+        run: scripts/replay-offline-smoke.sh "$RUNNER_TEMP/replay"
+
       - name: Validate support matrix
         run: npm run support:validate
 

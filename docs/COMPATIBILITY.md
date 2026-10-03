@@ -1159,3 +1159,11 @@ evaluate` ([guide](CONTROL_EVIDENCE.md)). They read verified bundles without
 changing any existing contract. The limitations text may be clarified in any
 release. Removing a limitation, or changing an evidence type, basis, reason,
 or status, requires a new version.
+
+## Bundle replay report v1
+
+A new, independent report contract, `cartograph.bundle-replay` v1, from
+`cartograph bundle replay` ([guide](BUNDLE_REPLAY.md)). Adding a derived
+artifact the replay regenerates is additive. Changing a check status or the
+`ok` rule requires a new version. The `resources` values are measurements,
+not part of the deterministic result.
