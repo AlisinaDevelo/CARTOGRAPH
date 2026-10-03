@@ -14,7 +14,14 @@ import {
   stableStringify,
   verifyHistoryStore,
   HistoryIndexSchema,
+  computeTrendMetrics,
+  parseAdrReferenceDocument,
+  parseGraphSnapshot,
+  parsePolicyConfig,
   type HistoryIndexEntry,
+  type HistoryRecord,
+  type TrendMetricsReport,
+  type TrendRevisionInput,
   type HistoryRecordKind,
   type HistoryVerification,
 } from "./core/index.js";
@@ -321,4 +328,81 @@ export async function exportHistoryRecords(options: {
     exported.push(name);
   }
   return { exported: exported.sort() };
+}
+
+const readRecord = async (
+  store: string,
+  entry: HistoryIndexEntry,
+): Promise<HistoryRecord> => {
+  const check = checkHistoryObject(
+    entry.id,
+    await readFile(objectPath(store, entry.id)),
+  );
+  if (check.status !== "ok")
+    throw new HistoryStoreError(
+      `record ${entry.id} is corrupt: ${check.reason}`,
+    );
+  return check.record;
+};
+
+/**
+ * Trend metrics over an ordered list of revisions, recomputed from the
+ * stored snapshots. One policy and one decisions record, when given, are
+ * applied to every revision so the trend measures the code, not a changing
+ * rule set. A revision with no stored snapshot is reported as missing.
+ */
+export async function historyTrends(options: {
+  store: string;
+  revisions: readonly string[];
+  policyRecord?: string;
+  decisionsRecord?: string;
+}): Promise<TrendMetricsReport> {
+  const store = resolve(options.store);
+  const entries = await readIndexEntries(store);
+  const byId = (id: string, kind: HistoryRecordKind): HistoryIndexEntry => {
+    const entry = entries.find(
+      (candidate) => candidate.id === id && candidate.kind === kind,
+    );
+    if (entry === undefined)
+      throw new HistoryStoreError(`no ${kind} record ${id} in the store`);
+    return entry;
+  };
+  const policy =
+    options.policyRecord === undefined
+      ? undefined
+      : parsePolicyConfig(
+          (await readRecord(store, byId(options.policyRecord, "policy"))).body,
+        );
+  const decisions =
+    options.decisionsRecord === undefined
+      ? undefined
+      : parseAdrReferenceDocument(
+          (await readRecord(store, byId(options.decisionsRecord, "decisions")))
+            .body,
+        );
+  const inputs: TrendRevisionInput[] = [];
+  for (const revision of options.revisions) {
+    const matches = entries.filter(
+      (entry) => entry.kind === "snapshot" && entry.revision === revision,
+    );
+    if (matches.length > 1)
+      throw new HistoryStoreError(
+        `revision ${revision} has ${matches.length} stored snapshots; trends need exactly one`,
+      );
+    const entry = matches[0];
+    if (entry === undefined) {
+      inputs.push({ revision });
+      continue;
+    }
+    const record = await readRecord(store, entry);
+    inputs.push({
+      revision,
+      snapshot: parseGraphSnapshot(record.body),
+      recordId: entry.id,
+      recordSchemaVersion: record.recordSchemaVersion,
+      ...(policy === undefined ? {} : { policy }),
+      ...(decisions === undefined ? {} : { decisions }),
+    });
+  }
+  return computeTrendMetrics(inputs);
 }

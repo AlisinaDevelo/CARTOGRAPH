@@ -1103,3 +1103,12 @@ New, independent contracts: `cartograph.history-record` and
 contract documents without changing them. Changing the record or index shape,
 the canonical serialization, or the object layout requires a new store version
 and a migration step.
+
+## Architecture trend metrics v1
+
+A new, independent contract, `cartograph.trend-metrics` v1 with
+`metricsVersion` 1, produced by `cartograph history trends`
+([guide](HISTORY.md#trends)). It reads stored snapshots, policies, and
+decisions without changing those contracts. Changing a metric's definition,
+scope, or denominator bumps `metricsVersion`. Adding a metric does not, since
+consumers select metrics by `id`.

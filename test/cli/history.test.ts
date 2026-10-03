@@ -1,6 +1,7 @@
 import {
   appendFileSync,
   existsSync,
+  readFileSync,
   mkdtempSync,
   readdirSync,
   realpathSync,
@@ -8,18 +9,20 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
   exportHistoryRecords,
+  historyTrends,
   importHistoryRecords,
   listHistoryRecords,
   repairHistory,
   verifyHistory,
 } from "../../src/history-command.js";
 import { scanRepository, serializeScan } from "../../src/commands.js";
+import { createAjv } from "../../scripts/json-schema.mjs";
 
 const roots: string[] = [];
 const temporary = (): string => {
@@ -124,5 +127,90 @@ describe("history store on disk", () => {
     });
     expect(exported.exported).toHaveLength(1);
     expect(exported.exported[0]).toMatch(/^snapshot-[0-9a-f]{12}\.json$/u);
+  });
+});
+
+describe("history trends", () => {
+  it("recomputes metrics from stored snapshots and reports missing revisions", async () => {
+    const { store, snapshot, directory } = setup();
+    const policyPath = join(directory, "policy.json");
+    writeFileSync(
+      policyPath,
+      JSON.stringify({
+        policyId: "trend",
+        version: "1.0.0",
+        mode: "enforce",
+        rules: [
+          {
+            id: "imports-exist",
+            target: "edge",
+            assertion: "exists",
+            selector: { kind: "imports" },
+          },
+        ],
+      }),
+    );
+    const imported = await importHistoryRecords({
+      store,
+      inputs: [
+        { kind: "snapshot", path: snapshot },
+        { kind: "policy", path: policyPath },
+      ],
+      toolVersion: "0.1.1",
+    });
+    const [entry] = await listHistoryRecords({ store, kind: "snapshot" });
+    const policyId = imported.imported.find(
+      (item) => item.kind === "policy",
+    )?.id;
+    const revision = entry?.revision ?? "";
+    const report = await historyTrends({
+      store,
+      revisions: [revision, "not-imported"],
+      ...(policyId === undefined ? {} : { policyRecord: policyId }),
+    });
+    expect(report.revisions.map((item) => item.status)).toEqual([
+      "measured",
+      "missing",
+    ]);
+    expect(report.revisions[0]?.evidence?.recordId).toBe(entry?.id);
+    expect(
+      report.revisions[0]?.metrics.find(
+        (item) => item.id === "policy-violation-rate",
+      )?.status,
+    ).toBe("measured");
+    const again = await historyTrends({
+      store,
+      revisions: [revision, "not-imported"],
+      ...(policyId === undefined ? {} : { policyRecord: policyId }),
+    });
+    expect(again).toEqual(report);
+    const schema = JSON.parse(
+      readFileSync(
+        resolve(
+          import.meta.dirname,
+          "../../schema/trend-metrics.v0.1.schema.json",
+        ),
+        "utf8",
+      ),
+    ) as object;
+    const validate = createAjv({ allErrors: true }).compile(schema);
+    expect(validate(report), JSON.stringify(validate.errors)).toBe(true);
+  });
+
+  it("rejects a record ID of the wrong kind", async () => {
+    const { store, snapshot } = setup();
+    await importHistoryRecords({
+      store,
+      inputs: [{ kind: "snapshot", path: snapshot }],
+      toolVersion: "0.1.1",
+    });
+    const [entry] = await listHistoryRecords({ store, kind: "snapshot" });
+    await expect(
+      historyTrends({
+        store,
+        revisions: [entry?.revision ?? ""],
+        policyRecord: entry?.id ?? "",
+      }),
+    ).rejects.toThrow(/no policy record/u);
   });
 });

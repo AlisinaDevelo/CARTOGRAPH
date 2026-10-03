@@ -9,6 +9,10 @@ checksums.
 
 ### Added
 
+- `cartograph history trends`: reproducible architecture trend metrics
+  (boundaries, cycles, unknowns, policy findings, decision coverage, churn)
+  recomputed from stored history, each with its numerator, denominator, and
+  scope.
 - `cartograph history`: a local, content-addressed store of snapshots, diffs,
   policies, decisions, finding lifecycles, workspace compositions, and
   provenance, with `import`, `list`, `verify`, `repair`, and `export`.
