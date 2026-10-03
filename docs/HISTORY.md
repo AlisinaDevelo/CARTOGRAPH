@@ -202,6 +202,39 @@ timeline.
 `ownership` (`cartograph.ownership-resolution` report) records for these
 indicators.
 
+## Ownership and waiver churn
+
+```bash
+cartograph history governance --as-of 2031-02-01T00:00:00Z \
+  --revision r1 --revision r2 --revision r3 \
+  --ownership-at r1=<id> --ownership-at r2=<id> [--renewal-grace-days 30]
+```
+
+The report (`cartograph.governance-churn` v1,
+[schema](../schema/governance-churn.v0.1.schema.json)) keeps each measure
+separate and links it to its evidence. Nothing is combined into a score.
+
+- **Ownership:** ownership records name no revision, so each one is placed
+  on the timeline with `--ownership-at revision=id`. Between consecutive
+  revisions it counts owner changes, gaps opened and closed (unowned or
+  ambiguous targets), and targets added or removed. A revision without a
+  record makes its intervals `missing-history`. That is different from a
+  measured interval where nothing changed (`verifiedNoChange: true`).
+  `gapRecurrence` counts targets that were a gap, were resolved, and became a
+  gap again.
+- **Waivers:** per rule, in creation order: renewals (a waiver created within
+  `--renewal-grace-days` of its predecessor's expiry), expired, lapsed
+  (expired with no renewal), active, and scope growth (`affectedIds` of the
+  first and last waiver).
+- **Review latency:** days from a finding's creation to its first applied
+  transition to acknowledged, waived, remediated, or obsolete, with the
+  median, 90th percentile, and unreviewed findings.
+
+These are longitudinal measures. Current-state drift between owners and
+waivers is a separate analysis
+([OWNERSHIP_WAIVER_DRIFT.md](OWNERSHIP_WAIVER_DRIFT.md)) and is not repeated
+here.
+
 ## Retention and compaction
 
 ```bash

@@ -51,6 +51,7 @@ import {
   DEFAULT_HISTORY_STORE,
   exportHistoryRecords,
   historyGc,
+  historyGovernance,
   historyIndicators,
   historyTrends,
   importHistoryRecords,
@@ -1091,6 +1092,61 @@ export function createCli(): Command {
               ? {}
               : { ownershipRecord: options.ownershipRecord }),
             ...(options.config === undefined ? {} : { config: options.config }),
+          }),
+        );
+      },
+    );
+  history
+    .command("governance")
+    .description(
+      "ownership and waiver churn over stored history, measure by measure",
+    )
+    .option(...storeOption)
+    .requiredOption(
+      "--as-of <date-time>",
+      "evaluate expiry and latency at this time",
+    )
+    .option(
+      "--revision <sha>",
+      "a revision, oldest first (repeatable)",
+      collect,
+    )
+    .option(
+      "--ownership-at <revision=id>",
+      "the ownership record for a revision (repeatable)",
+      keyValue("--ownership-at"),
+      [],
+    )
+    .option(
+      "--renewal-grace-days <days>",
+      "a waiver created this soon after its predecessor expired is a renewal",
+      (value: string) => {
+        const days = Number(value);
+        if (!Number.isInteger(days) || days < 0 || days > 3650)
+          throw new InvalidArgumentError("must be an integer from 0 to 3650");
+        return days;
+      },
+    )
+    .action(
+      async (options: {
+        store: string;
+        asOf: string;
+        revision?: string[];
+        ownershipAt: { key: string; value: string }[];
+        renewalGraceDays?: number;
+      }): Promise<void> => {
+        printJson(
+          await historyGovernance({
+            store: options.store,
+            asOf: options.asOf,
+            revisions: options.revision ?? [],
+            ownershipAt: options.ownershipAt.map((item) => ({
+              revision: item.key,
+              id: item.value,
+            })),
+            ...(options.renewalGraceDays === undefined
+              ? {}
+              : { renewalGraceDays: options.renewalGraceDays }),
           }),
         );
       },

@@ -1621,3 +1621,12 @@ export {
   type DebtIndicatorsConfig,
   type DebtIndicatorsReport,
 } from "./debt-indicators.js";
+export {
+  GOVERNANCE_CHURN_CONTRACT,
+  GOVERNANCE_CHURN_SCHEMA_VERSION,
+  GOVERNANCE_CHURN_VERSION,
+  computeGovernanceChurn,
+  type GovernanceChurnInputs,
+  type GovernanceChurnReport,
+  type OwnershipPoint,
+} from "./governance-churn.js";

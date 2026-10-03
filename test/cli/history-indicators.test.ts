@@ -9,6 +9,7 @@ import {
   stableStringify,
 } from "../../src/core/index.js";
 import {
+  historyGovernance,
   historyIndicators,
   importHistoryRecords,
   listHistoryRecords,
@@ -16,6 +17,7 @@ import {
 } from "../../src/history-command.js";
 import {
   findings,
+  ownershipReport,
   policy,
   snapshot,
   waiver,
@@ -78,5 +80,51 @@ describe("history indicators", () => {
       "unknown-coverage": "within-threshold",
       "remediation-evidence": "within-threshold",
     });
+  });
+});
+
+describe("history governance", () => {
+  it("places ownership records on the timeline and separates missing history", async () => {
+    const directory = realpathSync(
+      mkdtempSync(join(tmpdir(), "cartograph-governance-")),
+    );
+    roots.push(directory);
+    const store = join(directory, "store");
+    const write = (name: string, value: unknown): string => {
+      const path = join(directory, name);
+      writeFileSync(path, stableStringify(value));
+      return path;
+    };
+    const ownership = ownershipReport;
+    const imported = await importHistoryRecords({
+      store,
+      inputs: [
+        { kind: "ownership", path: write("o.json", ownership) },
+        { kind: "waiver", path: write("w.json", waiver) },
+      ],
+      toolVersion: "0.1.1",
+    });
+    const id = imported.imported.find((item) => item.kind === "ownership")
+      ?.id as string;
+    const report = await historyGovernance({
+      store,
+      asOf: "2030-06-01T00:00:00Z",
+      revisions: ["r1", "r2", "r3"],
+      ownershipAt: [
+        { revision: "r1", id },
+        { revision: "r2", id },
+      ],
+    });
+    expect(
+      report.ownership.status === "measured"
+        ? report.ownership.intervals.map((item) =>
+            item.status === "measured"
+              ? `measured:${String(item.verifiedNoChange)}`
+              : item.status,
+          )
+        : [],
+    ).toEqual(["measured:true", "missing-history"]);
+    expect(report.waivers.status).toBe("measured");
+    expect(report.reviewLatency.status).toBe("unavailable");
   });
 });

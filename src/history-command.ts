@@ -16,6 +16,9 @@ import {
   HistoryIndexSchema,
   computeTrendMetrics,
   computeDebtIndicators,
+  computeGovernanceChurn,
+  type GovernanceChurnReport,
+  type OwnershipPoint,
   evaluatePolicyOnSnapshot,
   parseArchitectureWaiver,
   parseDebtIndicatorsConfig,
@@ -823,5 +826,65 @@ export async function historyIndicators(options: {
     },
     options.asOf,
     config,
+  );
+}
+
+/**
+ * Ownership and waiver churn over stored history. Ownership reports are
+ * placed on the timeline explicitly (`ownershipAt`), because an ownership
+ * record does not name a revision.
+ */
+export async function historyGovernance(options: {
+  store: string;
+  asOf: string;
+  revisions: readonly string[];
+  ownershipAt?: readonly { revision: string; id: string }[];
+  renewalGraceDays?: number;
+}): Promise<GovernanceChurnReport> {
+  const store = resolve(options.store);
+  const entries = await readIndexEntries(store);
+  for (const item of options.ownershipAt ?? [])
+    if (!options.revisions.includes(item.revision))
+      throw new HistoryStoreError(
+        `--ownership-at names revision ${item.revision}, which is not in --revision`,
+      );
+  const ownership: OwnershipPoint[] = [];
+  for (const revision of options.revisions) {
+    const id = options.ownershipAt?.find(
+      (item) => item.revision === revision,
+    )?.id;
+    if (id === undefined) {
+      ownership.push({ revision });
+      continue;
+    }
+    const entry = entries.find(
+      (item) => item.id === id && item.kind === "ownership",
+    );
+    if (entry === undefined)
+      throw new HistoryStoreError(`no ownership record ${id} in the store`);
+    ownership.push({
+      revision,
+      recordId: id,
+      report: parseOwnershipReport((await readRecord(store, entry)).body),
+    });
+  }
+  const bodies = async (kind: HistoryRecordKind): Promise<unknown[]> => {
+    const values: unknown[] = [];
+    for (const entry of entries.filter((item) => item.kind === kind))
+      values.push((await readRecord(store, entry)).body);
+    return values;
+  };
+  return computeGovernanceChurn(
+    {
+      ownership,
+      waivers: (await bodies("waiver")).map(parseArchitectureWaiver),
+      findings: (await bodies("finding-lifecycle")).map((value) =>
+        FindingLifecycleInputSchema.parse(value),
+      ),
+      ...(options.renewalGraceDays === undefined
+        ? {}
+        : { renewalGraceDays: options.renewalGraceDays }),
+    },
+    options.asOf,
   );
 }
