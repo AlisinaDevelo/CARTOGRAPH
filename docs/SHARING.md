@@ -109,9 +109,10 @@ Nothing expires automatically.
 - A bundle is a directory; deleting it deletes it. Shared copies are outside
   CARTOGRAPH's control.
 - The history store (`.cartograph/history` by default) keeps every imported
-  record until you remove it. Records are content-addressed, so the same
-  content imported twice is one object. To drop records, export the ones to
-  keep with `history export`, remove the store, and import them again.
+  record until a retention policy removes it with `history gc --apply`
+  ([retention](HISTORY.md#retention-and-compaction)). Removal leaves a
+  metadata-only tombstone and cannot be undone. Records are content-addressed,
+  so the same content imported twice is one object.
   `history repair` moves corrupt objects to `quarantine/`. Delete that
   directory when you no longer need it.
 - Add `.cartograph/` to `.gitignore` so the history store and caches are

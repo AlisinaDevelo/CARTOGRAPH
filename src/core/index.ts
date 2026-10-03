@@ -1555,3 +1555,16 @@ export {
   type SbomLinkReport,
   type SbomLinkTarget,
 } from "./sbom-link.js";
+export {
+  HISTORY_CLASSIFICATIONS,
+  HISTORY_RETENTION_CONTRACT,
+  HISTORY_RETENTION_SCHEMA_VERSION,
+  HistoryRetentionPolicySchema,
+  parseHistoryRetentionPolicy,
+  planHistoryRetention,
+  type HistoryClassification,
+  type HistoryRetentionPolicy,
+  type RetentionKeepReason,
+  type RetentionPlan,
+  type RetentionRecord,
+} from "./history-retention.js";

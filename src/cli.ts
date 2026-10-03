@@ -49,6 +49,7 @@ import { linkSbomFiles } from "./sbom-command.js";
 import {
   DEFAULT_HISTORY_STORE,
   exportHistoryRecords,
+  historyGc,
   historyTrends,
   importHistoryRecords,
   listHistoryRecords,
@@ -934,12 +935,19 @@ export function createCli(): Command {
     .requiredOption("-o, --output <dir>", "new export directory")
     .option("--revision <sha>", "records for or referencing this revision")
     .option("--id <id>", "a record ID (repeatable)", collect)
+    .option("--kind <kind>", "only this record kind (repeatable)", collect)
+    .option(
+      "--profile <team|public>",
+      "redact values unsafe for this recipient; fails if a record's contract breaks",
+    )
     .action(
       async (options: {
         store: string;
         output: string;
         revision?: string;
         id?: string[];
+        kind?: string[];
+        profile?: string;
       }): Promise<void> => {
         printJson(
           await exportHistoryRecords({
@@ -949,6 +957,39 @@ export function createCli(): Command {
               ? {}
               : { revision: options.revision }),
             ...(options.id === undefined ? {} : { ids: options.id }),
+            ...(options.kind === undefined ? {} : { kinds: options.kind }),
+            ...(options.profile === undefined
+              ? {}
+              : { profile: options.profile }),
+          }),
+        );
+      },
+    );
+  history
+    .command("gc")
+    .description(
+      "plan or apply a retention policy: tombstone, unindex, and delete expired records (irreversible with --apply)",
+    )
+    .option(...storeOption)
+    .requiredOption("--policy <path>", "retention policy JSON")
+    .requiredOption(
+      "--as-of <date-time>",
+      "evaluate ages and holds at this time",
+    )
+    .option("--apply", "delete the planned records", false)
+    .action(
+      async (options: {
+        store: string;
+        policy: string;
+        asOf: string;
+        apply: boolean;
+      }): Promise<void> => {
+        printJson(
+          await historyGc({
+            store: options.store,
+            policy: options.policy,
+            asOf: options.asOf,
+            apply: options.apply,
           }),
         );
       },
