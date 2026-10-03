@@ -33,6 +33,7 @@ import {
   serializeGraphSnapshot,
   serializeMigrationReport,
   serializePolicyEvaluation,
+  stableStringify,
   type CartographConfig,
   type PolicyCiMode,
 } from "./core/index.js";
@@ -61,6 +62,7 @@ import {
 } from "./history-command.js";
 import {
   bundleSigningPayload,
+  bundleStatement,
   checkBundle,
   createBundle,
   replayBundle,
@@ -842,6 +844,17 @@ export function createCli(): Command {
         if (!report.ok) process.exitCode = 2;
       },
     );
+  bundle
+    .command("statement")
+    .description(
+      "print an unsigned in-toto Statement for a verified bundle, to sign with an in-toto tool",
+    )
+    .argument("<dir>", "bundle directory")
+    .action(async (directory: string): Promise<void> => {
+      process.stdout.write(
+        `${stableStringify(await bundleStatement(directory))}\n`,
+      );
+    });
   bundle
     .command("check")
     .description(

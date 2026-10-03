@@ -754,6 +754,15 @@
       "reference": "A-003 SBOM and build-provenance linkage contract; no external source data",
       "transformation": "A synthetic graph with a CycloneDX 1.5 SBOM, an SPDX 2.3 SBOM, and an in-toto SLSA v1 statement exercises purl and alias links, bundled and generated components, missing packages, version skew, ambiguous names, foreign ecosystems, and malformed entries. Digests are SHA-256 of fixed labels; no real package, build, credential, or network access is involved.",
       "redistribution": "allowed"
+    },
+    {
+      "id": "ecosystem-mappings",
+      "path": "ecosystem-mappings",
+      "source": "CARTOGRAPH repository-authored expected counts for the ecosystem mapping corpus",
+      "license": "Apache-2.0",
+      "reference": "V-003 portable ecosystem format mappings; derived from existing SARIF, SBOM-link, OTLP, and bundle fixtures with no external data",
+      "transformation": "Counts of preserved, transformed, dropped, and ambiguous items measured by scripts/ecosystem-mappings.mjs on checked-in fixtures; no network access or repository code execution.",
+      "redistribution": "allowed"
     }
   ]
 }
