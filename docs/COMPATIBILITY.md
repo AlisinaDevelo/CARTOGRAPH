@@ -1150,3 +1150,12 @@ input contract, `cartograph.trend-explanations` v1, holds reviewer notes.
 History records and index entries gain an optional `migratedFrom`, set only
 when a legacy input is migrated on import, so the IDs of existing records do
 not change.
+
+## Control mapping and evidence v1
+
+New, independent contracts: `cartograph.control-mapping` v1 (input) and
+`cartograph.control-evidence` v1 (report), from `cartograph controls
+evaluate` ([guide](CONTROL_EVIDENCE.md)). They read verified bundles without
+changing any existing contract. The limitations text may be clarified in any
+release. Removing a limitation, or changing an evidence type, basis, reason,
+or status, requires a new version.

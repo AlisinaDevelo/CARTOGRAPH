@@ -26,6 +26,7 @@ describe("CLI", () => {
       "query",
       "export",
       "sbom",
+      "controls",
       "init",
       "bundle",
       "history",

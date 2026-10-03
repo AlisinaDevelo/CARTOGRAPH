@@ -9,6 +9,11 @@ checksums.
 
 ### Added
 
+- `cartograph controls evaluate`: trace named control objectives to policies,
+  findings, decisions, waivers, tests, owner assertions, and bundle artifacts,
+  separating observed evidence from owner assertions and listing gaps and
+  conflicts, with fixed non-certification limitations
+  ([guide](docs/CONTROL_EVIDENCE.md)).
 - History trends mark gaps, retention removals, partial snapshots, contract,
   extractor, policy, decisions, workspace-scope, migration, and sampling
   changes; withhold deltas for incomparable metrics; report uncertainty
