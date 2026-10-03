@@ -1182,3 +1182,11 @@ A new report contract, `cartograph.governance-churn` v1, from
 `cartograph history governance` ([guide](HISTORY.md#ownership-and-waiver-churn)).
 It reads stored ownership, waiver, and finding-lifecycle records without
 changing them. Changing a measure's definition bumps `measuresVersion`.
+
+## Ecosystem exports
+
+`cartograph export --format cyclonedx` (CycloneDX 1.6) and `cartograph
+bundle statement` (in-toto Statement v1) are new, opt-in exports
+([mappings](ECOSYSTEM_MAPPINGS.md)). Changing the exported spec version, the
+predicate type, or the `cartograph:*` property names requires a new
+version.

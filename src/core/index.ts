@@ -1630,3 +1630,13 @@ export {
   type GovernanceChurnReport,
   type OwnershipPoint,
 } from "./governance-churn.js";
+export {
+  ASSURANCE_BUNDLE_PREDICATE_TYPE,
+  CYCLONEDX_SPEC_VERSION,
+  IN_TOTO_STATEMENT_TYPE,
+  exportBundleStatement,
+  exportCycloneDx,
+  npmPurl,
+  type CycloneDxBom,
+  type InTotoStatement,
+} from "./ecosystem-export.js";

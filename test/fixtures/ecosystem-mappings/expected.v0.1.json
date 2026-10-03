@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.ecosystem-mappings-fixtures",
+  "fixtureId": "v003-v0.1",
+  "mappings": [
+    {
+      "format": "sarif-2.1.0",
+      "direction": "bidirectional",
+      "fixture": "test/fixtures/sarif-interchange/round-trip.v0.1.json",
+      "unit": "policy violation",
+      "input": 2,
+      "preserved": 1,
+      "transformed": 1,
+      "dropped": 1,
+      "ambiguous": 0,
+      "upstreamSchema": "not-vendored"
+    },
+    {
+      "format": "cyclonedx-1.6",
+      "direction": "export, linked back",
+      "fixture": "test/fixtures/sbom-link/graph.json",
+      "unit": "graph node",
+      "input": 12,
+      "preserved": 7,
+      "transformed": 2,
+      "dropped": 3,
+      "ambiguous": 2,
+      "upstreamSchema": "valid"
+    },
+    {
+      "format": "spdx-2.3",
+      "direction": "import (link)",
+      "fixture": "test/fixtures/sbom-link/spdx.json",
+      "unit": "SBOM element",
+      "input": 6,
+      "preserved": 4,
+      "transformed": 2,
+      "dropped": 2,
+      "ambiguous": 0,
+      "upstreamSchema": "import-only"
+    },
+    {
+      "format": "otlp-json",
+      "direction": "import",
+      "fixture": "schema/runtime-traces-otlp.v0.1.json",
+      "unit": "span",
+      "input": 1,
+      "preserved": 1,
+      "transformed": 1,
+      "dropped": 0,
+      "ambiguous": 0,
+      "droppedAttributes": 5,
+      "upstreamSchema": "import-only"
+    },
+    {
+      "format": "in-toto-statement-v1",
+      "direction": "export",
+      "fixture": "test/fixtures/sbom-link/graph.json",
+      "unit": "bundle artifact",
+      "input": 1,
+      "preserved": 1,
+      "transformed": 0,
+      "dropped": 0,
+      "ambiguous": 0,
+      "droppedFields": ["mediaType", "bytes", "label"],
+      "upstreamSchema": "none-published"
+    }
+  ]
+}

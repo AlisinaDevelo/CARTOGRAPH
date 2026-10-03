@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { constants, readdirSync } from "node:fs";
 import { lstat, mkdir, open, readFile } from "node:fs/promises";
 import { join, relative, resolve, sep } from "node:path";
@@ -10,6 +11,8 @@ import {
   AssuranceBundleManifestSchema,
   AssuranceSigningKeyringSchema,
   SHARING_PROFILES,
+  exportBundleStatement,
+  type InTotoStatement,
   BUNDLE_REPLAY_CONTRACT,
   BUNDLE_REPLAY_SCHEMA_VERSION,
   replayBundleArtifacts,
@@ -578,4 +581,17 @@ export async function replayBundle(
     },
     resources: resources(),
   };
+}
+
+/** An unsigned in-toto Statement describing a verified bundle. */
+export async function bundleStatement(
+  directory: string,
+): Promise<InTotoStatement> {
+  const { manifest, artifacts } = await readVerifiedBundle(directory);
+  const manifestBytes = artifacts.find((item) => item.role === "manifest")
+    ?.content as Uint8Array;
+  return exportBundleStatement(
+    manifest,
+    createHash("sha256").update(manifestBytes).digest("hex"),
+  );
 }

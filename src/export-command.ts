@@ -1,5 +1,7 @@
 import {
+  exportCycloneDx,
   exportSarifLog,
+  stableStringify,
   exportScipIndex,
   serializeGraphInterchange,
   serializeSarifLog,
@@ -13,6 +15,7 @@ export const EXPORT_FORMATS = [
   "json-ld",
   "edge-list",
   "scip",
+  "cyclonedx",
 ] as const;
 
 export type ExportFormat = (typeof EXPORT_FORMATS)[number];
@@ -26,6 +29,10 @@ export async function exportSnapshotFile(
   toolVersion: string,
 ): Promise<string> {
   const snapshot = await loadSnapshot(input);
+  if (format === "cyclonedx")
+    return `${stableStringify(
+      exportCycloneDx(snapshot, { toolName: TOOL_NAME, toolVersion }),
+    )}\n`;
   const serialized =
     format === "scip"
       ? serializeScipIndex(

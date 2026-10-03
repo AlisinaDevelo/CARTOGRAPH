@@ -9,6 +9,11 @@ checksums.
 
 ### Added
 
+- Opt-in CycloneDX 1.6 export of graph packages (`export --format
+cyclonedx`) and an unsigned in-toto Statement for bundles (`bundle
+statement`), with one [mapping document](docs/ECOSYSTEM_MAPPINGS.md) for
+  SARIF, CycloneDX, SPDX, OpenTelemetry, and in-toto/SLSA, and measured
+  preserved, transformed, dropped, and ambiguous counts.
 - `cartograph history governance`: ownership changes, gap opening, closing,
   and recurrence, waiver renewals, expiry, lapses, and scope growth, and
   review latency over stored history, each linked to evidence, with missing
