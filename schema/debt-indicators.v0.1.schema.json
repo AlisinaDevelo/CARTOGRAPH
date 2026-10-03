@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/debt-indicators.v0.1.schema.json",
+  "title": "CARTOGRAPH architecture debt indicators v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "indicatorsVersion",
+    "asOf",
+    "limitation",
+    "indicators"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "contract": {
+      "const": "cartograph.debt-indicators"
+    },
+    "indicatorsVersion": {
+      "const": 1
+    },
+    "asOf": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "limitation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "indicators": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "definition",
+          "status",
+          "evidence",
+          "counterexamples",
+          "uncertainty"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "finding-age",
+              "finding-recurrence",
+              "waiver-history",
+              "ownership-gaps",
+              "policy-severity",
+              "boundary-erosion",
+              "unknown-coverage",
+              "remediation-evidence"
+            ]
+          },
+          "definition": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "within-threshold",
+              "above-threshold",
+              "unavailable",
+              "disabled"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          },
+          "numerator": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "denominator": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "threshold": {
+            "type": "number",
+            "minimum": 0
+          },
+          "sensitivity": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["lower", "upper"],
+            "properties": {
+              "lower": {
+                "enum": [
+                  "within-threshold",
+                  "above-threshold",
+                  "unavailable",
+                  "disabled"
+                ]
+              },
+              "upper": {
+                "enum": [
+                  "within-threshold",
+                  "above-threshold",
+                  "unavailable",
+                  "disabled"
+                ]
+              }
+            }
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "counterexamples": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "uncertainty": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

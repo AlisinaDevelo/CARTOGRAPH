@@ -41,7 +41,9 @@
               "decisions",
               "finding-lifecycle",
               "workspace-composition",
-              "provenance"
+              "provenance",
+              "waiver",
+              "ownership"
             ]
           },
           "classification": { "$ref": "#/definitions/classification" },

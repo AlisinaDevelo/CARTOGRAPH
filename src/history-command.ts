@@ -15,6 +15,15 @@ import {
   verifyHistoryStore,
   HistoryIndexSchema,
   computeTrendMetrics,
+  computeDebtIndicators,
+  evaluatePolicyOnSnapshot,
+  parseArchitectureWaiver,
+  parseDebtIndicatorsConfig,
+  parseOwnershipReport,
+  FindingLifecycleInputSchema,
+  type DebtIndicatorsConfig,
+  type DebtIndicatorsReport,
+  type PolicyEvaluation,
   parseTrendExplanations,
   parseTrendMetricsReport,
   parseAdrReferenceDocument,
@@ -718,4 +727,101 @@ export async function historyGc(options: {
     }
     return { ...plan, applied: true, deleted, records: kept.length };
   });
+}
+
+/**
+ * Debt indicators at `asOf` from stored evidence: every finding-lifecycle and
+ * waiver record, one ownership record, and the trends of the given
+ * revisions (with the policy evaluated on the last measured one).
+ */
+export async function historyIndicators(options: {
+  store: string;
+  asOf: string;
+  revisions?: readonly string[];
+  policyRecord?: string;
+  ownershipRecord?: string;
+  config?: string;
+}): Promise<DebtIndicatorsReport> {
+  const store = resolve(options.store);
+  const entries = await readIndexEntries(store);
+  const bodies = async (kind: HistoryRecordKind): Promise<unknown[]> => {
+    const values: unknown[] = [];
+    for (const entry of entries.filter((item) => item.kind === kind))
+      values.push((await readRecord(store, entry)).body);
+    return values;
+  };
+  let config: DebtIndicatorsConfig | undefined;
+  if (options.config !== undefined) {
+    let value: unknown;
+    try {
+      value = JSON.parse(await readFile(resolve(options.config), "utf8"));
+    } catch {
+      throw new HistoryStoreError(
+        `indicator config is not readable JSON: ${options.config}`,
+      );
+    }
+    config = parseDebtIndicatorsConfig(value);
+  }
+  const ownershipEntries = entries.filter((item) => item.kind === "ownership");
+  const ownershipEntry =
+    options.ownershipRecord === undefined
+      ? ownershipEntries.length === 1
+        ? ownershipEntries[0]
+        : undefined
+      : ownershipEntries.find((item) => item.id === options.ownershipRecord);
+  if (options.ownershipRecord !== undefined && ownershipEntry === undefined)
+    throw new HistoryStoreError(
+      `no ownership record ${options.ownershipRecord} in the store`,
+    );
+  if (options.ownershipRecord === undefined && ownershipEntries.length > 1)
+    throw new HistoryStoreError(
+      `${ownershipEntries.length} ownership records are stored; choose one with --ownership-record`,
+    );
+  const trends =
+    options.revisions === undefined || options.revisions.length === 0
+      ? undefined
+      : await historyTrends({
+          store: options.store,
+          revisions: options.revisions,
+          ...(options.policyRecord === undefined
+            ? {}
+            : { policyRecord: options.policyRecord }),
+        });
+  let evaluation: PolicyEvaluation | undefined;
+  if (options.policyRecord !== undefined && trends !== undefined) {
+    const last = [...trends.revisions]
+      .reverse()
+      .find((item) => item.evidence?.recordId !== undefined);
+    const snapshotEntry = entries.find(
+      (item) => item.id === last?.evidence?.recordId,
+    );
+    const policyEntry = entries.find(
+      (item) => item.id === options.policyRecord && item.kind === "policy",
+    );
+    if (snapshotEntry !== undefined && policyEntry !== undefined)
+      evaluation = evaluatePolicyOnSnapshot(
+        (await readRecord(store, policyEntry)).body,
+        (await readRecord(store, snapshotEntry)).body,
+        { asOf: options.asOf },
+      );
+  }
+  return computeDebtIndicators(
+    {
+      findings: (await bodies("finding-lifecycle")).map((value) =>
+        FindingLifecycleInputSchema.parse(value),
+      ),
+      waivers: (await bodies("waiver")).map(parseArchitectureWaiver),
+      ...(ownershipEntry === undefined
+        ? {}
+        : {
+            ownership: parseOwnershipReport(
+              (await readRecord(store, ownershipEntry)).body,
+            ),
+          }),
+      ...(evaluation === undefined ? {} : { evaluation }),
+      ...(trends === undefined ? {} : { trends }),
+    },
+    options.asOf,
+    config,
+  );
 }

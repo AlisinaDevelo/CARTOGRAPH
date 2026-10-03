@@ -159,6 +159,49 @@ same revisions. Every value that changed is listed under `restatements`, with
 the reasons that apply: `evidence-changed` (a different stored snapshot),
 `metrics-version-change`, `policy-change`, or `decisions-change`.
 
+## Debt indicators
+
+```bash
+cartograph history indicators --as-of 2030-06-01T00:00:00Z \
+  --revision <older-sha> --revision <newer-sha> --policy-record <id> \
+  [--ownership-record <id>] [--config indicators.json]
+```
+
+Indicators (`cartograph.debt-indicators` v1,
+[schema](../schema/debt-indicators.v0.1.schema.json)) summarize stored
+evidence. They do not measure or predict technical debt, cost, risk, or
+business outcomes, and the report says so.
+
+| Indicator              | Definition                                                                                                | Evidence used                                       |
+| ---------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| `finding-age`          | open, acknowledged, or regressed findings older than the threshold / all such findings                    | `finding-lifecycle` records, replayed to `--as-of`  |
+| `finding-recurrence`   | findings with an applied transition to `regressed` / all findings                                         | `finding-lifecycle`                                 |
+| `waiver-history`       | waivers expired or expiring soon / all waivers; rules with several waivers are noted as possible renewals | `waiver` records                                    |
+| `ownership-gaps`       | unowned or ambiguous targets / all targets                                                                | one `ownership` record                              |
+| `policy-severity`      | violations of enforced rules                                                                              | the policy, evaluated on the last measured revision |
+| `boundary-erosion`     | summed change in boundary-crossing import share over comparable intervals                                 | trends of `--revision`                              |
+| `unknown-coverage`     | edges without resolved evidence / all edges                                                               | the last measured revision                          |
+| `remediation-evidence` | remediated findings whose remediating event has no evidence references / remediated findings              | `finding-lifecycle`                                 |
+
+Each indicator lists its definition, value, numerator and denominator, the
+threshold and its status, and its sensitivity: the status at 80% and 120% of
+the threshold. It also lists the items behind the value (`evidence`, capped
+at 50), items it considered that do not count (`counterexamples`, capped at
+10), and what it cannot see (`uncertainty`). An indicator without stored
+evidence is `unavailable` with a reason, never zero. Erosion is only summed
+across comparable intervals (see [breaks](#breaks-uncertainty-and-restatements)).
+
+Thresholds and disabled indicators come from a configuration file
+(`cartograph.debt-indicators-config` v1,
+[schema](../schema/debt-indicators-config.v0.1.schema.json)). Every
+threshold has a default, and `indicatorsVersion` changes whenever a
+definition does. Run the command at several `--as-of` dates to build a
+timeline.
+
+`history import` accepts `waiver` (`cartograph.architecture-waiver`) and
+`ownership` (`cartograph.ownership-resolution` report) records for these
+indicators.
+
 ## Retention and compaction
 
 ```bash
