@@ -154,6 +154,24 @@ const readIndexEntries = async (
 export type HistoryImportResult = {
   imported: { id: string; kind: HistoryRecordKind; existing: boolean }[];
   records: number;
+  /** Revisions with more than one distinct stored snapshot after this import. */
+  conflicts: { revision: string; ids: string[] }[];
+};
+
+/** Refuse a store whose root or object directories are symbolic links. */
+const assertRealDirectories = async (store: string): Promise<void> => {
+  for (const path of [store, join(store, "objects")]) {
+    let metadata;
+    try {
+      metadata = await lstat(path);
+    } catch {
+      continue;
+    }
+    if (metadata.isSymbolicLink() || !metadata.isDirectory())
+      throw new HistoryStoreError(
+        "history store paths must be real directories, not symbolic links",
+      );
+  }
 };
 
 /**
@@ -195,6 +213,7 @@ export async function importHistoryRecords(options: {
       analyzerFingerprint: analyzerFingerprint(),
     }),
   );
+  await assertRealDirectories(store);
   return await withLock(store, async () => {
     const entries = new Map(
       (await readIndexEntries(store)).map((entry) => [entry.id, entry]),
@@ -204,7 +223,18 @@ export async function importHistoryRecords(options: {
       const { id, text } = serializeHistoryRecord(record);
       const path = objectPath(store, id);
       const existing = await exists(path);
-      if (!existing) {
+      if (existing) {
+        // Deduplication must not vouch for an object it has not read.
+        const metadata = await lstat(path);
+        if (
+          !metadata.isFile() ||
+          metadata.isSymbolicLink() ||
+          (await readFile(path, "utf8")) !== text
+        )
+          throw new HistoryStoreError(
+            `stored object ${id} does not match its content; run \`cartograph history repair\``,
+          );
+      } else {
         await mkdir(join(store, "objects", id.slice(0, 2)), {
           recursive: true,
           mode: 0o700,
@@ -216,7 +246,18 @@ export async function importHistoryRecords(options: {
     }
     const { index, text } = buildHistoryIndex([...entries.values()]);
     await writeAtomic(join(store, "index.json"), text);
-    return { imported, records: index.records.length };
+    const snapshots = new Map<string, string[]>();
+    for (const entry of index.records)
+      if (entry.kind === "snapshot" && entry.revision !== undefined)
+        snapshots.set(entry.revision, [
+          ...(snapshots.get(entry.revision) ?? []),
+          entry.id,
+        ]);
+    const conflicts = [...snapshots]
+      .filter(([, ids]) => ids.length > 1)
+      .map(([revision, ids]) => ({ revision, ids }))
+      .sort((left, right) => (left.revision < right.revision ? -1 : 1));
+    return { imported, records: index.records.length, conflicts };
   });
 }
 

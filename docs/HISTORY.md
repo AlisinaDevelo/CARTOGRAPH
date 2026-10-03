@@ -50,6 +50,10 @@ from the objects and can always be rebuilt.
   satisfies its contract, and that the index matches the objects. It exits 2
   on corrupt, missing, or unindexed records, an inconsistent index, or
   leftover files.
+- `import` re-reads an object that already exists and stops if its bytes
+  differ, refuses a store whose root or `objects/` is a symbolic link, and
+  reports two different snapshots of one revision under `conflicts` (both
+  are kept).
 - `repair` moves corrupt objects to `quarantine/` (it deletes nothing valid),
   removes leftover temporary files and a stale lock, and rebuilds the index
   from the valid objects.

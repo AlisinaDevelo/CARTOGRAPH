@@ -1,11 +1,13 @@
 import {
   appendFileSync,
   existsSync,
+  mkdirSync,
   readFileSync,
   mkdtempSync,
   readdirSync,
   realpathSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -212,5 +214,63 @@ describe("history trends", () => {
         policyRecord: entry?.id ?? "",
       }),
     ).rejects.toThrow(/no policy record/u);
+  });
+});
+
+describe("history import boundary", () => {
+  it("refuses to deduplicate against an object whose bytes changed", async () => {
+    const { store, snapshot } = setup();
+    await importHistoryRecords({
+      store,
+      inputs: [{ kind: "snapshot", path: snapshot }],
+      toolVersion: "0.1.1",
+    });
+    const [entry] = await listHistoryRecords({ store, kind: "snapshot" });
+    const id = entry?.id ?? "";
+    writeFileSync(join(store, "objects", id.slice(0, 2), `${id}.json`), "{}\n");
+    await expect(
+      importHistoryRecords({
+        store,
+        inputs: [{ kind: "snapshot", path: snapshot }],
+        toolVersion: "0.1.1",
+      }),
+    ).rejects.toThrow(/does not match its content/u);
+  });
+
+  it("refuses a store that is a symbolic link", async () => {
+    const { directory, snapshot } = setup();
+    const real = join(directory, "real-store");
+    mkdirSync(real);
+    const link = join(directory, "linked-store");
+    symlinkSync(real, link);
+    await expect(
+      importHistoryRecords({
+        store: link,
+        inputs: [{ kind: "snapshot", path: snapshot }],
+        toolVersion: "0.1.1",
+      }),
+    ).rejects.toThrow(/symbolic links/u);
+    expect(readdirSync(real)).toEqual([]);
+  });
+
+  it("reports two different snapshots of one revision as a conflict", async () => {
+    const { store, snapshot, directory } = setup();
+    const original = JSON.parse(readFileSync(snapshot, "utf8")) as {
+      nodes: { name: string }[];
+    };
+    const node = original.nodes[0] as { name: string };
+    node.name = `${node.name}-edited`;
+    const edited = join(directory, "edited.json");
+    writeFileSync(edited, JSON.stringify(original));
+    const result = await importHistoryRecords({
+      store,
+      inputs: [
+        { kind: "snapshot", path: snapshot },
+        { kind: "snapshot", path: edited },
+      ],
+      toolVersion: "0.1.1",
+    });
+    expect(result.conflicts).toHaveLength(1);
+    expect(result.conflicts[0]?.ids).toHaveLength(2);
   });
 });
