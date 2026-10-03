@@ -7,7 +7,15 @@ import {
   ASSURANCE_BUNDLE_MANIFEST,
   ASSURANCE_BUNDLE_ROLES,
   AssuranceBundleError,
+  AssuranceBundleManifestSchema,
   AssuranceSigningKeyringSchema,
+  SHARING_PROFILES,
+  checkBundleSharing,
+  collectRepositoryPaths,
+  createHostPseudonymizer,
+  createPathPseudonymizer,
+  redactArtifactForSharing,
+  rewriteArtifactStrings,
   assuranceBundleSigningPayload,
   buildAssuranceBundle,
   verifyAssuranceBundle,
@@ -16,6 +24,10 @@ import {
   type AssuranceBundleSigningRequest,
   type AssuranceBundleRole,
   type AssuranceBundleVerification,
+  type AssuranceBundleManifest,
+  type SharingArtifact,
+  type SharingProfile,
+  type SharingReport,
 } from "./core/index.js";
 import { analyzerFingerprint } from "./scan-cache.js";
 
@@ -24,6 +36,8 @@ export type BundleCreateOptions = {
   artifacts: readonly { role: string; path: string }[];
   missing: readonly { role: string; reason: string }[];
   requiredRoles?: readonly string[];
+  /** Refuse to write the bundle if it is unsafe to share under this profile. */
+  profile?: string;
   toolVersion: string;
 };
 
@@ -85,6 +99,15 @@ export async function createBundle(
       reason: item.reason,
     })),
   });
+  if (options.profile !== undefined) {
+    const check = checkBundleSharing(builtArtifacts(built), {
+      profile: profileOf(options.profile),
+    });
+    if (!check.ok)
+      throw new AssuranceBundleError(
+        `bundle is not safe to share under the ${check.profile} profile (${check.findings.length} finding(s)); run \`cartograph bundle check\` on an unprofiled build, or \`bundle share\``,
+      );
+  }
   const output = resolve(options.output);
   await mkdir(output, { recursive: true });
   if (readdirSync(output).length > 0)
@@ -203,5 +226,239 @@ export async function verifyBundle(
     ...report,
     ok: report.ok && signature.status === "verified",
     signature,
+  };
+}
+
+const builtArtifacts = (built: {
+  manifest: string;
+  files: Map<string, Uint8Array>;
+}): SharingArtifact[] => [
+  {
+    path: ASSURANCE_BUNDLE_MANIFEST,
+    role: "manifest",
+    content: Buffer.from(built.manifest, "utf8"),
+  },
+  ...[...built.files].map(([path, content]) => ({
+    path,
+    role: roleOf(
+      /^artifacts\/(.+)-[0-9a-f]{12}\.[a-z]+$/u.exec(path)?.[1] ?? "",
+    ),
+    content,
+  })),
+];
+
+const readVerifiedBundle = async (
+  directory: string,
+): Promise<{
+  manifest: AssuranceBundleManifest;
+  artifacts: SharingArtifact[];
+}> => {
+  const verification = await verifyBundle(directory);
+  if (!verification.ok)
+    throw new AssuranceBundleError(
+      "bundle does not verify; run `cartograph bundle verify` for details",
+    );
+  const root = resolve(directory);
+  const manifestText = await readFile(
+    join(root, ASSURANCE_BUNDLE_MANIFEST),
+    "utf8",
+  );
+  const manifest = AssuranceBundleManifestSchema.parse(
+    JSON.parse(manifestText) as unknown,
+  );
+  const artifacts: SharingArtifact[] = [
+    {
+      path: ASSURANCE_BUNDLE_MANIFEST,
+      role: "manifest",
+      content: Buffer.from(manifestText, "utf8"),
+    },
+  ];
+  for (const artifact of manifest.artifacts)
+    artifacts.push({
+      path: artifact.path,
+      role: artifact.role,
+      content: await readFile(join(root, artifact.path)),
+    });
+  return { manifest, artifacts };
+};
+
+const profileOf = (value: string): SharingProfile => {
+  const profile = SHARING_PROFILES.find((candidate) => candidate === value);
+  if (profile === undefined)
+    throw new AssuranceBundleError(
+      `unknown sharing profile ${JSON.stringify(value)}; expected one of ${SHARING_PROFILES.join(", ")}`,
+    );
+  return profile;
+};
+
+/** Check a verified bundle for content unsafe to share with a recipient. */
+export async function checkBundle(
+  directory: string,
+  options: { profile: string; allowedHosts?: readonly string[] },
+): Promise<SharingReport> {
+  const { artifacts } = await readVerifiedBundle(directory);
+  return checkBundleSharing(artifacts, {
+    profile: profileOf(options.profile),
+    ...(options.allowedHosts === undefined
+      ? {}
+      : { allowedHosts: options.allowedHosts }),
+  });
+}
+
+/** Roles a public profile leaves out unless they are asked for by name. */
+export const PUBLIC_PROFILE_EXCLUDED_ROLES: readonly AssuranceBundleRole[] = [
+  "configuration",
+  "adapter-manifest",
+];
+
+export type BundleShareOptions = {
+  input: string;
+  output: string;
+  profile: string;
+  keyFile?: string;
+  allowedHosts?: readonly string[];
+  includeRoles?: readonly string[];
+  toolVersion: string;
+};
+
+export type BundleShareResult = {
+  ok: true;
+  profile: SharingProfile;
+  sourceBundleId: string;
+  bundleId: string;
+  artifacts: number;
+  excludedRoles: AssuranceBundleRole[];
+  pathsPseudonymized: number;
+  redactions: number;
+};
+
+/**
+ * Derive a shareable bundle from a verified one: drop roles the profile
+ * excludes, pseudonymize repository paths with a local key, redact detected
+ * values field by field, and rebuild. The result must still satisfy every
+ * contract and pass the sharing check, or nothing is written.
+ */
+export async function shareBundle(
+  options: BundleShareOptions,
+): Promise<BundleShareResult> {
+  const profile = profileOf(options.profile);
+  if (profile === "public" && options.keyFile === undefined)
+    throw new AssuranceBundleError(
+      "the public profile pseudonymizes repository paths; give --key-file with at least 32 random bytes",
+    );
+  const { manifest, artifacts } = await readVerifiedBundle(options.input);
+  const included = new Set((options.includeRoles ?? []).map(roleOf));
+  const excludedRoles =
+    profile === "public"
+      ? PUBLIC_PROFILE_EXCLUDED_ROLES.filter(
+          (role) =>
+            !included.has(role) &&
+            manifest.artifacts.some((item) => item.role === role),
+        )
+      : [];
+  const kept = artifacts.filter(
+    (artifact) =>
+      artifact.role !== "manifest" && !excludedRoles.includes(artifact.role),
+  );
+  const sharingOptions = {
+    profile,
+    ...(options.allowedHosts === undefined
+      ? {}
+      : { allowedHosts: options.allowedHosts }),
+  };
+  let rewrite = (text: string): string => text;
+  let pathsPseudonymized = 0;
+  if (options.keyFile !== undefined) {
+    const key = await readInput(options.keyFile);
+    const paths = collectRepositoryPaths(kept);
+    pathsPseudonymized = paths.length;
+    const pseudonymizePaths = createPathPseudonymizer(key, paths);
+    const hosts =
+      profile === "public"
+        ? createHostPseudonymizer(key, options.allowedHosts)
+        : (text: string): string => text;
+    rewrite = (text) => pseudonymizePaths(hosts(text));
+  }
+  let redactions = 0;
+  const clean = (text: string): string => {
+    const result = redactArtifactForSharing(
+      {
+        path: "text",
+        role: "manifest",
+        content: Buffer.from(JSON.stringify(rewrite(text)), "utf8"),
+      },
+      sharingOptions,
+    );
+    redactions += result.redactions;
+    return JSON.parse(result.content) as string;
+  };
+  const inputs = kept.map((artifact) => {
+    if (artifact.role === "manifest")
+      throw new AssuranceBundleError("unreachable");
+    const pseudonymized = rewriteArtifactStrings(artifact, rewrite);
+    const redacted = redactArtifactForSharing(
+      { ...artifact, content: Buffer.from(pseudonymized, "utf8") },
+      sharingOptions,
+    );
+    redactions += redacted.redactions;
+    const label = manifest.artifacts.find(
+      (item) => item.path === artifact.path,
+    )?.label;
+    return {
+      role: artifact.role,
+      content: Buffer.from(redacted.content, "utf8"),
+      ...(label === undefined ? {} : { label: clean(label) }),
+    };
+  });
+  let built: ReturnType<typeof buildAssuranceBundle>;
+  try {
+    built = buildAssuranceBundle(inputs, {
+      toolVersion: options.toolVersion,
+      analyzerFingerprint: analyzerFingerprint(),
+      requiredRoles: manifest.requiredRoles,
+      missing: [
+        ...manifest.missing.map((item) => ({
+          role: item.role,
+          reason: clean(item.reason),
+        })),
+        ...excludedRoles.map((role) => ({
+          role,
+          reason: `excluded by the ${profile} sharing profile`,
+        })),
+      ],
+    });
+  } catch (error) {
+    const role =
+      error instanceof AssuranceBundleError
+        ? /^([a-z-]+) artifact/u.exec(error.message)?.[1]
+        : undefined;
+    throw new AssuranceBundleError(
+      `${role ?? "an"} artifact no longer satisfies its contract after redaction; remove the flagged values at their source and rebuild the bundle`,
+    );
+  }
+  const check = checkBundleSharing(builtArtifacts(built), sharingOptions);
+  if (!check.ok)
+    throw new AssuranceBundleError(
+      `shared bundle still has ${check.findings.length} sharing finding(s); run \`cartograph bundle check\` on the source bundle`,
+    );
+  const output = resolve(options.output);
+  await mkdir(output, { recursive: true });
+  if (readdirSync(output).length > 0)
+    throw new AssuranceBundleError(
+      `bundle output directory is not empty: ${options.output}`,
+    );
+  await mkdir(join(output, "artifacts"));
+  for (const [path, content] of built.files)
+    await writeNew(join(output, path), content);
+  await writeNew(join(output, ASSURANCE_BUNDLE_MANIFEST), built.manifest);
+  return {
+    ok: true,
+    profile,
+    sourceBundleId: manifest.bundleId,
+    bundleId: (JSON.parse(built.manifest) as { bundleId: string }).bundleId,
+    artifacts: built.files.size,
+    excludedRoles,
+    pathsPseudonymized,
+    redactions,
   };
 }

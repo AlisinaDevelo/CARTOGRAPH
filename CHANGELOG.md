@@ -9,6 +9,11 @@ checksums.
 
 ### Added
 
+- `cartograph bundle check` and `bundle share`: fail-closed safe-sharing
+  checks for `team` and `public` recipients that never print the flagged
+  values, field-level redaction, keyed path and host pseudonymization, and a
+  [threat model](docs/SHARING.md). `bundle create --profile` refuses unsafe
+  inputs.
 - `cartograph history trends`: reproducible architecture trend metrics
   (boundaries, cycles, unknowns, policy findings, decision coverage, churn)
   recomputed from stored history, each with its numerator, denominator, and

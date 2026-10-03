@@ -15,6 +15,10 @@ cartograph bundle create -o bundle/ \
 cartograph bundle verify bundle/
 ```
 
+Before a bundle leaves the machine, check it with `cartograph bundle check`
+and derive a redacted copy with `cartograph bundle share`; see
+[Sharing bundles safely](SHARING.md).
+
 ## Layout
 
 ```text

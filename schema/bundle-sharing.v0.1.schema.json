@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/bundle-sharing.v0.1.schema.json",
+  "title": "CARTOGRAPH bundle sharing check v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "profile",
+    "ok",
+    "artifacts",
+    "findings",
+    "truncated"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.bundle-sharing" },
+    "profile": { "enum": ["team", "public"] },
+    "ok": { "type": "boolean" },
+    "artifacts": { "type": "integer", "minimum": 0 },
+    "findings": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["artifact", "role", "location", "category"],
+        "properties": {
+          "artifact": { "type": "string", "minLength": 1 },
+          "role": { "type": "string", "minLength": 1 },
+          "location": { "type": "string", "minLength": 1 },
+          "category": {
+            "enum": [
+              "private-key",
+              "access-token",
+              "jwt",
+              "credential-assignment",
+              "credential-url",
+              "absolute-path",
+              "email",
+              "ip-address",
+              "external-url",
+              "unscannable"
+            ]
+          }
+        }
+      }
+    },
+    "truncated": { "type": "boolean" }
+  }
+}
