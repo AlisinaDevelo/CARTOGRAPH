@@ -51,6 +51,7 @@ import {
   DEFAULT_HISTORY_STORE,
   exportHistoryRecords,
   historyGc,
+  historyIndicators,
   historyTrends,
   importHistoryRecords,
   listHistoryRecords,
@@ -1039,6 +1040,57 @@ export function createCli(): Command {
             ...(options.profile === undefined
               ? {}
               : { profile: options.profile }),
+          }),
+        );
+      },
+    );
+  history
+    .command("indicators")
+    .description(
+      "evidence-backed architecture debt indicators from stored history (no predictions)",
+    )
+    .option(...storeOption)
+    .requiredOption(
+      "--as-of <date-time>",
+      "evaluate ages and expiry at this time",
+    )
+    .option(
+      "--revision <sha>",
+      "revisions for erosion and unknown coverage, oldest first (repeatable)",
+      collect,
+    )
+    .option("--policy-record <id>", "policy evaluated on the last revision")
+    .option(
+      "--ownership-record <id>",
+      "ownership record to use when more than one is stored",
+    )
+    .option(
+      "--config <path>",
+      "indicator thresholds (cartograph.debt-indicators-config)",
+    )
+    .action(
+      async (options: {
+        store: string;
+        asOf: string;
+        revision?: string[];
+        policyRecord?: string;
+        ownershipRecord?: string;
+        config?: string;
+      }): Promise<void> => {
+        printJson(
+          await historyIndicators({
+            store: options.store,
+            asOf: options.asOf,
+            ...(options.revision === undefined
+              ? {}
+              : { revisions: options.revision }),
+            ...(options.policyRecord === undefined
+              ? {}
+              : { policyRecord: options.policyRecord }),
+            ...(options.ownershipRecord === undefined
+              ? {}
+              : { ownershipRecord: options.ownershipRecord }),
+            ...(options.config === undefined ? {} : { config: options.config }),
           }),
         );
       },

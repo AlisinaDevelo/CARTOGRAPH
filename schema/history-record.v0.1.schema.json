@@ -23,7 +23,9 @@
         "decisions",
         "finding-lifecycle",
         "workspace-composition",
-        "provenance"
+        "provenance",
+        "waiver",
+        "ownership"
       ]
     },
     "recordSchemaVersion": { "type": "integer", "minimum": 0 },

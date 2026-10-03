@@ -1604,3 +1604,20 @@ export {
   type ReplayArtifacts,
   type ReplayCheck,
 } from "./bundle-replay.js";
+export {
+  DEBT_INDICATOR_IDS,
+  DEBT_INDICATORS_CONFIG_CONTRACT,
+  DEBT_INDICATORS_CONTRACT,
+  DEBT_INDICATORS_SCHEMA_VERSION,
+  DEBT_INDICATORS_VERSION,
+  DEFAULT_DEBT_INDICATORS_CONFIG,
+  DebtIndicatorsConfigSchema,
+  computeDebtIndicators,
+  parseDebtIndicatorsConfig,
+  type DebtIndicator,
+  type DebtIndicatorId,
+  type DebtIndicatorInputs,
+  type DebtIndicatorStatus,
+  type DebtIndicatorsConfig,
+  type DebtIndicatorsReport,
+} from "./debt-indicators.js";

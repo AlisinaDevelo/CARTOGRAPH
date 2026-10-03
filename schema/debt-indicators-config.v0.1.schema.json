@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/debt-indicators-config.v0.1.schema.json",
+  "title": "CARTOGRAPH debt indicator configuration v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "contract"],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "contract": {
+      "const": "cartograph.debt-indicators-config"
+    },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "findingMaxOpenDays": {
+          "type": "number",
+          "minimum": 0
+        },
+        "findingMaxRecurrenceRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "waiverExpiringWithinDays": {
+          "type": "number",
+          "minimum": 0
+        },
+        "waiverMaxAttentionRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "ownershipMaxGapRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "policyMaxEnforcedViolations": {
+          "type": "number",
+          "minimum": 0
+        },
+        "boundaryMaxIncrease": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "unknownMaxRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "remediationMaxUnevidencedRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "disabled": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "enum": [
+          "finding-age",
+          "finding-recurrence",
+          "waiver-history",
+          "ownership-gaps",
+          "policy-severity",
+          "boundary-erosion",
+          "unknown-coverage",
+          "remediation-evidence"
+        ]
+      }
+    }
+  }
+}

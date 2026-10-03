@@ -9,6 +9,11 @@ checksums.
 
 ### Added
 
+- `cartograph history indicators`: evidence-backed debt indicators (finding
+  age and recurrence, waiver history, ownership gaps, policy severity,
+  boundary erosion, unknown coverage, remediation evidence) with configurable
+  thresholds, sensitivity, counterexamples, and uncertainty, and no
+  predictions. History now stores `waiver` and `ownership` records.
 - `cartograph bundle replay`: verify a bundle offline, regenerate its diff
   and policy evaluations from its own inputs and compare bytes, run the
   sharing check, and report time and memory, with a network-disabled

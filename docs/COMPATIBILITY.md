@@ -1167,3 +1167,11 @@ A new, independent report contract, `cartograph.bundle-replay` v1, from
 artifact the replay regenerates is additive. Changing a check status or the
 `ok` rule requires a new version. The `resources` values are measurements,
 not part of the deterministic result.
+
+## Debt indicators v1
+
+A new report contract, `cartograph.debt-indicators` v1, and its
+configuration contract, `cartograph.debt-indicators-config` v1, from
+`cartograph history indicators` ([guide](HISTORY.md#debt-indicators)). The
+history record kinds gain `waiver` and `ownership`. That is an additive enum
+change: existing records and IDs are unchanged.

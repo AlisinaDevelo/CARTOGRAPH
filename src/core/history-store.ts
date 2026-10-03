@@ -3,10 +3,12 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 
 import { parseAdrReferenceDocument } from "./adr.js";
+import { parseArchitectureWaiver } from "./architecture-waivers.js";
 import { canonicalizeGraphSnapshot, stableStringify } from "./canonical.js";
 import { parseGraphDiff } from "./diff.js";
 import { parseFindingLifecycleInput } from "./finding-lifecycle.js";
 import { migrateGraphSnapshot } from "./migrations.js";
+import { parseOwnershipReport } from "./ownership.js";
 import { parsePolicyConfig } from "./policy.js";
 import { parseWorkspaceCompositionManifest } from "./workspace-composition.js";
 
@@ -23,6 +25,8 @@ export const HISTORY_RECORD_KINDS = [
   "finding-lifecycle",
   "workspace-composition",
   "provenance",
+  "waiver",
+  "ownership",
 ] as const;
 export type HistoryRecordKind = (typeof HISTORY_RECORD_KINDS)[number];
 
@@ -170,6 +174,12 @@ export const createHistoryRecord = (
         break;
       case "provenance":
         body = ProvenanceSchema.parse(value);
+        break;
+      case "waiver":
+        body = parseArchitectureWaiver(value);
+        break;
+      case "ownership":
+        body = parseOwnershipReport(value);
         break;
     }
   } catch (error) {
