@@ -46,6 +46,7 @@ import {
 } from "./export-command.js";
 import { initRepository } from "./init-command.js";
 import { linkSbomFiles } from "./sbom-command.js";
+import { evaluateControls } from "./controls-command.js";
 import {
   DEFAULT_HISTORY_STORE,
   exportHistoryRecords,
@@ -602,6 +603,40 @@ export function createCli(): Command {
             ? {}
             : { provenance: options.provenance }),
           aliases: options.alias,
+        });
+        await emit(`${JSON.stringify(report)}\n`, options);
+      },
+    );
+
+  program
+    .command("controls")
+    .description(
+      "trace control objectives to bundled evidence (not a certification)",
+    )
+    .command("evaluate")
+    .description(
+      "relate a local control mapping to a verified bundle: observed evidence, owner assertions, gaps, and conflicts",
+    )
+    .requiredOption("--mapping <path>", "control mapping JSON")
+    .requiredOption("--bundle <dir>", "verified assurance bundle directory")
+    .requiredOption(
+      "--as-of <date-time>",
+      "evaluate periods and expiry at this time",
+    )
+    .option("-o, --output <path>", "output file; stdout when omitted")
+    .option("--force", "replace an existing output file", false)
+    .action(
+      async (
+        options: OutputOptions & {
+          mapping: string;
+          bundle: string;
+          asOf: string;
+        },
+      ): Promise<void> => {
+        const report = await evaluateControls({
+          mapping: options.mapping,
+          bundle: options.bundle,
+          asOf: options.asOf,
         });
         await emit(`${JSON.stringify(report)}\n`, options);
       },

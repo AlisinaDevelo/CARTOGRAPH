@@ -17,7 +17,8 @@ cartograph bundle verify bundle/
 
 Before a bundle leaves the machine, check it with `cartograph bundle check`
 and derive a redacted copy with `cartograph bundle share`; see
-[Sharing bundles safely](SHARING.md).
+[Sharing bundles safely](SHARING.md). To trace control objectives to a
+bundle's contents, see [Tracing controls to evidence](CONTROL_EVIDENCE.md).
 
 ## Layout
 

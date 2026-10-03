@@ -10,6 +10,11 @@ import {
   AssuranceBundleManifestSchema,
   AssuranceSigningKeyringSchema,
   SHARING_PROFILES,
+  FindingLifecycleInputSchema,
+  PolicyEvaluationSchema,
+  parseAdrReferenceDocument,
+  parseArchitectureWaiver,
+  parsePolicyConfig,
   checkBundleSharing,
   collectRepositoryPaths,
   createHostPseudonymizer,
@@ -25,6 +30,7 @@ import {
   type AssuranceBundleRole,
   type AssuranceBundleVerification,
   type AssuranceBundleManifest,
+  type ControlBundleEvidence,
   type SharingArtifact,
   type SharingProfile,
   type SharingReport,
@@ -460,5 +466,33 @@ export async function shareBundle(
     excludedRoles,
     pathsPseudonymized,
     redactions,
+  };
+}
+
+/** The bundle contents a control evaluation may treat as observed evidence. */
+export async function loadControlBundleEvidence(
+  directory: string,
+): Promise<ControlBundleEvidence> {
+  const { manifest, artifacts } = await readVerifiedBundle(directory);
+  const json = (role: AssuranceBundleRole): unknown[] =>
+    artifacts
+      .filter((artifact) => artifact.role === role)
+      .map(
+        (artifact) =>
+          JSON.parse(Buffer.from(artifact.content).toString("utf8")) as unknown,
+      );
+  return {
+    bundleId: manifest.bundleId,
+    roles: [...new Set(manifest.artifacts.map((item) => item.role))],
+    declaredMissing: manifest.missing,
+    policies: json("policy").map(parsePolicyConfig),
+    evaluations: json("policy-evaluation").map((value) =>
+      PolicyEvaluationSchema.parse(value),
+    ),
+    decisions: json("decisions").map(parseAdrReferenceDocument),
+    waivers: json("waiver").map(parseArchitectureWaiver),
+    findings: json("finding-lifecycle").map((value) =>
+      FindingLifecycleInputSchema.parse(value),
+    ),
   };
 }

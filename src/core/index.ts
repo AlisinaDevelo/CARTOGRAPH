@@ -1578,3 +1578,22 @@ export {
   type RetentionPlan,
   type RetentionRecord,
 } from "./history-retention.js";
+export {
+  CONTROL_EVIDENCE_CONTRACT,
+  CONTROL_EVIDENCE_LIMITATIONS,
+  CONTROL_EVIDENCE_SCHEMA_VERSION,
+  CONTROL_MAPPING_CONTRACT,
+  CONTROL_MAPPING_SCHEMA_VERSION,
+  ControlMappingSchema,
+  evaluateControlEvidence,
+  parseControlMapping,
+  type ControlBundleEvidence,
+  type ControlConflictReason,
+  type ControlEvidence,
+  type ControlEvidenceReport,
+  type ControlGapReason,
+  type ControlMapping,
+  type ControlResult,
+  type ControlStatus,
+  type EvaluatedEvidence,
+} from "./control-evidence.js";
