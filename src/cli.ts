@@ -56,7 +56,9 @@ import {
 } from "./history-command.js";
 import {
   bundleSigningPayload,
+  checkBundle,
   createBundle,
+  shareBundle,
   verifyBundle,
 } from "./bundle-command.js";
 import type { RevisionComparisonMode } from "./git/revision.js";
@@ -616,12 +618,17 @@ export function createCli(): Command {
       "require a role (repeatable); defaults to the roles supplied",
       collect,
     )
+    .option(
+      "--profile <team|public>",
+      "refuse to write a bundle that is unsafe to share under this profile",
+    )
     .action(
       async (options: {
         output: string;
         artifact: { key: string; value: string }[];
         missing: { key: string; value: string }[];
         require?: string[];
+        profile?: string;
       }): Promise<void> => {
         const result = await createBundle({
           output: options.output,
@@ -636,6 +643,9 @@ export function createCli(): Command {
           ...(options.require === undefined
             ? {}
             : { requiredRoles: options.require }),
+          ...(options.profile === undefined
+            ? {}
+            : { profile: options.profile }),
           toolVersion: VERSION,
         });
         process.stdout.write(
@@ -705,6 +715,85 @@ export function createCli(): Command {
         );
         process.stdout.write(`${JSON.stringify(report)}\n`);
         if (!report.ok) process.exitCode = 2;
+      },
+    );
+
+  bundle
+    .command("check")
+    .description(
+      "check a bundle for secrets, absolute paths, and identifiers before sharing it (values are never printed)",
+    )
+    .argument("<dir>", "bundle directory")
+    .option("--profile <team|public>", "recipient profile", "team")
+    .option(
+      "--allow-host <host>",
+      "a host the public profile may mention (repeatable)",
+      collect,
+    )
+    .action(
+      async (
+        directory: string,
+        options: { profile: string; allowHost?: string[] },
+      ): Promise<void> => {
+        const report = await checkBundle(directory, {
+          profile: options.profile,
+          ...(options.allowHost === undefined
+            ? {}
+            : { allowedHosts: options.allowHost }),
+        });
+        process.stdout.write(`${JSON.stringify(report)}\n`);
+        if (!report.ok) process.exitCode = 2;
+      },
+    );
+  bundle
+    .command("share")
+    .description(
+      "derive a shareable bundle: exclude, pseudonymize, and redact for a recipient profile, then rebuild",
+    )
+    .argument("<dir>", "verified source bundle directory")
+    .requiredOption("-o, --output <dir>", "new bundle directory")
+    .option("--profile <team|public>", "recipient profile", "team")
+    .option(
+      "--key-file <path>",
+      "local secret (at least 32 bytes) used to pseudonymize repository paths; required for public",
+    )
+    .option(
+      "--allow-host <host>",
+      "a host the public profile may mention (repeatable)",
+      collect,
+    )
+    .option(
+      "--include-role <role>",
+      "keep a role the profile excludes by default (repeatable)",
+      collect,
+    )
+    .action(
+      async (
+        directory: string,
+        options: {
+          output: string;
+          profile: string;
+          keyFile?: string;
+          allowHost?: string[];
+          includeRole?: string[];
+        },
+      ): Promise<void> => {
+        const result = await shareBundle({
+          input: directory,
+          output: options.output,
+          profile: options.profile,
+          ...(options.keyFile === undefined
+            ? {}
+            : { keyFile: options.keyFile }),
+          ...(options.allowHost === undefined
+            ? {}
+            : { allowedHosts: options.allowHost }),
+          ...(options.includeRole === undefined
+            ? {}
+            : { includeRoles: options.includeRole }),
+          toolVersion: VERSION,
+        });
+        process.stdout.write(`${JSON.stringify(result)}\n`);
       },
     );
 

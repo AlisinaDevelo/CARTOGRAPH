@@ -1520,3 +1520,22 @@ export {
   type TrendRevision,
   type TrendRevisionInput,
 } from "./trend-metrics.js";
+export {
+  BUNDLE_SHARING_CONTRACT,
+  BUNDLE_SHARING_MAX_FINDINGS,
+  BUNDLE_SHARING_SCHEMA_VERSION,
+  SHARING_CATEGORIES,
+  SHARING_PROFILES,
+  checkBundleSharing,
+  collectRepositoryPaths,
+  createHostPseudonymizer,
+  createPathPseudonymizer,
+  redactArtifactForSharing,
+  rewriteArtifactStrings,
+  type SharingArtifact,
+  type SharingCategory,
+  type SharingFinding,
+  type SharingProfile,
+  type SharingReport,
+  type SharingRole,
+} from "./bundle-sharing.js";

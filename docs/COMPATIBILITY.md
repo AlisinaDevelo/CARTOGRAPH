@@ -1112,3 +1112,13 @@ A new, independent contract, `cartograph.trend-metrics` v1 with
 decisions without changing those contracts. Changing a metric's definition,
 scope, or denominator bumps `metricsVersion`. Adding a metric does not, since
 consumers select metrics by `id`.
+
+## Bundle sharing check v1
+
+A new, independent report contract, `cartograph.bundle-sharing` v1, from
+`cartograph bundle check` ([guide](SHARING.md)). `bundle share` writes an
+ordinary `cartograph.assurance-bundle` v1 bundle, and `bundle create
+--profile` only adds a refusal, so the bundle contract is unchanged. Adding a
+detector can add findings to bundles that passed before; that is treated as a
+fix, not a contract change. Renaming or removing a category or profile, or
+changing the pseudonym format, requires a new version.
