@@ -8,6 +8,7 @@ import { isDeepStrictEqual } from "node:util";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { createCycloneDx16Validator } from "./vendored-schemas.mjs";
 import {
   buildAssuranceBundle,
   exportBundleStatement,
@@ -50,6 +51,7 @@ const sarif = () => {
     transformed: exported.mappings.length,
     dropped: exported.unsupported.length,
     ambiguous: 0,
+    upstreamSchema: "not-vendored",
   };
 };
 
@@ -61,6 +63,9 @@ const cyclonedx = () => {
     toolName: "cartograph",
     toolVersion: "0.0.0",
   });
+  const validate = createCycloneDx16Validator();
+  if (!validate(bom))
+    fail(`CycloneDX export is invalid: ${JSON.stringify(validate.errors)}`);
   const report = linkSbomToGraph(snapshot, parseSbom(bom));
   const nodeIdOf = (component) =>
     component.properties.find((item) => item.name === "cartograph:nodeId")
@@ -89,6 +94,7 @@ const cyclonedx = () => {
     dropped: snapshot.nodes.length - packages,
     ambiguous: report.components.filter((item) => item.status === "ambiguous")
       .length,
+    upstreamSchema: "valid",
   };
 };
 
@@ -116,6 +122,7 @@ const spdx = () => {
     ).length,
     dropped: report.coverage.unresolved + report.coverage.malformed,
     ambiguous: report.coverage.ambiguous,
+    upstreamSchema: "import-only",
   };
 };
 
@@ -133,6 +140,7 @@ const otlp = () => {
     dropped: trace.summary.inputSpans - trace.summary.normalizedSpans,
     ambiguous: 0,
     droppedAttributes: trace.summary.discardedAttributes,
+    upstreamSchema: "import-only",
   };
 };
 
@@ -170,6 +178,7 @@ const inToto = () => {
     dropped: 0,
     ambiguous: 0,
     droppedFields: ["mediaType", "bytes", "label"],
+    upstreamSchema: "none-published",
   };
 };
 

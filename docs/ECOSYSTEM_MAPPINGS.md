@@ -105,8 +105,15 @@ becomes an encoded purl). "Dropped" means it has no representation.
 
 ## Upstream schema validation
 
-The exports are checked against CARTOGRAPH's own parsers and fixtures. They
-are not yet validated against the official SARIF 2.1.0, CycloneDX 1.6, or
-in-toto JSON schemas, because those schemas are not vendored in this
-repository. Until they are, treat conformance as tested against the fields
-listed above, not against the full upstream specifications.
+| Format               | Upstream schema                                                                                  | Status                                                                                                                                                                                     |
+| -------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CycloneDX 1.6        | vendored from [CycloneDX/specification](https://github.com/CycloneDX/specification) (Apache-2.0) | exports validated in tests and in `ecosystem-mappings:validate`                                                                                                                            |
+| SARIF 2.1.0          | not vendored                                                                                     | the OASIS repository's terms are a link to the OASIS IPR policy rather than a file license, so the schema is not redistributed here; output is checked against CARTOGRAPH's SARIF contract |
+| in-toto Statement v1 | none published                                                                                   | in-toto defines the Statement in prose and protobuf, without a JSON Schema; output is checked against the specification's required fields                                                  |
+| SPDX, OTLP           | not needed                                                                                       | import only                                                                                                                                                                                |
+
+Vendored files live in `schema/vendor/` with their license and are recorded
+in `schema/vendor/provenance.json`: source repository, commit, and SHA-256
+of every file. Tests fail if a vendored file changes. The CycloneDX schema
+uses the `iri-reference` and `idn-email` formats, which are checked with
+their stricter ASCII counterparts (`uri-reference`, `email`).

@@ -2,3 +2,6 @@ coverage/
 dist/
 node_modules/
 .cartograph/
+
+# Vendored upstream schemas are kept byte-for-byte.
+schema/vendor/

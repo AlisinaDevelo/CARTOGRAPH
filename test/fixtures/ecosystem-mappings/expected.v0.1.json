@@ -12,7 +12,8 @@
       "preserved": 1,
       "transformed": 1,
       "dropped": 1,
-      "ambiguous": 0
+      "ambiguous": 0,
+      "upstreamSchema": "not-vendored"
     },
     {
       "format": "cyclonedx-1.6",
@@ -23,7 +24,8 @@
       "preserved": 7,
       "transformed": 2,
       "dropped": 3,
-      "ambiguous": 2
+      "ambiguous": 2,
+      "upstreamSchema": "valid"
     },
     {
       "format": "spdx-2.3",
@@ -34,7 +36,8 @@
       "preserved": 4,
       "transformed": 2,
       "dropped": 2,
-      "ambiguous": 0
+      "ambiguous": 0,
+      "upstreamSchema": "import-only"
     },
     {
       "format": "otlp-json",
@@ -46,7 +49,8 @@
       "transformed": 1,
       "dropped": 0,
       "ambiguous": 0,
-      "droppedAttributes": 5
+      "droppedAttributes": 5,
+      "upstreamSchema": "import-only"
     },
     {
       "format": "in-toto-statement-v1",
@@ -58,7 +62,8 @@
       "transformed": 0,
       "dropped": 0,
       "ambiguous": 0,
-      "droppedFields": ["mediaType", "bytes", "label"]
+      "droppedFields": ["mediaType", "bytes", "label"],
+      "upstreamSchema": "none-published"
     }
   ]
 }

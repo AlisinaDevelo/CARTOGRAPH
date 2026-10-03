@@ -4,6 +4,12 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  createCycloneDx16Validator,
+  verifyVendoredSchemas,
+} from "../../scripts/vendored-schemas.mjs";
+import { scanRepository } from "../../src/commands.js";
+
+import {
   buildAssuranceBundle,
   exportBundleStatement,
   exportCycloneDx,
@@ -83,5 +89,34 @@ describe("in-toto statement export", () => {
       roles: ["snapshot-head"],
       sourceBodiesIncluded: false,
     });
+  });
+});
+
+describe("upstream CycloneDX 1.6 schema", () => {
+  const validate = createCycloneDx16Validator();
+
+  it("keeps the vendored files byte-for-byte", () => {
+    expect(verifyVendoredSchemas()).toEqual(["cyclonedx-1.6"]);
+  });
+
+  it("accepts exports of the fixture graph and of real scans", () => {
+    for (const graph of [
+      snapshot,
+      scanRepository({ root: "test/fixtures/lockfiles/npm" }),
+      scanRepository({ root: "test/fixtures/typescript-express" }),
+    ]) {
+      const bom = exportCycloneDx(graph, options);
+      expect(validate(bom), JSON.stringify(validate.errors)).toBe(true);
+    }
+  });
+
+  it("rejects a BOM that breaks the upstream contract", () => {
+    const bom = exportCycloneDx(snapshot, options);
+    const broken = {
+      ...bom,
+      components: [{ ...bom.components[0], name: undefined }],
+    };
+    expect(validate(JSON.parse(JSON.stringify(broken)))).toBe(false);
+    expect(validate({ ...bom, specVersion: 1.6 })).toBe(false);
   });
 });
