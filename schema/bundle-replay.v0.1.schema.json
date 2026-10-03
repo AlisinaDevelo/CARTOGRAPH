@@ -1,0 +1,117 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/bundle-replay.v0.1.schema.json",
+  "title": "CARTOGRAPH bundle replay report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "ok",
+    "verification",
+    "checks",
+    "sharing",
+    "resources"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "contract": {
+      "const": "cartograph.bundle-replay"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "bundleId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "verification": {
+      "type": "object",
+      "required": ["ok", "artifacts", "problems"],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "artifacts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "problems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "inputs", "status"],
+        "properties": {
+          "role": {
+            "type": "string",
+            "minLength": 1
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "status": {
+            "enum": ["reproduced", "differs", "not-replayable", "failed"]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "bundledSha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "regeneratedSha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "sharing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile", "ok", "findings"],
+      "properties": {
+        "profile": {
+          "const": "team"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "findings": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["elapsedMs", "maxRssKiB"],
+      "properties": {
+        "elapsedMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxRssKiB": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

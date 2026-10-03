@@ -10,6 +10,11 @@ import {
   AssuranceBundleManifestSchema,
   AssuranceSigningKeyringSchema,
   SHARING_PROFILES,
+  BUNDLE_REPLAY_CONTRACT,
+  BUNDLE_REPLAY_SCHEMA_VERSION,
+  replayBundleArtifacts,
+  type ReplayArtifacts,
+  type ReplayCheck,
   FindingLifecycleInputSchema,
   PolicyEvaluationSchema,
   parseAdrReferenceDocument,
@@ -494,5 +499,83 @@ export async function loadControlBundleEvidence(
     findings: json("finding-lifecycle").map((value) =>
       FindingLifecycleInputSchema.parse(value),
     ),
+  };
+}
+
+export type BundleReplayReport = {
+  schemaVersion: typeof BUNDLE_REPLAY_SCHEMA_VERSION;
+  contract: typeof BUNDLE_REPLAY_CONTRACT;
+  ok: boolean;
+  bundleId?: string;
+  verification: AssuranceBundleVerification & {
+    signature?: AssuranceBundleSignatureResult;
+  };
+  checks: ReplayCheck[];
+  sharing: { profile: "team"; ok: boolean; findings: number };
+  /** Measured on this machine; not part of the deterministic result. */
+  resources: { elapsedMs: number; maxRssKiB: number };
+};
+
+/**
+ * Replay a bundle offline: verify digests, contracts, and optionally the
+ * signature; regenerate derived artifacts from the bundle's own inputs; and
+ * run the team sharing check. Reads only the bundle directory and the
+ * keyring and signature files given.
+ */
+export async function replayBundle(
+  directory: string,
+  signatureOptions?: BundleSignatureOptions,
+): Promise<BundleReplayReport> {
+  const started = performance.now();
+  const verification = await verifyBundle(directory, signatureOptions);
+  const resources = () => ({
+    elapsedMs: Math.round(performance.now() - started),
+    maxRssKiB: process.resourceUsage().maxRSS,
+  });
+  if (!verification.ok)
+    return {
+      schemaVersion: BUNDLE_REPLAY_SCHEMA_VERSION,
+      contract: BUNDLE_REPLAY_CONTRACT,
+      ok: false,
+      ...(verification.bundleId === undefined
+        ? {}
+        : { bundleId: verification.bundleId }),
+      verification,
+      checks: [],
+      sharing: { profile: "team", ok: false, findings: 0 },
+      resources: resources(),
+    };
+  const { manifest, artifacts } = await readVerifiedBundle(directory);
+  const byRole: ReplayArtifacts = {};
+  for (const artifact of artifacts) {
+    if (
+      artifact.role === "manifest" ||
+      ASSURANCE_BUNDLE_ROLES[artifact.role].mediaType !== "application/json"
+    )
+      continue;
+    byRole[artifact.role] = [
+      ...(byRole[artifact.role] ?? []),
+      JSON.parse(Buffer.from(artifact.content).toString("utf8")) as unknown,
+    ];
+  }
+  const checks = replayBundleArtifacts(byRole);
+  const sharing = checkBundleSharing(artifacts, { profile: "team" });
+  return {
+    schemaVersion: BUNDLE_REPLAY_SCHEMA_VERSION,
+    contract: BUNDLE_REPLAY_CONTRACT,
+    ok:
+      checks.every(
+        (check) =>
+          check.status === "reproduced" || check.status === "not-replayable",
+      ) && sharing.ok,
+    bundleId: manifest.bundleId,
+    verification,
+    checks,
+    sharing: {
+      profile: "team",
+      ok: sharing.ok,
+      findings: sharing.findings.length,
+    },
+    resources: resources(),
   };
 }

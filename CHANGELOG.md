@@ -9,6 +9,10 @@ checksums.
 
 ### Added
 
+- `cartograph bundle replay`: verify a bundle offline, regenerate its diff
+  and policy evaluations from its own inputs and compare bytes, run the
+  sharing check, and report time and memory, with a network-disabled
+  [replay guide](docs/BUNDLE_REPLAY.md).
 - `cartograph controls evaluate`: trace named control objectives to policies,
   findings, decisions, waivers, tests, owner assertions, and bundle artifacts,
   separating observed evidence from owner assertions and listing gaps and

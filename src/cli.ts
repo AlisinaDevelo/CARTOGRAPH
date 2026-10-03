@@ -61,6 +61,7 @@ import {
   bundleSigningPayload,
   checkBundle,
   createBundle,
+  replayBundle,
   shareBundle,
   verifyBundle,
 } from "./bundle-command.js";
@@ -797,6 +798,48 @@ export function createCli(): Command {
       },
     );
 
+  bundle
+    .command("replay")
+    .description(
+      "replay a bundle offline: verify it, regenerate derived artifacts from its own inputs, and compare",
+    )
+    .argument("<dir>", "bundle directory")
+    .option("--signature <path>", "assurance signing record for the manifest")
+    .option("--keyring <path>", "public-key keyring JSON")
+    .option("--trust-root <id>", "trusted root ID (repeatable)", collect)
+    .option("--as-of <date-time>", "evaluate signature expiry at this time")
+    .action(
+      async (
+        directory: string,
+        options: {
+          signature?: string;
+          keyring?: string;
+          trustRoot?: string[];
+          asOf?: string;
+        },
+      ): Promise<void> => {
+        if (
+          options.signature !== undefined &&
+          (options.keyring === undefined || options.trustRoot === undefined)
+        )
+          throw new InvalidArgumentError(
+            "--signature requires --keyring and at least one --trust-root",
+          );
+        const report = await replayBundle(
+          directory,
+          options.signature === undefined || options.keyring === undefined
+            ? undefined
+            : {
+                signature: options.signature,
+                keyring: options.keyring,
+                trustRoots: options.trustRoot ?? [],
+                ...(options.asOf === undefined ? {} : { asOf: options.asOf }),
+              },
+        );
+        process.stdout.write(`${JSON.stringify(report)}\n`);
+        if (!report.ok) process.exitCode = 2;
+      },
+    );
   bundle
     .command("check")
     .description(
