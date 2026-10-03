@@ -211,9 +211,9 @@
     {
       "id": "claims-audit",
       "path": "claims-audit",
-      "source": "CARTOGRAPH repository-authored Year 1–3 claims audit fixture",
+      "source": "CARTOGRAPH repository-authored Year 1\u20133 claims audit fixture",
       "license": "Apache-2.0",
-      "reference": "M-011 Year 1–3 claims audit; Year 3 strategy gate; Year 4 conditional charter",
+      "reference": "M-011 Year 1\u20133 claims audit; Year 3 strategy gate; Year 4 conditional charter",
       "transformation": "The audit records material capability, quality, privacy, adoption, and maintenance claims with local evidence paths, reproducible commands, explicit limitations, and Year 4 feed links without source bodies, private data, or network collection.",
       "redistribution": "allowed"
     },
@@ -744,6 +744,15 @@
       "license": "Apache-2.0",
       "reference": "D-014 patch-scoped graph and policy filtering contract; no external source data",
       "transformation": "A bounded before/after graph pair exercises rename evidence, one-hop context, generated-file omission, deterministic selection, and full-diff policy preservation without source bodies, execution, credentials, or network access.",
+      "redistribution": "allowed"
+    },
+    {
+      "id": "sbom-link",
+      "path": "sbom-link",
+      "source": "CARTOGRAPH repository-authored synthetic SBOM-link fixture",
+      "license": "Apache-2.0",
+      "reference": "A-003 SBOM and build-provenance linkage contract; no external source data",
+      "transformation": "A synthetic graph with a CycloneDX 1.5 SBOM, an SPDX 2.3 SBOM, and an in-toto SLSA v1 statement exercises purl and alias links, bundled and generated components, missing packages, version skew, ambiguous names, foreign ecosystems, and malformed entries. Digests are SHA-256 of fixed labels; no real package, build, credential, or network access is involved.",
       "redistribution": "allowed"
     }
   ]

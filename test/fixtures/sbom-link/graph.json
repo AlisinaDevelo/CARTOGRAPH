@@ -1,0 +1,218 @@
+{
+  "capabilityRegistryVersion": 1,
+  "diagnostics": [],
+  "edges": [
+    {
+      "confidence": "certain",
+      "evidence": [
+        {
+          "column": 1,
+          "contentHash": "0000000000000000000000000000000000000000000000000000000000000001",
+          "detector": "cartograph.generated@1/source",
+          "id": "source:src/gen.ts:1:1:cartograph.generated@1/source",
+          "kind": "source",
+          "line": 1,
+          "path": "src/gen.ts"
+        }
+      ],
+      "from": "module:src/gen.ts",
+      "kind": "depends_on",
+      "to": "module:src/schema.ts"
+    },
+    {
+      "confidence": "certain",
+      "evidence": [
+        {
+          "column": 1,
+          "contentHash": "0000000000000000000000000000000000000000000000000000000000000001",
+          "detector": "cartograph.lockfile@1/dependency",
+          "id": "source:package-lock.json:4:1:cartograph.lockfile@1/dependency",
+          "kind": "source",
+          "line": 4,
+          "path": "package-lock.json"
+        }
+      ],
+      "from": "package:root",
+      "kind": "depends_on",
+      "to": "module:external:@scope/util"
+    },
+    {
+      "confidence": "certain",
+      "evidence": [
+        {
+          "column": 1,
+          "contentHash": "0000000000000000000000000000000000000000000000000000000000000001",
+          "detector": "cartograph.lockfile@1/dependency",
+          "id": "source:package-lock.json:6:1:cartograph.lockfile@1/dependency",
+          "kind": "source",
+          "line": 6,
+          "path": "package-lock.json"
+        }
+      ],
+      "from": "package:root",
+      "kind": "depends_on",
+      "to": "module:external:fetch-alias"
+    },
+    {
+      "confidence": "certain",
+      "evidence": [
+        {
+          "column": 1,
+          "contentHash": "0000000000000000000000000000000000000000000000000000000000000001",
+          "detector": "cartograph.lockfile@1/dependency",
+          "id": "source:package-lock.json:8:1:cartograph.lockfile@1/dependency",
+          "kind": "source",
+          "line": 8,
+          "path": "package-lock.json"
+        }
+      ],
+      "from": "package:root",
+      "kind": "depends_on",
+      "to": "module:external:graph-only-dep"
+    },
+    {
+      "confidence": "certain",
+      "evidence": [
+        {
+          "column": 1,
+          "contentHash": "0000000000000000000000000000000000000000000000000000000000000001",
+          "detector": "cartograph.lockfile@1/dependency",
+          "id": "source:package-lock.json:3:1:cartograph.lockfile@1/dependency",
+          "kind": "source",
+          "line": 3,
+          "path": "package-lock.json"
+        }
+      ],
+      "from": "package:root",
+      "kind": "depends_on",
+      "to": "module:external:left-pad"
+    },
+    {
+      "confidence": "certain",
+      "evidence": [
+        {
+          "column": 1,
+          "contentHash": "0000000000000000000000000000000000000000000000000000000000000001",
+          "detector": "cartograph.lockfile@1/dependency",
+          "id": "source:package-lock.json:5:1:cartograph.lockfile@1/dependency",
+          "kind": "source",
+          "line": 5,
+          "path": "package-lock.json"
+        }
+      ],
+      "from": "package:root",
+      "kind": "depends_on",
+      "to": "module:external:lodash"
+    },
+    {
+      "confidence": "certain",
+      "evidence": [
+        {
+          "column": 1,
+          "contentHash": "0000000000000000000000000000000000000000000000000000000000000001",
+          "detector": "cartograph.lockfile@1/dependency",
+          "id": "source:package-lock.json:7:1:cartograph.lockfile@1/dependency",
+          "kind": "source",
+          "line": 7,
+          "path": "package-lock.json"
+        }
+      ],
+      "from": "package:root",
+      "kind": "depends_on",
+      "to": "module:external:shared"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "module:external:@scope/util",
+      "kind": "module",
+      "name": "@scope/util",
+      "stableKey": "module:external:@scope/util"
+    },
+    {
+      "id": "module:external:fetch-alias",
+      "kind": "module",
+      "name": "fetch-alias",
+      "stableKey": "module:external:fetch-alias"
+    },
+    {
+      "id": "module:external:graph-only-dep",
+      "kind": "module",
+      "name": "graph-only-dep",
+      "stableKey": "module:external:graph-only-dep"
+    },
+    {
+      "id": "module:external:left-pad",
+      "kind": "module",
+      "name": "left-pad",
+      "stableKey": "module:external:left-pad"
+    },
+    {
+      "id": "module:external:lodash",
+      "kind": "module",
+      "name": "lodash",
+      "stableKey": "module:external:lodash"
+    },
+    {
+      "id": "module:external:shared",
+      "kind": "module",
+      "name": "shared",
+      "stableKey": "module:external:shared"
+    },
+    {
+      "id": "module:src/a.ts",
+      "kind": "module",
+      "language": "typescript",
+      "location": { "column": 1, "line": 1, "path": "src/a.ts" },
+      "name": "src/a.ts",
+      "stableKey": "module:src/a.ts"
+    },
+    {
+      "id": "module:src/gen.ts",
+      "kind": "module",
+      "language": "typescript",
+      "location": { "column": 1, "line": 1, "path": "src/gen.ts" },
+      "name": "src/gen.ts",
+      "stableKey": "module:src/gen.ts"
+    },
+    {
+      "id": "module:src/schema.ts",
+      "kind": "module",
+      "language": "typescript",
+      "location": { "column": 1, "line": 1, "path": "src/schema.ts" },
+      "name": "src/schema.ts",
+      "stableKey": "module:src/schema.ts"
+    },
+    {
+      "id": "package:packages/lib",
+      "kind": "package",
+      "location": {
+        "column": 1,
+        "line": 1,
+        "path": "packages/lib/package.json"
+      },
+      "name": "@demo/lib",
+      "stableKey": "package:packages/lib"
+    },
+    {
+      "id": "package:packages/shared",
+      "kind": "package",
+      "location": {
+        "column": 1,
+        "line": 1,
+        "path": "packages/shared/package.json"
+      },
+      "name": "shared",
+      "stableKey": "package:packages/shared"
+    },
+    {
+      "id": "package:root",
+      "kind": "package",
+      "location": { "column": 1, "line": 1, "path": "package.json" },
+      "name": "demo-app",
+      "stableKey": "package:root"
+    }
+  ],
+  "revision": { "commitSha": "4b825dc642cb6eb9a060e54bf8d69288fbee4904" },
+  "schemaVersion": 1
+}

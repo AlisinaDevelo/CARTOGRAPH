@@ -1539,3 +1539,19 @@ export {
   type SharingReport,
   type SharingRole,
 } from "./bundle-sharing.js";
+export {
+  SBOM_LINK_CONTRACT,
+  SBOM_LINK_MAX_COMPONENTS,
+  SBOM_LINK_SCHEMA_VERSION,
+  SbomLinkError,
+  linkSbomToGraph,
+  parseBuildProvenance,
+  parseSbom,
+  type BuildProvenance,
+  type ParsedSbom,
+  type SbomComponent,
+  type SbomComponentLink,
+  type SbomLinkOptions,
+  type SbomLinkReport,
+  type SbomLinkTarget,
+} from "./sbom-link.js";

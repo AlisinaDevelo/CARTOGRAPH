@@ -1,0 +1,164 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/sbom-link.v0.1.schema.json",
+  "title": "CARTOGRAPH SBOM and build-provenance link v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "sbom",
+    "revision",
+    "components",
+    "malformed",
+    "graphOnly",
+    "versionSkew",
+    "artifacts",
+    "sourceRevision",
+    "coverage"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.sbom-link" },
+    "sbom": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "specVersion"],
+      "properties": {
+        "format": { "enum": ["cyclonedx", "spdx"] },
+        "specVersion": { "type": "string", "minLength": 1 }
+      }
+    },
+    "revision": { "type": "string", "minLength": 1 },
+    "root": { "$ref": "#/definitions/component" },
+    "components": {
+      "type": "array",
+      "maxItems": 50000,
+      "items": { "$ref": "#/definitions/component" }
+    },
+    "malformed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ref", "reason"],
+        "properties": {
+          "ref": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "graphOnly": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["nodeId", "reason"],
+        "properties": {
+          "nodeId": { "type": "string", "minLength": 1 },
+          "reason": { "const": "not-in-sbom" }
+        }
+      }
+    },
+    "versionSkew": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["nodeId", "versions"],
+        "properties": {
+          "nodeId": { "type": "string", "minLength": 1 },
+          "versions": {
+            "type": "array",
+            "minItems": 2,
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "sha256", "components", "status"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "components": { "type": "array", "items": { "type": "string" } },
+          "packageNode": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["linked", "unresolved"] },
+          "reason": { "const": "no-matching-component-or-package" }
+        }
+      }
+    },
+    "sourceRevision": { "enum": ["matches", "differs", "not-recorded"] },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "components",
+        "linked",
+        "ambiguous",
+        "unresolved",
+        "malformed",
+        "graphExternalPackages",
+        "graphExternalPackagesInSbom"
+      ],
+      "properties": {
+        "components": { "type": "integer", "minimum": 0 },
+        "linked": { "type": "integer", "minimum": 0 },
+        "ambiguous": { "type": "integer", "minimum": 0 },
+        "unresolved": { "type": "integer", "minimum": 0 },
+        "malformed": { "type": "integer", "minimum": 0 },
+        "graphExternalPackages": { "type": "integer", "minimum": 0 },
+        "graphExternalPackagesInSbom": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "definitions": {
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "name", "status", "targets"],
+      "properties": {
+        "ref": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string" },
+        "status": { "enum": ["linked", "ambiguous", "unresolved"] },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["nodeId", "method", "confidence"],
+            "properties": {
+              "nodeId": { "type": "string", "minLength": 1 },
+              "method": {
+                "enum": [
+                  "purl",
+                  "name",
+                  "alias",
+                  "file-path",
+                  "generated-source"
+                ]
+              },
+              "confidence": { "enum": ["certain", "inferred"] }
+            }
+          }
+        },
+        "reason": {
+          "enum": [
+            "not-in-graph",
+            "multiple-graph-objects",
+            "unsupported-ecosystem",
+            "bundled-in-artifact",
+            "version-skew"
+          ]
+        },
+        "bundledIn": { "type": "string", "minLength": 1 },
+        "generated": { "type": "boolean" }
+      }
+    }
+  }
+}

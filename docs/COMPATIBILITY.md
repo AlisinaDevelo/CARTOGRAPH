@@ -1122,3 +1122,12 @@ ordinary `cartograph.assurance-bundle` v1 bundle, and `bundle create
 detector can add findings to bundles that passed before; that is treated as a
 fix, not a contract change. Renaming or removing a category or profile, or
 changing the pseudonym format, requires a new version.
+
+## SBOM and build-provenance link v1
+
+A new, independent report contract, `cartograph.sbom-link` v1, from
+`cartograph sbom link` ([guide](SBOM_LINK.md)). It reads graph snapshots,
+CycloneDX 1.4–1.6, SPDX 2.2–2.3, and in-toto SLSA provenance without changing
+any CARTOGRAPH contract. Adding an accepted input version or a link method
+is additive. Changing a status, reason, method, or coverage field requires a
+new version.
