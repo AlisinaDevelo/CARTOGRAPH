@@ -1,0 +1,99 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/trend-metrics.v0.1.schema.json",
+  "title": "CARTOGRAPH architecture trend metrics v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contract",
+    "metricsVersion",
+    "revisions",
+    "intervals"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contract": { "const": "cartograph.trend-metrics" },
+    "metricsVersion": { "const": 1 },
+    "revisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["revision", "status", "metrics"],
+        "properties": {
+          "revision": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["measured", "missing"] },
+          "evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["snapshotSchemaVersion", "capabilityRegistryVersion"],
+            "properties": {
+              "recordId": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+              "snapshotSchemaVersion": { "type": "integer", "minimum": 0 },
+              "recordSchemaVersion": { "type": "integer", "minimum": 0 },
+              "capabilityRegistryVersion": { "type": "integer", "minimum": 0 }
+            }
+          },
+          "metrics": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/metric" }
+          }
+        }
+      }
+    },
+    "intervals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to", "metrics"],
+        "properties": {
+          "from": { "type": "string", "minLength": 1 },
+          "to": { "type": "string", "minLength": 1 },
+          "metrics": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/metric" }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "metric": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "status",
+            "value",
+            "numerator",
+            "denominator",
+            "scope"
+          ],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "status": { "const": "measured" },
+            "value": { "type": "number", "minimum": 0 },
+            "numerator": { "type": "integer", "minimum": 0 },
+            "denominator": { "type": "integer", "minimum": 1 },
+            "scope": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "status", "reason", "scope"],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "status": { "const": "unavailable" },
+            "reason": { "type": "string", "minLength": 1 },
+            "scope": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
+    }
+  }
+}

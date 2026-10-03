@@ -48,6 +48,7 @@ import { initRepository } from "./init-command.js";
 import {
   DEFAULT_HISTORY_STORE,
   exportHistoryRecords,
+  historyTrends,
   importHistoryRecords,
   listHistoryRecords,
   repairHistory,
@@ -816,6 +817,46 @@ export function createCli(): Command {
               ? {}
               : { revision: options.revision }),
             ...(options.id === undefined ? {} : { ids: options.id }),
+          }),
+        );
+      },
+    );
+
+  history
+    .command("trends")
+    .description(
+      "recompute architecture trend metrics across stored revisions, in order",
+    )
+    .option(...storeOption)
+    .option(
+      "--revision <sha>",
+      "a revision, oldest first (repeatable)",
+      collect,
+    )
+    .option("--policy-record <id>", "policy record applied to every revision")
+    .option(
+      "--decisions-record <id>",
+      "decisions record applied to every revision",
+    )
+    .action(
+      async (options: {
+        store: string;
+        revision?: string[];
+        policyRecord?: string;
+        decisionsRecord?: string;
+      }): Promise<void> => {
+        if (options.revision === undefined || options.revision.length === 0)
+          throw new InvalidArgumentError("give at least one --revision");
+        printJson(
+          await historyTrends({
+            store: options.store,
+            revisions: options.revision,
+            ...(options.policyRecord === undefined
+              ? {}
+              : { policyRecord: options.policyRecord }),
+            ...(options.decisionsRecord === undefined
+              ? {}
+              : { decisionsRecord: options.decisionsRecord }),
           }),
         );
       },

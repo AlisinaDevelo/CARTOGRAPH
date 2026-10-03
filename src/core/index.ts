@@ -1508,3 +1508,15 @@ export {
   type HistoryRecordKind,
   type HistoryVerification,
 } from "./history-store.js";
+export {
+  TREND_METRICS_CONTRACT,
+  TREND_METRICS_SCHEMA_VERSION,
+  TREND_METRICS_VERSION,
+  computeTrendMetrics,
+  moduleBoundary,
+  type TrendInterval,
+  type TrendMetricValue,
+  type TrendMetricsReport,
+  type TrendRevision,
+  type TrendRevisionInput,
+} from "./trend-metrics.js";
