@@ -198,6 +198,10 @@ The adapter scans only `.rs` files under the declared source root and supports:
 Out-of-line `mod` declarations resolve both `name.rs` and `name/mod.rs` layouts.
 Child modules of `name.rs` are resolved under the `name/` directory; crate
 entry files and `mod.rs` resolve children alongside their own file.
+`crate::` imports resolve from the nearest selected conventional `lib.rs` or
+`main.rs` root, including imports in nested modules. If no such root is
+selected, the import remains unresolved; custom crate entry paths need a
+compiler-backed adapter.
 
 Dynamic HTTP destinations and SQL queries remain the explicit
 `UNSUPPORTED_RUST_DYNAMIC_HTTP_DESTINATION` and

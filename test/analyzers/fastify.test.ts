@@ -76,6 +76,25 @@ describe("Fastify extractor", () => {
     },
   );
 
+  it.each([
+    'app.get("/inline", { schema: {} }, () => 1);',
+    'app.get("/inline", { handler: function inline() { return 1; } });',
+  ])("links an inline options-form handler: %s", (registration) => {
+    const snapshot = scanRegistration(registration);
+    const edge = snapshot.edges.find(
+      (item) => item.kind === "calls" && item.from === "endpoint:GET:/inline",
+    );
+    expect(edge).toMatchObject({ confidence: "inferred" });
+    expect(snapshot.nodes.find((item) => item.id === edge?.to)).toMatchObject({
+      kind: "function",
+      language: "typescript",
+    });
+    expect(
+      edge?.evidence.some((item) => item.path === "app.ts" && item.line === 5),
+    ).toBe(true);
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
   it("emits bounded literal and object-form route edges", () => {
     const snapshot = parseGraphSnapshot(
       analyzeTypeScriptRepository({

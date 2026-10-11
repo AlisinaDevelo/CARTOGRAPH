@@ -459,6 +459,23 @@ const localModuleTarget = (
   return moduleTargetAt(directory, moduleName, filesByPath);
 };
 
+const crateDirectory = (
+  file: RustFile,
+  filesByPath: Map<string, RustFile>,
+): string | undefined => {
+  let directory = dirname(file.path);
+  for (;;) {
+    if (
+      filesByPath.has(join(directory, "lib.rs")) ||
+      filesByPath.has(join(directory, "main.rs"))
+    )
+      return directory;
+    const parent = dirname(directory);
+    if (parent === directory) return undefined;
+    directory = parent;
+  }
+};
+
 const functionBody = (
   file: RustFile,
   declarationEnd: number,
@@ -496,11 +513,11 @@ const addRustImport = (
       addDiagnostic(analysis, "UNRESOLVED_RUST_IMPORT", file, offset, owner.id);
       return;
     }
-    const targetFile = moduleTargetAt(
-      dirname(file.path),
-      moduleName,
-      filesByPath,
-    );
+    const directory = crateDirectory(file, filesByPath);
+    const targetFile =
+      directory === undefined
+        ? undefined
+        : moduleTargetAt(directory, moduleName, filesByPath);
     if (!targetFile) {
       addDiagnostic(analysis, "UNRESOLVED_RUST_IMPORT", file, offset, owner.id);
       return;

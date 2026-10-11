@@ -121,6 +121,46 @@ describe("bounded Rust adapter pilot", () => {
     ).toEqual(["UNRESOLVED_RUST_IMPORT"]);
   });
 
+  it.each([false, true])(
+    "resolves nested crate imports from the root with decoy=%s",
+    (withDecoy) => {
+      const files: Record<string, string> = {
+        "src/lib.rs": "mod orders;\nmod payments;\n",
+        "src/orders/mod.rs":
+          "use crate::payments::charge;\npub fn entry() {}\n",
+        "src/payments/mod.rs": "pub fn charge() {}\n",
+      };
+      if (withDecoy)
+        files["src/orders/payments/mod.rs"] = "pub fn charge() {}\n";
+      const output = scanFiles(files);
+      expect(
+        output.graph.edges.filter(
+          (edge) =>
+            edge.kind === "imports" && edge.from === "module:src/orders/mod.rs",
+        ),
+      ).toEqual([
+        expect.objectContaining({
+          to: "module:src/payments/mod.rs",
+          confidence: "certain",
+        }),
+      ]);
+      expect(output.graph.diagnostics).toEqual([]);
+    },
+  );
+
+  it("leaves crate imports unresolved when no conventional crate root is selected", () => {
+    const output = scanFiles({
+      "src/orders/mod.rs": "use crate::payments::charge;\npub fn entry() {}\n",
+      "src/orders/payments/mod.rs": "pub fn charge() {}\n",
+    });
+    expect(
+      output.graph.edges.filter((edge) => edge.kind === "imports"),
+    ).toEqual([]);
+    expect(
+      output.graph.diagnostics.map((diagnostic) => diagnostic.code),
+    ).toEqual(["UNRESOLVED_RUST_IMPORT"]);
+  });
+
   it("extracts the declared graph slice with exact fixture precision and recall", () => {
     const adapter = createRustAdapter();
     const output = runAdapter(adapter, input());
