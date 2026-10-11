@@ -25,20 +25,22 @@ staffed second maintainer.
 
 ## Required merge checks
 
-Protected `main` requires these status-check contexts when hosted GitHub checks
-are available:
+Protected `main` requires these six status-check contexts on the current pull
+request revision, with the branch up to date with `main`:
 
-- `Node 22.x`
-- `Node 24.x`
+- `ubuntu-latest · Node 22.x`
+- `ubuntu-latest · Node 24.x`
+- `macos-latest · Node 22.x`
+- `macos-latest · Node 24.x`
 - `Analyze (javascript-typescript)`
 - `Review dependency changes`
 
 The workflows are intentionally read-only with respect to repository contents.
-The local replacement for the same gate is `npm run check`, including
-`npm run benchmark:ci`, followed by package and installed-CLI smoke tests. The
-benchmark gate runs inside both Node matrix jobs, so those job contexts include
-its result. A local run is retained as evidence when hosted checks are
-unavailable; it is not a claim that hosted checks ran.
+Local validation uses `npm run check`, including `npm run benchmark:ci`, followed
+by package and installed-CLI smoke tests. The
+benchmark gate runs inside all four OS/Node matrix jobs, so those job contexts
+include its result. Retain local runs as evidence when hosted checks are
+unavailable. Merging remains blocked until the required hosted checks pass.
 
 The schema compatibility check is part of `npm run check`; it rejects drift
 between runtime constants, the published schema, and the reviewed compatibility

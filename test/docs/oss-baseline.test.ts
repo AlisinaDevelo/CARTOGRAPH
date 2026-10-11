@@ -46,6 +46,8 @@ describe("public OSS and security baseline", () => {
 
     expect(ci).toContain('"22.x"');
     expect(ci).toContain('"24.x"');
+    expect(ci).toContain("ubuntu-latest");
+    expect(ci).toContain("macos-latest");
     expect(ci).toContain("npm ci --ignore-scripts");
     expect(ci).toContain("npm run test:coverage");
     expect(ci).toContain("npm run benchmark:ci");
@@ -59,15 +61,20 @@ describe("public OSS and security baseline", () => {
     expect(benchmarkProtocol).toContain("--require-compatible-environment");
     expect(benchmarkProtocol).toContain("20%");
     for (const context of [
-      "Node 22.x",
-      "Node 24.x",
+      "ubuntu-latest · Node 22.x",
+      "ubuntu-latest · Node 24.x",
+      "macos-latest · Node 22.x",
+      "macos-latest · Node 24.x",
       "Analyze (javascript-typescript)",
       "Review dependency changes",
     ]) {
       expect(maintenance).toContain(`\`${context}\``);
     }
     expect(maintenance).toContain(
-      "benchmark gate runs inside both Node matrix jobs",
+      "benchmark gate runs inside all four OS/Node matrix jobs",
+    );
+    expect(maintenance).toContain(
+      "Merging remains blocked until the required hosted checks pass.",
     );
   });
 
