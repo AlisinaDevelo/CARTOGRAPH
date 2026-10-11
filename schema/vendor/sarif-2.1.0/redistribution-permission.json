@@ -1,0 +1,7 @@
+{
+  "source": "https://github.com/oasis-tcs/sarif-spec/issues/583#issuecomment-1563656252",
+  "author": "dmk42",
+  "createdAt": "2023-05-26T00:17:46Z",
+  "statement": "They are free to incorporate it into their implementation. No need for special permission or paperwork from OASIS.",
+  "context": "The SARIF specification maintainer reports OASIS redistribution permission for the schema in issue #583. Repository LICENSE.md terms are retained separately; no SPDX license is inferred."
+}

@@ -84,6 +84,47 @@ const graph = createGraphSnapshot({
 });
 
 describe("architecture impact model", () => {
+  it("reports uncertainty for source-backed unresolved relationships", () => {
+    const uncertain = createGraphSnapshot({
+      ...graph,
+      edges: graph.edges.map((edge) => ({
+        ...edge,
+        unresolvedReason: "target selected by runtime configuration",
+      })),
+    });
+    const scenario = {
+      schemaVersion: 1,
+      contract: "cartograph.architecture-impact",
+      scenarioId: "source-backed-unresolved",
+      change: { kind: "node-changed", roots: ["function:root"] },
+      traversal: { includeUnresolved: false },
+    };
+    const excluded = assessArchitectureImpact(uncertain, scenario);
+    expect(excluded.affected.map((node) => node.id)).toEqual(["function:root"]);
+    expect(excluded.unknowns).toContainEqual(
+      expect.objectContaining({
+        code: "unresolved-edge",
+        from: "function:root",
+        to: "function:child",
+        traversed: false,
+        evidenceIds: ["edge-root-child"],
+      }),
+    );
+    const included = assessArchitectureImpact(uncertain, {
+      ...scenario,
+      traversal: { includeUnresolved: true },
+    });
+    expect(
+      included.affected.find((node) => node.id === "function:child")
+        ?.uncertainty,
+    ).toContainEqual(
+      expect.objectContaining({
+        code: "unresolved-edge",
+        evidenceIds: ["edge-root-child"],
+      }),
+    );
+  });
+
   it("preserves paths, confidence, evidence, and boundary uncertainty", () => {
     const assessment = assessArchitectureImpact(graph, {
       schemaVersion: 1,

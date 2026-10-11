@@ -108,6 +108,37 @@ const after = createGraphSnapshot({
 });
 
 describe("graph and diff query language", () => {
+  it("excludes source-backed unresolved edges from traversal", () => {
+    const uncertain = createGraphSnapshot({
+      ...before,
+      edges: before.edges.map((edge) => ({
+        ...edge,
+        unresolvedReason: "target selected by runtime configuration",
+      })),
+    });
+    const result = executeGraphQuery(uncertain, {
+      schemaVersion: 1,
+      contract: GRAPH_QUERY_LANGUAGE_CONTRACT,
+      queryId: "source-backed-unresolved",
+      target: "nodes",
+      predicates: [{ field: "id", operator: "=", values: ["a"] }],
+      traversal: {
+        enabled: true,
+        edgeKinds: ["imports"],
+        maxDepth: 2,
+        includeUnresolved: false,
+      },
+    });
+    expect(result.status).toBe("ok");
+    expect(result.nodes.map((node) => node.id)).toEqual(["a"]);
+    expect(result.edges).toEqual([]);
+    const selected = executeGraphQuery(
+      uncertain,
+      "v1 edges where unresolved=true",
+    );
+    expect(selected.edges).toHaveLength(1);
+  });
+
   it("normalizes equivalent text into one versioned AST", () => {
     const first = parseGraphQueryLanguage(
       "v1 nodes where kind=function and evidence.path ^= src/",

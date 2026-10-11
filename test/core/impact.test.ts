@@ -85,6 +85,99 @@ const impactFixture = createGraphSnapshot({
 });
 
 describe("impact subgraphs", () => {
+  it.each([
+    ["cycle-closing edge", "node-b", "node-a"],
+    ["self-loop", "node-a", "node-a"],
+  ])(
+    "excludes an unresolved %s from forward and reverse cycles",
+    (_, from, to) => {
+      const graph = createGraphSnapshot({
+        schemaVersion: 1,
+        revision: { commitSha: "review-cycles" },
+        nodes: [node("node-a"), node("node-b")],
+        edges: [
+          {
+            from: "node-a",
+            to: "node-b",
+            kind: "calls",
+            confidence: "certain",
+            evidence: [evidence("resolved-call")],
+          },
+          {
+            from,
+            to,
+            kind: "calls",
+            confidence: "inferred",
+            evidence: [evidence("unresolved-call")],
+            unresolvedReason: "callee selected at runtime",
+          },
+        ],
+        diagnostics: [],
+      });
+      for (const compute of [computeForwardImpact, computeReverseImpact]) {
+        const excluded = compute(graph, ["node-a"], {
+          includeUnresolved: false,
+        });
+        expect(excluded.cycles).toEqual([]);
+        expect(excluded.unresolvedEdges).toMatchObject([
+          {
+            from,
+            to,
+            evidence: [expect.objectContaining({ id: "unresolved-call" })],
+          },
+        ]);
+        const included = compute(graph, ["node-a"], {
+          includeUnresolved: true,
+        });
+        expect(included.cycles).toHaveLength(1);
+      }
+    },
+  );
+
+  it("keeps excluded unresolved evidence out of depth-limit results", () => {
+    const graph = createGraphSnapshot({
+      ...impactFixture,
+      edges: [
+        {
+          from: "node-a",
+          to: "node-b",
+          kind: "calls",
+          confidence: "inferred",
+          evidence: [evidence("unresolved-call")],
+          unresolvedReason: "callee selected at runtime",
+        },
+      ],
+    });
+    const impact = computeForwardImpact(graph, ["node-a"], {
+      includeUnresolved: false,
+      maxDepth: 0,
+    });
+    expect(impact.depthLimitedEdges).toEqual([]);
+    expect(impact.unresolvedEdges).toHaveLength(1);
+  });
+
+  it("keeps source-backed unresolved evidence visible without traversing it", () => {
+    const uncertain = createGraphSnapshot({
+      ...impactFixture,
+      edges: impactFixture.edges.map((edge) => ({
+        ...edge,
+        unresolvedReason: "target selected by runtime configuration",
+      })),
+    });
+    const impact = computeForwardImpact(uncertain, ["node-a"], {
+      includeUnresolved: false,
+    });
+    expect(impact.nodes.map((node) => node.id)).toEqual(["node-a"]);
+    expect(impact.unresolvedEdges).toMatchObject([
+      {
+        from: "node-a",
+        to: "node-b",
+        evidence: [expect.objectContaining({ id: "edge-ab" })],
+        unresolvedReason: "target selected by runtime configuration",
+      },
+    ]);
+  });
+
   it("computes deterministic forward reachability with cycles and evidence", () => {
     const impact = computeForwardImpact(impactFixture, ["node-a"], {
       maxDepth: 2,
