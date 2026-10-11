@@ -32,20 +32,26 @@ capacity, and funding decisions.
 
 ## Quickstart
 
-Install the latest release (Node.js 22.13 or newer). Each GitHub release
-carries the tarball, `SHA256SUMS`, an SBOM, and a signed build-provenance
-attestation you can check before installing:
+Install from npm (Node.js 22.13 or newer):
+
+```sh
+npm install --global --ignore-scripts cartograph-cli
+cartograph init          # config, starter policy, and pull-request workflow
+mkdir -p .cartograph && cartograph scan . --output .cartograph/graph.json
+```
+
+Each GitHub release also carries the tarball, `SHA256SUMS`, an SBOM, and a
+signed build-provenance attestation, if you'd rather check the artifact before
+installing it:
 
 ```sh
 gh release download v0.1.1 -R AlisinaDevelo/CARTOGRAPH -p 'cartograph-cli-*.tgz' -p SHA256SUMS
 shasum -a 256 -c SHA256SUMS --ignore-missing
 gh attestation verify cartograph-cli-0.1.1.tgz -R AlisinaDevelo/CARTOGRAPH
 npm install --global --ignore-scripts ./cartograph-cli-0.1.1.tgz
-cartograph init          # config, starter policy, and pull-request workflow
-mkdir -p .cartograph && cartograph scan . --output .cartograph/graph.json
 ```
 
-CARTOGRAPH is not on npm yet. To run from source instead:
+To run from source instead:
 
 ```sh
 git clone https://github.com/AlisinaDevelo/CARTOGRAPH.git
