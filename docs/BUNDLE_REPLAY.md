@@ -59,7 +59,9 @@ REPLAY_ISOLATE='sudo unshare --net --' \
   scripts/replay-offline-smoke.sh /tmp/cartograph-replay-new
 ```
 
-The output directory must be new. The gate retains the isolation probe, each
+The output directory must be new and outside development checkouts, so Node
+cannot inherit dependencies from an ancestor's `node_modules`. The gate retains
+the isolation probe, each
 bundle, signature, public keyring, replay report and process exit status, plus
 `summary.json` with tool versions, build and harness digests, OS/architecture,
 and measured replay resources. It requires both diff and policy evaluation to
