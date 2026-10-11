@@ -170,7 +170,9 @@ recorded in the public [E-003 RFC](https://github.com/AlisinaDevelo/CARTOGRAPH/i
 The adapter recognizes literal `get`, `post`, `put`, `patch`, `delete`, `head`,
 and `options` registrations plus object-form `route({ method, url, handler })`
 declarations. A literal method array produces one endpoint per method. Named
-and inline local handlers are linked with source evidence.
+and inline local handlers are linked with source evidence. Shorthand routes
+accept `get(path, options, handler)` and `get(path, { handler })`; route options
+are not mistaken for handlers.
 
 Plugin execution, hooks, decorators, schemas, runtime-generated paths, dynamic
 methods, and unresolved handlers are outside this first slice. They produce
