@@ -236,6 +236,7 @@ export const computeImpactSubgraph = (
     for (const edge of adjacency.get(nodeId) ?? []) {
       const nextNodeId = query.direction === "forward" ? edge.to : edge.from;
       const impactEdge = addEdge(edge, depth);
+      if (isUnresolvedEdge(edge) && !query.includeUnresolved) continue;
 
       if (pathNodes.includes(nextNodeId)) {
         addCycle(pathNodes, pathEdges.concat(impactEdge), nextNodeId);
@@ -251,7 +252,6 @@ export const computeImpactSubgraph = (
         continue;
       }
 
-      if (isUnresolvedEdge(edge) && !query.includeUnresolved) continue;
       const nextNode = nodesById.get(nextNodeId);
       if (nextNode === undefined) continue;
       addNode(nextNode, depth + 1, false);

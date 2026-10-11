@@ -218,6 +218,54 @@ describe("history retention planning", () => {
     );
   });
 
+  it("combines age and count rules with holds, shared references, and compaction", () => {
+    const records: RetentionRecord[] = [
+      snapshot(1, "a", "2026-09-01T00:00:00Z"),
+      snapshot(2, "b", "2026-09-02T00:00:00Z"),
+      snapshot(3, "c", "2026-09-20T00:00:00Z"),
+      {
+        id: id(4),
+        kind: "diff",
+        revision: "b",
+        references: ["revision:a", "revision:b"],
+        date: "2026-09-02T00:00:00Z",
+      },
+      {
+        id: id(5),
+        kind: "diff",
+        revision: "c",
+        references: ["revision:b", "revision:c"],
+        date: "2026-09-20T00:00:00Z",
+      },
+    ];
+    const retention = policy({
+      rules: [{ id: "recent", kind: "snapshot", keepLast: 1, maxAgeDays: 20 }],
+      holds: [{ revision: "b", owner: "legal", reason: "audit", until: AS_OF }],
+      compactDerivedDiffs: true,
+    });
+    const plan = planHistoryRetention(records, retention, AS_OF, () => true);
+    expect(plan.remove).toMatchObject([
+      { id: id(5), rule: "compact-derived-diff" },
+    ]);
+    expect(plan.keep.map((item) => item.id)).toEqual([
+      id(1),
+      id(2),
+      id(3),
+      id(4),
+    ]);
+    expect(plan.keep.find((item) => item.id === id(2))?.reasons).toContain(
+      "hold",
+    );
+    expect(plan).toEqual(
+      planHistoryRetention(
+        [...records].reverse(),
+        retention,
+        AS_OF,
+        () => true,
+      ),
+    );
+  });
+
   it("rejects malformed policies", () => {
     expect(() => policy({ rules: [{ id: "x", kind: "snapshot" }] })).toThrow();
     expect(() =>
