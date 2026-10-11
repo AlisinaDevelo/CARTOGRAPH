@@ -127,7 +127,9 @@ inferred from the permission.
 
 The in-toto check validates the Statement type, subject array and each
 subject's nonempty string-valued digest set, optional name, TypeURI, and optional
-object predicate. SHA-256 values used by CARTOGRAPH must be 64 lowercase hex
+object predicate. TypeURI validation uses full URI format checks plus numeric
+authority-port syntax; it does not enforce scheme-specific rules or port ranges.
+SHA-256 values used by CARTOGRAPH must be 64 lowercase hex
 characters. Subject names and predicates remain optional, empty subject arrays
 are allowed, and unknown extension fields are accepted, following the pinned
 specification. Other digest algorithms receive a structural string check only.
@@ -138,6 +140,6 @@ The pinned prose and Apache-2.0 license are retained for offline review.
 The local regression corpus at
 `test/fixtures/ecosystem-mappings/conformance.v0.1.json` contains positive and
 negative SARIF and Statement cases. `ecosystem-mappings:validate` validates the
-generated exports, replays all 31 cases, and reports their fixture digest.
+generated exports, replays all 42 cases, and reports their fixture digest.
 These checks close the export-conformance gap; they do not supply V-001's
 governed replication corpus, independent review, or the later research gates.

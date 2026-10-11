@@ -181,7 +181,7 @@ it("replays the upstream and required-field conformance cases in the offline map
     ok: true,
     mappings: 5,
     conformance: {
-      cases: 31,
+      cases: 42,
       upstreamSchemas: ["sarif-2.1.0", "cyclonedx-1.6"],
       statement: "required-fields-valid",
     },

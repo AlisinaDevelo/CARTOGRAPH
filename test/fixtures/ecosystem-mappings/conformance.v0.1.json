@@ -544,6 +544,105 @@
         "predicate": []
       },
       "valid": false
+    },
+    {
+      "id": "malformed-percent-escape",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [],
+        "predicateType": "https://example.org/predicate%ZZ/v1"
+      },
+      "valid": false
+    },
+    {
+      "id": "truncated-percent-escape",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [],
+        "predicateType": "https://example.org/predicate%/v1"
+      },
+      "valid": false
+    },
+    {
+      "id": "invalid-ipv6-authority",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [],
+        "predicateType": "https://[::::]/predicate/v1"
+      },
+      "valid": false
+    },
+    {
+      "id": "nonnumeric-authority-port",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [],
+        "predicateType": "https://example.org:abc/predicate/v1"
+      },
+      "valid": false
+    },
+    {
+      "id": "forbidden-uri-path-character",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [],
+        "predicateType": "https://example.org/<predicate>/v1"
+      },
+      "valid": false
+    },
+    {
+      "id": "percent-encoded-path",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [],
+        "predicateType": "https://example.org/predicate%2Fv1"
+      },
+      "valid": true
+    },
+    {
+      "id": "ipv6-authority",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [],
+        "predicateType": "https://[2001:db8::1]:443/Predicate/v1"
+      },
+      "valid": true
+    },
+    {
+      "id": "opaque-case-sensitive-type-uri",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [],
+        "predicateType": "urn:example:Predicate/v1"
+      },
+      "valid": true
+    },
+    {
+      "id": "generic-numeric-port",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [],
+        "predicateType": "https://example.org:99999/Predicate/v1"
+      },
+      "valid": true
+    },
+    {
+      "id": "userinfo-with-port",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [],
+        "predicateType": "https://user:pass@example.org:443/Predicate/v1"
+      },
+      "valid": true
+    },
+    {
+      "id": "empty-port",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [],
+        "predicateType": "https://example.org:/Predicate/v1"
+      },
+      "valid": true
     }
   ]
 }

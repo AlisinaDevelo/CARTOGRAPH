@@ -58,6 +58,7 @@ export const createSarif210Validator = () => {
 export const createInTotoStatementV1Validator = () => {
   verifyVendoredSchemas();
   const ajv = createAjv();
+  addFormats(ajv, { mode: "full", formats: ["uri"] });
   const validateUri = ajv.compile({ type: "string", format: "uri" });
   ajv.addFormat("in-toto-type-uri", {
     type: "string",
@@ -67,10 +68,15 @@ export const createInTotoStatementV1Validator = () => {
       const match = /^([A-Za-z][A-Za-z0-9+.-]*):(?:\/\/([^/?#]*))?/u.exec(
         value,
       );
+      const authority = match?.[2];
+      const hostPort = authority?.slice(authority.lastIndexOf("@") + 1);
       return (
         match !== null &&
         match[1] === match[1].toLowerCase() &&
-        (match[2] === undefined || match[2] === match[2].toLowerCase())
+        (authority === undefined || authority === authority.toLowerCase()) &&
+        // Ajv's full URI format still permits nonnumeric authority ports.
+        (hostPort === undefined ||
+          /^(?:\[[^\]]+\]|[^:]*)(?::[0-9]*)?$/u.test(hostPort))
       );
     },
   });
