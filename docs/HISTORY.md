@@ -146,8 +146,11 @@ affects its own metric; every other break affects all of them. Churn is not
 computed across a contract change.
 
 `boundary-crossing-imports` carries an `uncertainty` band when local modules
-have unresolved imports: the value it would take if every unknown import
-crossed a boundary (`upper`) or none did (`lower`).
+have unresolved imports whose targets are not located local modules: the value
+it would take if every unknown import crossed a boundary (`upper`) or none did
+(`lower`). An import between located local modules contributes once to the
+topology metrics, even when it has an unresolved reason; `unresolved-edges`
+also records that uncertainty.
 
 `--explanations notes.json` (`cartograph.trend-explanations` v1,
 [schema](../schema/trend-explanations.v0.1.schema.json)) attaches a
@@ -158,6 +161,48 @@ reviewer's note to the break it explains, matched by `from`, `to`, and
 same revisions. Every value that changed is listed under `restatements`, with
 the reasons that apply: `evidence-changed` (a different stored snapshot),
 `metrics-version-change`, `policy-change`, or `decisions-change`.
+
+### Migration metric evaluation
+
+The [eight-case synthetic corpus](../test/fixtures/history-migration/scenarios.v0.1.json)
+specifies legacy v0 and current v1 graphs separately. Both representations are
+checked against the same hand-calculated numerators, denominators, values, and
+uncertainty bands. The current graph and the expected values are not generated
+from migration output.
+
+| Case                                                  | Crossing imports | Bidirectional pairs | Modules in cycles | Cycle groups | Unresolved edges | Diagnostics |
+| ----------------------------------------------------- | ---------------- | ------------------- | ----------------- | ------------ | ---------------- | ----------- |
+| Acyclic crossing                                      | 1/2              | 0/1                 | 0/3               | 0/3          | 0/2              | 0/3         |
+| Chorded cycle and isolated module                     | 3/4              | 1/1                 | 3/4               | 1/4          | 0/4              | 0/4         |
+| Opposite boundary directions without a module cycle   | 3/3              | 1/2                 | 0/5               | 0/5          | 0/3              | 0/5         |
+| Separate cycle groups, self-loop, and bridges         | 2/7              | 0/2                 | 5/6               | 3/6          | 0/7              | 0/6         |
+| Unknown target, function identity, and diagnostics    | 1/2              | 0/1                 | 0/3               | 0/3          | 2/5              | 2/5         |
+| Unresolved import with known same-boundary endpoints  | 0/1              | unavailable         | 0/2               | 0/2          | 1/1              | 0/2         |
+| Unresolved import with known cross-boundary endpoints | 1/1              | 0/1                 | 0/2               | 0/2          | 1/1              | 0/2         |
+| Known and unknown import targets counted once         | 1/2              | 0/1                 | 0/3               | 0/3          | 2/3              | 0/4         |
+
+Cycle groups are strongly connected components, including a singleton with a
+self-loop. The chorded case has multiple elementary cycles but one group. The
+two cases with an unknown target have crossing uncertainty
+`lower=0.333333`, `upper=0.666667`, `unknowns=1`; known local endpoints are
+already included in the measured import denominator. The function case checks
+the legacy `#` identity rewrite, source-evidence aliases, and one partial mark
+from its two diagnostics.
+
+Core tests exercise migration and history-record creation. Store tests import
+both representations into a temporary directory, verify its objects, recompute
+the metric oracles through `historyTrends`, and require the migration marker
+and incomparable interval changes without deltas. Replay them with:
+
+```bash
+npm test -- test/core/history-migration-metrics.test.ts test/cli/history-migration-metrics.test.ts --maxWorkers=2
+```
+
+This covers H-006's synthetic migration-equivalence slice. Representative
+multi-version repositories, scale and query latency, storage growth and
+compaction measurements, privacy and retention evaluation, independent reviewer
+task accuracy, and the public graduate/narrow/defer decision remain required
+before the broader evaluation can graduate history or remediation assistance.
 
 ## Debt indicators
 

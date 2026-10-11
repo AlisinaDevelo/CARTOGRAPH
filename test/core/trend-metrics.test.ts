@@ -169,7 +169,7 @@ describe("trend metrics", () => {
         expect(item.status).toBe("unavailable");
   });
 
-  it("gives the same metrics for a legacy snapshot after migration", () => {
+  it("keeps migrated metrics stable through JSON serialization", () => {
     const legacy = JSON.parse(
       readFileSync(
         resolve(root, "test/fixtures/snapshots/legacy-v0.graph.json"),

@@ -1,0 +1,2176 @@
+{
+  "schemaVersion": 1,
+  "scenarios": [
+    {
+      "id": "acyclic-crossing",
+      "legacy": {
+        "schemaVersion": 0,
+        "revision": {
+          "commit": "acyclic-crossing"
+        },
+        "nodes": [
+          {
+            "id": "module:src/api/a.ts",
+            "kind": "module",
+            "displayName": "src/api/a.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/api/a.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/api/b.ts",
+            "kind": "module",
+            "displayName": "src/api/b.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/api/b.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/c.ts",
+            "kind": "module",
+            "displayName": "src/db/c.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/db/c.ts",
+              "line": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "source": "module:src/api/a.ts",
+            "target": "module:src/api/b.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:0",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "path": "src/api/a.ts",
+                "line": 1,
+                "extractor": "fixture@1"
+              }
+            ]
+          },
+          {
+            "source": "module:src/api/b.ts",
+            "target": "module:src/db/c.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:1",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "location": {
+                  "path": "src/api/b.ts",
+                  "line": 2
+                },
+                "extractorId": "fixture",
+                "extractorVersion": "1"
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "current": {
+        "schemaVersion": 1,
+        "capabilityRegistryVersion": 1,
+        "revision": {
+          "commitSha": "acyclic-crossing"
+        },
+        "nodes": [
+          {
+            "id": "module:src/api/a.ts",
+            "stableKey": "module:src/api/a.ts",
+            "kind": "module",
+            "name": "src/api/a.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/api/a.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/api/b.ts",
+            "stableKey": "module:src/api/b.ts",
+            "kind": "module",
+            "name": "src/api/b.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/api/b.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/c.ts",
+            "stableKey": "module:src/db/c.ts",
+            "kind": "module",
+            "name": "src/db/c.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/db/c.ts",
+              "line": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": "module:src/api/a.ts",
+            "to": "module:src/api/b.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:0",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "path": "src/api/a.ts",
+                "line": 1
+              }
+            ]
+          },
+          {
+            "from": "module:src/api/b.ts",
+            "to": "module:src/db/c.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:1",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "location": {
+                  "path": "src/api/b.ts",
+                  "line": 2
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "expected": {
+        "metrics": [
+          {
+            "id": "boundary-crossing-imports",
+            "status": "measured",
+            "value": 0.5,
+            "numerator": 1,
+            "denominator": 2,
+            "scope": "local module imports"
+          },
+          {
+            "id": "bidirectional-boundary-pairs",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 1,
+            "scope": "boundary pairs connected by imports"
+          },
+          {
+            "id": "modules-in-import-cycles",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 3,
+            "scope": "local modules"
+          },
+          {
+            "id": "import-cycle-groups",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 3,
+            "scope": "local modules"
+          },
+          {
+            "id": "unresolved-edges",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 2,
+            "scope": "graph edges"
+          },
+          {
+            "id": "diagnostics-per-node",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 3,
+            "scope": "graph nodes"
+          }
+        ],
+        "partialDiagnostics": 0
+      }
+    },
+    {
+      "id": "chorded-cycle-and-isolate",
+      "legacy": {
+        "schemaVersion": 0,
+        "revision": {
+          "commit": "chorded-cycle-and-isolate"
+        },
+        "nodes": [
+          {
+            "id": "module:src/api/a.ts",
+            "kind": "module",
+            "displayName": "src/api/a.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/api/a.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/b.ts",
+            "kind": "module",
+            "displayName": "src/db/b.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/db/b.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/c.ts",
+            "kind": "module",
+            "displayName": "src/db/c.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/db/c.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/util/d.ts",
+            "kind": "module",
+            "displayName": "src/util/d.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/util/d.ts",
+              "line": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "source": "module:src/api/a.ts",
+            "target": "module:src/db/b.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:0",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "path": "src/api/a.ts",
+                "line": 1,
+                "extractor": "fixture@1"
+              }
+            ]
+          },
+          {
+            "source": "module:src/db/b.ts",
+            "target": "module:src/db/c.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:1",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "location": {
+                  "path": "src/db/b.ts",
+                  "line": 2
+                },
+                "extractorId": "fixture",
+                "extractorVersion": "1"
+              }
+            ]
+          },
+          {
+            "source": "module:src/db/c.ts",
+            "target": "module:src/api/a.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:2",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "path": "src/db/c.ts",
+                "line": 3,
+                "extractor": "fixture@1"
+              }
+            ]
+          },
+          {
+            "source": "module:src/api/a.ts",
+            "target": "module:src/db/c.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:3",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "location": {
+                  "path": "src/api/a.ts",
+                  "line": 4
+                },
+                "extractorId": "fixture",
+                "extractorVersion": "1"
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "current": {
+        "schemaVersion": 1,
+        "capabilityRegistryVersion": 1,
+        "revision": {
+          "commitSha": "chorded-cycle-and-isolate"
+        },
+        "nodes": [
+          {
+            "id": "module:src/api/a.ts",
+            "stableKey": "module:src/api/a.ts",
+            "kind": "module",
+            "name": "src/api/a.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/api/a.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/b.ts",
+            "stableKey": "module:src/db/b.ts",
+            "kind": "module",
+            "name": "src/db/b.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/db/b.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/c.ts",
+            "stableKey": "module:src/db/c.ts",
+            "kind": "module",
+            "name": "src/db/c.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/db/c.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/util/d.ts",
+            "stableKey": "module:src/util/d.ts",
+            "kind": "module",
+            "name": "src/util/d.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/util/d.ts",
+              "line": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": "module:src/api/a.ts",
+            "to": "module:src/db/b.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:0",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "path": "src/api/a.ts",
+                "line": 1
+              }
+            ]
+          },
+          {
+            "from": "module:src/db/b.ts",
+            "to": "module:src/db/c.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:1",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "location": {
+                  "path": "src/db/b.ts",
+                  "line": 2
+                }
+              }
+            ]
+          },
+          {
+            "from": "module:src/db/c.ts",
+            "to": "module:src/api/a.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:2",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "path": "src/db/c.ts",
+                "line": 3
+              }
+            ]
+          },
+          {
+            "from": "module:src/api/a.ts",
+            "to": "module:src/db/c.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:3",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "location": {
+                  "path": "src/api/a.ts",
+                  "line": 4
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "expected": {
+        "metrics": [
+          {
+            "id": "boundary-crossing-imports",
+            "status": "measured",
+            "value": 0.75,
+            "numerator": 3,
+            "denominator": 4,
+            "scope": "local module imports"
+          },
+          {
+            "id": "bidirectional-boundary-pairs",
+            "status": "measured",
+            "value": 1,
+            "numerator": 1,
+            "denominator": 1,
+            "scope": "boundary pairs connected by imports"
+          },
+          {
+            "id": "modules-in-import-cycles",
+            "status": "measured",
+            "value": 0.75,
+            "numerator": 3,
+            "denominator": 4,
+            "scope": "local modules"
+          },
+          {
+            "id": "import-cycle-groups",
+            "status": "measured",
+            "value": 0.25,
+            "numerator": 1,
+            "denominator": 4,
+            "scope": "local modules"
+          },
+          {
+            "id": "unresolved-edges",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 4,
+            "scope": "graph edges"
+          },
+          {
+            "id": "diagnostics-per-node",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 4,
+            "scope": "graph nodes"
+          }
+        ],
+        "partialDiagnostics": 0
+      }
+    },
+    {
+      "id": "bidirectional-boundaries-without-cycle",
+      "legacy": {
+        "schemaVersion": 0,
+        "revision": {
+          "commit": "bidirectional-boundaries-without-cycle"
+        },
+        "nodes": [
+          {
+            "id": "module:src/api/a1.ts",
+            "kind": "module",
+            "displayName": "src/api/a1.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/api/a1.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/api/a2.ts",
+            "kind": "module",
+            "displayName": "src/api/a2.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/api/a2.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/b1.ts",
+            "kind": "module",
+            "displayName": "src/db/b1.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/db/b1.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/b2.ts",
+            "kind": "module",
+            "displayName": "src/db/b2.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/db/b2.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/core/c.ts",
+            "kind": "module",
+            "displayName": "src/core/c.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/core/c.ts",
+              "line": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "source": "module:src/api/a1.ts",
+            "target": "module:src/db/b1.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:0",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "path": "src/api/a1.ts",
+                "line": 1,
+                "extractor": "fixture@1"
+              }
+            ]
+          },
+          {
+            "source": "module:src/db/b2.ts",
+            "target": "module:src/api/a2.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:1",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "location": {
+                  "path": "src/db/b2.ts",
+                  "line": 2
+                },
+                "extractorId": "fixture",
+                "extractorVersion": "1"
+              }
+            ]
+          },
+          {
+            "source": "module:src/api/a1.ts",
+            "target": "module:src/core/c.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:2",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "path": "src/api/a1.ts",
+                "line": 3,
+                "extractor": "fixture@1"
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "current": {
+        "schemaVersion": 1,
+        "capabilityRegistryVersion": 1,
+        "revision": {
+          "commitSha": "bidirectional-boundaries-without-cycle"
+        },
+        "nodes": [
+          {
+            "id": "module:src/api/a1.ts",
+            "stableKey": "module:src/api/a1.ts",
+            "kind": "module",
+            "name": "src/api/a1.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/api/a1.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/api/a2.ts",
+            "stableKey": "module:src/api/a2.ts",
+            "kind": "module",
+            "name": "src/api/a2.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/api/a2.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/b1.ts",
+            "stableKey": "module:src/db/b1.ts",
+            "kind": "module",
+            "name": "src/db/b1.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/db/b1.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/b2.ts",
+            "stableKey": "module:src/db/b2.ts",
+            "kind": "module",
+            "name": "src/db/b2.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/db/b2.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/core/c.ts",
+            "stableKey": "module:src/core/c.ts",
+            "kind": "module",
+            "name": "src/core/c.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/core/c.ts",
+              "line": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": "module:src/api/a1.ts",
+            "to": "module:src/db/b1.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:0",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "path": "src/api/a1.ts",
+                "line": 1
+              }
+            ]
+          },
+          {
+            "from": "module:src/db/b2.ts",
+            "to": "module:src/api/a2.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:1",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "location": {
+                  "path": "src/db/b2.ts",
+                  "line": 2
+                }
+              }
+            ]
+          },
+          {
+            "from": "module:src/api/a1.ts",
+            "to": "module:src/core/c.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:2",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "path": "src/api/a1.ts",
+                "line": 3
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "expected": {
+        "metrics": [
+          {
+            "id": "boundary-crossing-imports",
+            "status": "measured",
+            "value": 1,
+            "numerator": 3,
+            "denominator": 3,
+            "scope": "local module imports"
+          },
+          {
+            "id": "bidirectional-boundary-pairs",
+            "status": "measured",
+            "value": 0.5,
+            "numerator": 1,
+            "denominator": 2,
+            "scope": "boundary pairs connected by imports"
+          },
+          {
+            "id": "modules-in-import-cycles",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 5,
+            "scope": "local modules"
+          },
+          {
+            "id": "import-cycle-groups",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 5,
+            "scope": "local modules"
+          },
+          {
+            "id": "unresolved-edges",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 3,
+            "scope": "graph edges"
+          },
+          {
+            "id": "diagnostics-per-node",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 5,
+            "scope": "graph nodes"
+          }
+        ],
+        "partialDiagnostics": 0
+      }
+    },
+    {
+      "id": "separate-cycle-groups-and-self-loop",
+      "legacy": {
+        "schemaVersion": 0,
+        "revision": {
+          "commit": "separate-cycle-groups-and-self-loop"
+        },
+        "nodes": [
+          {
+            "id": "module:src/api/a.ts",
+            "kind": "module",
+            "displayName": "src/api/a.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/api/a.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/api/b.ts",
+            "kind": "module",
+            "displayName": "src/api/b.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/api/b.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/c.ts",
+            "kind": "module",
+            "displayName": "src/db/c.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/db/c.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/d.ts",
+            "kind": "module",
+            "displayName": "src/db/d.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/db/d.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/util/e.ts",
+            "kind": "module",
+            "displayName": "src/util/e.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/util/e.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/index.ts",
+            "kind": "module",
+            "displayName": "src/index.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/index.ts",
+              "line": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "source": "module:src/api/a.ts",
+            "target": "module:src/api/b.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:0",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "path": "src/api/a.ts",
+                "line": 1,
+                "extractor": "fixture@1"
+              }
+            ]
+          },
+          {
+            "source": "module:src/api/b.ts",
+            "target": "module:src/api/a.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:1",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "location": {
+                  "path": "src/api/b.ts",
+                  "line": 2
+                },
+                "extractorId": "fixture",
+                "extractorVersion": "1"
+              }
+            ]
+          },
+          {
+            "source": "module:src/db/c.ts",
+            "target": "module:src/db/d.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:2",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "path": "src/db/c.ts",
+                "line": 3,
+                "extractor": "fixture@1"
+              }
+            ]
+          },
+          {
+            "source": "module:src/db/d.ts",
+            "target": "module:src/db/c.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:3",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "location": {
+                  "path": "src/db/d.ts",
+                  "line": 4
+                },
+                "extractorId": "fixture",
+                "extractorVersion": "1"
+              }
+            ]
+          },
+          {
+            "source": "module:src/util/e.ts",
+            "target": "module:src/util/e.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:4",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "path": "src/util/e.ts",
+                "line": 5,
+                "extractor": "fixture@1"
+              }
+            ]
+          },
+          {
+            "source": "module:src/api/a.ts",
+            "target": "module:src/db/c.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:5",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "location": {
+                  "path": "src/api/a.ts",
+                  "line": 6
+                },
+                "extractorId": "fixture",
+                "extractorVersion": "1"
+              }
+            ]
+          },
+          {
+            "source": "module:src/db/d.ts",
+            "target": "module:src/util/e.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:6",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "path": "src/db/d.ts",
+                "line": 7,
+                "extractor": "fixture@1"
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "current": {
+        "schemaVersion": 1,
+        "capabilityRegistryVersion": 1,
+        "revision": {
+          "commitSha": "separate-cycle-groups-and-self-loop"
+        },
+        "nodes": [
+          {
+            "id": "module:src/api/a.ts",
+            "stableKey": "module:src/api/a.ts",
+            "kind": "module",
+            "name": "src/api/a.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/api/a.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/api/b.ts",
+            "stableKey": "module:src/api/b.ts",
+            "kind": "module",
+            "name": "src/api/b.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/api/b.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/c.ts",
+            "stableKey": "module:src/db/c.ts",
+            "kind": "module",
+            "name": "src/db/c.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/db/c.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/d.ts",
+            "stableKey": "module:src/db/d.ts",
+            "kind": "module",
+            "name": "src/db/d.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/db/d.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/util/e.ts",
+            "stableKey": "module:src/util/e.ts",
+            "kind": "module",
+            "name": "src/util/e.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/util/e.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/index.ts",
+            "stableKey": "module:src/index.ts",
+            "kind": "module",
+            "name": "src/index.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/index.ts",
+              "line": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": "module:src/api/a.ts",
+            "to": "module:src/api/b.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:0",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "path": "src/api/a.ts",
+                "line": 1
+              }
+            ]
+          },
+          {
+            "from": "module:src/api/b.ts",
+            "to": "module:src/api/a.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:1",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "location": {
+                  "path": "src/api/b.ts",
+                  "line": 2
+                }
+              }
+            ]
+          },
+          {
+            "from": "module:src/db/c.ts",
+            "to": "module:src/db/d.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:2",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "path": "src/db/c.ts",
+                "line": 3
+              }
+            ]
+          },
+          {
+            "from": "module:src/db/d.ts",
+            "to": "module:src/db/c.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:3",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "location": {
+                  "path": "src/db/d.ts",
+                  "line": 4
+                }
+              }
+            ]
+          },
+          {
+            "from": "module:src/util/e.ts",
+            "to": "module:src/util/e.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:4",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "path": "src/util/e.ts",
+                "line": 5
+              }
+            ]
+          },
+          {
+            "from": "module:src/api/a.ts",
+            "to": "module:src/db/c.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:5",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "location": {
+                  "path": "src/api/a.ts",
+                  "line": 6
+                }
+              }
+            ]
+          },
+          {
+            "from": "module:src/db/d.ts",
+            "to": "module:src/util/e.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:6",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "path": "src/db/d.ts",
+                "line": 7
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "expected": {
+        "metrics": [
+          {
+            "id": "boundary-crossing-imports",
+            "status": "measured",
+            "value": 0.285714,
+            "numerator": 2,
+            "denominator": 7,
+            "scope": "local module imports"
+          },
+          {
+            "id": "bidirectional-boundary-pairs",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 2,
+            "scope": "boundary pairs connected by imports"
+          },
+          {
+            "id": "modules-in-import-cycles",
+            "status": "measured",
+            "value": 0.833333,
+            "numerator": 5,
+            "denominator": 6,
+            "scope": "local modules"
+          },
+          {
+            "id": "import-cycle-groups",
+            "status": "measured",
+            "value": 0.5,
+            "numerator": 3,
+            "denominator": 6,
+            "scope": "local modules"
+          },
+          {
+            "id": "unresolved-edges",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 7,
+            "scope": "graph edges"
+          },
+          {
+            "id": "diagnostics-per-node",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 6,
+            "scope": "graph nodes"
+          }
+        ],
+        "partialDiagnostics": 0
+      }
+    },
+    {
+      "id": "unresolved-evidence-and-function-identity",
+      "legacy": {
+        "schemaVersion": 0,
+        "revision": {
+          "commit": "unresolved-evidence-and-function-identity"
+        },
+        "nodes": [
+          {
+            "id": "module:src/api/a.ts",
+            "kind": "module",
+            "displayName": "src/api/a.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/api/a.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/api/b.ts",
+            "kind": "module",
+            "displayName": "src/api/b.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/api/b.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/c.ts",
+            "kind": "module",
+            "displayName": "src/db/c.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/db/c.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:external:missing",
+            "kind": "module",
+            "displayName": "missing"
+          },
+          {
+            "id": "function:src/api/a.ts#run",
+            "kind": "function",
+            "displayName": "run",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/api/a.ts",
+              "line": 3
+            }
+          }
+        ],
+        "edges": [
+          {
+            "source": "module:src/api/a.ts",
+            "target": "module:src/api/b.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:0",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "path": "src/api/a.ts",
+                "line": 1,
+                "extractor": "fixture@1"
+              }
+            ]
+          },
+          {
+            "source": "module:src/api/b.ts",
+            "target": "module:src/db/c.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:1",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "location": {
+                  "path": "src/api/b.ts",
+                  "line": 2
+                },
+                "extractorId": "fixture",
+                "extractorVersion": "1"
+              }
+            ]
+          },
+          {
+            "source": "module:src/api/a.ts",
+            "target": "module:external:missing",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:2",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "path": "src/api/a.ts",
+                "line": 3,
+                "extractor": "fixture@1"
+              }
+            ],
+            "unresolvedReason": "target evidence unavailable"
+          },
+          {
+            "source": "module:src/api/a.ts",
+            "target": "function:src/api/a.ts#run",
+            "relation": "contains",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:3",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "location": {
+                  "path": "src/api/a.ts",
+                  "line": 4
+                },
+                "extractorId": "fixture",
+                "extractorVersion": "1"
+              }
+            ]
+          },
+          {
+            "source": "function:src/api/a.ts#run",
+            "target": "function:src/api/a.ts#run",
+            "relation": "calls",
+            "confidence": "certain",
+            "evidence": [],
+            "unresolvedReason": "target evidence unavailable"
+          }
+        ],
+        "diagnostics": [
+          {
+            "id": "warning",
+            "code": "UNSUPPORTED_DYNAMIC_CALL",
+            "severity": "warning",
+            "message": "synthetic warning",
+            "nodeId": "function:src/api/a.ts#run",
+            "sourceLocation": {
+              "path": "src/api/a.ts",
+              "line": 4
+            },
+            "evidence": []
+          },
+          {
+            "id": "partial",
+            "code": "PARTIAL_API_SCHEMA_GENERATION",
+            "severity": "warning",
+            "message": "synthetic partial coverage",
+            "nodeId": "function:src/api/a.ts#run",
+            "evidence": []
+          }
+        ]
+      },
+      "current": {
+        "schemaVersion": 1,
+        "capabilityRegistryVersion": 1,
+        "revision": {
+          "commitSha": "unresolved-evidence-and-function-identity"
+        },
+        "nodes": [
+          {
+            "id": "module:src/api/a.ts",
+            "stableKey": "module:src/api/a.ts",
+            "kind": "module",
+            "name": "src/api/a.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/api/a.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/api/b.ts",
+            "stableKey": "module:src/api/b.ts",
+            "kind": "module",
+            "name": "src/api/b.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/api/b.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/c.ts",
+            "stableKey": "module:src/db/c.ts",
+            "kind": "module",
+            "name": "src/db/c.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/db/c.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:external:missing",
+            "stableKey": "module:external:missing",
+            "kind": "module",
+            "name": "missing"
+          },
+          {
+            "id": "function:src/api/a.ts:run",
+            "stableKey": "function:src/api/a.ts:run",
+            "kind": "function",
+            "name": "run",
+            "language": "typescript",
+            "location": {
+              "path": "src/api/a.ts",
+              "line": 3
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": "module:src/api/a.ts",
+            "to": "module:src/api/b.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:0",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "path": "src/api/a.ts",
+                "line": 1
+              }
+            ]
+          },
+          {
+            "from": "module:src/api/b.ts",
+            "to": "module:src/db/c.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:1",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "location": {
+                  "path": "src/api/b.ts",
+                  "line": 2
+                }
+              }
+            ]
+          },
+          {
+            "from": "module:src/api/a.ts",
+            "to": "module:external:missing",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:2",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "path": "src/api/a.ts",
+                "line": 3
+              }
+            ],
+            "unresolvedReason": "target evidence unavailable"
+          },
+          {
+            "from": "module:src/api/a.ts",
+            "to": "function:src/api/a.ts:run",
+            "kind": "contains",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:3",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "location": {
+                  "path": "src/api/a.ts",
+                  "line": 4
+                }
+              }
+            ]
+          },
+          {
+            "from": "function:src/api/a.ts:run",
+            "to": "function:src/api/a.ts:run",
+            "kind": "calls",
+            "confidence": "certain",
+            "evidence": [],
+            "unresolvedReason": "target evidence unavailable"
+          }
+        ],
+        "diagnostics": [
+          {
+            "id": "warning",
+            "code": "UNSUPPORTED_DYNAMIC_CALL",
+            "severity": "warning",
+            "message": "synthetic warning",
+            "nodeId": "function:src/api/a.ts:run",
+            "location": {
+              "path": "src/api/a.ts",
+              "line": 4
+            },
+            "evidence": []
+          },
+          {
+            "id": "partial",
+            "code": "PARTIAL_API_SCHEMA_GENERATION",
+            "severity": "warning",
+            "message": "synthetic partial coverage",
+            "nodeId": "function:src/api/a.ts:run",
+            "evidence": []
+          }
+        ]
+      },
+      "expected": {
+        "metrics": [
+          {
+            "id": "boundary-crossing-imports",
+            "status": "measured",
+            "value": 0.5,
+            "numerator": 1,
+            "denominator": 2,
+            "scope": "local module imports",
+            "uncertainty": {
+              "lower": 0.333333,
+              "upper": 0.666667,
+              "unknowns": 1
+            }
+          },
+          {
+            "id": "bidirectional-boundary-pairs",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 1,
+            "scope": "boundary pairs connected by imports"
+          },
+          {
+            "id": "modules-in-import-cycles",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 3,
+            "scope": "local modules"
+          },
+          {
+            "id": "import-cycle-groups",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 3,
+            "scope": "local modules"
+          },
+          {
+            "id": "unresolved-edges",
+            "status": "measured",
+            "value": 0.4,
+            "numerator": 2,
+            "denominator": 5,
+            "scope": "graph edges"
+          },
+          {
+            "id": "diagnostics-per-node",
+            "status": "measured",
+            "value": 0.4,
+            "numerator": 2,
+            "denominator": 5,
+            "scope": "graph nodes"
+          }
+        ],
+        "partialDiagnostics": 1
+      }
+    },
+    {
+      "id": "unresolved-known-same-boundary",
+      "legacy": {
+        "schemaVersion": 0,
+        "revision": {
+          "commit": "unresolved-known-same-boundary"
+        },
+        "nodes": [
+          {
+            "id": "module:src/api/a.ts",
+            "kind": "module",
+            "displayName": "src/api/a.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/api/a.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/api/b.ts",
+            "kind": "module",
+            "displayName": "src/api/b.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/api/b.ts",
+              "line": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "source": "module:src/api/a.ts",
+            "target": "module:src/api/b.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [],
+            "unresolvedReason": "target evidence unavailable"
+          }
+        ],
+        "diagnostics": []
+      },
+      "current": {
+        "schemaVersion": 1,
+        "capabilityRegistryVersion": 1,
+        "revision": {
+          "commitSha": "unresolved-known-same-boundary"
+        },
+        "nodes": [
+          {
+            "id": "module:src/api/a.ts",
+            "stableKey": "module:src/api/a.ts",
+            "kind": "module",
+            "name": "src/api/a.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/api/a.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/api/b.ts",
+            "stableKey": "module:src/api/b.ts",
+            "kind": "module",
+            "name": "src/api/b.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/api/b.ts",
+              "line": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": "module:src/api/a.ts",
+            "to": "module:src/api/b.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [],
+            "unresolvedReason": "target evidence unavailable"
+          }
+        ],
+        "diagnostics": []
+      },
+      "expected": {
+        "metrics": [
+          {
+            "id": "boundary-crossing-imports",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 1,
+            "scope": "local module imports"
+          },
+          {
+            "id": "bidirectional-boundary-pairs",
+            "status": "unavailable",
+            "reason": "no boundary pairs connected by imports to measure",
+            "scope": "boundary pairs connected by imports"
+          },
+          {
+            "id": "modules-in-import-cycles",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 2,
+            "scope": "local modules"
+          },
+          {
+            "id": "import-cycle-groups",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 2,
+            "scope": "local modules"
+          },
+          {
+            "id": "unresolved-edges",
+            "status": "measured",
+            "value": 1,
+            "numerator": 1,
+            "denominator": 1,
+            "scope": "graph edges"
+          },
+          {
+            "id": "diagnostics-per-node",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 2,
+            "scope": "graph nodes"
+          }
+        ],
+        "partialDiagnostics": 0
+      }
+    },
+    {
+      "id": "unresolved-known-cross-boundary",
+      "legacy": {
+        "schemaVersion": 0,
+        "revision": {
+          "commit": "unresolved-known-cross-boundary"
+        },
+        "nodes": [
+          {
+            "id": "module:src/api/a.ts",
+            "kind": "module",
+            "displayName": "src/api/a.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/api/a.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/b.ts",
+            "kind": "module",
+            "displayName": "src/db/b.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/db/b.ts",
+              "line": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "source": "module:src/api/a.ts",
+            "target": "module:src/db/b.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:0",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "path": "src/api/a.ts",
+                "line": 1,
+                "extractor": "fixture@1"
+              }
+            ],
+            "unresolvedReason": "target evidence unavailable"
+          }
+        ],
+        "diagnostics": []
+      },
+      "current": {
+        "schemaVersion": 1,
+        "capabilityRegistryVersion": 1,
+        "revision": {
+          "commitSha": "unresolved-known-cross-boundary"
+        },
+        "nodes": [
+          {
+            "id": "module:src/api/a.ts",
+            "stableKey": "module:src/api/a.ts",
+            "kind": "module",
+            "name": "src/api/a.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/api/a.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/b.ts",
+            "stableKey": "module:src/db/b.ts",
+            "kind": "module",
+            "name": "src/db/b.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/db/b.ts",
+              "line": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": "module:src/api/a.ts",
+            "to": "module:src/db/b.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:0",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "path": "src/api/a.ts",
+                "line": 1
+              }
+            ],
+            "unresolvedReason": "target evidence unavailable"
+          }
+        ],
+        "diagnostics": []
+      },
+      "expected": {
+        "metrics": [
+          {
+            "id": "boundary-crossing-imports",
+            "status": "measured",
+            "value": 1,
+            "numerator": 1,
+            "denominator": 1,
+            "scope": "local module imports"
+          },
+          {
+            "id": "bidirectional-boundary-pairs",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 1,
+            "scope": "boundary pairs connected by imports"
+          },
+          {
+            "id": "modules-in-import-cycles",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 2,
+            "scope": "local modules"
+          },
+          {
+            "id": "import-cycle-groups",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 2,
+            "scope": "local modules"
+          },
+          {
+            "id": "unresolved-edges",
+            "status": "measured",
+            "value": 1,
+            "numerator": 1,
+            "denominator": 1,
+            "scope": "graph edges"
+          },
+          {
+            "id": "diagnostics-per-node",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 2,
+            "scope": "graph nodes"
+          }
+        ],
+        "partialDiagnostics": 0
+      }
+    },
+    {
+      "id": "known-and-unknown-targets-count-once",
+      "legacy": {
+        "schemaVersion": 0,
+        "revision": {
+          "commit": "known-and-unknown-targets-count-once"
+        },
+        "nodes": [
+          {
+            "id": "module:src/api/a.ts",
+            "kind": "module",
+            "displayName": "src/api/a.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/api/a.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/api/b.ts",
+            "kind": "module",
+            "displayName": "src/api/b.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/api/b.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/c.ts",
+            "kind": "module",
+            "displayName": "src/db/c.ts",
+            "language": "typescript",
+            "sourceLocation": {
+              "path": "src/db/c.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:external:missing",
+            "kind": "module",
+            "displayName": "missing"
+          }
+        ],
+        "edges": [
+          {
+            "source": "module:src/api/a.ts",
+            "target": "module:src/api/b.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:0",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "path": "src/api/a.ts",
+                "line": 1,
+                "extractor": "fixture@1"
+              }
+            ],
+            "unresolvedReason": "target evidence unavailable"
+          },
+          {
+            "source": "module:src/api/b.ts",
+            "target": "module:src/db/c.ts",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:1",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "location": {
+                  "path": "src/api/b.ts",
+                  "line": 2
+                },
+                "extractorId": "fixture",
+                "extractorVersion": "1"
+              }
+            ]
+          },
+          {
+            "source": "module:src/api/a.ts",
+            "target": "module:external:missing",
+            "relation": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:2",
+                "sourceType": "source_location",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "path": "src/api/a.ts",
+                "line": 3,
+                "extractor": "fixture@1"
+              }
+            ],
+            "unresolvedReason": "target evidence unavailable"
+          }
+        ],
+        "diagnostics": []
+      },
+      "current": {
+        "schemaVersion": 1,
+        "capabilityRegistryVersion": 1,
+        "revision": {
+          "commitSha": "known-and-unknown-targets-count-once"
+        },
+        "nodes": [
+          {
+            "id": "module:src/api/a.ts",
+            "stableKey": "module:src/api/a.ts",
+            "kind": "module",
+            "name": "src/api/a.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/api/a.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/api/b.ts",
+            "stableKey": "module:src/api/b.ts",
+            "kind": "module",
+            "name": "src/api/b.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/api/b.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:src/db/c.ts",
+            "stableKey": "module:src/db/c.ts",
+            "kind": "module",
+            "name": "src/db/c.ts",
+            "language": "typescript",
+            "location": {
+              "path": "src/db/c.ts",
+              "line": 1
+            }
+          },
+          {
+            "id": "module:external:missing",
+            "stableKey": "module:external:missing",
+            "kind": "module",
+            "name": "missing"
+          }
+        ],
+        "edges": [
+          {
+            "from": "module:src/api/a.ts",
+            "to": "module:src/api/b.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:0",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "path": "src/api/a.ts",
+                "line": 1
+              }
+            ],
+            "unresolvedReason": "target evidence unavailable"
+          },
+          {
+            "from": "module:src/api/b.ts",
+            "to": "module:src/db/c.ts",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:1",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "location": {
+                  "path": "src/api/b.ts",
+                  "line": 2
+                }
+              }
+            ]
+          },
+          {
+            "from": "module:src/api/a.ts",
+            "to": "module:external:missing",
+            "kind": "imports",
+            "confidence": "certain",
+            "evidence": [
+              {
+                "id": "source:2",
+                "kind": "source",
+                "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "detector": "fixture@1",
+                "path": "src/api/a.ts",
+                "line": 3
+              }
+            ],
+            "unresolvedReason": "target evidence unavailable"
+          }
+        ],
+        "diagnostics": []
+      },
+      "expected": {
+        "metrics": [
+          {
+            "id": "boundary-crossing-imports",
+            "status": "measured",
+            "value": 0.5,
+            "numerator": 1,
+            "denominator": 2,
+            "scope": "local module imports",
+            "uncertainty": {
+              "lower": 0.333333,
+              "upper": 0.666667,
+              "unknowns": 1
+            }
+          },
+          {
+            "id": "bidirectional-boundary-pairs",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 1,
+            "scope": "boundary pairs connected by imports"
+          },
+          {
+            "id": "modules-in-import-cycles",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 3,
+            "scope": "local modules"
+          },
+          {
+            "id": "import-cycle-groups",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 3,
+            "scope": "local modules"
+          },
+          {
+            "id": "unresolved-edges",
+            "status": "measured",
+            "value": 0.666667,
+            "numerator": 2,
+            "denominator": 3,
+            "scope": "graph edges"
+          },
+          {
+            "id": "diagnostics-per-node",
+            "status": "measured",
+            "value": 0,
+            "numerator": 0,
+            "denominator": 4,
+            "scope": "graph nodes"
+          }
+        ],
+        "partialDiagnostics": 0
+      }
+    }
+  ]
+}

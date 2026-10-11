@@ -1164,6 +1164,15 @@ History records and index entries gain an optional `migratedFrom`, set only
 when a legacy input is migrated on import, so the IDs of existing records do
 not change.
 
+Crossing-import uncertainty counts unresolved imports with targets outside the
+located local-module set. Imports between located local endpoints participate
+once in the topology denominator and remain visible to `unresolved-edges`.
+Excluding those already-counted imports from the uncertainty band corrects a
+double count while preserving the metric definitions, scopes, and measured
+values; `metricsVersion` remains `1`. The paired legacy/current
+[migration corpus](../test/fixtures/history-migration/scenarios.v0.1.json)
+checks the corrected bands and stored migration markers.
+
 ## Control mapping and evidence v1
 
 New, independent contracts: `cartograph.control-mapping` v1 (input) and

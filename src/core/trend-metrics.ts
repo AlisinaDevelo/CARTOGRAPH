@@ -235,6 +235,7 @@ const revisionMetrics = (input: TrendRevisionInput): TrendMetricValue[] => {
     (edge) =>
       edge.kind === "imports" &&
       modules.has(edge.from) &&
+      !modules.has(edge.to) &&
       edge.unresolvedReason !== undefined,
   ).length;
   const crossingMetric = ratio(
