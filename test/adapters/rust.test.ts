@@ -1,5 +1,12 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
@@ -46,7 +53,114 @@ const input = () => ({
 const edgeKey = (edge: { from: string; to: string; kind: string }) =>
   `${edge.from}|${edge.to}|${edge.kind}`;
 
+const scanFiles = (files: Record<string, string>) => {
+  const root = mkdtempSync(join(tmpdir(), "cartograph-rust-modules-"));
+  try {
+    for (const [path, content] of Object.entries(files)) {
+      const absolute = join(root, path);
+      mkdirSync(dirname(absolute), { recursive: true });
+      writeFileSync(absolute, content);
+    }
+    return runAdapter(createRustAdapter(), { source: { rootDir: root } });
+  } finally {
+    rmSync(root, { force: true, recursive: true });
+  }
+};
+
 describe("bounded Rust adapter pilot", () => {
+  it.each([
+    ["src/lib.rs", "src/payments/mod.rs"],
+    ["src/main.rs", "src/payments/mod.rs"],
+    ["src/orders.rs", "src/orders/payments/mod.rs"],
+    ["src/orders/mod.rs", "src/orders/payments/mod.rs"],
+  ])("resolves a directory module declared in %s", (ownerPath, targetPath) => {
+    const output = scanFiles({
+      [ownerPath]: "mod payments;\npub fn entry() {}\n",
+      [targetPath]: "pub fn charge() {}\n",
+    });
+
+    expect(
+      output.graph.edges.filter((edge) => edge.kind === "imports"),
+    ).toEqual([
+      expect.objectContaining({
+        from: `module:${ownerPath}`,
+        to: `module:${targetPath}`,
+        confidence: "certain",
+      }),
+    ]);
+    expect(output.graph.diagnostics).toEqual([]);
+  });
+
+  it("resolves a root crate import to a directory module", () => {
+    const output = scanFiles({
+      "src/lib.rs": "use crate::payments::charge;\npub fn entry() {}\n",
+      "src/payments/mod.rs": "pub fn charge() {}\n",
+    });
+
+    expect(
+      output.graph.edges.filter((edge) => edge.kind === "imports"),
+    ).toEqual([
+      expect.objectContaining({
+        from: "module:src/lib.rs",
+        to: "module:src/payments/mod.rs",
+      }),
+    ]);
+    expect(output.graph.diagnostics).toEqual([]);
+  });
+
+  it("keeps missing directory modules unresolved", () => {
+    const output = scanFiles({
+      "src/lib.rs": "mod missing;\npub fn entry() {}\n",
+    });
+
+    expect(
+      output.graph.edges.filter((edge) => edge.kind === "imports"),
+    ).toEqual([]);
+    expect(
+      output.graph.diagnostics.map((diagnostic) => diagnostic.code),
+    ).toEqual(["UNRESOLVED_RUST_IMPORT"]);
+  });
+
+  it.each([false, true])(
+    "resolves nested crate imports from the root with decoy=%s",
+    (withDecoy) => {
+      const files: Record<string, string> = {
+        "src/lib.rs": "mod orders;\nmod payments;\n",
+        "src/orders/mod.rs":
+          "use crate::payments::charge;\npub fn entry() {}\n",
+        "src/payments/mod.rs": "pub fn charge() {}\n",
+      };
+      if (withDecoy)
+        files["src/orders/payments/mod.rs"] = "pub fn charge() {}\n";
+      const output = scanFiles(files);
+      expect(
+        output.graph.edges.filter(
+          (edge) =>
+            edge.kind === "imports" && edge.from === "module:src/orders/mod.rs",
+        ),
+      ).toEqual([
+        expect.objectContaining({
+          to: "module:src/payments/mod.rs",
+          confidence: "certain",
+        }),
+      ]);
+      expect(output.graph.diagnostics).toEqual([]);
+    },
+  );
+
+  it("leaves crate imports unresolved when no conventional crate root is selected", () => {
+    const output = scanFiles({
+      "src/orders/mod.rs": "use crate::payments::charge;\npub fn entry() {}\n",
+      "src/orders/payments/mod.rs": "pub fn charge() {}\n",
+    });
+    expect(
+      output.graph.edges.filter((edge) => edge.kind === "imports"),
+    ).toEqual([]);
+    expect(
+      output.graph.diagnostics.map((diagnostic) => diagnostic.code),
+    ).toEqual(["UNRESOLVED_RUST_IMPORT"]);
+  });
+
   it("extracts the declared graph slice with exact fixture precision and recall", () => {
     const adapter = createRustAdapter();
     const output = runAdapter(adapter, input());

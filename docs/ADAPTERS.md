@@ -170,7 +170,9 @@ recorded in the public [E-003 RFC](https://github.com/AlisinaDevelo/CARTOGRAPH/i
 The adapter recognizes literal `get`, `post`, `put`, `patch`, `delete`, `head`,
 and `options` registrations plus object-form `route({ method, url, handler })`
 declarations. A literal method array produces one endpoint per method. Named
-and inline local handlers are linked with source evidence.
+and inline local handlers are linked with source evidence. Shorthand routes
+accept `get(path, options, handler)` and `get(path, { handler })`; route options
+are not mistaken for handlers.
 
 Plugin execution, hooks, decorators, schemas, runtime-generated paths, dynamic
 methods, and unresolved handlers are outside this first slice. They produce
@@ -192,6 +194,14 @@ The adapter scans only `.rs` files under the declared source root and supports:
 - literal `reqwest` or bounded client HTTP destinations represented by origin
   `requests` edges; and
 - literal `sqlx` `SELECT`, `INSERT`, `UPDATE`, and `DELETE` table relationships.
+
+Out-of-line `mod` declarations resolve both `name.rs` and `name/mod.rs` layouts.
+Child modules of `name.rs` are resolved under the `name/` directory; crate
+entry files and `mod.rs` resolve children alongside their own file.
+`crate::` imports resolve from the nearest selected conventional `lib.rs` or
+`main.rs` root, including imports in nested modules. If no such root is
+selected, the import remains unresolved; custom crate entry paths need a
+compiler-backed adapter.
 
 Dynamic HTTP destinations and SQL queries remain the explicit
 `UNSUPPORTED_RUST_DYNAMIC_HTTP_DESTINATION` and

@@ -1,5 +1,6 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
@@ -19,7 +20,81 @@ const expected = JSON.parse(
   unresolvedDiagnostics: string[];
 };
 
+const scanRegistration = (registration: string) => {
+  const root = mkdtempSync(join(tmpdir(), "cartograph-fastify-options-"));
+  try {
+    writeFileSync(
+      join(root, "app.ts"),
+      [
+        'import fastify from "fastify";',
+        "const app = fastify();",
+        "const options = { schema: {} };",
+        "function handler() {}",
+        registration,
+      ].join("\n"),
+    );
+    return analyzeTypeScriptRepository({
+      rootDir: root,
+      extractors: ["typescript", "fastify"],
+    });
+  } finally {
+    rmSync(root, { force: true, recursive: true });
+  }
+};
+
 describe("Fastify extractor", () => {
+  it.each([
+    ["inline options", 'app.get("/users", { schema: {} }, handler);'],
+    ["bound options", 'app.get("/users", options, handler);'],
+    ["options handler", 'app.get("/users", { handler });'],
+  ])("resolves the shorthand handler with %s", (_name, registration) => {
+    const snapshot = scanRegistration(registration);
+
+    expect(
+      snapshot.edges
+        .filter((edge) => edge.from === "endpoint:GET:/users")
+        .map((edge) => edge.to),
+    ).toEqual(["function:app.ts:handler"]);
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it.each([
+    'app.get("/users");',
+    'app.get("/users", { schema: {} });',
+    'app.get("/users", options, unknownHandler);',
+  ])(
+    "reports a missing or unresolved shorthand handler: %s",
+    (registration) => {
+      const snapshot = scanRegistration(registration);
+
+      expect(
+        snapshot.edges.filter((edge) => edge.from.startsWith("endpoint:")),
+      ).toEqual([]);
+      expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual(
+        ["UNRESOLVED_FASTIFY_HANDLER"],
+      );
+    },
+  );
+
+  it.each([
+    'app.get("/inline", { schema: {} }, () => 1);',
+    'app.get("/inline", { handler: function inline() { return 1; } });',
+  ])("links an inline options-form handler: %s", (registration) => {
+    const snapshot = scanRegistration(registration);
+    const edge = snapshot.edges.find(
+      (item) => item.kind === "calls" && item.from === "endpoint:GET:/inline",
+    );
+    expect(edge).toMatchObject({ confidence: "inferred" });
+    expect(snapshot.nodes.find((item) => item.id === edge?.to)).toMatchObject({
+      kind: "function",
+      language: "typescript",
+    });
+    expect(
+      edge?.evidence.some((item) => item.path === "app.ts" && item.line === 5),
+    ).toBe(true);
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
   it("emits bounded literal and object-form route edges", () => {
     const snapshot = parseGraphSnapshot(
       analyzeTypeScriptRepository({

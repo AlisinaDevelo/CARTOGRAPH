@@ -433,20 +433,47 @@ const safeOrigin = (value: string): string | undefined => {
   }
 };
 
+const moduleTargetAt = (
+  directory: string,
+  moduleName: string,
+  filesByPath: Map<string, RustFile>,
+): RustFile | undefined => {
+  const candidates = [
+    join(directory, `${moduleName}.rs`),
+    join(directory, moduleName, "mod.rs"),
+  ];
+  return candidates
+    .map((candidate) => filesByPath.get(candidate))
+    .find(Boolean);
+};
+
 const localModuleTarget = (
   file: RustFile,
   moduleName: string,
   filesByPath: Map<string, RustFile>,
 ): RustFile | undefined => {
-  const directory = dirname(file.path);
   const stem = basename(file.path, extname(file.path));
-  const candidates = [
-    join(directory, `${moduleName}.rs`),
-    join(directory, stem, "mod.rs"),
-  ];
-  return candidates
-    .map((candidate) => filesByPath.get(candidate))
-    .find(Boolean);
+  const directory = ["lib", "main", "mod"].includes(stem)
+    ? dirname(file.path)
+    : join(dirname(file.path), stem);
+  return moduleTargetAt(directory, moduleName, filesByPath);
+};
+
+const crateDirectory = (
+  file: RustFile,
+  filesByPath: Map<string, RustFile>,
+): string | undefined => {
+  let directory = dirname(file.path);
+  for (;;) {
+    if (
+      filesByPath.has(join(directory, "lib.rs")) ||
+      filesByPath.has(join(directory, "main.rs"))
+    )
+      return directory;
+    const parent = dirname(directory);
+    if (parent === directory) return undefined;
+    directory = parent;
+  }
 };
 
 const functionBody = (
@@ -486,7 +513,11 @@ const addRustImport = (
       addDiagnostic(analysis, "UNRESOLVED_RUST_IMPORT", file, offset, owner.id);
       return;
     }
-    const targetFile = localModuleTarget(file, moduleName, filesByPath);
+    const directory = crateDirectory(file, filesByPath);
+    const targetFile =
+      directory === undefined
+        ? undefined
+        : moduleTargetAt(directory, moduleName, filesByPath);
     if (!targetFile) {
       addDiagnostic(analysis, "UNRESOLVED_RUST_IMPORT", file, offset, owner.id);
       return;

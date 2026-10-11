@@ -112,10 +112,15 @@ const directRoute = (
   const path = literalString(first);
   if (path === undefined)
     return { registrations: [], diagnostics: [unsupported(first)] };
-  const handlers = call
-    .getArguments()
-    .slice(1)
-    .filter((argument): argument is Expression => Node.isExpression(argument));
+  const argumentsList = call.getArguments();
+  const handlerArgument = argumentsList[2] ?? argumentsList[1];
+  const handler =
+    argumentsList.length === 2 &&
+    handlerArgument &&
+    Node.isObjectLiteralExpression(handlerArgument)
+      ? propertyValue(handlerArgument, ["handler"])?.value
+      : handlerArgument;
+  const handlers = handler && Node.isExpression(handler) ? [handler] : [];
   return {
     registrations: [{ method, path, handlers }],
     diagnostics: handlers.length === 0 ? [unresolvedHandler(call)] : [],
