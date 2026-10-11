@@ -99,6 +99,8 @@ const JAVASCRIPT_EXTENSIONS = new Set([".js", ".jsx", ".mjs", ".cjs"]);
 
 const isJavaScriptPath = (filePath: string): boolean =>
   JAVASCRIPT_EXTENSIONS.has(extname(filePath));
+const isDeclarationPath = (filePath: string): boolean =>
+  /\.d\.(?:c|m)?ts$/u.test(filePath);
 const EXCLUDED_DIRECTORIES = new Set([
   ".git",
   ".cartograph",
@@ -549,8 +551,16 @@ const globRegExp = (pattern: string): RegExp => {
   for (let index = 0; index < pattern.length; index += 1) {
     const character = pattern[index];
     if (character === "*" && pattern[index + 1] === "*") {
-      expression += ".*";
-      index += 1;
+      if (
+        (index === 0 || pattern[index - 1] === "/") &&
+        pattern[index + 2] === "/"
+      ) {
+        expression += "(?:[^/]+/)*";
+        index += 2;
+      } else {
+        expression += ".*";
+        index += 1;
+      }
     } else if (character === "*") {
       expression += "[^/]*";
     } else if (character === "?") {
@@ -578,7 +588,7 @@ const selectedByPatterns = (
   !exclude.some((pattern) => matchesPathPattern(pattern, relativePath));
 
 const isProjectSourcePath = (filePath: string, allowJs = false): boolean =>
-  (SOURCE_EXTENSIONS.has(extname(filePath)) && !filePath.endsWith(".d.ts")) ||
+  (SOURCE_EXTENSIONS.has(extname(filePath)) && !isDeclarationPath(filePath)) ||
   (allowJs && isJavaScriptPath(filePath));
 
 const isExcludedProjectPath = (rootDir: string, filePath: string): boolean => {
@@ -1158,7 +1168,7 @@ const discoverSourcePaths = (
       if (
         entry.isFile() &&
         extensions.has(extname(entry.name)) &&
-        !entry.name.endsWith(".d.ts") &&
+        !isDeclarationPath(entry.name) &&
         selectedByPatterns(relativePath, include, exclude)
       ) {
         const bytes = lstatSync(entryPath).size;

@@ -37,6 +37,11 @@ Revision archives default to 128 MiB while extracted source defaults to 64 MiB;
 Paths and glob patterns are normalized to POSIX separators and cannot be
 absolute, contain a drive or URI prefix, contain NUL bytes, or include a `..`
 segment. The config file itself must also be inside the analyzed repository.
+Source selection treats `*` as characters within one path segment, `?` as one
+character within a segment, and `**` as characters across segments. A complete
+`**/` segment matches zero or more directories: `src/**/*.ts` includes both
+`src/index.ts` and `src/nested/index.ts`, and `**/*.ts` includes root-level
+TypeScript files. Include and exclude patterns use the same matching rules.
 The analyzer never follows source symlinks. Exceeding a selected-file,
 materialized-entry, byte, archive, memory, wall-clock, or report-cardinality
 ceiling fails closed with a stable diagnostic. `maxMemoryBytes` bounds the

@@ -49,6 +49,38 @@ afterEach(() => {
 });
 
 describe("JavaScript sources", () => {
+  it("keeps declaration files from suppressing JavaScript discovery", () => {
+    const snapshot = scan({
+      "types.d.ts": "export declare function plain(): void;\n",
+      "types.d.mts": "export declare function esm(): void;\n",
+      "types.d.cts": "export declare function cjs(): void;\n",
+      "src/index.js": "export const run = () => 1;\n",
+    });
+
+    expect(modules(snapshot)).toEqual(["module:src/index.js javascript"]);
+    expect(
+      snapshot.nodes
+        .filter((node) => node.kind === "function")
+        .map((node) => node.id),
+    ).toEqual(["function:src/index.js:run"]);
+  });
+
+  it("excludes every declaration extension selected by a tsconfig", () => {
+    const snapshot = scan({
+      "tsconfig.json": JSON.stringify({ compilerOptions, include: ["src"] }),
+      "src/types.d.ts": "export declare function plain(): void;\n",
+      "src/types.d.mts": "export declare function esm(): void;\n",
+      "src/types.d.cts": "export declare function cjs(): void;\n",
+      "src/esm.mts": "export const esm = () => 1;\n",
+      "src/cjs.cts": "export const cjs = () => 1;\n",
+    });
+
+    expect(modules(snapshot)).toEqual([
+      "module:src/cjs.cts typescript",
+      "module:src/esm.mts typescript",
+    ]);
+  });
+
   it("scans a JavaScript project with no config, including CommonJS", () => {
     const snapshot = scan({
       "src/app.js":
