@@ -85,6 +85,8 @@ type RustFile = {
   absolutePath: string;
   path: string;
   content: string;
+  code: string;
+  commentsMasked: string;
   contentHash: string;
 };
 
@@ -154,6 +156,125 @@ const RUST_CALL_EXCLUSIONS = new Set([
   "unimplemented",
   "vec",
 ]);
+
+// Keep UTF-16 offsets and line breaks identical to the source used by evidence.
+const lexicalViews = (content: string, checkBudget: () => void) => {
+  const ranges: { start: number; end: number; comment: boolean }[] = [];
+  if (content[0] === "\uFEFF") ranges.push({ start: 0, end: 1, comment: true });
+  let nextBudgetCheck = 0;
+  const checkAt = (offset: number) => {
+    if (offset >= nextBudgetCheck) {
+      checkBudget();
+      nextBudgetCheck = offset + 4096;
+    }
+  };
+  const boundaryAt = (index: number) =>
+    index === 0 || !/[\p{L}\p{N}_]/u.test(content[index - 1] ?? "");
+  const characterEnd = (open: number): number | undefined => {
+    let end = open + 1;
+    if (content[end] === "\\") {
+      end += 1;
+      if (content[end] === "u" && content[end + 1] === "{") {
+        const close = content.indexOf("}", end + 2);
+        if (close < 0) return undefined;
+        end = close + 1;
+      } else if (content[end] === "x") end += 3;
+      else end += 1;
+    } else {
+      const point = content.codePointAt(end);
+      if (point === undefined || content[end] === "\n" || content[end] === "\r")
+        return undefined;
+      end += point > 0xffff ? 2 : 1;
+    }
+    return content[end] === "'" ? end + 1 : undefined;
+  };
+  for (let index = 0; index < content.length;) {
+    checkAt(index);
+    const start = index;
+    if (content.startsWith("//", index)) {
+      const end = content.indexOf("\n", index + 2);
+      index = end < 0 ? content.length : end;
+      ranges.push({ start, end: index, comment: true });
+      continue;
+    }
+    if (content.startsWith("/*", index)) {
+      let depth = 1;
+      index += 2;
+      while (index < content.length && depth > 0) {
+        checkAt(index);
+        if (content.startsWith("/*", index)) {
+          depth += 1;
+          index += 2;
+        } else if (content.startsWith("*/", index)) {
+          depth -= 1;
+          index += 2;
+        } else index += 1;
+      }
+      ranges.push({ start, end: index, comment: true });
+      continue;
+    }
+    const character = content[index];
+    if (
+      (character === "r" || character === "b" || character === "c") &&
+      boundaryAt(index)
+    ) {
+      const raw = content
+        .slice(index, index + 260)
+        .match(/^(?:br|cr|r)(#{0,255})"/u);
+      if (raw) {
+        const close = `"${raw[1] ?? ""}`;
+        const end = content.indexOf(close, index + raw[0].length);
+        index = end < 0 ? content.length : end + close.length;
+        ranges.push({ start, end: index, comment: false });
+        continue;
+      }
+    }
+    const prefixed =
+      (character === "b" || character === "c") && boundaryAt(index);
+    const quote = prefixed ? content[index + 1] : character;
+    const open = prefixed ? index + 1 : index;
+    if (quote === '"') {
+      index = open + 1;
+      while (index < content.length) {
+        checkAt(index);
+        if (content[index] === "\\") index += 2;
+        else if (content[index++] === '"') break;
+      }
+      index = Math.min(index, content.length);
+      ranges.push({ start, end: index, comment: false });
+      continue;
+    }
+    if (quote === "'") {
+      const end = characterEnd(open);
+      if (end !== undefined) {
+        index = end;
+        ranges.push({ start, end, comment: false });
+        continue;
+      }
+    }
+    index += 1;
+  }
+  const mask = (commentsOnly: boolean) => {
+    nextBudgetCheck = 0;
+    const parts: string[] = [];
+    let offset = 0;
+    for (const range of ranges) {
+      checkAt(range.start);
+      if (commentsOnly && !range.comment) continue;
+      parts.push(
+        content.slice(offset, range.start),
+        content
+          .slice(range.start, range.end)
+          .replaceAll(/[^\r\n]/gu, (value) => " ".repeat(value.length)),
+      );
+      offset = range.end;
+    }
+    parts.push(content.slice(offset));
+    checkBudget();
+    return parts.join("");
+  };
+  return { code: mask(false), commentsMasked: mask(true) };
+};
 
 const isInside = (root: string, candidate: string): boolean =>
   candidate === root || candidate.startsWith(`${root}${sep}`);
@@ -237,10 +358,12 @@ const collectRustFiles = (
           `Rust adapter file ${path} exceeded the ${input.resources.maxFileBytes} byte ceiling`,
         );
       const contentHash = `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
+      const content = bytes.toString("utf8");
       files.set(path, {
         absolutePath,
         path,
-        content: bytes.toString("utf8"),
+        content,
+        ...lexicalViews(content, checkBudget),
         contentHash,
       });
     }
@@ -396,20 +519,8 @@ const addDiagnostic = (
 
 const matchingBrace = (content: string, open: number): number => {
   let depth = 0;
-  let quote: '"' | "'" | undefined;
-  let escaped = false;
   for (let index = open; index < content.length; index += 1) {
     const character = content[index];
-    if (quote) {
-      if (escaped) escaped = false;
-      else if (character === "\\") escaped = true;
-      else if (character === quote) quote = undefined;
-      continue;
-    }
-    if (character === '"' || character === "'") {
-      quote = character;
-      continue;
-    }
     if (character === "{") depth += 1;
     else if (character === "}" && --depth === 0) return index;
   }
@@ -480,22 +591,23 @@ const functionBody = (
   file: RustFile,
   declarationEnd: number,
 ): { bodyStart: number; bodyEnd: number } => {
-  const open = file.content.indexOf("{", declarationEnd);
+  const open = file.code.indexOf("{", declarationEnd);
   if (open < 0) return { bodyStart: declarationEnd, bodyEnd: declarationEnd };
-  return { bodyStart: open + 1, bodyEnd: matchingBrace(file.content, open) };
+  return { bodyStart: open + 1, bodyEnd: matchingBrace(file.code, open) };
 };
 
 const functionPattern = new RegExp(
-  `^\\s*(?:(?:pub(?:\\([^)]*\\))?|async|unsafe|extern(?:\\s+"[^"]+")?)\\s+)*fn\\s+(${RUST_IDENTIFIER})\\s*\\(`,
+  `^[\\t\\v\\f\\r \\u0085\\u200e\\u200f\\u2028\\u2029]*(?:(?:pub(?:\\([^)]*\\))?|async|unsafe|extern)\\s+)*fn\\s+(${RUST_IDENTIFIER})\\s*\\(`,
   "gmu",
 );
 
 const modulePattern = new RegExp(
-  `^\\s*(?:pub(?:\\([^)]*\\))?\\s+)?mod\\s+(${RUST_IDENTIFIER})\\s*;`,
+  `^[\\t\\v\\f\\r \\u0085\\u200e\\u200f\\u2028\\u2029]*(?:pub(?:\\([^)]*\\))?\\s+)?mod\\s+(${RUST_IDENTIFIER})\\s*;`,
   "gmu",
 );
 
-const usePattern = /^\s*(?:pub\s+)?use\s+([^;]+);/gmu;
+const usePattern =
+  /^[\t\v\f\r \u0085\u200e\u200f\u2028\u2029]*(?:pub\s+)?use\s+([^;]+);/gmu;
 
 const addRustImport = (
   analysis: RustAnalysis,
@@ -561,6 +673,7 @@ const addHttpEdges = (
     /(?:reqwest::(?:get|post|put|delete)|client\.(?:get|post|put|delete))\s*\(\s*([^,)]+)/gmu;
   for (const match of body.matchAll(pattern)) {
     const offset = bodyOffset + (match.index ?? 0);
+    if (file.code[offset] !== file.content[offset]) continue;
     const argument = match[1] ?? "";
     const destination = literalString(argument);
     if (!destination) {
@@ -611,6 +724,7 @@ const addSqlEdges = (
   const pattern = /sqlx::query(?:_as)?!?\s*\(\s*([^,)]+)/gmu;
   for (const match of body.matchAll(pattern)) {
     const offset = bodyOffset + (match.index ?? 0);
+    if (file.code[offset] !== file.content[offset]) continue;
     const query = literalString(match[1] ?? "");
     if (!query) {
       addDiagnostic(
@@ -750,7 +864,7 @@ const analyzeRust = (input: AdapterInput) => {
       file,
       0,
     );
-    for (const match of file.content.matchAll(functionPattern)) {
+    for (const match of file.code.matchAll(functionPattern)) {
       const name = match[1];
       if (!name) continue;
       const declarationOffset = match.index ?? 0;
@@ -790,7 +904,7 @@ const analyzeRust = (input: AdapterInput) => {
     checkBudget();
     const module = analysis.nodes.get(`module:${file.path}`);
     if (!module) continue;
-    for (const match of file.content.matchAll(modulePattern)) {
+    for (const match of file.code.matchAll(modulePattern)) {
       const moduleName = match[1];
       if (!moduleName) continue;
       const offset = match.index ?? 0;
@@ -817,7 +931,7 @@ const analyzeRust = (input: AdapterInput) => {
         );
     }
 
-    for (const match of file.content.matchAll(usePattern)) {
+    for (const match of file.code.matchAll(usePattern)) {
       addRustImport(
         analysis,
         file,
@@ -837,7 +951,7 @@ const analyzeRust = (input: AdapterInput) => {
 
   for (const functionInfo of functions) {
     checkBudget();
-    const body = functionInfo.file.content.slice(
+    const body = functionInfo.file.commentsMasked.slice(
       functionInfo.bodyStart,
       functionInfo.bodyEnd,
     );
@@ -858,7 +972,10 @@ const analyzeRust = (input: AdapterInput) => {
     addCallEdges(
       analysis,
       functionInfo,
-      body,
+      functionInfo.file.code.slice(
+        functionInfo.bodyStart,
+        functionInfo.bodyEnd,
+      ),
       functionInfo.bodyStart,
       uniquelyNamedFunctions,
     );

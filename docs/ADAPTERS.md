@@ -203,6 +203,12 @@ entry files and `mod.rs` resolve children alongside their own file.
 selected, the import remains unresolved; custom crate entry paths need a
 compiler-backed adapter.
 
+Declarations, imports, calls and function-body boundaries exclude line and
+nested block comments and character, string, raw, byte and C string literals.
+The lexical masks preserve source offsets and line breaks for evidence; literal
+arguments remain available to the HTTP and SQL detectors. Lifetimes and labels
+remain code. This bounded scan does not parse Rust or expand macros.
+
 Dynamic HTTP destinations and SQL queries remain the explicit
 `UNSUPPORTED_RUST_DYNAMIC_HTTP_DESTINATION` and
 `UNSUPPORTED_RUST_DYNAMIC_QUERY` diagnostics. Missing local modules and
