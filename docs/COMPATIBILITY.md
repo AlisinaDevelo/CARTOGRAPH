@@ -101,6 +101,19 @@ query; readers that do not use pagination retain the unpaged default. Cursor
 validation fails closed with an explicit diagnostic, and no match is silently
 discarded. This is additive to the v1 contract and does not require a schema
 version or migration change.
+
+The query correctness review for issue #411 adds `error` to the architecture
+query v1 result status enum. Missing dependency-path endpoints now emit
+`QUERY_NODE_NOT_FOUND` with `status: "error"` and the CLI exits 1. Existing
+endpoints without a connecting path retain `status: "ok"`. Consumers using a
+closed status enum must update their result validator before reading the new
+error response; prior successful, unsupported, and resource-limit artifacts
+retain their shape. The regression requests are in
+[`missing-endpoints.v0.1.json`](../test/fixtures/architecture-query/missing-endpoints.v0.1.json).
+Query and impact traversal also recognize an explicit `unresolvedReason` as
+unresolved when source evidence is present. This corrects the documented
+`includeUnresolved` behavior without changing request or graph schemas.
+
 Local ADR reference indexes use the reviewed `adrReferences` contract and
 [`schema/adr-reference.v0.1.schema.json`](../schema/adr-reference.v0.1.schema.json).
 P-008 adds ADR comparison details only to Markdown and standalone HTML report

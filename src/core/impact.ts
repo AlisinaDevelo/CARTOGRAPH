@@ -6,6 +6,7 @@ import {
   stableStringify,
 } from "./canonical.js";
 import type { GraphEdge, GraphNode, GraphSnapshot } from "./schemas.js";
+import { isUnresolvedEdge } from "./schemas.js";
 import { ResourceLimitError } from "../resources.js";
 
 export const ImpactDirectionSchema = z.enum(["forward", "reverse"]);
@@ -205,7 +206,7 @@ export const computeImpactSubgraph = (
     }
     impactEdgesByIdentity.set(identity, impactEdge);
     impactEdges.push(impactEdge);
-    if (edge.evidence.length === 0) unresolvedEdges.push(impactEdge);
+    if (isUnresolvedEdge(edge)) unresolvedEdges.push(impactEdge);
     return impactEdge;
   };
 
@@ -235,6 +236,7 @@ export const computeImpactSubgraph = (
     for (const edge of adjacency.get(nodeId) ?? []) {
       const nextNodeId = query.direction === "forward" ? edge.to : edge.from;
       const impactEdge = addEdge(edge, depth);
+      if (isUnresolvedEdge(edge) && !query.includeUnresolved) continue;
 
       if (pathNodes.includes(nextNodeId)) {
         addCycle(pathNodes, pathEdges.concat(impactEdge), nextNodeId);
@@ -250,7 +252,6 @@ export const computeImpactSubgraph = (
         continue;
       }
 
-      if (edge.evidence.length === 0 && !query.includeUnresolved) continue;
       const nextNode = nodesById.get(nextNodeId);
       if (nextNode === undefined) continue;
       addNode(nextNode, depth + 1, false);

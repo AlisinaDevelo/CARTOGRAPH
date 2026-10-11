@@ -22,7 +22,11 @@ import type {
   GraphSnapshot,
   RewiredEdge,
 } from "./schemas.js";
-import { GraphEdgeSchema, GraphNodeSchema } from "./schemas.js";
+import {
+  GraphEdgeSchema,
+  GraphNodeSchema,
+  isUnresolvedEdge,
+} from "./schemas.js";
 import { ResourceLimitError, createResourceBudget } from "../resources.js";
 
 /** Version of the portable text query language and its normalized AST. */
@@ -1426,9 +1430,7 @@ const edgeMatches = (
     if (field === "unresolved")
       return predicateMatchesValue(
         predicate.operator,
-        String(
-          edge.evidence.length === 0 || edge.unresolvedReason !== undefined,
-        ),
+        String(isUnresolvedEdge(edge)),
         predicate.values,
       );
     if (field === "unresolved.reason")
@@ -1530,8 +1532,7 @@ const traversalEdges = (
           .sort(compareEdges);
         for (const edge of outgoing) {
           enforce();
-          if (edge.evidence.length === 0 && !traversal.includeUnresolved)
-            continue;
+          if (isUnresolvedEdge(edge) && !traversal.includeUnresolved) continue;
           const nextId = traversalDirection === "forward" ? edge.to : edge.from;
           const nextDepth = current.depth + 1;
           if (nextDepth > Math.min(traversal.maxDepth, limits.maxDepth)) {

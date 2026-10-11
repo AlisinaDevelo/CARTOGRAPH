@@ -685,6 +685,12 @@ export type IdentityAmbiguity = z.infer<typeof IdentityAmbiguitySchema>;
 export type IdentityUnsupported = z.infer<typeof IdentityUnsupportedSchema>;
 export type GraphDiffIdentity = z.infer<typeof GraphDiffIdentitySchema>;
 export type GraphEdge = z.infer<typeof GraphEdgeSchema>;
+
+/** Source evidence can locate a relationship whose target remains unresolved. */
+export const isUnresolvedEdge = (
+  edge: Pick<GraphEdge, "evidence" | "unresolvedReason">,
+): boolean => edge.evidence.length === 0 || edge.unresolvedReason !== undefined;
+
 export type Diagnostic = z.infer<typeof DiagnosticSchema>;
 export type GraphSnapshot = z.infer<typeof GraphSnapshotSchema>;
 export type FieldChange = z.infer<typeof FieldChangeSchema>;

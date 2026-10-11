@@ -6,6 +6,7 @@ import {
   stableStringify,
 } from "./canonical.js";
 import type { GraphEdge, GraphNode, GraphSnapshot } from "./schemas.js";
+import { isUnresolvedEdge } from "./schemas.js";
 import { ResourceLimitError } from "../resources.js";
 
 export const ARCHITECTURE_IMPACT_SCHEMA_VERSION = 1 as const;
@@ -596,7 +597,7 @@ export const assessArchitectureImpact = (
         continue;
       }
 
-      if (edge.evidence.length === 0 && !scenario.traversal.includeUnresolved) {
+      if (isUnresolvedEdge(edge) && !scenario.traversal.includeUnresolved) {
         addUnknown({
           code: "unresolved-edge",
           from: edge.from,
@@ -620,7 +621,7 @@ export const assessArchitectureImpact = (
         );
       }
       traversedEdges.set(edgeKey, traversedEdge);
-      if (edge.evidence.length === 0) {
+      if (isUnresolvedEdge(edge)) {
         addUnknown({
           code: "unresolved-edge",
           from: edge.from,
@@ -656,7 +657,7 @@ export const assessArchitectureImpact = (
       const isBoundary =
         scenario.traversal.boundary.stopEdgeKinds.includes(edge.kind) ||
         isBoundaryNode(nextNode, scenario.traversal.boundary);
-      const unresolved = edge.evidence.length === 0;
+      const unresolved = isUnresolvedEdge(edge);
       const uncertainty = [
         ...(unresolved
           ? [

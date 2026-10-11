@@ -18,6 +18,15 @@ import {
 } from "../../src/core/index.js";
 
 const repositoryRoot = resolve(import.meta.dirname, "../..");
+const missingEndpointQueries = JSON.parse(
+  readFileSync(
+    resolve(
+      repositoryRoot,
+      "test/fixtures/architecture-query/missing-endpoints.v0.1.json",
+    ),
+    "utf8",
+  ),
+) as { queries: unknown[] };
 
 const evidence = (id: string, path: string, line: number) => ({
   id,
@@ -163,6 +172,78 @@ const traversalGraph = createGraphSnapshot({
 });
 
 describe("architecture query contract", () => {
+  it.each(missingEndpointQueries.queries)(
+    "returns an error for a missing dependency-path endpoint %#",
+    (query) => {
+      const result = executeArchitectureQuery(graph, query);
+      expect(result).toMatchObject({
+        status: "error",
+        nodes: [],
+        edges: [],
+        paths: [],
+        diagnostics: [
+          expect.objectContaining({
+            code: "QUERY_NODE_NOT_FOUND",
+            severity: "error",
+          }),
+        ],
+      });
+      const validate = createAjv({ allErrors: true }).compile(
+        JSON.parse(
+          readFileSync(
+            resolve(
+              repositoryRoot,
+              "schema/architecture-query-result.v0.1.schema.json",
+            ),
+            "utf8",
+          ),
+        ) as object,
+      );
+      expect(validate(result), JSON.stringify(validate.errors)).toBe(true);
+    },
+  );
+
+  it("excludes source-backed unresolved relationships from paths and boundaries", () => {
+    const uncertain = createGraphSnapshot({
+      ...graph,
+      edges: graph.edges.map((edge) => ({
+        ...edge,
+        unresolvedReason: "target selected by runtime configuration",
+      })),
+    });
+    const base = {
+      schemaVersion: 1,
+      contract: ARCHITECTURE_QUERY_CONTRACT,
+      queryId: "source-backed-unresolved",
+    };
+    const path = executeArchitectureQuery(uncertain, {
+      ...base,
+      operation: "dependency-path",
+      path: {
+        from: "node-b",
+        to: "node-a",
+        edgeKinds: ["calls"],
+        includeUnresolved: false,
+      },
+    });
+    expect(path.status).toBe("ok");
+    expect(path.paths).toEqual([]);
+    const boundary = executeArchitectureQuery(uncertain, {
+      ...base,
+      operation: "boundary-crossing",
+      selectors: { nodes: [{ id: "node-a" }] },
+      traversal: { edgeKinds: ["calls"], includeUnresolved: false },
+    });
+    expect(boundary.boundaries).toEqual([]);
+    const reachable = executeArchitectureQuery(uncertain, {
+      ...base,
+      operation: "reachability",
+      selectors: { nodes: [{ id: "node-b" }] },
+      traversal: { edgeKinds: ["calls"], includeUnresolved: false },
+    });
+    expect(reachable.nodes.map((node) => node.id)).toEqual(["node-b"]);
+  });
+
   it("normalizes defaults and preserves canonical request ordering", () => {
     const first = serializeArchitectureQuery({
       schemaVersion: 1,
