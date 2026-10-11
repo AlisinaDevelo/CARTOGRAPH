@@ -69,6 +69,150 @@ const scanFiles = (files: Record<string, string>) => {
 
 describe("bounded Rust adapter pilot", () => {
   it.each([
+    "\uFEFF",
+    "\v",
+    "\f",
+    "\r",
+    "\u0085",
+    "\u200e",
+    "\u200f",
+    "\u2028",
+    "\u2029",
+  ])(
+    "preserves declarations and imports after Rust whitespace %j",
+    (prefix) => {
+      const output = scanFiles({
+        "src/lib.rs": `${prefix}mod payments;\n${prefix === "\uFEFF" ? "" : prefix}use crate::payments::charge;\npub fn entry() { charge(); }\n`,
+        "src/payments.rs": `${prefix}pub fn charge() {}\n`,
+      });
+      expect(output.graph.nodes.some((node) => node.name === "charge")).toBe(
+        true,
+      );
+      expect(
+        output.graph.edges.filter((edge) => edge.kind === "imports"),
+      ).toHaveLength(1);
+      expect(
+        output.graph.edges.filter((edge) => edge.kind === "calls"),
+      ).toHaveLength(1);
+      expect(output.graph.diagnostics).toEqual([]);
+    },
+  );
+
+  it.each([
+    ["line comment", "// target();"],
+    ["nested block comment", "/* outer /* target(); */ target(); */"],
+    ["escaped string", 'let text = "\\" target() // }";'],
+    ["raw string", 'let text = r##"target() "# } /*"##;'],
+    ["byte string", 'let text = b"target() }";'],
+    ["raw byte string", 'let text = br#"target() }"#;'],
+    ["C string", 'let text = c"target() }";'],
+    ["raw C string", 'let text = cr#"target() }"#;'],
+  ])("excludes calls inside a %s", (_label, nonCode) => {
+    const output = scanFiles({
+      "src/lib.rs": `pub fn target() {}\npub fn entry() {\n  ${nonCode}\n}\n`,
+    });
+    expect(output.graph.edges.filter((edge) => edge.kind === "calls")).toEqual(
+      [],
+    );
+    expect(output.graph.diagnostics).toEqual([]);
+  });
+
+  it.each([
+    "/*\npub fn ghost() {}\nmod missing;\nuse crate::missing;\n*/",
+    'const TEXT: &str = r#"\npub fn ghost() {}\nmod missing;\nuse crate::missing;\n"#;',
+  ])("excludes declarations and imports inside non-code", (nonCode) => {
+    const output = scanFiles({
+      "src/lib.rs": `${nonCode}\npub fn entry() {}\n`,
+    });
+    expect(
+      output.graph.nodes.filter((node) => node.kind === "function"),
+    ).toEqual([expect.objectContaining({ name: "entry" })]);
+    expect(
+      output.graph.edges.filter((edge) => edge.kind === "imports"),
+    ).toEqual([]);
+    expect(output.graph.diagnostics).toEqual([]);
+  });
+
+  it.each([
+    "// }",
+    "/* } /* { */ } */",
+    'let text = r#"" }"#;',
+    "let character = '}'; let byte = b'{';",
+  ])("preserves real call spans after non-code braces", (nonCode) => {
+    const output = scanFiles({
+      "src/lib.rs": `pub fn target() {}\npub fn entry() {\n  ${nonCode}\n  target();\n}\n`,
+    });
+    expect(output.graph.edges.filter((edge) => edge.kind === "calls")).toEqual([
+      expect.objectContaining({
+        from: "function:src/lib.rs:entry",
+        to: "function:src/lib.rs:target",
+        evidence: [expect.objectContaining({ line: 4, column: 3 })],
+      }),
+    ]);
+  });
+
+  it("keeps lifetimes distinct from character literals and bounds each body", () => {
+    const output = scanFiles({
+      "src/lib.rs":
+        'pub fn target() {}\npub fn entry() {\n  let text: &\'static str = "text";\n}\npub fn next() { target(); }\n',
+    });
+    expect(output.graph.edges.filter((edge) => edge.kind === "calls")).toEqual([
+      expect.objectContaining({
+        from: "function:src/lib.rs:next",
+        to: "function:src/lib.rs:target",
+      }),
+    ]);
+  });
+
+  it("preserves UTF-16 columns and declaration lines after masked text", () => {
+    const body = 'pub fn entry() { let text = "😀"; target(); }';
+    const output = scanFiles({
+      "src/lib.rs": `/* heading\n\n*/\npub fn target() {}\n${body}\n`,
+    });
+    expect(
+      output.graph.nodes.find((node) => node.name === "target")?.location,
+    ).toEqual({ path: "src/lib.rs", line: 4, column: 1 });
+    expect(output.graph.edges.filter((edge) => edge.kind === "calls")).toEqual([
+      expect.objectContaining({
+        evidence: [
+          expect.objectContaining({
+            line: 5,
+            column: body.indexOf("target()") + 1,
+          }),
+        ],
+      }),
+    ]);
+  });
+
+  it("retains literal HTTP and SQL while excluding boundary text in comments and strings", () => {
+    const output = scanFiles({
+      "src/lib.rs": [
+        "pub fn entry() {",
+        '  // reqwest::get("https://ignored.example"); reqwest::get(dynamic);',
+        '  let text = r#"sqlx::query("SELECT * FROM ignored")"#;',
+        '  reqwest::get("https://api.example/path");',
+        '  sqlx::query("SELECT * FROM orders");',
+        "}",
+      ].join("\n"),
+    });
+    expect(
+      output.graph.edges.filter((edge) => edge.kind !== "contains"),
+    ).toEqual([
+      expect.objectContaining({
+        to: "database_table:orders",
+        kind: "reads",
+        evidence: [expect.objectContaining({ line: 5, column: 3 })],
+      }),
+      expect.objectContaining({
+        to: "external_service:https://api.example",
+        kind: "requests",
+        evidence: [expect.objectContaining({ line: 4, column: 3 })],
+      }),
+    ]);
+    expect(output.graph.diagnostics).toEqual([]);
+  });
+
+  it.each([
     ["src/lib.rs", "src/payments/mod.rs"],
     ["src/main.rs", "src/payments/mod.rs"],
     ["src/orders.rs", "src/orders/payments/mod.rs"],
