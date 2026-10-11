@@ -195,6 +195,10 @@ The adapter scans only `.rs` files under the declared source root and supports:
   `requests` edges; and
 - literal `sqlx` `SELECT`, `INSERT`, `UPDATE`, and `DELETE` table relationships.
 
+Out-of-line `mod` declarations resolve both `name.rs` and `name/mod.rs` layouts.
+Child modules of `name.rs` are resolved under the `name/` directory; crate
+entry files and `mod.rs` resolve children alongside their own file.
+
 Dynamic HTTP destinations and SQL queries remain the explicit
 `UNSUPPORTED_RUST_DYNAMIC_HTTP_DESTINATION` and
 `UNSUPPORTED_RUST_DYNAMIC_QUERY` diagnostics. Missing local modules and
