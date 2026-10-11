@@ -1,0 +1,18 @@
+{
+  "queries": [
+    {
+      "schemaVersion": 1,
+      "contract": "cartograph.architecture-query",
+      "queryId": "missing-from",
+      "operation": "dependency-path",
+      "path": { "from": "missing-node", "to": "module-c" }
+    },
+    {
+      "schemaVersion": 1,
+      "contract": "cartograph.architecture-query",
+      "queryId": "missing-to",
+      "operation": "dependency-path",
+      "path": { "from": "node-a", "to": "missing-node" }
+    }
+  ]
+}

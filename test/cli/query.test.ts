@@ -72,6 +72,54 @@ afterEach(() => {
 });
 
 describe("query command", () => {
+  it.each([
+    ["src/missing.ts", "src/b.ts"],
+    ["src/a.ts", "src/missing.ts"],
+  ])("fails when a path endpoint is missing: %s to %s", async (from, to) => {
+    const snapshot = snapshotOf(cyclic);
+    const result = await run([
+      "--snapshot",
+      snapshot,
+      "--from",
+      from,
+      "--to",
+      to,
+      "--format",
+      "json",
+      "--fail-on-match",
+    ]);
+    expect(result.exitCode).toBe(1);
+    expect(JSON.parse(result.output)).toMatchObject({
+      status: "error",
+      paths: [],
+      diagnostics: [expect.objectContaining({ code: "QUERY_NODE_NOT_FOUND" })],
+    });
+  });
+
+  it("passes the gate when existing endpoints have no dependency path", async () => {
+    const snapshot = snapshotOf({
+      "a.ts": "export const a = 1;\n",
+      "b.ts": "export const b = 2;\n",
+    });
+    const result = await run([
+      "--snapshot",
+      snapshot,
+      "--from",
+      "src/a.ts",
+      "--to",
+      "src/b.ts",
+      "--format",
+      "json",
+      "--fail-on-match",
+    ]);
+    expect(result.exitCode).toBeUndefined();
+    expect(JSON.parse(result.output)).toMatchObject({
+      status: "ok",
+      paths: [],
+      diagnostics: [expect.objectContaining({ code: "QUERY_PATH_NOT_FOUND" })],
+    });
+  });
+
   it("reports module import cycles and gates on them", async () => {
     const snapshot = snapshotOf(cyclic);
 

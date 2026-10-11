@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/AlisinaDevelo/CARTOGRAPH/schema/architecture-query-result.v0.1.schema.json",
   "title": "CARTOGRAPH architecture query result v0.1",
-  "description": "A deterministic, evidence-aware result or explicit unsupported/resource-limit response for one local architecture query, including bounded traversal, path, boundary, cycle, pagination, truncation, and opt-in policy/decision/ownership metadata details.",
+  "description": "A deterministic, evidence-aware result or explicit error/unsupported/resource-limit response for one local architecture query, including bounded traversal, path, boundary, cycle, pagination, truncation, and opt-in policy/decision/ownership metadata details.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -23,7 +23,7 @@
     "contract": { "const": "cartograph.architecture-query" },
     "queryId": { "$ref": "#/definitions/selectorValue" },
     "operation": { "$ref": "#/definitions/operation" },
-    "status": { "enum": ["ok", "unsupported", "resource-limit"] },
+    "status": { "enum": ["ok", "error", "unsupported", "resource-limit"] },
     "ordering": { "$ref": "#/definitions/ordering" },
     "projection": { "$ref": "#/definitions/projection" },
     "limits": { "$ref": "#/definitions/limits" },
@@ -65,7 +65,9 @@
     },
     {
       "if": {
-        "properties": { "status": { "enum": ["ok", "resource-limit"] } }
+        "properties": {
+          "status": { "enum": ["ok", "error", "resource-limit"] }
+        }
       },
       "then": { "not": { "required": ["unsupportedOperation"] } }
     }

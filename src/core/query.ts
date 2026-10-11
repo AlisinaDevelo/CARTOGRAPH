@@ -13,6 +13,7 @@ import {
 import {
   SourceLocationSchema,
   GraphNodeSchema,
+  isUnresolvedEdge,
   type Diagnostic,
   type Evidence,
   type GraphEdge,
@@ -66,6 +67,7 @@ export const ArchitectureQueryOperationSchema = z.enum([
 
 export const ArchitectureQueryStatusSchema = z.enum([
   "ok",
+  "error",
   "unsupported",
   "resource-limit",
 ]);
@@ -1457,7 +1459,7 @@ const pathResult = (
           `dependency path exceeds the ${query.limits.maxEdges.toLocaleString("en-US")} edge ceiling`,
         );
       }
-      if (edge.evidence.length === 0 && !path.includeUnresolved) continue;
+      if (isUnresolvedEdge(edge) && !path.includeUnresolved) continue;
       const next = direction === "forward" ? edge.to : edge.from;
       if (depthByNode.has(next)) continue;
       depthByNode.set(next, depth + 1);
@@ -1554,8 +1556,7 @@ const boundaryResult = (
   for (const edge of snapshot.edges) {
     budget();
     if (!allowed.has(edge.kind)) continue;
-    if (edge.evidence.length === 0 && !query.traversal.includeUnresolved)
-      continue;
+    if (isUnresolvedEdge(edge) && !query.traversal.includeUnresolved) continue;
     const fromInside = inside.has(edge.from);
     const toInside = inside.has(edge.to);
     if (fromInside === toInside) continue;
@@ -1793,7 +1794,11 @@ export const executeArchitectureQuery = (
       }
       const result = buildResult(
         query,
-        "ok",
+        execution.diagnostics.some(
+          (diagnostic) => diagnostic.severity === "error",
+        )
+          ? "error"
+          : "ok",
         query.projection.includeNodes ? execution.nodes : [],
         query.projection.includeEdges
           ? execution.edges.map((edge) =>

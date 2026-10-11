@@ -85,6 +85,28 @@ const impactFixture = createGraphSnapshot({
 });
 
 describe("impact subgraphs", () => {
+  it("keeps source-backed unresolved evidence visible without traversing it", () => {
+    const uncertain = createGraphSnapshot({
+      ...impactFixture,
+      edges: impactFixture.edges.map((edge) => ({
+        ...edge,
+        unresolvedReason: "target selected by runtime configuration",
+      })),
+    });
+    const impact = computeForwardImpact(uncertain, ["node-a"], {
+      includeUnresolved: false,
+    });
+    expect(impact.nodes.map((node) => node.id)).toEqual(["node-a"]);
+    expect(impact.unresolvedEdges).toMatchObject([
+      {
+        from: "node-a",
+        to: "node-b",
+        evidence: [expect.objectContaining({ id: "edge-ab" })],
+        unresolvedReason: "target selected by runtime configuration",
+      },
+    ]);
+  });
+
   it("computes deterministic forward reachability with cycles and evidence", () => {
     const impact = computeForwardImpact(impactFixture, ["node-a"], {
       maxDepth: 2,

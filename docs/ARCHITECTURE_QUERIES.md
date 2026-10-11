@@ -49,7 +49,9 @@ remote references.
 `both`. Forward follows an edge's `from` to `to`; reverse follows the same
 edge records backwards without rewriting their evidence. `edgeKinds` is an
 explicit, bounded allow-list. Unresolved edges remain visible as unresolved
-evidence and are traversed only when `includeUnresolved` is true.
+evidence and are traversed only when `includeUnresolved` is true. An edge is
+unresolved when it has no evidence or carries an explicit `unresolvedReason`,
+even if source evidence locates the unresolved relationship.
 
 Reachability and cycle results include canonical `nodeDepths` records. Cycle
 records contain a closed node sequence and every traversed edge with its
@@ -124,11 +126,14 @@ Snapshot diagnostics selected by returned nodes or edges are projected with
 their code, severity, remediation, and evidence IDs. Contract diagnostics are
 stable and actionable: malformed requests fail validation, unsupported
 operations return `QUERY_OPERATION_UNSUPPORTED`, missing path endpoints return
-`QUERY_NODE_NOT_FOUND`, absent paths return `QUERY_PATH_NOT_FOUND`, and
+`QUERY_NODE_NOT_FOUND` with `status: "error"`, absent paths between existing
+endpoints return `QUERY_PATH_NOT_FOUND` with `status: "ok"`, and
 resource breaches return `QUERY_RESOURCE_LIMIT`.
 
 The query API is exported from the core package for local callers. A dedicated
-CLI query command and hosted query service remain outside this contract.
+hosted query service remains outside this contract. The local `query` CLI
+returns exit code 1 for a missing endpoint, including with `--fail-on-match`;
+a valid query with no dependency path still succeeds.
 Only `source-body-search`, `remote-query`, and `mutation` remain explicit
 unsupported operations; they return a deterministic warning rather than being
 guessed or silently executed.
