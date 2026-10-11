@@ -5,10 +5,15 @@
 // so documented lossiness is measured rather than asserted.
 
 import { isDeepStrictEqual } from "node:util";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { createCycloneDx16Validator } from "./vendored-schemas.mjs";
+import {
+  createCycloneDx16Validator,
+  createInTotoStatementV1Validator,
+  createSarif210Validator,
+} from "./vendored-schemas.mjs";
 import {
   buildAssuranceBundle,
   exportBundleStatement,
@@ -36,6 +41,9 @@ const sarif = () => {
     { kind: "snapshot", snapshot: fixture.snapshot },
     { toolName: "cartograph", toolVersion: "0.0.0" },
   );
+  const validate = createSarif210Validator();
+  if (!validate(exported.log))
+    fail(`SARIF export is invalid: ${JSON.stringify(validate.errors)}`);
   const imported = importSarifPolicyEvaluation(exported.log);
   const preserved = imported.mappings.filter((mapping) =>
     exported.mappings.some((item) => isDeepStrictEqual(item, mapping)),
@@ -51,7 +59,7 @@ const sarif = () => {
     transformed: exported.mappings.length,
     dropped: exported.unsupported.length,
     ambiguous: 0,
-    upstreamSchema: "not-vendored",
+    upstreamSchema: "valid",
   };
 };
 
@@ -159,6 +167,11 @@ const inToto = () => {
   );
   const manifest = JSON.parse(built.manifest);
   const statement = exportBundleStatement(manifest, "0".repeat(64));
+  const validate = createInTotoStatementV1Validator();
+  if (!validate(statement))
+    fail(
+      `in-toto Statement export is invalid: ${JSON.stringify(validate.errors)}`,
+    );
   const preserved = manifest.artifacts.filter((artifact) =>
     statement.subject.some(
       (subject) =>
@@ -179,6 +192,32 @@ const inToto = () => {
     ambiguous: 0,
     droppedFields: ["mediaType", "bytes", "label"],
     upstreamSchema: "none-published",
+    specificationConformance: "required-fields-valid",
+  };
+};
+
+const conformance = () => {
+  const fixturePath = "test/fixtures/ecosystem-mappings/conformance.v0.1.json";
+  const fixture = read(fixturePath);
+  const validators = {
+    sarif: createSarif210Validator(),
+    statement: createInTotoStatementV1Validator(),
+  };
+  let cases = 0;
+  for (const [format, validate] of Object.entries(validators)) {
+    for (const scenario of fixture[format]) {
+      if (validate(scenario.input) !== scenario.valid)
+        fail(`${format} conformance case ${scenario.id} changed result`);
+      cases++;
+    }
+  }
+  return {
+    cases,
+    fixtureDigest: `sha256:${createHash("sha256")
+      .update(readFileSync(resolve(root, fixturePath)))
+      .digest("hex")}`,
+    upstreamSchemas: ["sarif-2.1.0", "cyclonedx-1.6"],
+    statement: "required-fields-valid",
   };
 };
 
@@ -198,7 +237,13 @@ export const runEcosystemMappings = () => {
     fail(
       `measured mappings differ from the expected fixture: ${JSON.stringify(report.mappings)}`,
     );
-  return { ok: true, contract: CONTRACT, mappings: report.mappings.length };
+  return {
+    ok: true,
+    contract: CONTRACT,
+    mappings: report.mappings.length,
+    conformance: conformance(),
+    network: false,
+  };
 };
 
 const invokedDirectly =

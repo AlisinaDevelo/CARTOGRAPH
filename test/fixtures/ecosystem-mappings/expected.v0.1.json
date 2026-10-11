@@ -13,7 +13,7 @@
       "transformed": 1,
       "dropped": 1,
       "ambiguous": 0,
-      "upstreamSchema": "not-vendored"
+      "upstreamSchema": "valid"
     },
     {
       "format": "cyclonedx-1.6",
@@ -63,7 +63,8 @@
       "dropped": 0,
       "ambiguous": 0,
       "droppedFields": ["mediaType", "bytes", "label"],
-      "upstreamSchema": "none-published"
+      "upstreamSchema": "none-published",
+      "specificationConformance": "required-fields-valid"
     }
   ]
 }

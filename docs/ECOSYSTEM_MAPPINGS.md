@@ -105,15 +105,41 @@ becomes an encoded purl). "Dropped" means it has no representation.
 
 ## Upstream schema validation
 
-| Format               | Upstream schema                                                                                  | Status                                                                                                                                                                                     |
-| -------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| CycloneDX 1.6        | vendored from [CycloneDX/specification](https://github.com/CycloneDX/specification) (Apache-2.0) | exports validated in tests and in `ecosystem-mappings:validate`                                                                                                                            |
-| SARIF 2.1.0          | not vendored                                                                                     | the OASIS repository's terms are a link to the OASIS IPR policy rather than a file license, so the schema is not redistributed here; output is checked against CARTOGRAPH's SARIF contract |
-| in-toto Statement v1 | none published                                                                                   | in-toto defines the Statement in prose and protobuf, without a JSON Schema; output is checked against the specification's required fields                                                  |
-| SPDX, OTLP           | not needed                                                                                       | import only                                                                                                                                                                                |
+| Format               | Upstream schema                                                                                                                                                                               | Status                                                                                                                                                                                                                                                     |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CycloneDX 1.6        | vendored from [CycloneDX/specification](https://github.com/CycloneDX/specification) (Apache-2.0)                                                                                              | exports validated in tests and in `ecosystem-mappings:validate`                                                                                                                                                                                            |
+| SARIF 2.1.0          | official draft-04 schema vendored from [oasis-tcs/sarif-spec](https://github.com/oasis-tcs/sarif-spec/blob/25eb7663ad3ac54338b4f6a00a7004995e32e6da/sarif-2.1/schema/sarif-schema-2.1.0.json) | generated policy exports validated offline with `ajv-draft-04` in tests and `ecosystem-mappings:validate`; schema bytes are unmodified                                                                                                                     |
+| in-toto Statement v1 | no official JSON Schema used                                                                                                                                                                  | CARTOGRAPH's local required-field conformance check derives from the [pinned upstream Statement specification](https://github.com/in-toto/attestation/blob/fd2609c16bcb0ac53443e2b4612977f997e8f9a5/spec/v1/statement.md), not an official upstream schema |
+| SPDX, OTLP           | not needed                                                                                                                                                                                    | import only                                                                                                                                                                                                                                                |
 
-Vendored files live in `schema/vendor/` with their license and are recorded
+Vendored schemas and specification sources live in `schema/vendor/` with their license terms and are recorded
 in `schema/vendor/provenance.json`: source repository, commit, and SHA-256
 of every file. Tests fail if a vendored file changes. The CycloneDX schema
 uses the `iri-reference` and `idn-email` formats, which are checked with
 their stricter ASCII counterparts (`uri-reference`, `email`).
+
+SARIF's repository `LICENSE.md` contains OASIS IPR terms. The upstream
+maintainer separately recorded OASIS's schema redistribution permission in
+[issue #583](https://github.com/oasis-tcs/sarif-spec/issues/583#issuecomment-1563656252).
+Both the original terms and a digest-bound record of that schema-specific
+permission are retained under `schema/vendor/sarif-2.1.0/`; no SPDX license is
+inferred from the permission.
+
+The in-toto check validates the Statement type, subject array and each
+subject's nonempty string-valued digest set, optional name, TypeURI, and optional
+object predicate. TypeURI validation uses full URI format checks plus numeric
+authority-port syntax; it does not enforce scheme-specific rules or port ranges.
+SHA-256 values used by CARTOGRAPH must be 64 lowercase hex
+characters. Subject names and predicates remain optional, empty subject arrays
+are allowed, and unknown extension fields are accepted, following the pinned
+specification. Other digest algorithms receive a structural string check only.
+This check does not verify artifact content, digest security, signatures,
+predicate-specific semantics, or every optional ResourceDescriptor field.
+The pinned prose and Apache-2.0 license are retained for offline review.
+
+The local regression corpus at
+`test/fixtures/ecosystem-mappings/conformance.v0.1.json` contains positive and
+negative SARIF and Statement cases. `ecosystem-mappings:validate` validates the
+generated exports, replays all 42 cases, and reports their fixture digest.
+These checks close the export-conformance gap; they do not supply V-001's
+governed replication corpus, independent review, or the later research gates.

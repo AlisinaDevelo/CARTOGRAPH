@@ -14,6 +14,35 @@
         "cyclonedx-1.6/LICENSE": "6c29f22a4a7385285c6f579ec9f33c5e989f00739d6b257243a0b082ec9447ae"
       },
       "modifications": "none; the files are byte-for-byte copies of schema/ and LICENSE at the commit above"
+    },
+    {
+      "id": "sarif-2.1.0",
+      "source": "https://github.com/oasis-tcs/sarif-spec",
+      "commit": "25eb7663ad3ac54338b4f6a00a7004995e32e6da",
+      "license": "OASIS repository IPR terms; schema-specific redistribution permission retained from issue #583",
+      "files": {
+        "sarif-2.1.0/sarif-schema-2.1.0.json": "c3b4bb2d6093897483348925aaa73af03b3e3f4bd4ca38cef26dcb4212a2682e",
+        "sarif-2.1.0/LICENSE.md": "1ee371a08c4bc2a64cf4382990271676835c3d75bc984560a181de54c88471c5",
+        "sarif-2.1.0/redistribution-permission.json": "f860ffb6eae5a5d06dbfdc5cbb5be2a5d76808ac2741029fb04a48223001826e"
+      },
+      "modifications": "Schema and LICENSE.md are byte-for-byte copies. redistribution-permission.json records the upstream schema-specific permission."
+    },
+    {
+      "id": "in-toto-statement-v1-specification",
+      "kind": "specification",
+      "source": "https://github.com/in-toto/attestation",
+      "commit": "fd2609c16bcb0ac53443e2b4612977f997e8f9a5",
+      "license": "Apache-2.0",
+      "files": {
+        "in-toto-statement-v1/spec/v1/statement.md": "cbe684a18b812b8b613d9202eb43b2ea24477f91a2ad6ca5be935185a455ebea",
+        "in-toto-statement-v1/spec/v1/resource_descriptor.md": "bee71bedd6a957771233cbbe6494144157b865992e53cc91d607a8e02a34c58a",
+        "in-toto-statement-v1/spec/v1/digest_set.md": "0b1889fdea7f6d623b41555632aedf04ee4398cf02a32002060608c75ebb038e",
+        "in-toto-statement-v1/spec/v1/field_types.md": "7c14b278a5d14191b7284bac3b05565b91940ca619fedd5f08f3a3498e9a37aa",
+        "in-toto-statement-v1/spec/v1/README.md": "2c1b2b94b23a10783f7c3a7f69e092f1dd704f1bb9b54e0c36174612ec5653c3",
+        "in-toto-statement-v1/LICENSE": "b3a6ac899861c2c28a1abd5c7ea8733fefaed6938d730e099c42671386032aeb",
+        "in-toto-statement-v1/spec/versioning.md": "623a7446e6584bc09496832902aca44dda3eec46381f6b44410966aa3b53b7fc"
+      },
+      "modifications": "none; pinned prose specification and LICENSE are byte-for-byte copies, not an upstream JSON Schema"
     }
   ]
 }
