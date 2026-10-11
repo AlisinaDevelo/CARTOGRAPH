@@ -426,7 +426,9 @@ const main = async () => {
         consumer,
       );
       if (created.status !== 0)
-        throw new Error("creating the replay fixture bundle failed");
+        throw new Error(
+          `creating the replay fixture bundle failed (status ${created.status}, signal ${created.signal}): ${created.stderr.trim().replaceAll(work, "<work>").replaceAll(repositoryRoot, "<repository>").slice(0, 4096)}`,
+        );
     },
     join(work, "cases"),
   );
