@@ -74,7 +74,7 @@ coordinated disclosure decision. Reporters should provide the affected commit,
 command/input, operating system, impact, and a minimal redacted reproduction;
 never include credentials, proprietary source, or a public exploit.
 
-The project is unreleased, so no fixed response-time, embargo, or release-date
+The project is pre-alpha, so no fixed response-time, embargo, or release-date
 promise is made. The maintainer records the affected boundary, validation result,
 and disclosure decision in the private report and public release notes when a
 public release exists.

@@ -1,7 +1,7 @@
 # Changelog
 
-This file records user-visible changes. The project is currently unreleased; no npm
-package has been published. A `v<package-version>` tag runs the read-only package
+This file records user-visible changes. Pre-alpha releases are published as
+`cartograph-cli` on npm. A `v<package-version>` tag runs the read-only package
 gate and creates a GitHub release with the installable tarball, release notes, and
 checksums.
 
