@@ -1,1 +1,4 @@
 * text=auto eol=lf
+
+# Upstream vendored resources retain their original whitespace and byte digests.
+schema/vendor/** -text -whitespace

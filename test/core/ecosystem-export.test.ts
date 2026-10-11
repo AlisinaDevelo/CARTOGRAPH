@@ -1,10 +1,13 @@
 import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 import {
   createCycloneDx16Validator,
+  createInTotoStatementV1Validator,
+  createSarif210Validator,
   verifyVendoredSchemas,
 } from "../../scripts/vendored-schemas.mjs";
 import { scanRepository } from "../../src/commands.js";
@@ -13,6 +16,7 @@ import {
   buildAssuranceBundle,
   exportBundleStatement,
   exportCycloneDx,
+  exportSarifPolicyEvaluation,
   npmPurl,
   parseGraphSnapshot,
   parseSbom,
@@ -28,6 +32,18 @@ const snapshot = parseGraphSnapshot(
   ) as unknown,
 );
 const options = { toolName: "cartograph", toolVersion: "0.0.0" };
+const conformance = JSON.parse(
+  readFileSync(
+    resolve(
+      import.meta.dirname,
+      "../fixtures/ecosystem-mappings/conformance.v0.1.json",
+    ),
+    "utf8",
+  ),
+) as {
+  sarif: { id: string; input: unknown; valid: boolean }[];
+  statement: { id: string; input: unknown; valid: boolean }[];
+};
 
 describe("CycloneDX export", () => {
   const bom = exportCycloneDx(snapshot, options);
@@ -90,13 +106,98 @@ describe("in-toto statement export", () => {
       sourceBodiesIncluded: false,
     });
   });
+
+  it("produces a Statement v1 conforming to the pinned required-field specification", () => {
+    expect(createInTotoStatementV1Validator).toBeTypeOf("function");
+    const built = buildAssuranceBundle(
+      [
+        {
+          role: "snapshot-head",
+          content: new TextEncoder().encode(serializeGraphSnapshot(snapshot)),
+        },
+      ],
+      { toolVersion: "0.0.0" },
+    );
+    const validate = createInTotoStatementV1Validator();
+    const manifest = JSON.parse(built.manifest) as Parameters<
+      typeof exportBundleStatement
+    >[0];
+    expect(
+      validate(exportBundleStatement(manifest, "a".repeat(64))),
+      JSON.stringify(validate.errors),
+    ).toBe(true);
+  });
+
+  it.each(conformance.statement)(
+    "checks Statement v1 regression $id",
+    ({ input, valid }) => {
+      expect(createInTotoStatementV1Validator).toBeTypeOf("function");
+      const validate = createInTotoStatementV1Validator();
+      expect(validate(input), JSON.stringify(validate.errors)).toBe(valid);
+    },
+  );
+});
+
+describe("upstream SARIF 2.1.0 schema", () => {
+  it("accepts generated policy results against the official schema", () => {
+    expect(createSarif210Validator).toBeTypeOf("function");
+    const fixture = JSON.parse(
+      readFileSync(
+        resolve(
+          import.meta.dirname,
+          "../fixtures/sarif-interchange/round-trip.v0.1.json",
+        ),
+        "utf8",
+      ),
+    ) as { evaluation: unknown; snapshot: unknown };
+    const exported = exportSarifPolicyEvaluation(
+      fixture.evaluation,
+      { kind: "snapshot", snapshot: fixture.snapshot },
+      options,
+    );
+    const validate = createSarif210Validator();
+    expect(validate(exported.log), JSON.stringify(validate.errors)).toBe(true);
+  });
+
+  it.each(conformance.sarif)(
+    "checks upstream SARIF regression $id",
+    ({ input, valid }) => {
+      expect(createSarif210Validator).toBeTypeOf("function");
+      const validate = createSarif210Validator();
+      expect(validate(input), JSON.stringify(validate.errors)).toBe(valid);
+    },
+  );
+});
+
+it("replays the upstream and required-field conformance cases in the offline mapping gate", () => {
+  const output = JSON.parse(
+    execFileSync(
+      process.execPath,
+      ["--import", "tsx", "scripts/ecosystem-mappings.mjs", "validate"],
+      { cwd: resolve(import.meta.dirname, "../.."), encoding: "utf8" },
+    ),
+  ) as { conformance: { fixtureDigest: string } };
+  expect(output).toMatchObject({
+    ok: true,
+    mappings: 5,
+    conformance: {
+      cases: 31,
+      upstreamSchemas: ["sarif-2.1.0", "cyclonedx-1.6"],
+      statement: "required-fields-valid",
+    },
+  });
+  expect(output.conformance.fixtureDigest).toMatch(/^sha256:[a-f0-9]{64}$/u);
 });
 
 describe("upstream CycloneDX 1.6 schema", () => {
   const validate = createCycloneDx16Validator();
 
   it("keeps the vendored files byte-for-byte", () => {
-    expect(verifyVendoredSchemas()).toEqual(["cyclonedx-1.6"]);
+    expect(verifyVendoredSchemas()).toEqual([
+      "cyclonedx-1.6",
+      "sarif-2.1.0",
+      "in-toto-statement-v1-specification",
+    ]);
   });
 
   it("accepts exports of the fixture graph and of real scans", () => {

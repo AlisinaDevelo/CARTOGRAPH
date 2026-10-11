@@ -1,0 +1,549 @@
+{
+  "schemaVersion": 1,
+  "contract": "cartograph.export-conformance-fixtures",
+  "sarif": [
+    {
+      "id": "valid-result",
+      "input": {
+        "version": "2.1.0",
+        "runs": [
+          {
+            "tool": {
+              "driver": {
+                "name": "cartograph"
+              }
+            },
+            "results": [
+              {
+                "ruleId": "rule:1",
+                "kind": "fail",
+                "message": {
+                  "text": "A supported finding"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "valid": true
+    },
+    {
+      "id": "empty-runs",
+      "input": {
+        "version": "2.1.0",
+        "runs": []
+      },
+      "valid": true
+    },
+    {
+      "id": "missing-runs",
+      "input": {
+        "version": "2.1.0"
+      },
+      "valid": false
+    },
+    {
+      "id": "wrong-version",
+      "input": {
+        "version": "2.0.0",
+        "runs": [
+          {
+            "tool": {
+              "driver": {
+                "name": "cartograph"
+              }
+            },
+            "results": [
+              {
+                "ruleId": "rule:1",
+                "kind": "fail",
+                "message": {
+                  "text": "A supported finding"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "missing-tool",
+      "input": {
+        "version": "2.1.0",
+        "runs": [
+          {
+            "results": [
+              {
+                "ruleId": "rule:1",
+                "kind": "fail",
+                "message": {
+                  "text": "A supported finding"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "missing-driver-name",
+      "input": {
+        "version": "2.1.0",
+        "runs": [
+          {
+            "tool": {
+              "driver": {}
+            },
+            "results": [
+              {
+                "ruleId": "rule:1",
+                "kind": "fail",
+                "message": {
+                  "text": "A supported finding"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "missing-message",
+      "input": {
+        "version": "2.1.0",
+        "runs": [
+          {
+            "tool": {
+              "driver": {
+                "name": "cartograph"
+              }
+            },
+            "results": [
+              {
+                "ruleId": "rule:1",
+                "kind": "fail"
+              }
+            ]
+          }
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "invalid-result-level",
+      "input": {
+        "version": "2.1.0",
+        "runs": [
+          {
+            "tool": {
+              "driver": {
+                "name": "cartograph"
+              }
+            },
+            "results": [
+              {
+                "ruleId": "rule:1",
+                "kind": "fail",
+                "message": {
+                  "text": "A supported finding"
+                },
+                "level": "critical"
+              }
+            ]
+          }
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "unknown-root-field",
+      "input": {
+        "version": "2.1.0",
+        "runs": [
+          {
+            "tool": {
+              "driver": {
+                "name": "cartograph"
+              }
+            },
+            "results": [
+              {
+                "ruleId": "rule:1",
+                "kind": "fail",
+                "message": {
+                  "text": "A supported finding"
+                }
+              }
+            ]
+          }
+        ],
+        "unrecognized": true
+      },
+      "valid": false
+    },
+    {
+      "id": "zero-source-line",
+      "input": {
+        "version": "2.1.0",
+        "runs": [
+          {
+            "tool": {
+              "driver": {
+                "name": "cartograph"
+              }
+            },
+            "results": [
+              {
+                "ruleId": "rule:1",
+                "kind": "fail",
+                "message": {
+                  "text": "A supported finding"
+                },
+                "locations": [
+                  {
+                    "physicalLocation": {
+                      "artifactLocation": {
+                        "uri": "src/a.ts"
+                      },
+                      "region": {
+                        "startLine": 0
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "valid": false
+    }
+  ],
+  "statement": [
+    {
+      "id": "valid-generated-shape",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [
+          {
+            "name": "manifest.json",
+            "digest": {
+              "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        ],
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": {}
+      },
+      "valid": true
+    },
+    {
+      "id": "optional-name",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [
+          {
+            "digest": {
+              "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        ],
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": {}
+      },
+      "valid": true
+    },
+    {
+      "id": "optional-predicate",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [
+          {
+            "name": "manifest.json",
+            "digest": {
+              "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        ],
+        "predicateType": "https://example.org/predicate/v1"
+      },
+      "valid": true
+    },
+    {
+      "id": "empty-subjects",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [],
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": {}
+      },
+      "valid": true
+    },
+    {
+      "id": "extension-fields",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [
+          {
+            "name": "manifest.json",
+            "digest": {
+              "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        ],
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": {},
+        "extension": {
+          "safe": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "id": "non-sha256-digest",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [
+          {
+            "name": "manifest.json",
+            "digest": {
+              "gitCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        ],
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": {}
+      },
+      "valid": true
+    },
+    {
+      "id": "missing-type",
+      "input": {
+        "subject": [
+          {
+            "name": "manifest.json",
+            "digest": {
+              "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        ],
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": {}
+      },
+      "valid": false
+    },
+    {
+      "id": "wrong-type",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v2",
+        "subject": [
+          {
+            "name": "manifest.json",
+            "digest": {
+              "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        ],
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": {}
+      },
+      "valid": false
+    },
+    {
+      "id": "missing-subject",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": {}
+      },
+      "valid": false
+    },
+    {
+      "id": "non-array-subject",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": {},
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": {}
+      },
+      "valid": false
+    },
+    {
+      "id": "non-object-subject",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": ["manifest.json"],
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": {}
+      },
+      "valid": false
+    },
+    {
+      "id": "missing-digest",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [
+          {
+            "name": "manifest.json"
+          }
+        ],
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": {}
+      },
+      "valid": false
+    },
+    {
+      "id": "empty-digest",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [
+          {
+            "name": "manifest.json",
+            "digest": {}
+          }
+        ],
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": {}
+      },
+      "valid": false
+    },
+    {
+      "id": "non-string-digest",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [
+          {
+            "name": "manifest.json",
+            "digest": {
+              "sha256": 42
+            }
+          }
+        ],
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": {}
+      },
+      "valid": false
+    },
+    {
+      "id": "short-sha256",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [
+          {
+            "name": "manifest.json",
+            "digest": {
+              "sha256": "abcd"
+            }
+          }
+        ],
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": {}
+      },
+      "valid": false
+    },
+    {
+      "id": "uppercase-sha256",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [
+          {
+            "name": "manifest.json",
+            "digest": {
+              "sha256": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            }
+          }
+        ],
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": {}
+      },
+      "valid": false
+    },
+    {
+      "id": "numeric-name",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [
+          {
+            "name": 123,
+            "digest": {
+              "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        ],
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": {}
+      },
+      "valid": false
+    },
+    {
+      "id": "missing-predicate-type",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [
+          {
+            "name": "manifest.json",
+            "digest": {
+              "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        ],
+        "predicate": {}
+      },
+      "valid": false
+    },
+    {
+      "id": "relative-predicate-type",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [
+          {
+            "name": "manifest.json",
+            "digest": {
+              "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        ],
+        "predicateType": "predicate/v1",
+        "predicate": {}
+      },
+      "valid": false
+    },
+    {
+      "id": "non-normalized-predicate-type",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [
+          {
+            "name": "manifest.json",
+            "digest": {
+              "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        ],
+        "predicateType": "https://EXAMPLE.org/predicate/v1",
+        "predicate": {}
+      },
+      "valid": false
+    },
+    {
+      "id": "non-object-predicate",
+      "input": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [
+          {
+            "name": "manifest.json",
+            "digest": {
+              "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        ],
+        "predicateType": "https://example.org/predicate/v1",
+        "predicate": []
+      },
+      "valid": false
+    }
+  ]
+}
