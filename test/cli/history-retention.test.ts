@@ -185,6 +185,35 @@ describe("history gc", () => {
     expect((await verifyHistory(store)).ok).toBe(true);
   });
 
+  it("preserves stored evidence when retention prevents diff compaction", async () => {
+    const { store, policy } = await setup();
+    const result = await historyGc({
+      store,
+      policy: policy({
+        rules: [{ id: "last1", kind: "snapshot", keepLast: 1 }],
+        compactDerivedDiffs: true,
+      }),
+      asOf: AS_OF,
+      apply: true,
+    });
+
+    expect(result.deleted).toEqual([]);
+    expect(await verifyHistory(store)).toMatchObject({
+      ok: true,
+      records: 5,
+      unresolvedReferences: [],
+    });
+    const trends = await historyTrends({
+      store,
+      revisions: ["aaaa", "bbbb", "cccc"],
+    });
+    expect(trends.revisions.map((item) => item.status)).toEqual([
+      "measured",
+      "measured",
+      "measured",
+    ]);
+  });
+
   it("refuses to run on a store whose index is corrupt", async () => {
     const { store, policy } = await setup();
     writeFileSync(join(store, "index.json"), "{");

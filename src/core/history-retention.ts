@@ -234,7 +234,7 @@ export const planHistoryRetention = (
       reasons.get(record.id)?.add("hold");
     }
 
-  // Withdraw removals that a retained record still references, until stable.
+  // Withdraw removals until both retained references and compaction agree.
   for (let changed = true; changed;) {
     changed = false;
     const retained = records.filter((record) => !removal.has(record.id));
@@ -252,25 +252,26 @@ export const planHistoryRetention = (
         changed = true;
       }
     }
-  }
 
-  // A compacted diff must still be reproducible from what stays.
-  for (const record of records)
-    if (
-      removal.get(record.id) === "compact-derived-diff" &&
-      record.references.some((reference) => {
-        const revision = reference.slice("revision:".length);
-        return !records.some(
-          (other) =>
-            other.kind === "snapshot" &&
-            other.revision === revision &&
-            !removal.has(other.id),
-        );
-      })
-    ) {
-      removal.delete(record.id);
-      reasons.get(record.id)?.add("not-reproducible");
-    }
+    // A reinstated diff pins its evidence on the next reference pass.
+    for (const record of records)
+      if (
+        removal.get(record.id) === "compact-derived-diff" &&
+        record.references.some((reference) => {
+          const revision = reference.slice("revision:".length);
+          return !records.some(
+            (other) =>
+              other.kind === "snapshot" &&
+              other.revision === revision &&
+              !removal.has(other.id),
+          );
+        })
+      ) {
+        removal.delete(record.id);
+        reasons.get(record.id)?.add("not-reproducible");
+        changed = true;
+      }
+  }
 
   const byId = new Map(records.map((record) => [record.id, record]));
   return {

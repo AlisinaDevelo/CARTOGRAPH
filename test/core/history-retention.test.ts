@@ -187,6 +187,37 @@ describe("history retention planning", () => {
     );
   });
 
+  it("keeps referenced snapshots when their diff cannot be compacted after retention", () => {
+    const records: RetentionRecord[] = [
+      snapshot(1, "a", "2026-09-01T00:00:00Z"),
+      snapshot(2, "b", "2026-09-02T00:00:00Z"),
+      {
+        id: id(3),
+        kind: "diff",
+        revision: "b",
+        references: ["revision:a", "revision:b"],
+        date: "2026-09-02T00:00:00Z",
+      },
+    ];
+    const plan = planHistoryRetention(
+      records,
+      policy({
+        rules: [{ id: "last1", kind: "snapshot", keepLast: 1 }],
+        compactDerivedDiffs: true,
+      }),
+      AS_OF,
+      () => true,
+    );
+
+    expect(plan.remove).toEqual([]);
+    expect(plan.keep.find((item) => item.id === id(1))?.reasons).toEqual([
+      "referenced",
+    ]);
+    expect(plan.keep.find((item) => item.id === id(3))?.reasons).toContain(
+      "not-reproducible",
+    );
+  });
+
   it("rejects malformed policies", () => {
     expect(() => policy({ rules: [{ id: "x", kind: "snapshot" }] })).toThrow();
     expect(() =>
