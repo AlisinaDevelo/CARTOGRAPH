@@ -21,6 +21,19 @@ document, schema, fixture, validator, test, or release record. No source body,
 private record, credential, network collection, or hidden telemetry is part of
 the audit.
 
+## Current release and build evidence (2026-10-11)
+
+The register below preserves the 2026-08-25 audit and its digest. Two findings
+have since gained implementation evidence: `cartograph-cli` 0.1.1 is published
+on [npm](https://www.npmjs.com/package/cartograph-cli), with the artifact and
+verification workflow documented in [RELEASE.md](RELEASE.md), and
+[CI](../.github/workflows/ci.yml) now builds `dist/cli.js` before its Action
+fixture checks. These updates resolve the specific missing-publication and
+missing-build observations; they do not establish a stable release history,
+independent replication, adoption, broad accuracy, or completion of the later
+investment gates. A refreshed claims register requires its own versioned
+evidence and review.
+
 ## Reading the status vocabulary
 
 | Status         | Meaning                                                                                                     |

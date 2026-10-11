@@ -1,8 +1,8 @@
 # Security policy
 
-CARTOGRAPH is an unreleased, local-first TypeScript analyzer. It accepts untrusted repository paths, configuration, Git history, TypeScript syntax, package metadata, and output paths. The analyzer process, Git and archive subprocesses, temporary revision trees, generated reports, package dependencies, and CI runner are security boundaries.
+CARTOGRAPH is a pre-alpha, local-first TypeScript analyzer, published as `cartograph-cli` on npm and through GitHub releases. It accepts untrusted repository paths, configuration, Git history, TypeScript syntax, package metadata, and output paths. The analyzer process, Git and archive subprocesses, temporary revision trees, generated reports, package dependencies, and CI runner are security boundaries.
 
-No hosted service, authentication system, telemetry pipeline, or npm release process is currently part of the supported product. Do not assume that an unreleased build is suitable for processing sensitive repositories without an independent review.
+The supported product runs locally without a hosted service, authentication system, or telemetry pipeline. Package publication and artifact verification are described in [`docs/RELEASE.md`](docs/RELEASE.md). Processing sensitive repositories still requires an independent review of the applicable trust boundaries.
 
 ## Reporting a vulnerability
 
@@ -18,14 +18,14 @@ Include, where possible:
 - the impact and the trust boundary involved;
 - any suggested mitigation.
 
-The maintainer will assess reports and coordinate a practical disclosure and remediation plan. Do not rely on a fixed response-time or release-time promise while the project is unreleased.
+The maintainer will assess reports and coordinate a practical disclosure and remediation plan. The pre-alpha project makes no fixed response-time or release-time promise.
 
 ## Supported versions
 
-| Version               | Security support                                              |
-| --------------------- | ------------------------------------------------------------- |
-| `main` / `Unreleased` | Current development baseline; fixes are considered here first |
-| Published releases    | None yet                                                      |
+| Version                    | Security support                                                                      |
+| -------------------------- | ------------------------------------------------------------------------------------- |
+| `main` / `Unreleased`      | Current development baseline; fixes are considered here first                         |
+| `0.1.x` pre-alpha releases | Published packages; fixes are developed on `main`, with no LTS or backport commitment |
 
 ## Scope
 

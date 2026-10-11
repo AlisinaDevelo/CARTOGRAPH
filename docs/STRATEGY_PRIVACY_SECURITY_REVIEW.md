@@ -106,16 +106,18 @@ minimal authorized fixture or redacted reproduction, the exact revision and
 command, the trust boundary, impact, and a suggested mitigation. Containment
 means disabling the affected command or artifact upload, preserving exact
 redacted evidence, rotating an external token through its owner, and blocking
-release until the boundary is reviewed. The unreleased project makes no fixed
+release until the boundary is reviewed. The pre-alpha project makes no fixed
 response-time or release-time promise.
 
 Supply-chain controls are currently enforced rather than delegated to the
 strategy decision: CI installs with lifecycle scripts disabled; workflow
 actions are pinned; the lockfile, dependency review, CodeQL, package contents,
 and provenance checks are part of the local/CI pipe. The compiler and npm
-dependency chain remain trusted dependencies. No public npm release exists yet,
-so a future publication needs its own identity, signing, dependency,
-provenance, and incident-response review.
+dependency chain remain trusted dependencies. At the original review date,
+no public npm release existed. As of 2026-10-11, `cartograph-cli` 0.1.1 is
+published on npm; the [release workflow](RELEASE.md) documents package identity,
+dependency, provenance, and artifact-verification controls. Publication does
+not change the review's privacy, adoption, or independent-validation gates.
 
 ## Abuse cases and blocking mitigations
 
