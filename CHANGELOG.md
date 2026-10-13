@@ -77,6 +77,10 @@ statement`), with one [mapping document](docs/ECOSYSTEM_MAPPINGS.md) for
 
 ### Fixed
 
+- Query traversal now uses minimum depths from every selected root, avoiding
+  false depth cutoffs and omitted descendants or cycle witnesses. Query
+  Markdown uses terminal-readable code spans with injection-safe text.
+
 - Installed bundle commands fingerprint ts-morph's runtime compiler SDK, so
   production installs work without the development-only TypeScript package.
 

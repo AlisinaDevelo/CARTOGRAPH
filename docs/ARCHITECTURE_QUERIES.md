@@ -53,9 +53,22 @@ evidence and are traversed only when `includeUnresolved` is true. An edge is
 unresolved when it has no evidence or carries an explicit `unresolvedReason`,
 even if source evidence locates the unresolved relationship.
 
+Every selected root is seeded at depth zero. Traversal uses the minimum hop
+distance from any root, so a long branch cannot hide a shorter route. Selecting
+all modules for `query --cycles` therefore does not produce a depth cutoff
+merely because an import chain is longer than the default depth eight.
+
+`both` computes forward and reverse traversals separately and unions their
+results. A depth-boundary edge in one direction can have both endpoints in the
+combined node set; its diagnostic records incomplete traversal in a requested
+direction rather than claiming the endpoint is absent from the combined result.
+
 Reachability and cycle results include canonical `nodeDepths` records. Cycle
 records contain a closed node sequence and every traversed edge with its
-projected evidence. Dependency-path records preserve path order in `paths`;
+projected evidence. An iterative walk emits deterministic cycle witnesses on
+the reached subgraph; the list is not an enumeration of every simple cycle.
+Raw repeated witness materialization is bounded to 16 MiB before projection,
+and exceeding it returns a byte resource-limit result. Dependency-path records preserve path order in `paths`;
 the top-level `nodes` and `edges` arrays remain canonically ordered for stable
 serialization. Boundary records include the inside and outside node IDs, the
 crossing direction, and the complete projected edge.
@@ -205,3 +218,8 @@ The runner also proves that queries are read-only with respect to policy: it
 evaluates a policy, runs every query, confirms the input snapshot is unchanged
 and the policy decision is byte-identical, and confirms that a query result is
 rejected as policy input.
+
+The default Markdown query report uses fenced code spans that remain readable
+in a terminal and safe when rendered as Markdown. Identifiers containing
+backticks or HTML stay literal; repository-controlled diagnostic text cannot
+introduce headings, links or executable markup. JSON output is unchanged.

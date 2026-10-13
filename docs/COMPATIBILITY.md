@@ -114,6 +114,14 @@ Query and impact traversal also recognize an explicit `unresolvedReason` as
 unresolved when source evidence is present. This corrects the documented
 `includeUnresolved` behavior without changing request or graph schemas.
 
+The query traversal correction for issue #425 computes minimum hop depths from
+all selected roots and finds deterministic cycle witnesses on the bounded
+reached graph. Prior false cutoffs and omitted descendants/cycles can therefore
+change without a wire-format revision. Real depth, node and edge ceilings
+remain enforced, and repeated raw cycle-witness output has a 16 MiB guard.
+Markdown query output uses code spans instead of embedded HTML code tags;
+JSON contracts are unchanged.
+
 Local ADR reference indexes use the reviewed `adrReferences` contract and
 [`schema/adr-reference.v0.1.schema.json`](../schema/adr-reference.v0.1.schema.json).
 P-008 adds ADR comparison details only to Markdown and standalone HTML report

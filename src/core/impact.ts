@@ -1,3 +1,5 @@
+import { Buffer } from "node:buffer";
+
 import { z } from "zod";
 
 import {
@@ -167,7 +169,6 @@ export const computeImpactSubgraph = (
   }
 
   const impactNodes = new Map<string, ImpactNode>();
-  const visited = new Set<string>();
   const impactEdges: ImpactEdge[] = [];
   const unresolvedEdges: ImpactEdge[] = [];
   const depthLimitedEdges: ImpactEdge[] = [];
@@ -210,39 +211,21 @@ export const computeImpactSubgraph = (
     return impactEdge;
   };
 
-  const addCycle = (
-    pathNodes: readonly string[],
-    pathEdgesWithCurrent: readonly ImpactEdge[],
-    nextNode: string,
-  ): void => {
-    const start = pathNodes.indexOf(nextNode);
-    if (start < 0) return;
-    const nodes = [...pathNodes.slice(start), nextNode];
-    const edges = [...pathEdgesWithCurrent.slice(start)];
-    const cycle: ImpactCycle = {
-      nodes,
-      edges,
-      direction: query.direction,
-    };
-    cycles.set(cycleIdentity(cycle), cycle);
-  };
-
-  const walk = (
-    nodeId: string,
-    depth: number,
-    pathNodes: readonly string[],
-    pathEdges: readonly ImpactEdge[],
-  ): void => {
+  // Seed all roots before expanding any branch. FIFO expansion gives every
+  // node its minimum hop depth, independent of DFS branch or root ordering.
+  const queue: string[] = [];
+  for (const root of roots) {
+    addNode(root, 0, true);
+    queue.push(root.id);
+  }
+  for (let cursor = 0; cursor < queue.length; cursor += 1) {
+    const nodeId = queue[cursor]!;
+    const depth = impactNodes.get(nodeId)!.depth;
     for (const edge of adjacency.get(nodeId) ?? []) {
-      const nextNodeId = query.direction === "forward" ? edge.to : edge.from;
       const impactEdge = addEdge(edge, depth);
       if (isUnresolvedEdge(edge) && !query.includeUnresolved) continue;
-
-      if (pathNodes.includes(nextNodeId)) {
-        addCycle(pathNodes, pathEdges.concat(impactEdge), nextNodeId);
-        continue;
-      }
-
+      const nextNodeId = query.direction === "forward" ? edge.to : edge.from;
+      if (impactNodes.has(nextNodeId)) continue;
       if (depth >= query.maxDepth) {
         const identity = edgeIdentity(edge, query.direction);
         if (!emittedDepthLimitedEdges.has(identity)) {
@@ -251,26 +234,85 @@ export const computeImpactSubgraph = (
         }
         continue;
       }
-
       const nextNode = nodesById.get(nextNodeId);
       if (nextNode === undefined) continue;
       addNode(nextNode, depth + 1, false);
-      if (visited.has(nextNodeId)) continue;
-      visited.add(nextNodeId);
-      walk(
-        nextNodeId,
-        depth + 1,
-        [...pathNodes, nextNodeId],
-        [...pathEdges, impactEdge],
-      );
+      queue.push(nextNodeId);
     }
-  };
+  }
 
-  for (const root of roots) {
-    addNode(root, 0, true);
-    if (visited.has(root.id)) continue;
-    visited.add(root.id);
-    walk(root.id, 0, [root.id], []);
+  // Cycle witnesses belong to the reached subgraph, rather than a root's
+  // discovery path. Use an explicit DFS stack so many selected roots can
+  // expose a long cycle without recursive-stack overflow or a false cutoff.
+  const cycleAdjacency = new Map<string, ImpactEdge[]>();
+  for (const edge of impactEdges) {
+    if (isUnresolvedEdge(edge) && !query.includeUnresolved) continue;
+    if (!impactNodes.has(edge.from) || !impactNodes.has(edge.to)) continue;
+    const source = query.direction === "forward" ? edge.from : edge.to;
+    const outgoing = cycleAdjacency.get(source) ?? [];
+    outgoing.push(edge);
+    cycleAdjacency.set(source, outgoing);
+  }
+  const complete = new Set<string>();
+  const active = new Map<string, number>();
+  const pathNodes: string[] = [];
+  const pathEdges: ImpactEdge[] = [];
+  const edgeBytes = new Map<ImpactEdge, number>();
+  // Repeated witness paths can be much larger than the unique edge set.
+  // Bound their raw materialization before copying or projecting them.
+  const maxCycleBytes = 16 * 1024 * 1024;
+  let cycleBytes = 0;
+  for (const node of impactNodes.values()) {
+    if (complete.has(node.id)) continue;
+    const stack: { nodeId: string; cursor: number }[] = [
+      { nodeId: node.id, cursor: 0 },
+    ];
+    active.set(node.id, 0);
+    pathNodes.push(node.id);
+    while (stack.length > 0) {
+      const frame = stack[stack.length - 1]!;
+      const edge = (cycleAdjacency.get(frame.nodeId) ?? [])[frame.cursor++];
+      if (edge === undefined) {
+        complete.add(frame.nodeId);
+        active.delete(frame.nodeId);
+        stack.pop();
+        pathNodes.pop();
+        pathEdges.pop();
+        continue;
+      }
+      const nextNode = query.direction === "forward" ? edge.to : edge.from;
+      const start = active.get(nextNode);
+      if (start !== undefined) {
+        let witnessBytes = 64 + Buffer.byteLength(JSON.stringify(nextNode));
+        for (let index = start; index < pathNodes.length; index += 1) {
+          witnessBytes +=
+            Buffer.byteLength(JSON.stringify(pathNodes[index])) + 1;
+          const item = index < pathEdges.length ? pathEdges[index]! : edge;
+          let bytes = edgeBytes.get(item);
+          if (bytes === undefined) {
+            bytes = Buffer.byteLength(stableStringify(item));
+            edgeBytes.set(item, bytes);
+          }
+          witnessBytes += bytes + 1;
+          if (cycleBytes + witnessBytes > maxCycleBytes)
+            throw new ResourceLimitError(
+              `impact cycle witnesses exceed the ${maxCycleBytes} byte output ceiling`,
+            );
+        }
+        cycleBytes += witnessBytes;
+        const cycle: ImpactCycle = {
+          nodes: [...pathNodes.slice(start), nextNode],
+          edges: [...pathEdges.slice(start), edge],
+          direction: query.direction,
+        };
+        cycles.set(cycleIdentity(cycle), cycle);
+      } else if (!complete.has(nextNode)) {
+        active.set(nextNode, pathNodes.length);
+        pathNodes.push(nextNode);
+        pathEdges.push(edge);
+        stack.push({ nodeId: nextNode, cursor: 0 });
+      }
+    }
   }
 
   const sortedEdges = sortImpactEdges(impactEdges);
