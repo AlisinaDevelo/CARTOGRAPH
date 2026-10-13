@@ -78,8 +78,10 @@ without `--force`.
 After scanning, check module import cycles locally:
 
 ```sh
-cartograph query --snapshot .cartograph/graph.json --cycles
-cartograph query --snapshot .cartograph/graph.json --cycles --format json
+node dist/cli.js query \
+  --snapshot .cartograph/sample.graph.json --cycles
+node dist/cli.js query \
+  --snapshot .cartograph/sample.graph.json --cycles --format json
 ```
 
 The default output is terminal-readable Markdown. Cycle paths are deterministic

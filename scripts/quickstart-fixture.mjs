@@ -61,6 +61,30 @@ const runQuickstart = async () => {
     )
       throw new Error("sample scan did not produce a schema-valid graph");
 
+    const queryArgs = [cliPath, "query", "--snapshot", scanPath, "--cycles"];
+    const markdown = (await run(process.execPath, queryArgs, root)).stdout;
+    if (
+      !markdown.includes("# CARTOGRAPH query: cycles") ||
+      !markdown.includes("## Cycles (0)") ||
+      /<code>|&gt;|\(truncated\)/u.test(markdown)
+    )
+      throw new Error(
+        "sample cycle query did not produce readable complete output",
+      );
+    const query = JSON.parse(
+      (await run(process.execPath, [...queryArgs, "--format", "json"], root))
+        .stdout,
+    );
+    if (
+      query.contract !== "cartograph.architecture-query" ||
+      query.status !== "ok" ||
+      query.truncated ||
+      query.cycles.length !== 0
+    )
+      throw new Error(
+        "sample cycle query did not produce a complete empty result",
+      );
+
     await git(["add", "."], root);
     await git(["commit", "-m", "sample baseline"], root);
     const baseSha = await git(["rev-parse", "HEAD"], root);
@@ -121,6 +145,7 @@ const runQuickstart = async () => {
         headSha,
         scanNodes: scan.nodes.length,
         scanEdges: scan.edges.length,
+        queryCycles: query.cycles.length,
         changedCount,
       }),
     );
