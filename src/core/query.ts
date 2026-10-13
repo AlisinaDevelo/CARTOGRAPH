@@ -1052,7 +1052,7 @@ const truncationDiagnostics = (
     queryDiagnostic(
       query,
       "QUERY_TRUNCATED",
-      `traversal stopped at maxDepth ${query.limits.maxDepth}; edge ${edge.from} -> ${edge.to} remains outside the returned node set`,
+      `traversal stopped at maxDepth ${query.limits.maxDepth}; edge ${edge.from} -> ${edge.to} was not fully traversed in a requested direction`,
       "warning",
       {
         limit: "maxDepth",
@@ -1068,6 +1068,8 @@ const resourceLimitFromError = (
   const message = error instanceof Error ? error.message : String(error);
   if (/node ceiling/iu.test(message)) return { limit: "maxNodes", message };
   if (/edge ceiling/iu.test(message)) return { limit: "maxEdges", message };
+  if (/byte output ceiling/iu.test(message))
+    return { limit: "maxResultBytes", message };
   if (/wall-clock|time ceiling|timed out/iu.test(message))
     return { limit: "maxTimeMs", message };
   return { limit: "maxTimeMs", message };

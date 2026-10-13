@@ -7,19 +7,28 @@ import type {
 } from "../core/index.js";
 
 // Query results can be large; the Markdown view lists at most this many
-// records per section and says how many it left out. JSON output is complete.
+// records per section and says how many it left out. JSON retains every record
+// in the returned page; query limits and pagination still apply.
 const MAX_MARKDOWN_ITEMS = 200;
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+const singleLine = (value: string): string =>
+  value.replace(/\s+/gu, " ").trim();
 
-const code = (value: string): string =>
-  `<code>${escapeHtml(value.replace(/\s+/gu, " ").trim())}</code>`;
+const markdownText = (value: string): string =>
+  singleLine(value).replace(/[\\`*_[\]<>&~]/gu, "\\$&");
+
+const code = (value: string): string => {
+  const content = singleLine(value);
+  if (content === "") return "` `";
+  let longestRun = 0;
+  for (const match of content.matchAll(/`+/gu))
+    longestRun = Math.max(longestRun, match[0].length);
+  const delimiter = "`".repeat(longestRun + 1);
+  // Separate a boundary backtick from its delimiter; Markdown removes this
+  // matching pair of padding spaces when rendering the span.
+  const padding = content.startsWith("`") || content.endsWith("`") ? " " : "";
+  return `${delimiter}${padding}${content}${padding}${delimiter}`;
+};
 
 const bounded = <T>(
   items: readonly T[],
@@ -28,7 +37,7 @@ const bounded = <T>(
   const lines = items.slice(0, MAX_MARKDOWN_ITEMS).map(line);
   if (items.length > MAX_MARKDOWN_ITEMS)
     lines.push(
-      `- … ${items.length - MAX_MARKDOWN_ITEMS} more (use \`--format json\` for the full result)`,
+      `- … ${items.length - MAX_MARKDOWN_ITEMS} more (use \`--format json\` for all returned records)`,
     );
   return lines;
 };
@@ -46,10 +55,10 @@ const evidenceSuffix = (
 };
 
 const nodeLine = (node: GraphNode): string =>
-  `- ${code(node.id)} ${escapeHtml(node.kind)}${node.location ? ` at ${code(`${node.location.path}:${node.location.line}`)}` : ""}`;
+  `- ${code(node.id)} ${markdownText(node.kind)}${node.location ? ` at ${code(`${node.location.path}:${node.location.line}`)}` : ""}`;
 
 const edgeLine = (edge: GraphEdge | ArchitectureQueryEdge): string =>
-  `- ${code(edge.from)} ${escapeHtml(edge.kind)} ${code(edge.to)}${evidenceSuffix(edge)}`;
+  `- ${code(edge.from)} ${markdownText(edge.kind)} ${code(edge.to)}${evidenceSuffix(edge)}`;
 
 const diagnosticLines = (
   diagnostics: readonly {
@@ -67,7 +76,7 @@ const diagnosticLines = (
         ...bounded(
           diagnostics,
           (diagnostic) =>
-            `- ${code(diagnostic.code)} (${escapeHtml(diagnostic.severity)}): ${escapeHtml(diagnostic.message)}`,
+            `- ${code(diagnostic.code)} (${markdownText(diagnostic.severity)}): ${markdownText(diagnostic.message)}`,
         ),
       ];
 
@@ -75,7 +84,7 @@ export function renderArchitectureQueryMarkdown(
   result: ArchitectureQueryResult,
 ): string {
   const lines = [
-    `# CARTOGRAPH query: ${escapeHtml(result.operation)}`,
+    `# CARTOGRAPH query: ${markdownText(result.operation)}`,
     "",
     `Status: ${code(result.status)}${result.truncated ? " (truncated)" : ""}`,
   ];
@@ -104,7 +113,7 @@ export function renderArchitectureQueryMarkdown(
       ...bounded(
         result.boundaries,
         (boundary) =>
-          `- ${escapeHtml(boundary.direction)}: ${edgeLine(boundary.edge).slice(2)}`,
+          `- ${markdownText(boundary.direction)}: ${edgeLine(boundary.edge).slice(2)}`,
       ),
     );
   } else {
@@ -122,7 +131,7 @@ export function renderArchitectureQueryMarkdown(
 
 export function renderGraphQueryMarkdown(result: GraphQueryResult): string {
   const lines = [
-    `# CARTOGRAPH query: ${escapeHtml(result.target)}`,
+    `# CARTOGRAPH query: ${markdownText(result.target)}`,
     "",
     `Status: ${code(result.status)}${result.truncated ? " (truncated)" : ""}`,
   ];
@@ -137,7 +146,7 @@ export function renderGraphQueryMarkdown(result: GraphQueryResult): string {
       ...bounded(
         result.changes,
         (change) =>
-          `- ${escapeHtml(change.kind)} ${code(change.id)}${change.evidencePaths.length > 0 ? ` (${change.evidencePaths.map((path) => code(path)).join(", ")})` : ""}`,
+          `- ${markdownText(change.kind)} ${code(change.id)}${change.evidencePaths.length > 0 ? ` (${change.evidencePaths.map((path) => code(path)).join(", ")})` : ""}`,
       ),
     );
   } else {

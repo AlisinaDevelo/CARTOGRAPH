@@ -73,6 +73,23 @@ repository rather than disabling the boundary. Output paths are created with
 private permissions, reject unsafe symlink paths, and are never overwritten
 without `--force`.
 
+## Query a scan
+
+After scanning, check module import cycles locally:
+
+```sh
+cartograph query --snapshot .cartograph/graph.json --cycles
+cartograph query --snapshot .cartograph/graph.json --cycles --format json
+```
+
+The default output is terminal-readable Markdown. Cycle paths are deterministic
+witnesses, rather than every possible simple cycle. Check `truncated` and
+resource-limit diagnostics before treating any bounded result as complete;
+`--format json` retains the result and its limits for programmatic inspection.
+`--fail-on-match` exits 2 when a successful query finds a match, and query errors
+or exhausted resource ceilings exit 1. Run scans on explicitly authorized
+repositories; the project's regression tests use isolated synthetic inputs.
+
 ## Privacy and unsupported input
 
 Analysis is local and offline: no telemetry, network request, package lifecycle
