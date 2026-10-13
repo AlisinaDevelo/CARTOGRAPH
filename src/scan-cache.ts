@@ -5,6 +5,8 @@ import { createRequire } from "node:module";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { ts } from "ts-morph";
+
 import {
   CAPABILITY_REGISTRY_VERSION,
   DIAGNOSTIC_REGISTRY_VERSION,
@@ -26,7 +28,7 @@ let fingerprint: string | undefined;
 
 /**
  * A digest of the analyzer that is running: every source or build file of
- * this package plus the TypeScript and ts-morph versions it resolved. Output
+ * this package plus ts-morph and its compiler SDK version. Output
  * can change between commits that share a package version, so the version
  * alone is not a safe cache key.
  */
@@ -50,12 +52,9 @@ export const analyzerFingerprint = (): string => {
   };
   visit(packageRoot);
   const require = createRequire(import.meta.url);
-  for (const dependency of ["typescript", "ts-morph"]) {
-    const manifest = require(`${dependency}/package.json`) as {
-      version: string;
-    };
-    hash.update(`${dependency}@${manifest.version}\0`);
-  }
+  const manifest = require("ts-morph/package.json") as { version: string };
+  hash.update(`typescript@${ts.version}\0`);
+  hash.update(`ts-morph@${manifest.version}\0`);
   fingerprint = hash.digest("hex");
   return fingerprint;
 };

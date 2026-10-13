@@ -46,11 +46,45 @@ docker run --rm --network none \
 ```
 
 On Linux without Docker, `sudo unshare --net -- node …` gives the same
-isolation. CI does this on every pull request with
-`scripts/replay-offline-smoke.sh`, which builds a bundle from fixtures and
-replays it inside a network namespace with no interfaces. CARTOGRAPH's source imports no network module and calls no
-`fetch`, and `test/security/offline.test.ts` enforces this. The isolation
-step lets a reviewer confirm it without trusting that claim.
+isolation. Both Ubuntu Node jobs run `scripts/replay-offline-smoke.sh` on
+every pull request. The gate packs the current build, installs it into a fresh
+consumer directory before isolation, then replays synthetic signed and unsigned
+bundles with networking disabled. It requires an isolation command and probes
+an owned loopback listener: an ordinary child must connect, and the isolated
+child must be denied before replay can proceed.
+
+```sh
+npm run build
+REPLAY_ISOLATE='sudo unshare --net --' \
+  scripts/replay-offline-smoke.sh /tmp/cartograph-replay-new
+```
+
+The output directory must be new and outside development checkouts, so Node
+cannot inherit dependencies from an ancestor's `node_modules`. The gate retains
+the isolation probe, each
+bundle, signature, public keyring, replay report and process exit status, plus
+`summary.json` with tool versions, build and harness digests, OS/architecture,
+and measured replay resources. It requires both diff and policy evaluation to
+reproduce, and separately rejects an incorrect public key, an untrusted root,
+changed artifact bytes, and a correctly signed bundle whose policy result does
+not reproduce. Every expected failure must return exit 2 and its declared
+verification or replay failure; an unreplayable artifact cannot pass this gate.
+
+The fixture signer is synthetic. Its ephemeral Ed25519 private key stays in
+producer memory and is never written, given to CARTOGRAPH, or logged. Retained
+signature and public-key files have mode `0600`. Work, consumer, cases and
+per-case directories have mode `0700`; bundle and artifact directories retain
+the published creator's permissions (typically `0755`, subject to the process
+umask) beneath those protected case directories.
+These signatures exercise verification and do not establish a real producer
+identity or independent review.
+
+`REPLAY_ISOLATE` is an executable word list; it does not interpret quoted
+arguments. Use a wrapper or a profile file when an isolation argument contains
+spaces. The required CI isolation gate uses Linux network namespaces; other
+platforms need a separately verified isolation mechanism. CARTOGRAPH's runtime
+source under `src/` imports no network module and calls no `fetch`, and
+`test/security/offline.test.ts` checks that boundary alongside enforced replay.
 
 Use the analyzer version recorded in the manifest (`tool.version`, and
 `provenance.analyzerFingerprint` for the exact build). A different version

@@ -77,6 +77,9 @@ statement`), with one [mapping document](docs/ECOSYSTEM_MAPPINGS.md) for
 
 ### Fixed
 
+- Installed bundle commands fingerprint ts-morph's runtime compiler SDK, so
+  production installs work without the development-only TypeScript package.
+
 - Query path checks reject `..` segments written with backslashes.
 
 ## [0.1.1] - 2026-09-28
